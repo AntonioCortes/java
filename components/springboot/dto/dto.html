@@ -1,0 +1,27 @@
+<h1 class="title">DTO - Data Transfer Object</h1>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@ApiModel(description = "Loyalty DTO")
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class LoyaltyDTO 
+{   
+    @ApiModelProperty(notes = "Store ID", example = "1", required = true)
+    @NotNull(message = ConstantsMessages.FIELD_MANDATORY)
+    @JsonProperty("id_store")
+    private Integer idStore;
+    
+    @ApiModelProperty(notes = "", example = "1", required = true)
+    @NotNull(message = ConstantsMessages.FIELD_MANDATORY)
+    @JsonProperty("club_c4_coupon")
+    private Short clubC4Coupon;
+
+    @ApiModelProperty(notes = "Date of end use", example = "1/2/2021", required = false)
+    @JsonFormat(pattern = "dd/MM/yyyy", timezone="Europe/Madrid")
+    @JsonProperty("end_use")
+    private Date endUse;
+}
+</code></pre>	
+</div>

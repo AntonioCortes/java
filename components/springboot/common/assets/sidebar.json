@@ -6,7 +6,33 @@
             "content" : [
                 {
                     "text" : "Introducción",
-                    "content" : "springboot.paths.introduction"
+                    "content" : "springboot.paths.introduccion"
+                }
+            ]
+        },
+        {
+            "text" : "Conceptos avanzados",
+            "contentId" : "advanced",
+            "content" : [
+                {
+                    "text" : "Controlador",
+                    "content" : "springboot.paths.controlador"
+                },
+                {
+                    "text" : "DTO",
+                    "content" : "springboot.paths.dto"
+                },
+                {
+                    "text" : "Servicio",
+                    "content" : "springboot.paths.servicio"
+                },
+                {
+                    "text" : "Repositorio/DAO",
+                    "content" : "springboot.paths.repositorio"
+                },
+                {
+                    "text" : "Entidad",
+                    "content" : "springboot.paths.entidad"
                 }
             ]
         }

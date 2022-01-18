@@ -7,13 +7,33 @@
     },
     "springboot" : {
         "topic" : "Spring Boot",
-        "mainContent" : "introduction",
+        "mainContent" : "introduccion",
         "paths" : {
             "logo" : "components/springboot/common/assets/img/springboot.jpg",
             "sidebar" : "components/springboot/common/assets/sidebar.json",
-            "introduction" : {
-                "basePath" : "components/springboot/introduction",
-                "html" : "introduction.html"
+            "introduccion" : {
+                "basePath" : "components/springboot/introduccion",
+                "html" : "introduccion.html"
+            },
+            "controlador" : {
+                "basePath" : "components/springboot/controlador",
+                "html" : "controlador.html"
+            },
+            "dto" : {
+                "basePath" : "components/springboot/dto",
+                "html" : "dto.html"
+            },
+            "entidad" : {
+                "basePath" : "components/springboot/entidad",
+                "html" : "entidad.html"
+            },
+            "repositorio" : {
+                "basePath" : "components/springboot/repositorio",
+                "html" : "repositorio.html"
+            },
+            "servicio" : {
+                "basePath" : "components/springboot/servicio",
+                "html" : "servicio.html"
             }
         }
     }

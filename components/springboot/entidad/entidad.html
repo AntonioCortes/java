@@ -1,0 +1,26 @@
+<h1 class="title">Entidad</h1>
+
+<div class="center-horizontal">
+<pre class="language-java"><code>
+@Data
+@Accessors(chain = true)
+@Entity
+@Table(name = "cp_loyalty")
+public class Loyalty implements Serializable 
+{
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @NotNull
+    @Column(name = "id_store")
+    private Integer idStore;
+
+    @NotNull
+    @Column(name = "club_c4_coupon")
+    private Short clubC4Coupon;
+
+    @Column(name = "end_use")
+    private Date endUse;
+}
+</code></pre>    
+</div>

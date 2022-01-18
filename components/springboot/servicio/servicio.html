@@ -1,0 +1,36 @@
+<h1 class="title">Servicio</h1>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class LoyaltyServiceImpl implements LoyaltyService 
+{
+    @Autowired
+    LoyaltyKafkaService loyaltyKafkaService;
+    
+    @Autowired
+    LoyaltyRepository loyaltyRepository;
+
+    @Override
+    public Optional< Loyalty> findById(Integer pIdStore) 
+    {
+        return loyaltyRepository.findById(pIdStore);
+    }
+
+    @Override
+    public Loyalty save(Loyalty pLoyalty)
+    {
+        Loyalty loyaltySave = loyaltyRepository.save(pLoyalty);
+        loyaltyKafkaService.sendKafkaMessage(loyaltySave,KafkaAction.INSERT.value);
+        return loyaltySave;
+    } 
+
+    @Override
+    public void delete(Loyalty pLoyalty) 
+    {
+        loyaltyRepository.delete(pLoyalty);
+        loyaltyKafkaService.sendKafkaMessage(pLoyalty,KafkaAction.DELETE.value);
+    }
+}
+</code></pre>	
+</div>
