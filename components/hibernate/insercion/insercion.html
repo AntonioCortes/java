@@ -16,3 +16,91 @@ entitymanager.close();
 emfactory.close();
 </code></pre>
 </div>
+
+<h2>Todo el proceso:</h2>
+
+<h3>Creación del archivo de configuración</h3>
+
+<div class="center-horizontal">
+<pre class="language-xml"><code>
+< ?xml version="1.0" encoding="utf-8"?>
+< !DOCTYPE hibernate-configuration PUBLIC 
+"-//Hibernate/Hibernate Configuration DTD 3.0//EN" 
+"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+< hibernate-configuration>
+    < session-factory>
+        < property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</>
+        < property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hibernatedemo</>
+        < property name="hibernate.connection.password">password</>
+        < property name="hibernate.connection.username">root</>
+        < property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</>
+        < property name="show_sql">true</>
+        < property name="hbm2ddl.auto">create</>
+        < mapping class="hibernate.test.dto.EmployeeEntity"></>
+    < />
+< />
+</code></pre>
+</div>
+
+<h3>Creación de una session factory</h3>
+
+<div class="center-horizontal">
+<pre class="language-java"><code>
+public class HibernateUtil 
+{
+    private static final SessionFactory sessionFactory = buildSessionFactory();
+        
+    private static SessionFactory buildSessionFactory() 
+    {
+        try
+        {
+            // Create the SessionFactory from hibernate.cfg.xml
+            return new AnnotationConfiguration().configure(new File("hibernate.cgf.xml")).buildSessionFactory();
+        }
+        catch (Throwable ex) {
+            // Make sure you log the exception, as it might be swallowed
+            System.err.println("Initial SessionFactory creation failed." + ex);
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
+    
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+    
+    public static void shutdown() {
+        // Close caches and connection pools
+        getSessionFactory().close();
+    }
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo de inserción</h3>
+
+<div class="center-horizontal">
+<pre class="language-java"><code>
+public class TestHibernateInsert 
+{
+
+    public static void main(String[] args) 
+    {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        
+        //Add new Employee object
+        EmployeeEntity emp = new EmployeeEntity();
+        emp.setEmail("lokesh@mail.com");
+        emp.setFirstName("lokesh");
+        emp.setLastName("gupta");
+        
+        //Save the employee in database
+        session.save(emp);
+
+        //Commit the transaction
+        session.getTransaction().commit();
+        HibernateUtil.shutdown();
+    }
+}
+</code></pre>
+</div>
