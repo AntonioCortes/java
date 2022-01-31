@@ -1,0 +1,174 @@
+<h1 class="title">Gradle</h1>
+
+<div class="center-horizontal">
+<pre class="language-groovy"><code>
+buildscript {
+    ext {
+        springBootVersion = '2.1.10.RELEASE'
+    }
+    ext['log4j2.version'] = '2.16.0'
+    repositories { maven { url "$RepositoryUrl" } }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
+    }
+    
+    
+}
+
+plugins {
+    id "java"
+    id "groovy"
+    id "eclipse"
+    id "idea"
+    id "maven-publish"
+    id "io.spring.dependency-management" version "1.0.8.RELEASE"
+        id "org.springframework.boot" version "2.1.10.RELEASE"
+    id "org.sonarqube" version "2.7"
+    id "com.jfrog.artifactory" version "4.7.3"
+    id "com.github.davidmc24.gradle.plugin.avro" version "1.2.0"
+    id "org.flywaydb.flyway" version "7.9.2"
+}
+
+apply from: "gradle/sonar.gradle"
+apply from: "gradle/artifactory.gradle"
+
+apply plugin: 'eclipse'
+apply plugin: 'jacoco'
+apply plugin: 'org.sonarqube'
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.destination = file("${buildDir}/reports/coverage")
+    }
+}
+
+jacoco {
+    applyTo bootRun
+}
+
+processResources {
+    filesMatching('application.yml') {
+        expand(project.properties)
+    }
+}
+
+group = 'com.carrefour'
+
+sourceCompatibility = '1.11'
+targetCompatibility = '1.11'
+
+repositories {
+    mavenCentral()
+    maven { url "$RepositoryUrl"  }
+        flatDir { dirs 'libs' }
+}
+
+ext {
+    set('springCloudVersion', 'Greenwich.RELEASE')
+}
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web-services'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+
+    //Spring Cloud
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix-dashboard'
+    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+
+        //Swagger
+    implementation 'io.springfox:springfox-swagger2:2.9.2'
+    implementation 'io.springfox:springfox-swagger-ui:2.9.2'
+
+    //Logs & metrics
+    implementation 'biz.paluch.logging:logstash-gelf:1.13.0'
+    implementation 'io.micrometer:micrometer-core'
+    implementation 'io.micrometer:micrometer-registry-statsd'
+
+            // GCP
+    implementation 'org.springframework:spring-context'
+    implementation 'com.google.cloud:google-cloud-storage'
+    implementation 'org.springframework.integration:spring-integration-file'
+    implementation 'org.springframework.cloud:spring-cloud-gcp-starter-storage'
+    
+    // Flyway
+    implementation 'org.flywaydb:flyway-core'
+    
+        // Bases de Datos
+    runtime 'org.postgresql:postgresql'
+        testImplementation 'com.h2database:h2'
+
+    implementation 'org.apache.commons:commons-lang3:3.8.1'
+
+    implementation 'org.modelmapper:modelmapper:2.4.4'
+    
+        //KAFKA-SPRING
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.apache.kafka:kafka-clients:2.5.0'
+
+    compile ("io.confluent:kafka-schema-registry:5.0.0"){
+        exclude module: "slf4j-log4j12"
+    }
+    compile ("io.confluent:kafka-schema-registry-client:5.0.0"){
+        exclude module: "slf4j-log4j12"
+    }
+    compile ("io.confluent:kafka-avro-serializer:5.0.0"){
+        exclude module: "slf4j-log4j12"
+    }
+        
+    implementation 'org.apache.avro:avro:1.10.2'
+    
+    // TEST
+    testImplementation 'io.rest-assured:rest-assured:3.3.0'
+    testImplementation 'io.rest-assured:spring-mock-mvc:3.3.0'
+    testImplementation 'org.mockito:mockito-core:2.22.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//    testImplementation 'org.springframework.security:spring-security-test'
+    //   testImplementation 'org.springframework.kafka:spring-kafka-test'
+    
+    // Lombok
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.10'
+        annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+task integrationTest{
+    group 'Welcome'
+    description 'Task para test de integracion'
+
+    doLast {
+        println 'No se han definido test de integracion'
+    }
+}
+
+test {
+    maxHeapSize = "1024m"
+}
+
+
+avro {
+    fieldVisibility = "PRIVATE"
+}
+
+generateAvroJava {
+        source("src/main/resources/avsc")
+}    
+</code></pre>    
+</div>
