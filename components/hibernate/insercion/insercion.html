@@ -1,0 +1,18 @@
+<h1 class="title">Inserción</h1>
+
+<div class="center-horizontal">
+<pre class="language-java"><code>
+EntityManagerFactory emfactory = Persistence.createEntityManagerFactory("Hibernate");
+
+EntityManager entitymanager = emfactory.createEntityManager();
+entitymanager.getTransaction().begin();
+
+Author author = new Author();
+
+entitymanager.persist(author);
+entitymanager.getTransaction().commit();
+
+entitymanager.close();
+emfactory.close();
+</code></pre>
+</div>

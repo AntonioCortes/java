@@ -40,5 +40,17 @@
                 "html" : "gradle.html"
             }
         }
+    },
+    "hibernate" : {
+        "topic" : "Hibernate",
+        "mainContent" : "insercion",
+        "paths" : {
+            "logo" : "components/hibernate/common/assets/img/hibernate.png",
+            "sidebar" : "components/hibernate/common/assets/sidebar.json",
+            "insercion" : {
+                "basePath" : "components/hibernate/insercion",
+                "html" : "insercion.html"
+            }
+        }
     }
 }
