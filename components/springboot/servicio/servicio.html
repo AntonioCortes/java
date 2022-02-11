@@ -34,3 +34,155 @@ public class LoyaltyServiceImpl implements LoyaltyService
 }
 </code></pre>	
 </div>
+
+<h2>Ejemplo de servicio para llamar a otro microservicio</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class StoreServiceImpl implements StoreService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StoreServiceImpl.class);
+
+    private static final String ERROR_REST_SERVICE_STORES_MSG = "Error calling stores service";
+    
+    private static final String ERROR_REST_SERVICE_STORES_LOG_MSG = "Error calling store: {}, status code {}, body {}";
+    
+    private static final String ERROR_REST_SERVICE_STORES_LOG_EXCEPTION = "Error calling store: {}, error {}";
+    
+    private static final String SLASH = "/";
+    
+    private static final String QUESTION = "?";
+    
+    private static final String EQUALS = "=";
+    
+    private static final String FIND = "find";
+
+    @Autowired
+    CommunicationConfiguration commConfig;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private String makeStoreURL(String pRegion, String pProvince, String pBusiness,
+            String pStoreType) {
+        URIBuilder url = new URIBuilder();
+        try {
+            url = new URIBuilder(commConfig.getStoresUrl());
+            if (StringUtils.isNotBlank(pRegion)) {
+                url.addParameter(Constants.REGION_PARAM, pRegion);
+            }
+            if (StringUtils.isNotBlank(pProvince)) {
+                url.addParameter(Constants.PROVINCE_PARAM, pProvince);
+            }
+            if (StringUtils.isNotBlank(pBusiness)) {
+                url.addParameter(Constants.BUSINESS_PARAM, pBusiness);
+            }
+            if (StringUtils.isNotBlank(pStoreType)) {
+                url.addParameter(Constants.STORE_TYPE_PARAM, pStoreType);
+            }
+            return url.build().toString();
+        } catch (URISyntaxException e) {
+            LOGGER.error("URL {}, error:{}", commConfig.getStoresUrl(), e);
+        }
+        return null;
+
+    }
+
+    private String makeStoreURL(Integer pStoreId) {
+        StringBuilder url = new StringBuilder(commConfig.getStoresUrl());
+        url.append(SLASH);
+        url.append(pStoreId);
+        return url.toString();
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public String getStoreWerks(Integer idStore) {
+        String storesMicroServiceURL = makeStoreURL(idStore);
+
+        try {
+            ResponseEntity< LinkedHashMap> storeResponse = restTemplate.getForEntity(storesMicroServiceURL, LinkedHashMap.class);
+            if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
+                LinkedHashMap< Object, Object> store = (LinkedHashMap< Object, Object>) storeResponse.getBody();
+                return (String) store.get(Constants.WERKS);
+            } else {
+                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,	storeResponse.getStatusCode(), storeResponse.getBody());
+                throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG);
+            }
+        } catch (RestClientException e) {
+            LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_EXCEPTION, storesMicroServiceURL, e);
+            throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG, e);
+        }
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Override
+    public List< Integer> getStoreIds(String pRegion, String pProvince, String pBusiness,
+            String pStoreType) {
+        String storesMicroServiceURL = makeStoreURL(pRegion, pProvince, pBusiness, pStoreType);
+        try {
+            ResponseEntity< List> storeResponse = restTemplate.getForEntity(storesMicroServiceURL,List.class);
+            if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
+
+                return processResponse(storeResponse.getBody());
+            } else {
+                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,
+                        storeResponse.getStatusCode(), storeResponse.getBody());
+                throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG);
+            }
+        } catch (RestClientException e) {
+            LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_EXCEPTION, storesMicroServiceURL, e);
+            throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG, e);
+        }
+
+    }
+
+    private List< Integer> processResponse(List< LinkedHashMap< Object, Object>> pResponse) {
+        List< LinkedHashMap< Object, Object>> remoteStoreList = pResponse;
+        List< Integer> remoteStoreIdList = new ArrayList<>();
+
+        if (remoteStoreList != null) {
+            Integer idStore;
+            for (LinkedHashMap< Object, Object> store : remoteStoreList) {
+                idStore = (Integer) store.get(Constants.ID_STORE);
+                remoteStoreIdList.add(idStore);
+            }
+        }
+
+        return remoteStoreIdList;
+    }
+    
+    private String makeFindStoreURL(String werks) {
+        StringBuilder url = new StringBuilder(commConfig.getStoresUrl());
+        url.append(SLASH);
+        url.append(FIND);
+        url.append(QUESTION);
+        url.append(Constants.WERKS);
+        url.append(EQUALS);
+        url.append(werks);
+        return url.toString();
+    }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public Integer getStoreId(String werks) {
+        String storesMicroServiceURL = makeFindStoreURL(werks);
+
+        try {
+            ResponseEntity< LinkedHashMap> storeResponse = restTemplate.getForEntity(storesMicroServiceURL, LinkedHashMap.class);
+            if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
+                LinkedHashMap< Object, Object> store = (LinkedHashMap< Object, Object>) storeResponse.getBody();
+                return (Integer) store.get(Constants.ID_STORE);
+            } else {
+                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,	storeResponse.getStatusCode(), storeResponse.getBody());
+                throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG);
+            }
+        } catch (RestClientException e) {
+            LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_EXCEPTION, storesMicroServiceURL, e);
+            throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG, e);
+        }
+    }
+}
+</code></pre>	
+</div>

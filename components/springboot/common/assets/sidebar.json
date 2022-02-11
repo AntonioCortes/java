@@ -33,10 +33,6 @@
                 {
                     "text" : "Entidad",
                     "content" : "springboot.paths.entidad"
-                },
-                {
-                    "text" : "Gradle",
-                    "content" : "springboot.paths.gradle"
                 }
             ]
         }
