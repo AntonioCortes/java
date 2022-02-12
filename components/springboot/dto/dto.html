@@ -22,6 +22,12 @@ public class LoyaltyDTO
     @JsonFormat(pattern = "dd/MM/yyyy", timezone="Europe/Madrid")
     @JsonProperty("end_use")
     private Date endUse;
+
+    @ApiModelProperty(notes = "Logo Media Type", example = "image/jpeg", required = true, allowEmptyValue = false, allowableValues = "image/jpeg, image/jpg, image/gif")
+    @NotBlank(message = "Param is mandatory")
+    @Pattern(regexp = "^(image/jpeg|image/jpg|image/gif)$")
+    @JsonProperty("media_type")
+    private String mediaType;
 }
 </code></pre>	
 </div>

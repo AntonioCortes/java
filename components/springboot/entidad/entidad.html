@@ -24,3 +24,148 @@ public class Loyalty implements Serializable
 }
 </code></pre>    
 </div>
+
+<h2>Ejemplo entidades relacionadas entre si</h2>
+
+<img class="center-horizontal" src="components/springboot/entidad/assets/img/bbdd.png"/>
+<span class="center-horizontal caption">Base de datos de ejemplo</span>
+
+<h3>Tabla call</h3>
+
+<div class="center-horizontal">
+<pre class="language-java"><code>
+@Entity
+@Table(name = "call")
+@Data
+@Accessors(chain = true)
+public class Call implements Serializable
+{
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private Integer id;
+
+    @OneToOne
+    @JoinColumn(name = "row_id")
+    private Row row;
+
+    @Column(name = "duration")
+    private Integer duration;
+
+    @Column(name = "status_code")
+    private String statusCode;
+
+    @Column(name = "status_description")
+    private String statusDescription;
+}
+</code></pre>    
+</div>
+
+<h3>Tabla message</h3>
+
+<div class="center-horizontal">
+<pre class="language-java"><code>
+@Entity
+@Table(name = "message")
+@Data
+@Accessors(chain = true)
+public class Message implements Serializable
+{
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private Integer id;
+
+    @OneToOne
+    @JoinColumn(name = "row_id")
+    private Row row;
+
+    @Column(name = "message_content")
+    private String messageContent;
+
+    @Column(name = "message_status")
+    private String messageStatus;
+}
+</code></pre>    
+</div>
+
+<h3>Tabla json_row</h3>
+
+<div class="center-horizontal">
+<pre class="language-java"><code>
+@Entity
+@Table(name = "json_row")
+@Data
+@Accessors(chain = true)
+public class Row implements Serializable
+{
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "json_id")
+    private ProcessedJSON processedJSON;
+
+    @Column(name = "message_type")
+    private String messageType;
+
+    @Column(name = "timestamp")
+    private Timestamp timestamp;
+
+    @Column(name = "origin")
+    private String origin;
+
+    @Column(name = "destination")
+    private String destination;
+
+    @Column(name = "missing_fields")
+    private Boolean missingFields;
+
+    @Column(name = "fields_errors")
+    private Boolean fieldsErrors;
+
+    @OneToOne(mappedBy = "row", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Call call;
+
+    @OneToOne(mappedBy = "row", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Message message;
+}
+</code></pre>    
+</div>
+
+<h3>Tabla processed_json</h3>
+
+<div class="center-horizontal">
+<pre class="language-java"><code>
+@Entity
+@Table(name = "processed_json")
+@Data
+@Accessors(chain = true)
+public class ProcessedJSON implements Serializable
+{
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "date")
+    private String date;
+
+    @Column(name = "process_duration")
+    private Long processDuration;
+
+    @OneToMany(mappedBy = "processedJSON", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Row> rowList;
+}
+</code></pre>    
+</div>

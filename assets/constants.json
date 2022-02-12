@@ -48,5 +48,17 @@
                 "html" : "insercion.html"
             }
         }
+    },
+    "gradle" : {
+        "topic" : "Gradle",
+        "mainContent" : "ejemplo",
+        "paths" : {
+            "logo" : "components/gradle/common/assets/img/gradle.svg",
+            "sidebar" : "components/gradle/common/assets/sidebar.json",
+            "ejemplo" : {
+                "basePath" : "components/gradle/ejemplo",
+                "html" : "ejemplo.html"   
+            }
+        }
     }
 }

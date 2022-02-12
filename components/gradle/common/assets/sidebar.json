@@ -1,0 +1,20 @@
+{
+    "pageContent" : [
+        {
+            "text" : "Conceptos Básicos",
+            "contentId" : "basics",
+            "content" : [
+                {
+                    "text" : "Ejemplo",
+                    "content" : "gradle.paths.ejemplo"
+                }
+            ]
+        }
+    ],
+    "links" : [
+        {
+            "text" : "Página Oficial",
+            "href" : "https://gradle.org/"
+        }
+    ]
+}

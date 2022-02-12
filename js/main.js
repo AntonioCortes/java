@@ -43,7 +43,6 @@ function changeContent(contentKey)
 	{
 		$('[data-bs-toggle="tooltip"]').tooltip();  
 		addCodeLineNumbers();
-		//escapeCodeBlocks();
 
 		setTimeout(function () 
 		{
@@ -85,16 +84,6 @@ function addCodeLineNumbers()
 		this.parentElement.insertBefore(div, this);
 	});
 }
-
-function escapeCodeBlocks() 
-{
-	S.each($('code'), function() 
-	{
-		this.html = $(this).html()
-					.replace(/</g, "&lt;")
-					.replace(/>/g, "&gt;");
-	});     
- }
 
 function changeView(viewKey) 
 {
