@@ -1,33 +1,82 @@
 <h1 class="title">DTO - Data Transfer Object</h1>
 
+<h2>PetDTO</h2>
+
 <div class="center-horizontal">
 <pre><code class="language-java">
 @ApiModel(description = "Pet DTO")
 @Data
+@Accessors(chain = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PetDTO 
 {   
-    @ApiModelProperty(notes = "Store ID", example = "1", required = true)
-    @NotNull(message = ConstantsMessages.FIELD_MANDATORY)
-    @JsonProperty("id_store")
-    private Integer idStore;
+    @ApiModelProperty(notes = "Pet ID", example = "1", required = true)
+    @NotNull(message = ConstantMessages.FIELD_MANDATORY)
+    @JsonProperty("id")
+    private Integer id;
+
+    @ApiModelProperty(notes = "Pet Name", example = "Joe", required = true)
+    @NotBlank(message = ConstantMessages.FIELD_MANDATORY)
+    @JsonProperty("name")
+    private String name;
     
-    @ApiModelProperty(notes = "", example = "1", required = true)
-    @NotNull(message = ConstantsMessages.FIELD_MANDATORY)
-    @JsonProperty("club_c4_coupon")
-    private Short clubC4Coupon;
+    @ApiModelProperty(notes = "Pet age", example = "1", required = true)
+    @NotNull(message = ConstantMessages.FIELD_MANDATORY)
+    @JsonProperty("age")
+    private Short age;
 
-    @ApiModelProperty(notes = "Date of end use", example = "1/2/2021", required = false)
+    @ApiModelProperty(notes = "Date of birth", example = "1/2/2021", required = false)
     @JsonFormat(pattern = "dd/MM/yyyy", timezone="Europe/Madrid")
-    @JsonProperty("end_use")
-    private Date endUse;
+    @JsonProperty("birthDate")
+    private Date birthDate;
 
-    @ApiModelProperty(notes = "Logo Media Type", example = "image/jpeg", required = true, allowEmptyValue = false, allowableValues = "image/jpeg, image/jpg, image/gif")
-    @NotBlank(message = "Param is mandatory")
+    @ApiModelProperty(notes = "Picture of the pet in base64", example = "RxxsAre45fdsSef==", required = true)
+    @NotNull(message = ConstantMessages.FIELD_MANDATORY)
+    @JsonProperty("picture")
+    private byte[] picture;
+
+    @ApiModelProperty(notes = "Picture media type", example = "image/jpeg", required = true, allowEmptyValue = false, allowableValues = "image/jpeg, image/jpg, image/gif")
+    @NotBlank(message = ConstantMessages.FIELD_MANDATORY)
     @Pattern(regexp = "^(image/jpeg|image/jpg|image/gif)$")
-    @JsonProperty("media_type")
-    private String mediaType;
+    @JsonProperty("pictureMediaType")
+    private String pictureMediaType;
+}
+</code></pre>	
+</div>
+
+<h2>PetPatchDTO</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@ApiModel(description = "Pet DTO for patch method")
+@Data
+@Accessors(chain = true)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class PetPatchDTO 
+{   
+    @ApiModelProperty(notes = "Pet Name", example = "Joe", required = true)
+    @JsonProperty("name")
+    private String name;
+    
+    @ApiModelProperty(notes = "Pet age", example = "1", required = true)
+    @JsonProperty("age")
+    private Short age;
+
+    @ApiModelProperty(notes = "Date of birth", example = "1/2/2021", required = false)
+    @JsonFormat(pattern = "dd/MM/yyyy", timezone="Europe/Madrid")
+    @JsonProperty("birthDate")
+    private Date birthDate;
+
+    @ApiModelProperty(notes = "Picture of the pet in base64", example = "RxxsAre45fdsSef==", required = true)
+    @JsonProperty("picture")
+    private byte[] picture;
+
+    @ApiModelProperty(notes = "Picture media type", example = "image/jpeg", required = true, allowEmptyValue = false, allowableValues = "image/jpeg, image/jpg, image/gif")
+    @Pattern(regexp = "^(image/jpeg|image/jpg|image/gif)$")
+    @JsonProperty("pictureMediaType")
+    private String pictureMediaType;
 }
 </code></pre>	
 </div>
