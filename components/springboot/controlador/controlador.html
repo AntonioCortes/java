@@ -21,24 +21,31 @@
 
 	<li><b>@Api:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.Api y sirve para documentar lo que hace un controlador y que posteriormente se muestre en el Swagger ui si el proyecto está correctamente configurado para ello</li>
 
+	<li><b>@ApiOperation:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiOperation y sirve para documentar lo que hace cada endpoint (cada método del controlador) y que posteriormente se muestre en la Swagger ui si el proyecto está correctamente configurado para ello.</li>
+
 	<li><b>@ApiResponses:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponses y sirve para documentar las posibles respuestas que puede devolver un controlador o un método del controlador. Cada posible respuesta se definirá mediante la anotación @ApiResponse. <br>
 		Dicha documentación podrá mostrarse posteriormente en Swagger ui.
 	</li>
 
 	<li><b>@ApiResponse:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponse y sirve para especificar como va a ser una respuesta de las que se estén documentando con la anotación @ApiResponses</li>
+
+	<li><b>@ApiParam:</b> Esta anotación pertenece a Springfox Framework, se encuentra en el paquete io.swagger.annotations.ApiParam y sirve para documentar cada uno de los parámetros de cada endpoint (cada método del controlador) y que posteriormente se muestre en la Swagger ui si el proyecto está correctamente configurado para ello.</li>
 </ul>
 
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 @RestController
-@RequestMapping("/stores/attribute")
+@RequestMapping("/petshop/pets")
 @CrossOrigin
-@Api(tags = "Pet Shop")
-@ApiResponses({ @ApiResponse(code = 404, message = "Not found"), 
+@Api(tags = "Pets")
+@ApiResponses({ @ApiResponse(code = 200, message = "OK", response = PetDTO.class),
+		@ApiResponse(code = 201, message = "Created"),
+		@ApiResponse(code = 204, message = "No content")
 		@ApiResponse(code = 400, message = "Bad Request"),
+		@ApiResponse(code = 404, message = "Not found"), 
 		@ApiResponse(code = 500, message = "Internal server error") })
-public class PetShopController 
+public class PetController 
 {
 	//...Controller global attributes
 	//...Controller methods
@@ -50,12 +57,12 @@ public class PetShopController
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-public class PetShopController
+public class PetController
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PetShopController.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(PetController.class);
 
 	@Autowired
-	PetShopService petShopService;
+	PetService petService;
 
 	@Autowired
 	@Qualifier("modelMapper")
@@ -76,19 +83,22 @@ public class PetShopController
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@ApiResponses({ @ApiResponse(code = 200, message = "OK", response = PetShopDTO.class) })
+@ApiOperation(value = "View a pet data", notes = "View a pet data")
+@ApiResponses({ @ApiResponse(code = 200, message = "OK", response = PetDTO.class), 
+		@ApiResponse(code = 404, message = "Not found") })
 @GetMapping("/{id}")
-public ResponseEntity<PetShopDTO> get(@PathVariable(value = "id") @ApiParam(value = "pet shop attribute Id", example = "1", required = true) final Integer id) 
+public ResponseEntity< PetDTO> get(@PathVariable(value = "id") @ApiParam(value = "pet Id", example = "1", required = true) final Integer pId) 
 {
-	Optional< PetShop> petShop = petShopService.findById(id);
-	if (petShop.isEmpty()) 
+	Optional< Pet> pet = petService.findById(pId);
+	if(pet.isEmpty()) 
 	{
+		LOGGER.error("Pet {} not found", pId);
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
-	PetShopDTO petShopDTO = mapper.map(petShop.get(), PetShopDTO.class);
-	LOGGER.debug("Getting pet shop Attributes {}", PetShopDTO);
+	PetDTO petDTO = mapper.map(pet.get(), PetDTO.class);
+	LOGGER.debug("Getting pet {}", petDTO);
 
-	return new ResponseEntity<>(PetShopDTO, HttpStatus.OK);
+	return new ResponseEntity<>(petDTO, HttpStatus.OK);
 }
 </code></pre>	
 </div>
@@ -97,22 +107,25 @@ public ResponseEntity<PetShopDTO> get(@PathVariable(value = "id") @ApiParam(valu
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@ApiResponses({ @ApiResponse(code = 204, message = "No content") })
+@ApiOperation(value = "Update a pet", notes = "Update a pet")
+@ApiResponses({ @ApiResponse(code = 204, message = "No content"),
+		@ApiResponse(code = 404, message = "Not found") })
 @PatchMapping("/{id}")
 public ResponseEntity< HttpStatus> patch(
-		@PathVariable(value = "id") @ApiParam(value = "pet shop Id", example = "1", required = true) final Integer id,
-		@Valid @RequestBody PetShopPatchDTO petShopDTO) 
+		@PathVariable(value = "id") @ApiParam(value = "Pet id", example = "1", required = true) final Integer pId,
+		@Valid @RequestBody final PetPatchDTO pPetPatchDTO) 
 {
 
-	Optional< PetShop> petShop = petShopService.findById(id);
-	if (petShop.isEmpty()) 
+	Optional< Pet> pet = petService.findById(pId);
+	if (pet.isEmpty()) 
 	{
+		LOGGER.error("Pet {} not found", pId);
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
-	patchMapper.map(petShopDTO, petShop.get());
+	patchMapper.map(pPetPatchDTO, pet.get());
 
-	petShopService.save(petShop.get());
+	petService.save(pet.get());
 
 	URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri();
 
@@ -128,23 +141,23 @@ public ResponseEntity< HttpStatus> patch(
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@ApiOperation(value = "post pet shop", notes = "Post pet shop")
+@ApiOperation(value = "Add a new pet", notes = "Add a new pet")
+@ApiResponses({ @ApiResponse(code = 201, message = "Created") })
 @PostMapping
-@ApiResponses({ @ApiResponse(code = 201, message = "No content")})
-public ResponseEntity< Object> post(@RequestBody @Valid final PetShopDTO pPetShopDTO) {
-
-	Optional< PetShop> petShopOp = petShopService.findById(pPetShopDTO.getId());
-	if(petShopOp.isPresent())
+public ResponseEntity< Object> post(@RequestBody @Valid final PetDTO pPetDTO) 
+{
+	Optional< Pet> petOp = petService.findById(pPetDTO.getId());
+	if(petOp.isPresent())
 	{
-		LOGGER.error(ConstantMessages.POST, ConstantMessages.PET_SHOP, pPetShopDTO.getId(), ConstantMessages.ERROR_ALREADY_EXISTS);
+		LOGGER.error("Pet {} already exists", pPetDTO.getId());
 		throw new UniqueConstraintException(ConstantMessages.ERROR_ALREADY_EXISTS);
 	}
 	
-	PetShop petShop = mapper.map(pPetShopDTO, PetShop.class);
-	petShop = petShopService.save(petShop);
-	LOGGER.debug(ConstantMessages.POST, ConstantMessages.PET_SHOP, petShop.getId(), ConstantMessages.OK);
+	Pet pet = mapper.map(pPetDTO, Pet.class);
+	pet = petService.save(pet);
+	LOGGER.debug("Pet whith id {} saved correctly", pet.getId());
 		
-	URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().pathSegment(String.format("%s", petShop.getId())).build().toUri();
+	URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().pathSegment(String.format("%s", pet.getId())).build().toUri();
 	HttpHeaders headers = new HttpHeaders();
 	headers.setLocation(uri);
 
@@ -157,24 +170,24 @@ public ResponseEntity< Object> post(@RequestBody @Valid final PetShopDTO pPetSho
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@ApiOperation(value = "Delete pet shop", notes = "Delete pet shop")
+@ApiOperation(value = "Delete a pet", notes = "Delete a pet")
 @ApiResponses({ @ApiResponse(code = 204, message = "No content"), 
 		@ApiResponse(code = 404, message = "Not found") })
 @DeleteMapping("/{id}")
-public ResponseEntity< HttpStatus> delete(@PathVariable(value = "id") @ApiParam(value = "pet shop Id", example = "1", required = true) final Integer id)
+public ResponseEntity< HttpStatus> delete(@PathVariable(value = "id") @ApiParam(value = "Pet id", example = "1", required = true) final Integer pId)
 {		
-	Optional< PetShop> petShop = petShopService.findById(id);
+	Optional< Pet> pet = petService.findById(pId);
 	
-	if(petShop.isPresent())
-	{
-		LOGGER.debug(ConstantMessages.DELETE, ConstantMessages.PET_SHOP, id, ConstantMessages.OK);
-		petShopService.delete(petShop.get());
+	if(pet.isPresent())
+	{		
+		petService.delete(pet.get());
+		LOGGER.debug("Pet with id {} deleted correctly", pId);
 
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);	
 	}
 	else
 	{
-		LOGGER.error(ConstantMessages.DELETE, ConstantMessages.PET_SHOP, id, ConstantMessages.ERROR_NOT_EXISTS);
+		LOGGER.error("Pet with id {} don't exists", pId);
 
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);	
 	}
