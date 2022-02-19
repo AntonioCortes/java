@@ -1,5 +1,17 @@
 <h1 class="title">DTO - Data Transfer Object</h1>
 
+<p>Para definir un DTO basta con crear un bean (clase básica con atributos, getters y setters), esta clase se utilizará para crear un JSON y enviarlo como respuesta en el controlador o para mapear los datos en el DTO al recibir un JSON en el controlador.</p>
+<p>Los atributos del JSON tendrán los mismos nombres que los atributos de la clase de manera predefinida, en caso de que se quiera que los nombres de los atributos del JSON sean distinos a los de la clase, se debe usar la anotación @JsonProperty de la librería Jackson.</p>
+<p>La librería Jackson proporciona anotaciones que permiten modificar características del JSON al que representa la clase.</p>
+<p>Para hacer mas legible la clase puede utilizar la librería Lombok que proporciona anotaciones para crear constructores, getters y setters entre otras cosas.</p>
+<p>Para la documentación se pueden usar anotaciones de Swagger con la librería Springfox</p>
+
+<h2>Anotaciones de Jackson</h2>
+
+<h2>Anotaciones de Swagger</h2>
+
+<h2>Anotaciones de Lombok</h2>
+
 <h2>PetDTO</h2>
 
 <div class="center-horizontal">
@@ -13,12 +25,12 @@ public class PetDTO
 {   
     @ApiModelProperty(notes = "Pet ID", example = "1", required = true)
     @NotNull(message = ConstantMessages.FIELD_MANDATORY)
-    @JsonProperty("id")
+    @JsonProperty("petId")
     private Integer id;
 
     @ApiModelProperty(notes = "Pet Name", example = "Joe", required = true)
     @NotBlank(message = ConstantMessages.FIELD_MANDATORY)
-    @JsonProperty("name")
+    @JsonProperty("petName")
     private String name;
     
     @ApiModelProperty(notes = "Pet age", example = "1", required = true)
