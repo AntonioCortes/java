@@ -9,26 +9,67 @@
 <p>La librería Jackson proporciona anotaciones que permiten modificar características del JSON al que representa la clase.</p>
 
 <ul>
-    <li><b>@JsonInclude:</b></li>
+    <li><b>@JsonInclude:</b> Esta anotación pertenece a la librería Jackson y se encuentra dentro del paquete com.fasterxml.jackson.annotation.jsoninclude y sirve para definir que atributos se van a incluir en el JSON final (los que no sean nulos, los que no sean nulos ni sean strings vacios etc.) 
+        esto sirve para crear JSON mas pequeños, por ejemplo en caso de que un atributo no tenga ningun valor asignado en vez de aparecer en el JSON sin ningún valor, directamente no aparecerá. 
+        Esta anotación se puede aplicar a un solo atributo, método o a toda la clase. Para establecer qué atributos se incluirán en el JSON final se hará de la siguiente manera: @JsonInclude(JsonInclude.Include.NON_EMPTY).
+        JsonInclude.Include es un enum que tiene los siguientes valores para incluir los distintos tipos de atributos en el JSON final:
+
+        <ul>
+            <li><b>ALWAYS:</b> Siempre incluye el atributo.</li>
+
+            <li><b>NON_NULL:</b> Solo incluye los atributos que no sean nulos.</li>
+
+            <li><b>NON_ABSENT:</b> Solo incluye atributos "no ausentes", que son atributos con valores no nulos y que además en caso de objetos Optional, AtomicReference etc. tengan dentro el objeto que deben tener, por ejemplo en el caso de un Optional
+                en el que optional.get() sea null, no lo incluiría.</li>
+
+            <li><b>NON_EMPTY:</b> Solo incluye valores no ausentes y no vacíos, se considera vacío a Collections y Maps cuyo método isEmpty() devulve true y Arrays y Strings cuya longitud sea 0.</li>
+
+            <li><b>NON_DEFAULT:</b> Solo incluye atributos con valores que no sean los valores por defecto, por ejemplo para un atributo global de tipo int el valor por defecto es 0, para un boolean es false etc.</li>
+
+            <li><b>CUSTOM:</b> Tiene un filtro customizado para exclusión especificado por JsonInclude.valueFilter().</li>
+
+            <li><b>USE_DEFAULTS:</b> Sirve para especificar que se debe usar el criterio de nivel superior que esté definido, por ejemplo si se tiene un método getAtributo() y el criterio para ese método es USE_DEFAULTS,
+                se mira que criterio se estableció para el atributo, si el atributo por ejemplo tiene un NON_NULL el método usará el criterio NON_NULL, si al atributo no se le ha especificado ningún criterio se mirará el criterio de la clase
+                y se aplicará ese, si no tiene ningún criterio definido, se usará el criterio que tenga ObjectMapper (de la librería Jackson) por defecto.</li>
+        </ul>
+    </li>
 
     <li><b>@JsonIgnoreProperties:</b></li>
 
     <li><b>@JsonProperty:</b></li>
 
     <li><b>@JsonFormat:</b></li>
-
-    <li><b>@JsonProperty:</b></li>
 </ul>
 
 <h2>Anotaciones de Javax Constraints</h2>
+
+<ul>
+    <li><b>@NotNull:</b></li>
+
+    <li><b>@NotBlank:</b></li>
+
+    <li><b>@Pattern:</b></li>
+</ul>
 
 <h2>Anotaciones de Swagger</h2>
 
 <p>Para la documentación se pueden usar anotaciones de Swagger con la librería Springfox</p>
 
+<ul>
+    <li><b>@ApiModel:</b></li>
+
+    <li><b>@ApiModelProperty:</b></li>
+</ul>
+
 <h2>Anotaciones de Lombok</h2>
 
 <p>Para hacer mas legible la clase puede utilizar la librería Lombok que proporciona anotaciones para crear constructores, getters y setters entre otras cosas.</p>
+
+<ul>
+    <li><b>@Data:</b></li>
+
+    <li><b>@Accessors:</b></li>
+</ul>
 
 <h2>PetDTO</h2>
 
