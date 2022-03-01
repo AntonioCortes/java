@@ -1,23 +1,26 @@
 <h1 class="title">Controladores</h1>
 
-<h2>Controlador</h2>
+<h1>Controlador</h1>
 
 <p>Para definir una clase como controlador debe tener una serie de anotaciones que son las siguientes:</p>
 
 <ul>
 	<li><b>@RestController:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RestController y sirve para registrar la clase como controlador, en la dirección indicada en la anotacion @RequestMapping.</li>
-	<li><b>@RequesMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestMapping y sirve para definir la dirección para acceder al controlador.</li>
+	<li><b>@RequestMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestMapping y sirve para definir la dirección para acceder al controlador.</li>
 </ul>
 
 <p>Una vez definidas las anotaciones anteriores la clase ya funcionará como un controlador, adicionalmente se le pueden añadir más anotaciones con distintas funcionalidades como las siguientes:</p>
 
+<h2>Anotaciones propias de Spring Framework</h2>
+
 <ul>
-	<li><b>@CrossOrigin:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.CrossOrigin. <br>
+	<li><b>@CrossOrigin:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.CrossOrigin.<br>
 		Por defecto springboot bloquea los intentos de acceso a los controladores a no ser que se permitan esos accesos específicamente, para permitir dichos accesos se utiliza la anotacion @CrossOrigin. 
 		Si la anotación se pone sobre la definición de una clase se podrá acceder desde cualquier dirección a todos los métodos de la clase, si se coloca sobre un método se podrá acceder desde cualquier dirección a ese método. <br> 
 		También se puede especificar que solo se pueda acceder a un método o a todos los métodos de la clase desde una dirección en concreto (por ejemplo desde la dirección desde donde esté servido el front-end, 
 		de esta manera solo dicho front-end podrá acceder al controlador) especificándolo de la siguiente manera: @CrossOrigin(origin="http://dominio-permitido.com")
 	</li>
+
 </ul>
 
 <h2>Anotaciones para documentación Swagger con la librería SpringFox</h2>
@@ -25,24 +28,22 @@
 <ul>
 	<li><b>@Api:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.Api y sirve para documentar lo que hace un controlador y que posteriormente se muestre en el Swagger ui si el proyecto está correctamente configurado para ello</li>
 
-	<li><b>@ApiOperation:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiOperation y sirve para documentar lo que hace cada endpoint (cada método del controlador) y que posteriormente se muestre en la Swagger ui si el proyecto está correctamente configurado para ello.</li>
-
 	<li><b>@ApiResponses:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponses y sirve para documentar las posibles respuestas que puede devolver un controlador o un método del controlador. Cada posible respuesta se definirá mediante la anotación @ApiResponse. <br>
 		Dicha documentación podrá mostrarse posteriormente en Swagger ui.
 	</li>
 
 	<li><b>@ApiResponse:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponse y sirve para especificar como va a ser una respuesta de las que se estén documentando con la anotación @ApiResponses</li>
-
-	<li><b>@ApiParam:</b> Esta anotación pertenece a Springfox Framework, se encuentra en el paquete io.swagger.annotations.ApiParam y sirve para documentar cada uno de los parámetros de cada endpoint (cada método del controlador) y que posteriormente se muestre en la Swagger ui si el proyecto está correctamente configurado para ello.</li>
 </ul>
+
+<h2>Ejemplo:</h2>
 
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 @RestController
-@RequestMapping("/petshop/pets")
+@RequestMapping("/petshop/pet")
 @CrossOrigin
-@Api(tags = "Pets")
+@Api(tags = "Pet")
 @ApiResponses({ @ApiResponse(code = 200, message = "OK", response = PetDTO.class),
 		@ApiResponse(code = 201, message = "Created"),
 		@ApiResponse(code = 204, message = "No content")
@@ -57,33 +58,155 @@ public class PetController
 </code></pre>	
 </div>
 
-<h2>Atributos globales del controlador</h2>
+<h1>Atributos globales del controlador</h1>
+
+<h2>Anotaciones pertenecientes a Spring Framework</h2>
+
+<ul>
+	<li><b>@Autowired:</b> Esta anotación pertenece a Spring Framework, se encuentra en el paquete org.springframework.beans.factory.annotation.Autowired y sirve para inyectar una dependencia.
+		En Spring algunas clases pueden ser declaradas como Spring Beans utilizando las anotaciones @Component, @Controller, @Service o @Repository entre otras, cuando se arranca una aplicación de Spring,
+		el contenedor de Spring busca las Spring Beans y crea una instancia de ellas como objeto singleton y estas instancias posteriormente se pueden inyectar utilizando la anotación @Autowired.
+		Solo se puede inyectar dependencias dentro de un Spring Bean. <br>
+		Esta anotación se puede utilizar sobre un atributo de la clase, sobre un método o sobre el constructor. Se recomienda hacer la inyección de dependencias mediante constructor en lugar de sobre atributos.
+		A partir de la versión 4.3 de Spring Framework, ya no es necesario utilizar la anotación autowired cuando se inyecta mediante constructor, se hace automáticamente.
+	</li>
+
+	<li><b>@Qualifier:</b> Esta anotación pertenece a Spring Framework, se encuentra en el paquete org.springframework.beans.factory.annotation.Qualifier y sirve especificar qué dependencia se quiere inyectar
+		cuando el tipo de la dependencia es ambiguo y hay dos posibles dependencias a inyectar con el mismo tipo.
+	</li>
+</ul>
+
+<h2>Ejemplo:</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+//...Other annotations
+@RestController
 public class PetController
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PetController.class);
 
 	@Autowired
-	PetService petService;
+	private final PetService petService;
 
 	@Autowired
 	@Qualifier("modelMapper")
-	private ModelMapper mapper;
+	private final ModelMapper mapper;
 
 	@Autowired
 	@Qualifier("patchModelMapper")
-	private ModelMapper patchMapper;
+	private final ModelMapper patchMapper;
 
 	//...Controller methods
 }
 </code></pre>
 </div>
 
-<h2>Métodos del controlador</h2>
+<h1>Métodos del controlador</h1>
+
+<p>Las anotaciones necesarias para los métodos del controlador son las siguientes:</p>
+
+<h2>Anotaciones propias de Spring Framework</h2>
+
+<ul>
+	<li><b>@GetMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.GetMapping y sirve para permitir que se acceda a un método de un controlador 
+		mediante el método GET de http.<br>
+		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
+		Ejemplo: @GetMapping("/ruta/al/recurso/{variable}").<br>	
+	</li>
+
+	<li><b>@PostMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PostMapping y sirve para permitir que se acceda a un método de un controlador 
+		mediante el método POST de http.<br>
+		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
+		Ejemplo: @PostMapping("/ruta/al/recurso/{variable}").<br>
+	</li>
+
+	<li><b>@PutMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PutMapping y sirve para permitir que se acceda a un método de un controlador 
+		mediante el método PUT de http.<br>
+		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
+		Ejemplo: @PutMapping("/ruta/al/recurso/{variable}").<br>
+	</li>
+
+	<li><b>@PatchMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PatchMapping y sirve para permitir que se acceda a un método de un controlador 
+		mediante el método Patch de http.<br>
+		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
+		Ejemplo: @PatchMapping("/ruta/al/recurso/{variable}").<br>
+	</li>
+
+	<li><b>@DeleteMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.DeleteMapping y sirve para permitir que se acceda a un método de un controlador 
+		mediante el método DELETE de http.<br>
+		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
+		Ejemplo: @DeleteMapping("/ruta/al/recurso/{variable}").<br>
+	</li>
+
+	<li><b>@PathVariable:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PathVariable y sirve para recibir una variable de la ruta 
+		de la llamada al método y asignarsela a una variable de java, para hacer esto se debe haber especificado previamente la variable en alguna de las anotaciones de tipo @MetodoMapping anteriores. 
+		Si la variable java se llama igual que la variable de la ruta no hace falta especificar en la anotación cómo se llama la variable, si no se le debe indiciar por parámetro a la anotación. 
+		Ejemplo: 
+		
+		<ul>
+			<li>Anotacion previa: @GetMapping("/ruta/al/recurso/{variable}")</li>
+			<li>Ruta: "/ruta/al/recurso/variable"</li>
+			<li>Anotación: @PathVariable("variable")</li>
+		</ul>
+	</li>
+
+	<li><b>@RequestParam:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestParam y sirve para recibir un parámetro de la ruta
+		de la llamada al método y asignársela a una variable java. Si la variable java se llama igual que el parámetro de la ruta no hace falta especificar en la anotación cómo se llama el parámetro,
+		si no se le debe indiciar por parámetro a la anotación. También se le puede especificar a la anotación si es obligatorio que el parámetro esté en la ruta o no con el parámetro required. 
+		Ejemplo:
+
+		<ul>
+			<li>Ruta: "/ruta/al/recurso?parametro"</li>
+			<li>Anotación: @RequestParam(value = "parametro", required = true)</li>
+		</ul>
+	</li>
+
+	<li><b>@RequestBody:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestBody y sirve para recibir algo del body de la 
+		llamada http y asignárselo a una variable java, típicamente lo que se recibirá será un json y se le asignará a un DTO.
+	</li>
+</ul>
+
+<h2>Anotaciones para validación</h2>
+
+<ul>
+	<li><b>@Valid:</b> Sirve para validar, normalmente se usa para validar el json que se recibe en la llamada, si el json recibido no cumple con las constraints establecidas en el DTO, no se llegará
+		a ejecutar el método y se devolverá una respuesta de error, típicamente un 400 bad request.
+	</li>
+</ul>
+
+<h2>Anotaciones para documentación Swagger con la librería SpringFox</h2>
+
+<ul>
+	<li><b>@ApiOperation:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiOperation y sirve para documentar lo que hace cada endpoint (cada método del controlador) y que posteriormente se muestre en la Swagger ui si el proyecto está correctamente configurado para ello.</li>
+
+	<li><b>@ApiResponses:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponses y sirve para documentar las posibles respuestas que puede devolver un controlador o un método del controlador. Cada posible respuesta se definirá mediante la anotación @ApiResponse. <br>
+		Dicha documentación podrá mostrarse posteriormente en Swagger ui.
+	</li>
+
+	<li><b>@ApiResponse:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponse y sirve para especificar como va a ser una respuesta de las que se estén documentando con la anotación @ApiResponses</li>
+
+	<li><b>@ApiParam:</b> Esta anotación pertenece a Springfox Framework, se encuentra en el paquete io.swagger.annotations.ApiParam y sirve para documentar cada uno de los parámetros de cada endpoint (cada método del controlador) y que posteriormente se muestre en la Swagger ui si el proyecto está correctamente configurado para ello.</li>
+</ul>
 
 <h3>GET</h3>
+
+<p> El método GET se debe utilizar para obtener un recurso, normalmente de una base de datos. La llamada al método se hará a través de una ruta que puede tener unos parámetros, 
+	dicha ruta debe ser representativa del recurso al que se quiere acceder y los parámetros se suelen utilizar para hacer algún tipo de filtro, por ejemplo:
+
+	<ul>
+		<li>Dentro de la tienda de animales se quieren buscar todos los animales que tengan 4 años: El recurso a buscar son todos los animales y el filtro que se quiere aplicar es que la edad sea 4. <br>
+			La ruta será "/petshop/pet/all?age=4".
+		</li>
+
+		<li>
+			Dentro de la tienda de animales se quiere buscar a un animal concreto cuyo id es 15: El recurso a buscar es el animal con id 15.<br>
+			La ruta será "/petshop/pet/15".
+		</li>
+	</ul>
+</p>
+
+<h4>Ejemplo obtener una mascota:</h4>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -100,9 +223,29 @@ public ResponseEntity< PetDTO> get(@PathVariable(value = "id") @ApiParam(value =
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 	PetDTO petDTO = mapper.map(pet.get(), PetDTO.class);
-	LOGGER.debug("Getting pet {}", petDTO);
+	LOGGER.debug("Getting pet with id {}", pId);
 
 	return new ResponseEntity<>(petDTO, HttpStatus.OK);
+}
+</code></pre>	
+</div>
+
+<h4>Ejemplo obtener todas las mascotas con una edad en concreto:</h4>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@ApiOperation(value = "View all pets with a certain age data", notes = "View all pets with a certain age data")
+@ApiResponses({ @ApiResponse(code = 200, message = "OK", response = PetDTO.class, responseContainer = "List") })
+@GetMapping("/all")
+public ResponseEntity< List< PetDTO>> getByAge(@RequestParam(value = "age", required = true) @ApiParam(value = "pet age", example = "1", required = true) final Integer pAge) 
+{
+	List< Pet> petList = petService.findByAge(pAge);
+	final List< PetDTO> petDTOList = new ArrayList<>();
+	
+	petList.foreach( pet -> petDTOList.add(mapper.map(pet, PetDTO.class)) );
+	LOGGER.debug("Getting all pets with age {}", pAge);
+
+	return new ResponseEntity<>(petDTOList, HttpStatus.OK);
 }
 </code></pre>	
 </div>
