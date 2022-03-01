@@ -11,16 +11,16 @@
             ]
         },
         {
-            "text" : "Conceptos avanzados",
-            "contentId" : "advanced",
+            "text" : "Capas Principales",
+            "contentId" : "mainLayers",
             "content" : [
-                {
-                    "text" : "Controlador",
-                    "content" : "springboot.paths.controlador"
-                },
                 {
                     "text" : "DTO",
                     "content" : "springboot.paths.dto"
+                },
+                {
+                    "text" : "Controlador",
+                    "content" : "springboot.paths.controlador"
                 },
                 {
                     "text" : "Servicio",
