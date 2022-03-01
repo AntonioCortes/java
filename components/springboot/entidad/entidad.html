@@ -165,7 +165,7 @@ public class ProcessedJSON implements Serializable
     private Long processDuration;
 
     @OneToMany(mappedBy = "processedJSON", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Row> rowList;
+    private List<Row> rowList;
 }
 </code></pre>    
 </div>
