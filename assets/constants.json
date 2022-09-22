@@ -60,5 +60,41 @@
                 "html" : "ejemplo.html"   
             }
         }
+    },
+    "librerias" : {
+        "topic" : "Librerias",
+        "mainContent" : "lombok-introduccion",
+        "paths" : {
+            "logo" : "components/librerias/common/assets/img/SimpleBook.svg",
+            "sidebar" : "components/librerias/common/assets/sidebar.json",
+            "lombok-introduccion" : {
+                "basePath" : "components/librerias/lombok/introduccion",
+                "html" : "introduccion.html"   
+            },
+            "lombok-constructor" : {
+                "basePath" : "components/librerias/lombok/anotaciones/constructor",
+                "html" : "constructor.html" 
+            },
+            "lombok-getter-setter" : {
+                "basePath" : "components/librerias/lombok/anotaciones/getter-setter",
+                "html" : "getter-setter.html" 
+            },
+            "lombok-accessors" : {
+                "basePath" : "components/librerias/lombok/anotaciones/accessors",
+                "html" : "accessors.html" 
+            },
+            "lombok-tostring" : {
+                "basePath" : "components/librerias/lombok/anotaciones/tostring",
+                "html" : "tostring.html" 
+            },
+            "lombok-data" : {
+                "basePath" : "components/librerias/lombok/anotaciones/data",
+                "html" : "data.html" 
+            },
+            "lombok-log" : {
+                "basePath" : "components/librerias/lombok/anotaciones/log",
+                "html" : "log.html" 
+            }
+        }
     }
 }
