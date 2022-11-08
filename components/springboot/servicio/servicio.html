@@ -8,33 +8,33 @@
 <div class="center-horizontal">
 <pre><code class="language-java">
 @Service
-public class LoyaltyServiceImpl implements LoyaltyService 
+public class PetServiceImpl implements PetService 
 {
     @Autowired
-    LoyaltyKafkaService loyaltyKafkaService;
+    PetKafkaService petKafkaService;
     
     @Autowired
-    LoyaltyRepository loyaltyRepository;
+    PetRepository petRepository;
 
     @Override
-    public Optional< Loyalty> findById(Integer pIdStore) 
+    public Optional< Pet> findById(Integer pId) 
     {
-        return loyaltyRepository.findById(pIdStore);
+        return petRepository.findById(pId);
     }
 
     @Override
-    public Loyalty save(Loyalty pLoyalty)
+    public Pet save(Pet pPet)
     {
-        Loyalty loyaltySave = loyaltyRepository.save(pLoyalty);
-        loyaltyKafkaService.sendKafkaMessage(loyaltySave,KafkaAction.INSERT.value);
-        return loyaltySave;
+        Pet savedPet = petRepository.save(pPet);
+        petKafkaService.sendKafkaMessage(savedPet,KafkaAction.INSERT.value);
+        return savedPet;
     } 
 
     @Override
-    public void delete(Loyalty pLoyalty) 
+    public void delete(Pet pPet) 
     {
-        loyaltyRepository.delete(pLoyalty);
-        loyaltyKafkaService.sendKafkaMessage(pLoyalty,KafkaAction.DELETE.value);
+        PetRepository.delete(pPet);
+        PetKafkaService.sendKafkaMessage(pPet, KafkaAction.DELETE.value);
     }
 }
 </code></pre>	

@@ -192,7 +192,7 @@ public class PetController
 <h3>GET</h3>
 
 <p> El método GET se debe utilizar para obtener un recurso, normalmente de una base de datos. La llamada al método se hará a través de una ruta que puede tener unos parámetros, 
-	dicha ruta debe ser representativa del recurso al que se quiere acceder y los parámetros se suelen utilizar para hacer algún tipo de filtro, por ejemplo:
+dicha ruta debe ser representativa del recurso al que se quiere acceder y los parámetros se suelen utilizar para hacer algún tipo de filtro, por ejemplo:
 
 	<ul>
 		<li>Dentro de la tienda de animales se quieren buscar todos los animales que tengan 4 años: El recurso a buscar son todos los animales y el filtro que se quiere aplicar es que la edad sea 4. <br>
@@ -239,13 +239,15 @@ public ResponseEntity< PetDTO> get(@PathVariable(value = "id") @ApiParam(value =
 @GetMapping("/all")
 public ResponseEntity< List< PetDTO>> getByAge(@RequestParam(value = "age", required = true) @ApiParam(value = "pet age", example = "1", required = true) final Integer pAge) 
 {
-	List< Pet> petList = petService.findByAge(pAge);
-	final List< PetDTO> petDTOList = new ArrayList<>();
-	
-	petList.foreach( pet -> petDTOList.add(mapper.map(pet, PetDTO.class)) );
 	LOGGER.debug("Getting all pets with age {}", pAge);
 
-	return new ResponseEntity<>(petDTOList, HttpStatus.OK);
+	List< Pet> petList = petService.findByAge(pAge);
+
+	return new ResponseEntity<>(
+		petList.stream()
+			.map(pet -> mapper.map(pet, petDTO.class))
+			.collect(Collector.toList()), 
+		HttpStatus.OK);
 }
 </code></pre>	
 </div>
@@ -334,7 +336,7 @@ public ResponseEntity< HttpStatus> delete(@PathVariable(value = "id") @ApiParam(
 	}
 	else
 	{
-		LOGGER.error("Pet with id {} don't exists", pId);
+		LOGGER.error("Pet with id {} don't exist", pId);
 
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);	
 	}

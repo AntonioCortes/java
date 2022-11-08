@@ -5,22 +5,27 @@
 @Data
 @Accessors(chain = true)
 @Entity
-@Table(name = "cp_loyalty")
-public class Loyalty implements Serializable 
+@Table(name = "pet")
+public class Pet implements Serializable 
 {
     private static final long serialVersionUID = 1L;
 
     @Id
     @NotNull
-    @Column(name = "id_store")
-    private Integer idStore;
+    @Column(name = "id")
+    private Integer id;
 
     @NotNull
-    @Column(name = "club_c4_coupon")
-    private Short clubC4Coupon;
+    @Column(name = "name")
+    private String name;
 
-    @Column(name = "end_use")
-    private Date endUse;
+    @NotNull
+    @Column(name = "age")
+    private Short age;
+
+    @NotNull
+    @Column(name = "birth_date")
+    private Date birthDate;
 }
 </code></pre>    
 </div>
