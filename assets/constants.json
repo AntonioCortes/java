@@ -5,47 +5,95 @@
             "sidebar" : "components/common/sidebar.html"
         }
     },
-    "mainView" : {
-        "topic" : "Main Topic",
-        "mainContent" : "content1",
+    "springboot" : {
+        "topic" : "Spring Boot",
+        "mainContent" : "introduccion",
         "paths" : {
-            "logo" : "components/main-view/common/assets/img/bootstrap.svg",
-            "sidebar" : "components/main-view/common/assets/sidebar.json",
-            "content1" : {
-                "basePath" : "components/main-view/content-1",
-                "html" : "content-1.html",
-                "css" : "content-1.css",
-                "js" : "content-1.js"
+            "logo" : "components/springboot/common/assets/img/springboot.jpg",
+            "sidebar" : "components/springboot/common/assets/sidebar.json",
+            "introduccion" : {
+                "basePath" : "components/springboot/introduccion",
+                "html" : "introduccion.html"
             },
-            "content2" : {
-                "basePath" : "components/main-view/content-2",
-                "html" : "content-2.html",
-                "css" : "content-2.css",
-                "js" : "content-2.js"
+            "controlador" : {
+                "basePath" : "components/springboot/controlador",
+                "html" : "controlador.html"
             },
-            "content3" : {
-                "basePath" : "components/main-view/content-3",
-                "html" : "content-3.html" 
+            "dto" : {
+                "basePath" : "components/springboot/dto",
+                "html" : "dto.html"
             },
-            "content4" : {
-                "basePath" : "components/main-view/content-4",
-                "html" : "content-4.html" 
+            "entidad" : {
+                "basePath" : "components/springboot/entidad",
+                "html" : "entidad.html"
+            },
+            "repositorio" : {
+                "basePath" : "components/springboot/repositorio",
+                "html" : "repositorio.html"
+            },
+            "servicio" : {
+                "basePath" : "components/springboot/servicio",
+                "html" : "servicio.html"
             }
         }
     },
-    "anotherView" : {
-        "topic" : "Another Topic",
-        "mainContent" : "content1",
+    "hibernate" : {
+        "topic" : "Hibernate",
+        "mainContent" : "insercion",
         "paths" : {
-            "logo" : "components/another-view/common/assets/img/bootstrap-4.svg",
-            "sidebar" : "components/another-view/common/assets/sidebar.json",
-            "content1" : {
-                "basePath" : "components/another-view/content-1",
-                "html" : "content-1.html" 
+            "logo" : "components/hibernate/common/assets/img/hibernate.png",
+            "sidebar" : "components/hibernate/common/assets/sidebar.json",
+            "insercion" : {
+                "basePath" : "components/hibernate/insercion",
+                "html" : "insercion.html"
+            }
+        }
+    },
+    "gradle" : {
+        "topic" : "Gradle",
+        "mainContent" : "ejemplo",
+        "paths" : {
+            "logo" : "components/gradle/common/assets/img/gradle.svg",
+            "sidebar" : "components/gradle/common/assets/sidebar.json",
+            "ejemplo" : {
+                "basePath" : "components/gradle/ejemplo",
+                "html" : "ejemplo.html"   
+            }
+        }
+    },
+    "librerias" : {
+        "topic" : "Librerias",
+        "mainContent" : "lombok-introduccion",
+        "paths" : {
+            "logo" : "components/librerias/common/assets/img/SimpleBook.svg",
+            "sidebar" : "components/librerias/common/assets/sidebar.json",
+            "lombok-introduccion" : {
+                "basePath" : "components/librerias/lombok/introduccion",
+                "html" : "introduccion.html"   
             },
-            "content2" : {
-                "basePath" : "components/another-view/content-2",
-                "html" : "content-2.html" 
+            "lombok-constructor" : {
+                "basePath" : "components/librerias/lombok/anotaciones/constructor",
+                "html" : "constructor.html" 
+            },
+            "lombok-getter-setter" : {
+                "basePath" : "components/librerias/lombok/anotaciones/getter-setter",
+                "html" : "getter-setter.html" 
+            },
+            "lombok-accessors" : {
+                "basePath" : "components/librerias/lombok/anotaciones/accessors",
+                "html" : "accessors.html" 
+            },
+            "lombok-tostring" : {
+                "basePath" : "components/librerias/lombok/anotaciones/tostring",
+                "html" : "tostring.html" 
+            },
+            "lombok-data" : {
+                "basePath" : "components/librerias/lombok/anotaciones/data",
+                "html" : "data.html" 
+            },
+            "lombok-log" : {
+                "basePath" : "components/librerias/lombok/anotaciones/log",
+                "html" : "log.html" 
             }
         }
     }

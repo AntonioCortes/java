@@ -1,0 +1,46 @@
+{
+    "pageContent" : [
+        {
+            "text" : "Conceptos Básicos",
+            "contentId" : "basics",
+            "content" : [
+                {
+                    "text" : "Introducción",
+                    "content" : "springboot.paths.introduccion"
+                }
+            ]
+        },
+        {
+            "text" : "Capas Principales",
+            "contentId" : "mainLayers",
+            "content" : [
+                {
+                    "text" : "DTO",
+                    "content" : "springboot.paths.dto"
+                },
+                {
+                    "text" : "Controlador",
+                    "content" : "springboot.paths.controlador"
+                },
+                {
+                    "text" : "Servicio",
+                    "content" : "springboot.paths.servicio"
+                },
+                {
+                    "text" : "Repositorio/DAO",
+                    "content" : "springboot.paths.repositorio"
+                },
+                {
+                    "text" : "Entidad",
+                    "content" : "springboot.paths.entidad"
+                }
+            ]
+        }
+    ],
+    "links" : [
+        {
+            "text" : "Página Oficial",
+            "href" : "https://spring.io/projects/spring-boot#overview"
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+{
+    "pageContent" : [
+        {
+            "text" : "Lombok",
+            "contentId" : "lombok",
+            "content" : [
+                {
+                    "text" : "Introducción",
+                    "content" : "librerias.paths.lombok-introduccion"
+                },
+                {
+                    "text" : "Constructores",
+                    "content" : "librerias.paths.lombok-constructor"
+                },
+                {
+                    "text" : "Getter y Setter",
+                    "content" : "librerias.paths.lombok-getter-setter"
+                },
+                {
+                    "text" : "Accessors",
+                    "content" : "librerias.paths.lombok-accessors"
+                },
+                {
+                    "text" : "ToString",
+                    "content" : "librerias.paths.lombok-tostring"
+                },
+                {
+                    "text" : "Data",
+                    "content" : "librerias.paths.lombok-data"
+                },
+                {
+                    "text" : "Log",
+                    "content" : "librerias.paths.lombok-log"
+                }
+            ]
+        }
+    ],
+    "links" : [
+        {
+            "text" : "Lombok",
+            "href" : "https://projectlombok.org/"
+        }
+    ]
+}

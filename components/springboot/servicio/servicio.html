@@ -1,0 +1,193 @@
+<h1 class="title">Servicio</h1>
+
+<p>La capa de servicio se encargará de conectar con los recursos que estén fuera del microservicio, estos recursos pueden ser por ejemplo una base de datos, otro microservicio, una cola kafka, un bucket en la nube...</p>
+<p>Debe crearse un servicio para cada uno de estos recursos, por ejemplo no es adecuado un servicio que acceda a la base de datos y a la cola kafka si no que deberian ser dos servicios independientes aunque luego por ejemplo un servicio que accede a base de datos use otro servicio para acceder a la cola kafka</p>
+
+<h2>Ejemplo</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class PetServiceImpl implements PetService 
+{
+    @Autowired
+    PetKafkaService petKafkaService;
+    
+    @Autowired
+    PetRepository petRepository;
+
+    @Override
+    public Optional< Pet> findById(Integer pId) 
+    {
+        return petRepository.findById(pId);
+    }
+
+    @Override
+    public Pet save(Pet pPet)
+    {
+        Pet savedPet = petRepository.save(pPet);
+        petKafkaService.sendKafkaMessage(savedPet,KafkaAction.INSERT.value);
+        return savedPet;
+    } 
+
+    @Override
+    public void delete(Pet pPet) 
+    {
+        PetRepository.delete(pPet);
+        PetKafkaService.sendKafkaMessage(pPet, KafkaAction.DELETE.value);
+    }
+}
+</code></pre>	
+</div>
+
+<h2>Ejemplo de servicio para llamar a otro microservicio</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class StoreServiceImpl implements StoreService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StoreServiceImpl.class);
+
+    private static final String ERROR_REST_SERVICE_STORES_MSG = "Error calling stores service";
+    
+    private static final String ERROR_REST_SERVICE_STORES_LOG_MSG = "Error calling store: {}, status code {}, body {}";
+    
+    private static final String ERROR_REST_SERVICE_STORES_LOG_EXCEPTION = "Error calling store: {}, error {}";
+    
+    private static final String SLASH = "/";
+    
+    private static final String QUESTION = "?";
+    
+    private static final String EQUALS = "=";
+    
+    private static final String FIND = "find";
+
+    @Autowired
+    CommunicationConfiguration commConfig;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private String makeStoreURL(String pRegion, String pProvince, String pBusiness,
+            String pStoreType) {
+        URIBuilder url = new URIBuilder();
+        try {
+            url = new URIBuilder(commConfig.getStoresUrl());
+            if (StringUtils.isNotBlank(pRegion)) {
+                url.addParameter(Constants.REGION_PARAM, pRegion);
+            }
+            if (StringUtils.isNotBlank(pProvince)) {
+                url.addParameter(Constants.PROVINCE_PARAM, pProvince);
+            }
+            if (StringUtils.isNotBlank(pBusiness)) {
+                url.addParameter(Constants.BUSINESS_PARAM, pBusiness);
+            }
+            if (StringUtils.isNotBlank(pStoreType)) {
+                url.addParameter(Constants.STORE_TYPE_PARAM, pStoreType);
+            }
+            return url.build().toString();
+        } catch (URISyntaxException e) {
+            LOGGER.error("URL {}, error:{}", commConfig.getStoresUrl(), e);
+        }
+        return null;
+
+    }
+
+    private String makeStoreURL(Integer pStoreId) {
+        StringBuilder url = new StringBuilder(commConfig.getStoresUrl());
+        url.append(SLASH);
+        url.append(pStoreId);
+        return url.toString();
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public String getStoreWerks(Integer idStore) {
+        String storesMicroServiceURL = makeStoreURL(idStore);
+
+        try {
+            ResponseEntity< LinkedHashMap> storeResponse = restTemplate.getForEntity(storesMicroServiceURL, LinkedHashMap.class);
+            if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
+                LinkedHashMap< Object, Object> store = (LinkedHashMap< Object, Object>) storeResponse.getBody();
+                return (String) store.get(Constants.WERKS);
+            } else {
+                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,	storeResponse.getStatusCode(), storeResponse.getBody());
+                throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG);
+            }
+        } catch (RestClientException e) {
+            LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_EXCEPTION, storesMicroServiceURL, e);
+            throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG, e);
+        }
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Override
+    public List< Integer> getStoreIds(String pRegion, String pProvince, String pBusiness,
+            String pStoreType) {
+        String storesMicroServiceURL = makeStoreURL(pRegion, pProvince, pBusiness, pStoreType);
+        try {
+            ResponseEntity< List> storeResponse = restTemplate.getForEntity(storesMicroServiceURL,List.class);
+            if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
+
+                return processResponse(storeResponse.getBody());
+            } else {
+                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,
+                        storeResponse.getStatusCode(), storeResponse.getBody());
+                throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG);
+            }
+        } catch (RestClientException e) {
+            LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_EXCEPTION, storesMicroServiceURL, e);
+            throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG, e);
+        }
+
+    }
+
+    private List< Integer> processResponse(List< LinkedHashMap< Object, Object>> pResponse) {
+        List< LinkedHashMap< Object, Object>> remoteStoreList = pResponse;
+        List< Integer> remoteStoreIdList = new ArrayList<>();
+
+        if (remoteStoreList != null) {
+            Integer idStore;
+            for (LinkedHashMap< Object, Object> store : remoteStoreList) {
+                idStore = (Integer) store.get(Constants.ID_STORE);
+                remoteStoreIdList.add(idStore);
+            }
+        }
+
+        return remoteStoreIdList;
+    }
+    
+    private String makeFindStoreURL(String werks) {
+        StringBuilder url = new StringBuilder(commConfig.getStoresUrl());
+        url.append(SLASH);
+        url.append(FIND);
+        url.append(QUESTION);
+        url.append(Constants.WERKS);
+        url.append(EQUALS);
+        url.append(werks);
+        return url.toString();
+    }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public Integer getStoreId(String werks) {
+        String storesMicroServiceURL = makeFindStoreURL(werks);
+
+        try {
+            ResponseEntity< LinkedHashMap> storeResponse = restTemplate.getForEntity(storesMicroServiceURL, LinkedHashMap.class);
+            if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
+                LinkedHashMap< Object, Object> store = (LinkedHashMap< Object, Object>) storeResponse.getBody();
+                return (Integer) store.get(Constants.ID_STORE);
+            } else {
+                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,	storeResponse.getStatusCode(), storeResponse.getBody());
+                throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG);
+            }
+        } catch (RestClientException e) {
+            LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_EXCEPTION, storesMicroServiceURL, e);
+            throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG, e);
+        }
+    }
+}
+</code></pre>	
+</div>
