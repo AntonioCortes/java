@@ -31,6 +31,10 @@
                 {
                     "text" : "Log",
                     "content" : "librerias.paths.lombok-log"
+                },
+                {
+                    "text" : "Builder",
+                    "content" : "librerias.paths.lombok-builder"
                 }
             ]
         }

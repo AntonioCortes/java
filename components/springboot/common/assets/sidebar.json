@@ -35,6 +35,22 @@
                     "content" : "springboot.paths.entidad"
                 }
             ]
+        },
+        {
+            "text" : "Librerias",
+            "contentId" : "springBootLibraries",
+            "content" : [
+                {
+                    "text" : "Spring Cloud",
+                    "contentId" : "springCloud",
+                    "content" : [
+                        {
+                            "text" : "Introducción",
+                            "content" : "springboot.paths.introduccionSpringCloud"
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "links" : [

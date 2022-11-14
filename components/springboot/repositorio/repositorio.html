@@ -6,3 +6,214 @@
 public interface PetRepository extends JpaRepository< Pet, Integer>{}
 </code></pre>    
 </div>
+
+<h2>Ejemplos de consultas declaradas:</h2>
+
+<div class="center-horizontal">
+    <pre class="language-java"><code>
+        @Repository
+        public interface ProductoRepository extends JpaRepository<Producto, Integer> {
+            
+            @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.precio >= (:precioMenor) AND p.precio <= (:precioMayor)")
+            public List<Producto> getPrecioRango(@Param("precioMenor") Integer precioMenor, @Param("precioMayor") Integer precioMayor);
+            public List<Producto> findByPrecioBetween(Integer precioMenor, Integer precioMayor);
+            
+            @Query("SELECT p FROM com.thecompany.entities.Producto p")
+            public List<Producto> getAllProductos();
+            
+            @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.activo = (:activo)")
+            public List<Producto> getAllProductosActivos(@Param("activo") Boolean activo);
+            
+            @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.vendedor = (:vendedor)")
+            public List<Producto> getProductosVendedor(@Param("vendedor") String vendedor);
+            
+            @Query("SELECT p FROM com.thecompany.entities.Producto p ORDER BY p.precio")
+            public List<Producto> getDatosOrdenados();
+            
+            @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.id = (:id) AND p.precio = (:precio)")
+            public List<Producto> getDatosPosicionales(@Param("id") Integer id, @Param("precio") Integer precio);
+            
+            
+        }
+    </code></pre>    
+</div>
+
+<h2>Derived Query methods:</h2>
+<p>La consulta debe comenzar por:</p>
+<ul>
+	<li>
+        <b>find</b>...By puede no devolver ningún resultado.
+	</li>
+    <li>
+        <b>get</b>...By siempre debe devolver algo o dará Excepción.
+	</li>
+    <li>
+        <b>read</b>...By
+	</li>
+    <li>
+        <b>query</b>...By
+	</li>
+    <li>
+        <b>count</b>...By
+	</li>
+</ul>
+<p><b>By</b> es el delimitador para definir los criterios</p>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Super Table of the Query Methods</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Keyword</th>
+            <th>Sample</th>
+            <th>JPQL snippet (Java Persistence Query Language)</th>
+        </tr>
+        <tr>
+            <td>And</td>
+            <td>findByLastnameAndFirstname</td>
+            <td>where x.lastname = ?1 and x.firstname = ?2</td>
+        </tr>
+        <tr>
+            <td>Or</td>
+            <td>findByLastnameOrFirstname</td>
+            <td>where x.lastname = ?1 or x.firstname = ?2</td>
+        </tr>
+        <tr>
+            <td>Is,Equals</td>
+            <td>findByFirstname,findByFirstnameIs,findByFirstnameEquals</td>
+            <td>where x.firstname = ?1</td>
+        </tr>
+        <tr>
+            <td>Between</td>
+            <td>findBystartDateBetween</td>
+            <td>where x.startDate between ?1 and ?2</td>
+        </tr>
+        <tr>
+            <td>LessThan</td>
+            <td>findByAgeLessThan</td>
+            <td>where x.age < ?1</td>
+        </tr>
+        <tr>
+            <td>LessThanEqual</td>
+            <td>findByAgeLessThanEqual</td>
+            <td>where x.age <= ?1</td>
+        </tr>
+        <tr>
+            <td>GreaterThan</td>
+            <td>findByAgeGreaterThan</td>
+            <td>where x.age > ?1</td>
+        </tr>
+        <tr>
+            <td>GreaterThanEqual</td>
+            <td>findByAgeGreaterThanEqual</td>
+            <td>where x.age >= ?1</td>
+        </tr>
+        <tr>
+            <td>After</td>
+            <td>findByStartDateAfter</td>
+            <td>where x.startDate > ?1</td>
+        </tr>
+        <tr>
+            <td>Before</td>
+            <td>findByStartDateBefore</td>
+            <td>where x.startDate < ?1</td>
+        </tr>
+        <tr>
+            <td>IsNull</td>
+            <td>findByAgeIsNull</td>
+            <td>where x.age is null</td>
+        </tr>
+        <tr>
+            <td>IsNotNull, NotNull</td>
+            <td>findByAgeIsNotNull</td>
+            <td>where x.age not null</td>
+        </tr>
+        <tr>
+            <td>Like</td>
+            <td>findByFirstnameLike</td>
+            <td>where x.firstname like ?1</td>
+        </tr>
+        <tr>
+            <td>NotLike</td>
+            <td>findByFirstnameNotLike</td>
+            <td>where x.firstname not like ?1</td>
+        </tr>
+        <tr>
+            <td>StartingWith</td>
+            <td>findByfirstnameStartingWith</td>
+            <td>where x.firstname like ?1 (Parameter bound with APPENDED %) => where x.firstname like '?%'</td>
+        </tr>
+        <tr>
+            <td>EndingWith</td>
+            <td>findByfirstnameEndingWith</td>
+            <td>where x.firstname like ?1 (Parameter bound with PREPENDED %) => where x.firstname like '?%'</td>
+        </tr>
+        <tr>
+            <td>Containing</td>
+            <td>findByFirstnameContaining</td>
+            <td>where x.firstname like ?1 (Parameter bound with WRAPPED IN %) => where x.firstname like '?%'</td>
+        </tr>
+        <tr>
+            <td>OrderBy</td>
+            <td>findByAgeOrderbyLastnameDesc</td>
+            <td>where x.age = ?1 order by x.lastname desc</td>
+        </tr>
+        <tr>
+            <td>Not</td>
+            <td>findByLastnameNot</td>
+            <td>where x.lastname <> ?1</td>
+        </tr>
+        <tr>
+            <td>In</td>
+            <td>findByAgeIn(Collection<Age> ages)</td>
+            <td>where x.age in ?1</td>
+        </tr>
+        <tr>
+            <td>NotIn</td>
+            <td>findByAgeNotIn(Collection<Age> ages)</td>
+            <td>where x.age not in ?1</td>
+        </tr>
+        <tr>
+            <td>True</td>
+            <td>findByActiveTrue()</td>
+            <td>where x.active = true</td>
+        </tr>
+        <tr>
+            <td>False</td>
+            <td>findByActiveFalse()</td>
+            <td>where x.active = false</td>
+        </tr>
+        <tr>
+            <td>IgnoreCase</td>
+            <td>findByFirstnameIgnoreCase</td>
+            <td>where UPPER(x.firstname) = UPPER(?1)</td>
+        </tr>
+        <tr>
+            <td>First</td>
+            <td>findFirstBy</td>
+            <td>limit 1</td>
+        </tr>
+        <tr>
+            <td>Top</td>
+            <td>findTopBy</td>
+            <td>limit 1</td>
+        </tr>
+        <tr>
+            <td>First</td>
+            <td>findFirst15By</td>
+            <td>limit 15</td>
+        </tr>
+        <tr>
+            <td>Top</td>
+            <td>findTop15By</td>
+            <td>limit 15</td>
+        </tr>
+        <tr>
+            <td>Top</td>
+            <td>findTop20ByOrderByAgeDesc</td>
+            <td>order by x.age desc limit 20</td>
+        </tr>
+    </tbody>
+</table>

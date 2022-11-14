@@ -34,6 +34,10 @@
             "servicio" : {
                 "basePath" : "components/springboot/servicio",
                 "html" : "servicio.html"
+            },
+            "introduccionSpringCloud" : {
+                "basePath" : "components/springboot/introduccion-spring-cloud",
+                "html" : "introduccion-spring-cloud.html"
             }
         }
     },
@@ -94,6 +98,10 @@
             "lombok-log" : {
                 "basePath" : "components/librerias/lombok/anotaciones/log",
                 "html" : "log.html" 
+            },
+            "lombok-builder" : {
+                "basePath" : "components/librerias/lombok/anotaciones/builder",
+                "html" : "builder.html" 
             }
         }
     }
