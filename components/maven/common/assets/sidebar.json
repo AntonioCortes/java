@@ -1,0 +1,20 @@
+{
+    "pageContent" : [
+        {
+            "text" : "Conceptos Básicos",
+            "contentId" : "basics",
+            "content" : [
+                {
+                    "text" : "ejemplo",
+                    "content" : "maven.paths.ejemplo"
+                }
+            ]
+        }
+    ],
+    "links" : [
+        {
+            "text" : "Página Oficial",
+            "href" : "https://maven.apache.org/"
+        }
+    ]
+}

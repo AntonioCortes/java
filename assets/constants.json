@@ -15,6 +15,10 @@
                 "basePath" : "components/springboot/introduccion",
                 "html" : "introduccion.html"
             },
+            "estructura" : {
+                "basePath" : "components/springboot/estructura",
+                "html" : "estructura.html"
+            },
             "controlador" : {
                 "basePath" : "components/springboot/controlador",
                 "html" : "controlador.html"
@@ -61,6 +65,18 @@
             "sidebar" : "components/gradle/common/assets/sidebar.json",
             "ejemplo" : {
                 "basePath" : "components/gradle/ejemplo",
+                "html" : "ejemplo.html"   
+            }
+        }
+    },
+    "maven" : {
+        "topic" : "Maven",
+        "mainContent" : "ejemplo",
+        "paths" : {
+            "logo" : "components/maven/common/assets/img/maven.svg",
+            "sidebar" : "components/maven/common/assets/sidebar.json",
+            "ejemplo" : {
+                "basePath" : "components/maven/ejemplo",
                 "html" : "ejemplo.html"   
             }
         }
