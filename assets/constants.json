@@ -42,6 +42,10 @@
             "introduccionSpringCloud" : {
                 "basePath" : "components/springboot/introduccion-spring-cloud",
                 "html" : "introduccion-spring-cloud.html"
+            },
+            "openFeign" : {
+                "basePath" : "components/springboot/open-feign",
+                "html" : "open-feign.html"
             }
         }
     },
@@ -71,13 +75,13 @@
     },
     "maven" : {
         "topic" : "Maven",
-        "mainContent" : "ejemplo",
+        "mainContent" : "introduccion",
         "paths" : {
             "logo" : "components/maven/common/assets/img/maven.svg",
             "sidebar" : "components/maven/common/assets/sidebar.json",
-            "ejemplo" : {
-                "basePath" : "components/maven/ejemplo",
-                "html" : "ejemplo.html"   
+            "introduccion" : {
+                "basePath" : "components/maven/introduccion",
+                "html" : "introduccion.html"   
             }
         }
     },

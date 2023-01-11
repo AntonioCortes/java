@@ -5,8 +5,8 @@
             "contentId" : "basics",
             "content" : [
                 {
-                    "text" : "ejemplo",
-                    "content" : "maven.paths.ejemplo"
+                    "text" : "Introducción",
+                    "content" : "maven.paths.introduccion"
                 }
             ]
         }
