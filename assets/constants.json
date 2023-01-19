@@ -46,6 +46,14 @@
             "openFeign" : {
                 "basePath" : "components/springboot/open-feign",
                 "html" : "open-feign.html"
+            },
+            "distributedTracing" : {
+                "basePath" : "components/springboot/distributed-tracing",
+                "html" : "distributed-tracing.html"
+            },
+            "loadBalancers" : {
+                "basePath" : "components/springboot/load-balancers",
+                "html" : "load-balancers.html"
             }
         }
     },

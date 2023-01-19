@@ -55,6 +55,14 @@
                         {
                             "text" : "Open Feign",
                             "content" : "springboot.paths.openFeign"
+                        },
+                        {
+                            "text" : "Trazas distribuidas",
+                            "content" : "springboot.paths.distributedTracing"
+                        },
+                        {
+                            "text" : "Load Balancers",
+                            "content" : "springboot.paths.loadBalancers"
                         }
                     ]
                 }
