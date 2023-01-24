@@ -15,6 +15,10 @@
                 "basePath" : "components/springboot/introduccion",
                 "html" : "introduccion.html"
             },
+            "estructura" : {
+                "basePath" : "components/springboot/estructura",
+                "html" : "estructura.html"
+            },
             "controlador" : {
                 "basePath" : "components/springboot/controlador",
                 "html" : "controlador.html"
@@ -34,6 +38,26 @@
             "servicio" : {
                 "basePath" : "components/springboot/servicio",
                 "html" : "servicio.html"
+            },
+            "introduccionSpringCloud" : {
+                "basePath" : "components/springboot/introduccion-spring-cloud",
+                "html" : "introduccion-spring-cloud.html"
+            },
+            "openFeign" : {
+                "basePath" : "components/springboot/open-feign",
+                "html" : "open-feign.html"
+            },
+            "distributedTracing" : {
+                "basePath" : "components/springboot/distributed-tracing",
+                "html" : "distributed-tracing.html"
+            },
+            "loadBalancers" : {
+                "basePath" : "components/springboot/load-balancers",
+                "html" : "load-balancers.html"
+            },
+            "eurekaServer" : {
+                "basePath" : "components/springboot/eureka-server",
+                "html" : "eureka-server.html"
             }
         }
     },
@@ -58,6 +82,18 @@
             "ejemplo" : {
                 "basePath" : "components/gradle/ejemplo",
                 "html" : "ejemplo.html"   
+            }
+        }
+    },
+    "maven" : {
+        "topic" : "Maven",
+        "mainContent" : "introduccion",
+        "paths" : {
+            "logo" : "components/maven/common/assets/img/maven.svg",
+            "sidebar" : "components/maven/common/assets/sidebar.json",
+            "introduccion" : {
+                "basePath" : "components/maven/introduccion",
+                "html" : "introduccion.html"   
             }
         }
     },
@@ -94,6 +130,10 @@
             "lombok-log" : {
                 "basePath" : "components/librerias/lombok/anotaciones/log",
                 "html" : "log.html" 
+            },
+            "lombok-builder" : {
+                "basePath" : "components/librerias/lombok/anotaciones/builder",
+                "html" : "builder.html" 
             }
         }
     }

@@ -1,0 +1,43 @@
+<h1 class="title">Anotación @Builder</h1>
+<p>
+    Esta anotación permite aplicar el patrón "Builder" a una clase sin tener que escribir el código. También puede ser usado sobre métodos para trabajar con clases inmutables.
+</p>
+<h2>Ejemplo:</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+    @Builder
+    public class Customer {
+        private Integer id;
+        private String firstName;
+        private String lastName;
+        private String email;
+
+    }
+
+    Customer customer = Customer.builder()
+                .firstName("Luffy")
+                .lastName("Monkey")
+                .email("luffy_d_monkey@grandline.com")
+                .build();
+</code></pre>	
+</div>
+<h2>Atributos</h2>
+<p>La anotación tiene como atributo (builderMethodName = "") y su valor predefinido es "builder"</p>
+<h2>Ejemplo:</h2>
+<div class="center-horizontal">
+    <pre><code class="language-java">
+        @Builder(builderMethodName = "buildingTheThing")
+        public class Customer {
+            private Integer id;
+            private String firstName;
+            private String secondName;
+    
+        }
+    
+        Customer customer = Customer.buildingTheThing()
+                    .firstName("Luffy")
+                    .lastName("Monkey")
+                    .email("luffy_d_monkey@grandline.com")
+                    .build();
+    </code></pre>	
+    </div>

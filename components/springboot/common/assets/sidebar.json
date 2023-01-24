@@ -7,6 +7,10 @@
                 {
                     "text" : "Introducción",
                     "content" : "springboot.paths.introduccion"
+                },
+                {
+                    "text" : "Estructura",
+                    "content" : "springboot.paths.estructura"
                 }
             ]
         },
@@ -33,6 +37,38 @@
                 {
                     "text" : "Entidad",
                     "content" : "springboot.paths.entidad"
+                }
+            ]
+        },
+        {
+            "text" : "Librerias",
+            "contentId" : "springBootLibraries",
+            "content" : [
+                {
+                    "text" : "Spring Cloud",
+                    "contentId" : "springCloud",
+                    "content" : [
+                        {
+                            "text" : "Introducción",
+                            "content" : "springboot.paths.introduccionSpringCloud"
+                        },
+                        {
+                            "text" : "Open Feign",
+                            "content" : "springboot.paths.openFeign"
+                        },
+                        {
+                            "text" : "Eureka server",
+                            "content" : "springboot.paths.eurekaServer"
+                        },
+                        {
+                            "text" : "Trazas distribuidas",
+                            "content" : "springboot.paths.distributedTracing"
+                        },
+                        {
+                            "text" : "Load Balancers",
+                            "content" : "springboot.paths.loadBalancers"
+                        }
+                    ]
                 }
             ]
         }

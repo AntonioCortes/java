@@ -1,5 +1,59 @@
 <h1 class="title">Entidad</h1>
 
+<h2>Anotaciones Javax persistance</h2>
+<ul>
+    <li>
+        <b>@Entity:</b> Colocar al inicio de la definición de clase. La clase será una tabla en la BD.
+    </li>
+    <li>
+        <b>@Table:</b> Para dar nombre especifico a la tabla con el argumento name y si no se pone usará el nombre de la clase.
+    </li>
+    <li>
+        <b>@Id:</b> Representa la clave primaria de la entidad.
+    </li>
+    <li>
+        <b>@GeneratedValue:</b> Para que la clave se genere de forma automática.
+    </li>
+    <li>
+        TODO:<b>@SequenceGenerator:</b>
+    </li>
+    <li>
+        <b>@Column:</b> Para dar el nombre de la columna o campo y si no se pone será el nombre de la variable.
+    </li>
+    <li>
+        <b>@Transient:</b> Anotación que indica que atributos de la clase tienen que ser ignorados a la hora de crear los campos en base de datos, etc.
+    </li>
+    <li>
+        <b>@NotEmpty:</b> La longitud no puede ser menor de 0.
+    </li>
+    <li>
+        <b>@NotNull:</b> El campo no puede ser nulo, pero puede estar vacío sin restricción de tamaño.
+    </li>
+    <li>
+        <b>@NotBlank:</b> Los tipos String no pueden ser nulos y su tamaño debe ser mayor que 0.
+    </li>
+    <li>
+    TODO:    <b>@OnetoOne:</b> Para relaciones de campos uno a uno. Sus argumentos son: 
+    </li>
+    <li>
+     TODO:   <b>@ManyToOne:</b> Para relaiones de campos uno a muchos. Sus argumentos son: 
+    </li>
+    <h3>Relación muchos a muchos</h3>
+    <li>
+        TODO:<b>@ManyToMany:</b> 
+    </li>
+    <li>
+        TODO:<b>@JoinTable:</b> Nombra la tabla nueva del mapeo.
+    </li>
+    <li>
+     TODO:   <b>@JoinColumns:</b> Apunta a la tabla propietaria.
+    </li>
+    <li>
+        TODO:<b>@InverseJoinTable:</b> Nombra la tabla nueva del mapeo.
+    </li>
+</ul>
+
+
 <div class="center-horizontal">
 <pre class="language-java"><code>
 @Data
