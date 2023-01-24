@@ -54,6 +54,10 @@
             "loadBalancers" : {
                 "basePath" : "components/springboot/load-balancers",
                 "html" : "load-balancers.html"
+            },
+            "eurekaServer" : {
+                "basePath" : "components/springboot/eureka-server",
+                "html" : "eureka-server.html"
             }
         }
     },

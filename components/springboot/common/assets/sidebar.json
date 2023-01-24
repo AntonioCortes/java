@@ -57,6 +57,10 @@
                             "content" : "springboot.paths.openFeign"
                         },
                         {
+                            "text" : "Eureka server",
+                            "content" : "springboot.paths.eurekaServer"
+                        },
+                        {
                             "text" : "Trazas distribuidas",
                             "content" : "springboot.paths.distributedTracing"
                         },
