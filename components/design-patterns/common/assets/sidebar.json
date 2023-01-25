@@ -1,0 +1,24 @@
+{
+    "pageContent" : [
+        {
+            "text" : "Conceptos Básicos",
+            "contentId" : "basics",
+            "content" : [
+                {
+                    "text" : "CheatSheet",
+                    "content" : "designPatterns.paths.cheatsheet"
+                },
+                {
+                    "text" : "Explicación Detallada",
+                    "content" : "designPatterns.paths.explicacion-detallada"
+                }
+            ]
+        }
+    ],
+    "links" : [
+        {
+            "text" : "Videos Explicativos",
+            "href" : "https://www.youtube.com/playlist?list=PLC238B0613515968F"
+        }
+    ]
+}

@@ -136,5 +136,21 @@
                 "html" : "builder.html" 
             }
         }
+    },
+    "designPatterns" : {
+        "topic" : "Patrones de diseño",
+        "mainContent" : "cheatsheet",
+        "paths" : {
+            "logo" : "components/design-patterns/common/assets/img/design-patterns-logo.png",
+            "sidebar" : "components/design-patterns/common/assets/sidebar.json",
+            "cheatsheet" : {
+                "basePath" : "components/design-patterns/cheatsheet",
+                "html" : "cheatsheet.html"   
+            },
+            "explicacion-detallada" : {
+                "basePath" : "components/design-patterns/explicacion-detallada",
+                "html" : "explicacion-detallada.html"   
+            }
+        }
     }
 }
