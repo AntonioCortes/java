@@ -89,7 +89,7 @@
         "topic" : "Maven",
         "mainContent" : "introduccion",
         "paths" : {
-            "logo" : "components/maven/common/assets/img/maven.svg",
+            "logo" : "components/maven/common/assets/img/maven-logo-white-on-black.png",
             "sidebar" : "components/maven/common/assets/sidebar.json",
             "introduccion" : {
                 "basePath" : "components/maven/introduccion",
