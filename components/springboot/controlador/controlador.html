@@ -167,14 +167,39 @@ public class PetController
 	</li>
 </ul>
 
-<h2>Anotaciones para validación</h2>
+<h2>Anotaciones para validaciónes</h2>
 
 <ul>
-	<li><b>@Valid:</b> Sirve para validar, normalmente se usa para validar el json que se recibe en la llamada, si el json recibido no cumple con las constraints establecidas en el DTO, no se llegará
+	<li>
+		<b>@Valid:</b> Sirve para validar, normalmente se usa para validar el json que se recibe en la llamada, si el json recibido no cumple con las constraints establecidas en el DTO, no se llegará
 		a ejecutar el método y se devolverá una respuesta de error, típicamente un 400 bad request.
 	</li>
 </ul>
-TODO hasHerrors()!!
+<p>
+	<b>hasHerrors():</b> Permite comprobar si existe algún error en la validación.
+</p>
+<p>
+	<b>BindingResults:</b> Clase que se gestiona la vinculación de datos entre la entrada de datos y la clase.
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@PostMapping("/")
+public String checkForm(@Valid UserForm userForm, BindingResult bindingResult,
+	RedirectAttributes atts) {
+		
+	if (bindingResult.hasErrors()) {
+		return "form";
+	}
+		
+	atts.addAttribute("name", userForm.getName());
+	atts.addAttribute("email", userForm.getEmail());
+		
+	return "redirect:/showInfo";
+}	
+</code></pre>	
+</div>
+
 <h2>Anotaciones para documentación Swagger con la librería SpringFox</h2>
 
 <ul>
