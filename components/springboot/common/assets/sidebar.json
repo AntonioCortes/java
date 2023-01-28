@@ -9,8 +9,28 @@
                     "content" : "springboot.paths.introduccion"
                 },
                 {
+                    "text" : "Crear un microservicio",
+                    "content" : ""
+                },
+                {
+                    "text" : "POM / Gradle Build",
+                    "content" : ""
+                },
+                {
+                    "text" : "Archivo de configuración",
+                    "content" : ""
+                },
+                {
+                    "text" : "Inyección de dependencias",
+                    "content" : ""
+                },
+                {
                     "text" : "Estructura",
                     "content" : "springboot.paths.estructura"
+                },
+                {
+                    "text" : "Arquitectura de un proyecto",
+                    "content" : ""
                 }
             ]
         },
@@ -53,7 +73,7 @@
                     "content" : "springboot.paths.test"
                 },
                 {
-                    "text" : "Manejo de Excepciones",
+                    "text" : "Excepciones",
                     "content" : "springboot.paths.exceptions"
                 }
             ]
