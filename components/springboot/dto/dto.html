@@ -60,21 +60,20 @@
     <li><b>@Min: </b>Valor mínimo que puede tomar @Min(value="15", message="Debe tener minimo {value} caracteres")</li>
 
     <li><b>@Size: </b>Verifica la longitud de los campos de tipo string @Size(min=2, max=6)</li>
-
 </ul>
 
 <h2>Anotaciones de Spring Format</h2>
 <ul>
     <li><b>@DateTimeFormat:</b> Formatear la fecha por medio de un patrón definido</li>
-    <div class="center-horizontal">
-        <pre><code class="language-java">
-            @PostMapping("/date")
-            public void date(@RequestParam("date") 
-              @DateTimeFormat(pattern = "dd.MM.yyyy") Date date) {
-                // ...
-            }
-        </code></pre>	
-    </div>
+<div class="center-horizontal">
+<pre><code class="language-java">
+@PostMapping("/date")
+public void date(@RequestParam("date") 
+    @DateTimeFormat(pattern = "dd.MM.yyyy") Date date) {
+    // ...
+}
+</code></pre>	
+</div>
 </ul>
 
 <h2>Anotaciones de Swagger</h2>

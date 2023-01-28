@@ -37,6 +37,24 @@
                     "content" : "librerias.paths.lombok-builder"
                 }
             ]
+        },
+        {
+            "text" : "ModelMapper",
+            "contentId" : "modelMapper",
+            "content" : [
+            ]
+        },
+        {
+            "text" : "Flyway",
+            "contentId" : "flyway",
+            "content" : [
+            ]
+        },
+        {
+            "text" : "SpringFox",
+            "contentId" : "springfox",
+            "content" : [
+            ]
         }
     ],
     "links" : [
