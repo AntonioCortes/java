@@ -33,14 +33,37 @@
         <b>@NotBlank:</b> Los tipos String no pueden ser nulos y su tamaño debe ser mayor que 0.
     </li>
     <li>
-    TODO:    <b>@OnetoOne:</b> Para relaciones de campos uno a uno. Sus argumentos son: 
+        <b>@OnetoOne:</b> Para relaciones de campos uno a uno. Sus argumentos son: 
+        mappedBy="nombreDelAtributoDeLaClase"
     </li>
     <li>
-     TODO:   <b>@ManyToOne:</b> Para relaiones de campos uno a muchos. Sus argumentos son: 
+        <b>@ManyToOne:</b> Para relaiones de campos uno a muchos. Sus argumentos son:
+        mappedBy="nombreDelAtributoDeLaClase"
     </li>
     <h3>Relación muchos a muchos</h3>
     <li>
-        TODO:<b>@ManyToMany:</b> 
+        TODO:<b>@ManyToMany:</b> Para relaciones de muchos a muchos. Sus argumentos son:
+        <ul>
+            <li>
+                mappedBy: Para referenciar el atributo de la entidad con la que se quiere relacionar
+                mappedBy="nombreDelAtributoDeLaClase"
+            </li>
+            <li>
+                Cascade: Cuando borramos una entidad relacionada con otra, la entidad con la que se relaciona también debe ser eliminada.
+                Cascading es la forma de realizar esta tarea.
+                
+                It is used in the @OneToMany, @ManyToOne, @ManyToMany and @OneToOne annotations.
+                
+                CascadeType.PERSIST: Persist the child entity when the parent is persisted.
+                CascadeType.MERGE: Merge the child entity when the parent is merged.
+                CascadeType.REFRESH: Refresh the child entity when the parent is refreshed.
+                CascadeType.REMOVE: Remove the child entity when the parent is removed.
+                CascadeType.DETACH: Detach the child entity when the parent is detached.
+                CascadeType.ALL: Apply all cascading options (equivalent to specifying PERSIST, MERGE, REFRESH, REMOVE and DETACH).
+
+                cascade={CascadeType.PERSIST, CascadeType.MERGE}
+            </li>
+        </ul>
     </li>
     <li>
         TODO:<b>@JoinTable:</b> Nombra la tabla nueva del mapeo.

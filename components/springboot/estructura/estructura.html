@@ -15,7 +15,7 @@
     La <b>capa de servicios</b> contiene la lógica de negocio, así como toda la infraestructura necesaria para la comunicación de servicios con el resto de capas y con otros servicios ya sean de un mismo microservicio o de distintos.
 </p>
 <p>
-    La <b>capa de acceso a datos</b> contiene lo necesario para obtener y entregar datos persistentes de gestión privada. En esta capa se pueden econtrar los repositorios, las entidades, los modelos, las clases DAO( Data Access Object), etc.
+    La <b>capa de acceso a datos</b> contiene lo necesario para obtener y entregar datos persistentes de gestión privada. En esta capa se pueden encontrar los repositorios, las entidades, los modelos, las clases DAO( Data Access Object), etc.
 </p>
 
 <img src=".\components\springboot\estructura\assets\dibujo.svg">
@@ -41,7 +41,7 @@ com
              +- OrderService.java
              +- OrderRepository.java
 </p>
-<p>Esta forma es muy similar a como Angular divide sus proyectos en componentes. No obstante según la experiencia de haber trabajado en distintos proyectos así como diversas fuentes no oficiales de origen indio, la forma de estructurar los archivos es agrupando controladores, servicios, entidades, etc en paquetes</p>
+<p>Otra forma aceptada es agrupando controladores, servicios, etc, en paquetes</p>
 <p>
 com
  +- example
@@ -68,16 +68,14 @@ com
 <h2>@SpringBootApplication</h2>
 <p>Todo proyecto de SpringBoot tiene una clase principal que contiene un método main el cual se utilizará para arrancar el proyecto. Esta clase se identifica con la anotación <b>@SpringBootApplication</b></p>
 <div class="center-horizontal">
-    <pre class="language-java">
-        <code>
-            @SpringBootApplication
-            public class MyApplication {
-            
-                public static void main(String[] args) {
-                    SpringApplication.run(MyApplication.class, args);
-                }
-            
-            }
-        </code>
-    </pre>    
+<pre class="language-java"><code>
+@SpringBootApplication
+public class MyApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(MyApplication.class, args);
+    }
+        
+}
+</code></pre>    
 </div>
