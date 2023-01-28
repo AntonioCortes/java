@@ -41,6 +41,24 @@
             ]
         },
         {
+            "text" : "Otros",
+            "contentId" : "otherStuff",
+            "content" : [
+                {
+                    "text" : "Configuración",
+                    "content" : "springboot.paths.springConfig"
+                },
+                {
+                    "text" : "Tests",
+                    "content" : "springboot.paths.test"
+                },
+                {
+                    "text" : "Manejo de Excepciones",
+                    "content" : "springboot.paths.exceptions"
+                }
+            ]
+        },
+        {
             "text" : "Librerias",
             "contentId" : "springBootLibraries",
             "content" : [

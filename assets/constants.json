@@ -58,6 +58,18 @@
             "eurekaServer" : {
                 "basePath" : "components/springboot/eureka-server",
                 "html" : "eureka-server.html"
+            },
+            "springConfig" : {
+                "basePath" : "components/springboot/spring-config",
+                "html" : "spring-config.html"
+            },
+            "test" : {
+                "basePath" : "components/springboot/test",
+                "html" : "test.html"
+            },
+            "exceptions" : {
+                "basePath" : "components/springboot/exceptions",
+                "html" : "exceptions.html"
             }
         }
     },
