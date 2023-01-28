@@ -1,0 +1,19 @@
+<h1 class="title">Manejo de Excepciones</h1>
+TODO
+
+<h2>Anotación @ControllerAdvice</h2>
+<p>Se introduce a partir de la versión 3.2 de Spring y permite manejar las excepciones a lo largo de toda la aplicación.
+</p>
+
+<div class="center-horizontal">
+    <pre><code class="language-java">
+    @ControllerAdvice
+    public class ErrorHandlerController 
+    {
+        @ExceptionHandler(ArithmeticException.class)
+        public String artimeticaError(ArithmeticException ex){
+            ...
+        }
+    }	
+    </code></pre>
+</div>
