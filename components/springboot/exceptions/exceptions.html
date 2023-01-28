@@ -5,15 +5,56 @@ TODO
 <p>Se introduce a partir de la versión 3.2 de Spring y permite manejar las excepciones a lo largo de toda la aplicación.
 </p>
 
+<p>Las excepciones deben tener una Clase controlador que gestione el comportamiento en cada uno de sus métodos.</p>
+
 <div class="center-horizontal">
-    <pre><code class="language-java">
-    @ControllerAdvice
-    public class ErrorHandlerController 
-    {
-        @ExceptionHandler(ArithmeticException.class)
-        public String artimeticaError(ArithmeticException ex){
-            ...
-        }
-    }	
-    </code></pre>
+<pre><code class="language-java">
+@ControllerAdvice
+public class ErrorHandlerController {
+    
+    @ExceptionHandler(CustomExceptionClass.class)
+    public ResponseEntity< Object> customException(CustomExceptionClass ex){
+        //Los métodos del objeto que entra por parámetro
+        // permiten distintas utilidades 
+        //tales como obtener el mensaje personalizado.
+        ex.getMessage();
+
+        return new ResponseEntity< Object>(
+            "Mensjae de error personalizado",
+            new HttpHeaders(),
+            HttpStatus.FORBIDDEN
+        );
+    }
+
+    //...
+}	
+</code></pre>
+</div>
+
+<p>Ejemplo de Clase de error personalizada:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class CustomExceptionClass extends RuntimeException{
+        
+    public String CustomExceptionClass(String id){
+        super("Mensaje personalizado de error." +
+        id +
+        " HINT=> se pueden concatenar parametros tales como un id en caso de ser necesarios");
+    }
+}	
+</code></pre>
+</div>
+
+<p>Ejemplo de como llamar la excepción:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@GetMapping("/{id}")
+public ResponseEntity< PetDTO> getPetById(@PathVariable(value = "id") final Integer pId) 
+{
+    //Para llamar la excepción indicarla de la siguiente forma:
+    throw new CustomExceptionClass;
+}
+</code></pre>
 </div>
