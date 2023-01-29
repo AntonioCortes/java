@@ -6,7 +6,7 @@
             "content" : [
                 {
                     "text" : "Introducción",
-                    "content" : "springboot.paths.introduccion"
+                    "content" : "springboot.paths.conceptos-basicos.introduccion"
                 },
                 {
                     "text" : "Crear un microservicio",
@@ -26,7 +26,7 @@
                 },
                 {
                     "text" : "Estructura",
-                    "content" : "springboot.paths.estructura"
+                    "content" : "springboot.paths.conceptos-basicos.estructura"
                 },
                 {
                     "text" : "Arquitectura de un proyecto",
@@ -40,23 +40,23 @@
             "content" : [
                 {
                     "text" : "DTO",
-                    "content" : "springboot.paths.dto"
+                    "content" : "springboot.paths.capas-principales.dto"
                 },
                 {
                     "text" : "Controlador",
-                    "content" : "springboot.paths.controlador"
+                    "content" : "springboot.paths.capas-principales.controlador"
                 },
                 {
                     "text" : "Servicio",
-                    "content" : "springboot.paths.servicio"
+                    "content" : "springboot.paths.capas-principales.servicio"
                 },
                 {
                     "text" : "Repositorio/DAO",
-                    "content" : "springboot.paths.repositorio"
+                    "content" : "springboot.paths.capas-principales.repositorio"
                 },
                 {
                     "text" : "Entidad",
-                    "content" : "springboot.paths.entidad"
+                    "content" : "springboot.paths.capas-principales.entidad"
                 }
             ]
         },
@@ -66,15 +66,15 @@
             "content" : [
                 {
                     "text" : "Configuración",
-                    "content" : "springboot.paths.springConfig"
+                    "content" : "springboot.paths.otros.springConfig"
                 },
                 {
                     "text" : "Tests",
-                    "content" : "springboot.paths.test"
+                    "content" : "springboot.paths.otros.test"
                 },
                 {
                     "text" : "Excepciones",
-                    "content" : "springboot.paths.exceptions"
+                    "content" : "springboot.paths.otros.exceptions"
                 }
             ]
         },
@@ -88,23 +88,23 @@
                     "content" : [
                         {
                             "text" : "Introducción",
-                            "content" : "springboot.paths.introduccionSpringCloud"
+                            "content" : "springboot.paths.librerias.spring-cloud.introduccionSpringCloud"
                         },
                         {
                             "text" : "Open Feign",
-                            "content" : "springboot.paths.openFeign"
+                            "content" : "springboot.paths.librerias.spring-cloud.openFeign"
                         },
                         {
                             "text" : "Eureka server",
-                            "content" : "springboot.paths.eurekaServer"
+                            "content" : "springboot.paths.librerias.spring-cloud.eurekaServer"
                         },
                         {
                             "text" : "Trazas distribuidas",
-                            "content" : "springboot.paths.distributedTracing"
+                            "content" : "springboot.paths.librerias.spring-cloud.distributedTracing"
                         },
                         {
                             "text" : "Load Balancers",
-                            "content" : "springboot.paths.loadBalancers"
+                            "content" : "springboot.paths.librerias.spring-cloud.loadBalancers"
                         }
                     ]
                 }
