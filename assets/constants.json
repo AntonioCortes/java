@@ -7,81 +7,80 @@
     },
     "springboot" : {
         "topic" : "Spring Boot",
-        "mainContent" : "introduccion",
+        "mainContent" : "conceptos-basicos.introduccion",
         "paths" : {
             "logo" : "components/springboot/common/assets/img/springboot.jpg",
             "sidebar" : "components/springboot/common/assets/sidebar.json",
-            "introduccion" : {
-                "basePath" : "components/springboot/introduccion",
-                "html" : "introduccion.html"
+            "conceptos-basicos": {
+                "introduccion" : {
+                    "basePath" : "components/springboot/conceptos-basicos/introduccion",
+                    "html" : "introduccion.html"
+                },
+                "estructura" : {
+                    "basePath" : "components/springboot/conceptos-basicos/estructura",
+                    "html" : "estructura.html"
+                
+                }
             },
-            "estructura" : {
-                "basePath" : "components/springboot/estructura",
-                "html" : "estructura.html"
+            "capas-principales" : {
+                "controlador" : {
+                    "basePath" : "components/springboot/capas-principales/controlador",
+                    "html" : "controlador.html"
+                },
+                "dto" : {
+                    "basePath" : "components/springboot/capas-principales/dto",
+                    "html" : "dto.html"
+                },
+                "entidad" : {
+                    "basePath" : "components/springboot/capas-principales/entidad",
+                    "html" : "entidad.html"
+                },
+                "repositorio" : {
+                    "basePath" : "components/springboot/capas-principales/repositorio",
+                    "html" : "repositorio.html"
+                },
+                "servicio" : {
+                    "basePath" : "components/springboot/capas-principales/servicio",
+                    "html" : "servicio.html"
+                }
             },
-            "controlador" : {
-                "basePath" : "components/springboot/controlador",
-                "html" : "controlador.html"
+            "otros" : {
+                "springConfig" : {
+                    "basePath" : "components/springboot/otros/spring-config",
+                    "html" : "spring-config.html"
+                },
+                "test" : {
+                    "basePath" : "components/springboot/otros/test",
+                    "html" : "test.html"
+                },
+                "exceptions" : {
+                    "basePath" : "components/springboot/otros/exceptions",
+                    "html" : "exceptions.html"
+                }
             },
-            "dto" : {
-                "basePath" : "components/springboot/dto",
-                "html" : "dto.html"
-            },
-            "entidad" : {
-                "basePath" : "components/springboot/entidad",
-                "html" : "entidad.html"
-            },
-            "repositorio" : {
-                "basePath" : "components/springboot/repositorio",
-                "html" : "repositorio.html"
-            },
-            "servicio" : {
-                "basePath" : "components/springboot/servicio",
-                "html" : "servicio.html"
-            },
-            "introduccionSpringCloud" : {
-                "basePath" : "components/springboot/introduccion-spring-cloud",
-                "html" : "introduccion-spring-cloud.html"
-            },
-            "openFeign" : {
-                "basePath" : "components/springboot/open-feign",
-                "html" : "open-feign.html"
-            },
-            "distributedTracing" : {
-                "basePath" : "components/springboot/distributed-tracing",
-                "html" : "distributed-tracing.html"
-            },
-            "loadBalancers" : {
-                "basePath" : "components/springboot/load-balancers",
-                "html" : "load-balancers.html"
-            },
-            "eurekaServer" : {
-                "basePath" : "components/springboot/eureka-server",
-                "html" : "eureka-server.html"
-            },
-            "springConfig" : {
-                "basePath" : "components/springboot/spring-config",
-                "html" : "spring-config.html"
-            },
-            "test" : {
-                "basePath" : "components/springboot/test",
-                "html" : "test.html"
-            },
-            "exceptions" : {
-                "basePath" : "components/springboot/exceptions",
-                "html" : "exceptions.html"
-            }
-        }
-    },
-    "hibernate" : {
-        "topic" : "Hibernate",
-        "mainContent" : "insercion",
-        "paths" : {
-            "logo" : "components/hibernate/common/assets/img/hibernate.png",
-            "sidebar" : "components/hibernate/common/assets/sidebar.json",
-            "insercion" : {
-                "basePath" : "components/hibernate/insercion",
-                "html" : "insercion.html"
+            "librerias" : {
+                "spring-cloud" : {
+                    "introduccionSpringCloud" : {
+                        "basePath" : "components/springboot/librerias/spring-cloud/introduccion-spring-cloud",
+                        "html" : "introduccion-spring-cloud.html"
+                    },
+                    "openFeign" : {
+                        "basePath" : "components/springboot/librerias/spring-cloud/open-feign",
+                        "html" : "open-feign.html"
+                    },
+                    "distributedTracing" : {
+                        "basePath" : "components/springboot/librerias/spring-cloud/distributed-tracing",
+                        "html" : "distributed-tracing.html"
+                    },
+                    "loadBalancers" : {
+                        "basePath" : "components/springboot/librerias/spring-cloud/load-balancers",
+                        "html" : "load-balancers.html"
+                    },
+                    "eurekaServer" : {
+                        "basePath" : "components/springboot/librerias/spring-cloud/eureka-server",
+                        "html" : "eureka-server.html"
+                    }
+                }
             }
         }
     },
@@ -115,37 +114,47 @@
         "paths" : {
             "logo" : "components/librerias/common/assets/img/SimpleBook.svg",
             "sidebar" : "components/librerias/common/assets/sidebar.json",
-            "lombok-introduccion" : {
-                "basePath" : "components/librerias/lombok/introduccion",
-                "html" : "introduccion.html"   
+            "lombok" : {
+                "introduccion" : {
+                    "basePath" : "components/librerias/lombok/introduccion",
+                    "html" : "introduccion.html"   
+                },
+                "constructor" : {
+                    "basePath" : "components/librerias/lombok/constructor",
+                    "html" : "constructor.html" 
+                },
+                "getter-setter" : {
+                    "basePath" : "components/librerias/lombok/getter-setter",
+                    "html" : "getter-setter.html" 
+                },
+                "accessors" : {
+                    "basePath" : "components/librerias/lombok/accessors",
+                    "html" : "accessors.html" 
+                },
+                "tostring" : {
+                    "basePath" : "components/librerias/lombok/tostring",
+                    "html" : "tostring.html" 
+                },
+                "data" : {
+                    "basePath" : "components/librerias/lombok/data",
+                    "html" : "data.html" 
+                },
+                "log" : {
+                    "basePath" : "components/librerias/lombok/log",
+                    "html" : "log.html" 
+                },
+                "builder" : {
+                    "basePath" : "components/librerias/lombok/builder",
+                    "html" : "builder.html" 
+                }
             },
-            "lombok-constructor" : {
-                "basePath" : "components/librerias/lombok/anotaciones/constructor",
-                "html" : "constructor.html" 
-            },
-            "lombok-getter-setter" : {
-                "basePath" : "components/librerias/lombok/anotaciones/getter-setter",
-                "html" : "getter-setter.html" 
-            },
-            "lombok-accessors" : {
-                "basePath" : "components/librerias/lombok/anotaciones/accessors",
-                "html" : "accessors.html" 
-            },
-            "lombok-tostring" : {
-                "basePath" : "components/librerias/lombok/anotaciones/tostring",
-                "html" : "tostring.html" 
-            },
-            "lombok-data" : {
-                "basePath" : "components/librerias/lombok/anotaciones/data",
-                "html" : "data.html" 
-            },
-            "lombok-log" : {
-                "basePath" : "components/librerias/lombok/anotaciones/log",
-                "html" : "log.html" 
-            },
-            "lombok-builder" : {
-                "basePath" : "components/librerias/lombok/anotaciones/builder",
-                "html" : "builder.html" 
+            "hibernate" : {
+                "conceptos-basicos" : {
+                    "insercion" : {
+                        "basePath" : "components/librerias/hibernate/conceptos-basicos/insercion",
+                        "html" : "insercion.html"
+                    }
+                }
             }
         }
     },

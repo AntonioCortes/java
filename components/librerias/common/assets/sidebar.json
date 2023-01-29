@@ -6,35 +6,35 @@
             "content" : [
                 {
                     "text" : "Introducción",
-                    "content" : "librerias.paths.lombok-introduccion"
+                    "content" : "librerias.paths.lombok.introduccion"
                 },
                 {
                     "text" : "Constructores",
-                    "content" : "librerias.paths.lombok-constructor"
+                    "content" : "librerias.paths.lombok.constructor"
                 },
                 {
                     "text" : "Getter y Setter",
-                    "content" : "librerias.paths.lombok-getter-setter"
+                    "content" : "librerias.paths.lombok.getter-setter"
                 },
                 {
                     "text" : "Accessors",
-                    "content" : "librerias.paths.lombok-accessors"
+                    "content" : "librerias.paths.lombok.accessors"
                 },
                 {
                     "text" : "ToString",
-                    "content" : "librerias.paths.lombok-tostring"
+                    "content" : "librerias.paths.lombok.tostring"
                 },
                 {
                     "text" : "Data",
-                    "content" : "librerias.paths.lombok-data"
+                    "content" : "librerias.paths.lombok.data"
                 },
                 {
                     "text" : "Log",
-                    "content" : "librerias.paths.lombok-log"
+                    "content" : "librerias.paths.lombok.log"
                 },
                 {
                     "text" : "Builder",
-                    "content" : "librerias.paths.lombok-builder"
+                    "content" : "librerias.paths.lombok.builder"
                 }
             ]
         },
@@ -55,12 +55,32 @@
             "contentId" : "springfox",
             "content" : [
             ]
+        },
+        {
+            "text" : "Hibernate",
+            "contentId" : "hibernate",
+            "content" : [
+                {
+                    "text" : "Conceptos Básicos",
+                    "contentId" : "hibernate-insertion",
+                    "content" : [
+                        {
+                            "text" : "Inserción",
+                            "content" : "librerias.paths.hibernate.conceptos-basicos.insercion"
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "links" : [
         {
             "text" : "Lombok",
             "href" : "https://projectlombok.org/"
+        },
+        {
+            "text" : "Hibernate",
+            "href" : "https://hibernate.org/"
         }
     ]
 }
