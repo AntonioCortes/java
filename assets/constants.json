@@ -105,6 +105,26 @@
             "introduccion" : {
                 "basePath" : "components/maven/introduccion",
                 "html" : "introduccion.html"   
+            },
+            "pom" : {
+                "basePath" : "components/maven/pom",
+                "html" : "pom.html"   
+            },
+            "lifecycle" : {
+                "basePath" : "components/maven/lifecycle",
+                "html" : "lifecycle.html"   
+            },
+            "plugins" : {
+                "basePath" : "components/maven/plugins",
+                "html" : "plugins.html"   
+            },
+            "dependency" : {
+                "basePath" : "components/maven/dependency",
+                "html" : "dependency.html"   
+            },
+            "arquetypes" : {
+                "basePath" : "components/maven/arquetypes",
+                "html" : "arquetypes.html"   
             }
         }
     },
