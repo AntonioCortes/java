@@ -1,3 +1,87 @@
-<h1 class="title">The POM</h1>
+<h1 class="title">The POM basics</h1>
 
-TODO:
+<p>El documento POM tiene la extensión XML:</p>
+
+<p><b>pom.xml</b></p>
+
+<p>La primera línea del pom tiene que especificar que es un XML, la versión y la codificación.</p>
+
+<p>El resto del las etiquetas del POM estarán contenidas en la etiqueta <b>&lt;project&gt;</b>.</p>
+
+<p>Dentro de la etiqueta de <b>&lt;project&gt;</b> se deberá indicar la versión del modelo, además del grupo, artefacto, paquete y versión del proyecto.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+  &lt;groupId&gt;org.company&lt;/groupId&gt;
+  &lt;artifactId&gt;PetShop&lt;/artifactId&gt;
+  &lt;packaging&gt;pom&lt;/packaging&gt;
+  &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+
+&lt;/project&gt;
+</code></pre>
+</div>
+
+<h2>Las propiedades</h2>
+
+<p>Las <b>&lt;properties&gt;</b> en Maven son parametros con valores </p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;properties&gt;
+  &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+  &lt;maven.compiler.source&gt;1.7&lt;/maven.compiler.source&gt;
+  &lt;maven.compiler.target&gt;1.7&lt;/maven.compiler.target&gt;
+  &lt;spring.boot.maven.plugin.version&gt;2.6.7&lt;/spring.boot.maven.plugin.version&gt;
+&lt;/properties&gt;
+</code></pre>
+</div>
+
+<p>Los valores son accessibles desde cualquier lugar del POM utilizando la notación <b>${X}</b>, donde X es la propiedad.</p>
+<p>Ejemplo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+  &lt;version&gt;${spring.boot.maven.plugin.version}&lt;/version&gt;
+  &lt;scope&gt;import&lt;/scope&gt;
+  &lt;type&gt;pom&lt;/type&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Agregación o Multi-Módulos</h2>
+
+<p>Maven permite dividir un proyecto en diversos modulos. La forma de hacerlo es mediante la etiqueta
+  <b>&lt;modules&gt;</b>, donde se indica la lista de modulos junto a la ruta relativa de los
+  distintos POM de los que esté compuesto el proyecto.</p>
+<p>Ejemplo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+ 
+  &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+  &lt;artifactId&gt;my-parent&lt;/artifactId&gt;
+  &lt;version&gt;2.0&lt;/version&gt;
+  &lt;packaging&gt;pom&lt;/packaging&gt;
+ 
+  &lt;modules&gt;
+    &lt;module&gt;my-project&lt;/module&gt;
+    &lt;module&gt;another-project&lt;/module&gt;
+    &lt;module&gt;third-project/pom-example.xml&lt;/module&gt;
+  &lt;/modules&gt;
+&lt;/project&gt;
+</code></pre>
+</div>

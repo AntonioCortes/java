@@ -1,3 +1,88 @@
 <h1 class="title">Mecanismos de dependencia</h1>
 
 TODO:
+
+<p>Dentro de la etiqueta <b>&lt;dependencies&gt;</b> se incluyen las dependencias de la siguiente manera:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependencies&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<p>La etiqueta <b>&lt;dependencyManagement&gt;</b> permite gestionar las dependencias desde un pom superior o padre.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+      &lt;version&gt;${spring.boot.maven.plugin.version}&lt;/version&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+</code></pre>
+</div>
+
+<p>La etiqueta <b>&lt;scope&gt;</b> toma el valor de <b>import</b> tan solo en el pom que contenga la etiqueta <b>&lt;dependencyManagement&gt;</b>. Este valor indica que las dependencias serán remplazadas por las indicadas en el POM con la etiqueta &lt;dependencyManagement&gt;.</p>
+TODO: Since they are replaced, dependencies with a scope of import do not actually participate in limiting the transitivity of a dependency.
+
+<p>La etiqueta <b>&lt;scope&gt;</b> puede tomar mas valores:</p>
+<ul>
+    <li>
+        <b>compile:</b>
+        This is the default scope, used if none is specified. Compile dependencies are available in all classpaths of a
+        project. Furthermore, those dependencies are propagated to dependent projects.
+    </li>
+    <li>
+        <b>provided:</b>
+        This is much like compile, but indicates you expect the JDK or a container to provide the dependency at runtime.
+        For example, when building a web application for the Java Enterprise Edition, you would set the dependency on
+        the Servlet API and related Java EE APIs to scope provided because the web container provides those classes. A
+        dependency with this scope is added to the classpath used for compilation and test, but not the runtime
+        classpath. It is not transitive.
+    </li>
+    <li>
+        <b>runtime:</b>
+        This scope indicates that the dependency is not required for compilation, but is for execution. Maven includes a
+        dependency with this scope in the runtime and test classpaths, but not the compile classpath.
+    </li>
+    <li>
+        <b>test:</b>
+        This scope indicates that the dependency is not required for normal use of the application, and is only
+        available for the test compilation and execution phases. This scope is not transitive. Typically this scope is
+        used for test libraries such as JUnit and Mockito. It is also used for non-test libraries such as Apache Commons
+        IO if those libraries are used in unit tests (src/test/java) but not in the model code (src/main/java).
+    </li>
+    <li>
+        <b>system:</b>
+        This scope is similar to provided except that you have to provide the JAR which contains it explicitly. The
+        artifact is always available and is not looked up in a repository.
+    </li>
+    <li>
+        <b>import</b>
+    </li>
+</ul>
+
+<p>Para indicar que un POM es hijo, se indica cual es el padre de la siguiente forma:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;parent&gt;
+    &lt;artifactId&gt;PetShop&lt;/artifactId&gt;
+    &lt;groupId&gt;org.atr&lt;/groupId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+&lt;/parent&gt;
+</code></pre>
+</div>
+
+<p>Se referencia al artefacto, grupo y versión del padre;</p>

@@ -108,7 +108,8 @@
             },
             "pom" : {
                 "basePath" : "components/maven/pom",
-                "html" : "pom.html"   
+                "html" : "pom.html",
+                "css" : "pom.css"   
             },
             "lifecycle" : {
                 "basePath" : "components/maven/lifecycle",
@@ -120,7 +121,8 @@
             },
             "dependency" : {
                 "basePath" : "components/maven/dependency",
-                "html" : "dependency.html"   
+                "html" : "dependency.html",
+                "css" : "dependency.css"   
             },
             "arquetypes" : {
                 "basePath" : "components/maven/arquetypes",

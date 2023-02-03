@@ -239,18 +239,18 @@ dicha ruta debe ser representativa del recurso al que se quiere acceder y los pa
 @ApiResponses({ @ApiResponse(code = 200, message = "OK", response = PetDTO.class), 
 		@ApiResponse(code = 404, message = "Not found") })
 @GetMapping("/{id}")
-public ResponseEntity< PetDTO> get(@PathVariable(value = "id") @ApiParam(value = "pet Id", example = "1", required = true) final Integer pId) 
+public ResponseEntity&lt;PetDTO&gt; get(@PathVariable(value = "id") @ApiParam(value = "pet Id", example = "1", required = true) final Integer pId) 
 {
-	Optional< Pet> pet = petService.findById(pId);
+	Optional&lt;Pet&gt; pet = petService.findById(pId);
 	if(pet.isEmpty()) 
 	{
 		LOGGER.error("Pet {} not found", pId);
-		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);
 	}
 	PetDTO petDTO = mapper.map(pet.get(), PetDTO.class);
 	LOGGER.debug("Getting pet with id {}", pId);
 
-	return new ResponseEntity<>(petDTO, HttpStatus.OK);
+	return new ResponseEntity&lt;&gt;(petDTO, HttpStatus.OK);
 }
 </code></pre>	
 </div>
