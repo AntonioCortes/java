@@ -115,6 +115,10 @@
         {
             "text" : "Página Oficial",
             "href" : "https://spring.io/projects/spring-boot#overview"
+        },
+        {
+            "text" : "AssertJ",
+            "href" : "https://assertj.github.io/doc/"
         }
     ]
 }

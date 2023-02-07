@@ -51,7 +51,8 @@
                 },
                 "test" : {
                     "basePath" : "components/springboot/otros/test",
-                    "html" : "test.html"
+                    "html" : "test.html",
+                    "css" : "test.css"
                 },
                 "exceptions" : {
                     "basePath" : "components/springboot/otros/exceptions",

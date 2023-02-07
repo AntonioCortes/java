@@ -20,6 +20,9 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
     
     @Query("SELECT p FROM com.thecompany.entities.Producto p")
     List<Producto> getAllProductos();
+
+    @Query("SELECT p FROM com.thecompany.entities.Producto p")
+    Optional<Producto> getAllProductos();
     
     @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.activo = (:activo)")
     List<Producto> getAllProductosActivos(@Param("activo") Boolean activo);
