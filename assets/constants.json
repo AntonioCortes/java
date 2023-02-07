@@ -178,6 +178,21 @@
                         "html" : "insercion.html"
                     }
                 }
+            },
+            "apacheHttpClient" : {
+                "intro" : {
+                    "basePath" : "components/librerias/apacheHttpClient/intro",
+                    "html" : "intro.html",
+                    "css" : "intro.css"
+                },
+                "request" : {
+                    "basePath" : "components/librerias/apacheHttpClient/request",
+                    "html" : "request.html"
+                },
+                "examples" : {
+                    "basePath" : "components/librerias/apacheHttpClient/examples",
+                    "html" : "examples.html"
+                }
             }
         }
     },

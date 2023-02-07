@@ -71,6 +71,24 @@
                     ]
                 }
             ]
+        },
+        {
+            "text" : "Apache HttpClient",
+            "contentId" : "apacheHttpClient",
+            "content" : [
+                {
+                    "text" : "Introducción",
+                    "content" : "librerias.paths.apacheHttpClient.intro"
+                },
+                {
+                    "text" : "Request",
+                    "content" : "librerias.paths.apacheHttpClient.request"
+                },
+                {
+                    "text" : "Ejemplos",
+                    "content" : "librerias.paths.apacheHttpClient.examples"
+                }
+            ]
         }
     ],
     "links" : [

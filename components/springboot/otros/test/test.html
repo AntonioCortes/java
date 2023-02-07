@@ -22,7 +22,7 @@ TODO:
 
 <h2>Tests unitarios</h2>
 
-<p>Unit testing is where individual units (modules, functions/methods, routines, etc.) of software are tested to ensure their correctness. This low-level testing ensures smaller components are functionally sound while taking the burden off of higher-level tests. Generally, a developer writes these tests during the development process and they are run as automated tests.</p>
+<p>Son pruebas individuales que se enfocan en probar pequeñas porciones de código, como métodos individuales o clases pequeñas. Suelen realizarse durante el proceso de desarrollo.</p>
 <p><b>NOTA:</b> En IntelliJ Click derecho sobre la clase o interfaz a testear. Generate... => Test...</p>
 <p><b>NOTA:</b> Por convención se deja el nombre de la clase o interfaz seguido de la palabra "Test"</p>
 <p><b>NOTA:</b> Es recomendable que el nombre del método empiece por "itShould" o "itShouldNot", de esta forma se indica que el método debería llevar a cabo o no, una función concreta.</p>
@@ -68,9 +68,9 @@ class CustomerRepositoryTest {
         assertThat(optionalCustomer)
         .isPresent()
         .hasValueSatisfying(c -> {
-    //              assertThat(c.getId()).isEqualTo(id);
-    //              assertThat(c.getName()).isEqualTo("Abel");
-    //              assertThat(c.getPhoneNumber()).isEqualTo("1111");
+        //          assertThat(c.getId()).isEqualTo(id);
+        //          assertThat(c.getName()).isEqualTo("Abel");
+        //          assertThat(c.getPhoneNumber()).isEqualTo("1111");
                     assertThat(c).isEqualToComparingFieldByField(customer);
         });
     }
@@ -84,7 +84,7 @@ class CustomerRepositoryTest {
 <p>TODO: Esta librería permite multitud de pruebas de todo tipo. Para mas información consultar la documentación oficial en la sección de links.</p>
 
 <h2>Tests de integración</h2>
-<p>Integration testing is a broad category of tests where multiple software modules are integrated and tested as a group. It is meant to test the interaction between multiple services, resources, or modules. For example, an API's interaction with a backend service, or a service with a database</p>
+<p>Se utilizan para probar la integración de múltiples componentes de la aplicación y verificar su correcto funcionamiento en conjunto, es decir, conlleva realizar un test completo de la aplicación.</p>
 
 <h2>Tests funcionales</h2>
-<p>Functional testing is where software is tested to ensure functional requirements are met. Usually, it is a form of black box testing in which the tester has no understanding of the source code; testing is performed by providing input and comparing expected/actual output. It contrasts with non-functional testing, which includes performance, load, scalability, and penetration testing.</p>
+<p>Simulan la interacción del usuario final con la aplicación y se utilizan para verificar su correcto funcionamiento en un ambiente realista.</p>
