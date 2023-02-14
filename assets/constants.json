@@ -133,6 +133,10 @@
                 "basePath" : "components/maven/examples",
                 "html" : "examples.html" ,
                 "css" : "examples.css"  
+            },
+            "structure" : {
+                "basePath" : "components/maven/structure",
+                "html" : "structure.html"
             }
         }
     },

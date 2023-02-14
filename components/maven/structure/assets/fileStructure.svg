@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="175.68332mm"
+   height="300.28mm"
+   viewBox="0 0 175.68332 300.28"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="fileStructure.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="0.74118967"
+     inkscape:cx="377.09646"
+     inkscape:cy="227.33722"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid7079"
+       originx="-5.2916666"
+       originy="-3.3181132" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Capa 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-5.2916665,-3.3181131)">
+    <rect
+       style="fill:#4d4d4d;fill-opacity:1;stroke:none;stroke-width:3.34077;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846"
+       width="75.677879"
+       height="17.848555"
+       x="5.2916665"
+       y="3.3181131"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="38.846954"
+       y="15.455132"
+       id="text4156"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan4154"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         x="38.846954"
+         y="15.455132">/</tspan></text>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:3.34077;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1"
+       width="75.677879"
+       height="17.848555"
+       x="37.041668"
+       y="26.458334"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="61.315697"
+       y="38.238377"
+       id="text4156-0"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan6488"
+         x="61.315697"
+         y="38.238377">/src</tspan></text>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:3.53361;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3"
+       width="84.666672"
+       height="17.848555"
+       x="37.041668"
+       y="206.375"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="41.682278"
+       y="219.58267"
+       id="text4156-0-3"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan6932"
+         x="41.682278"
+         y="219.58267">/target</tspan></text>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:3.53361;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-3"
+       width="84.666672"
+       height="17.848555"
+       x="37.041668"
+       y="232.83295"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="41.32531"
+       y="244.96974"
+       id="text4156-0-3-6"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan7005"
+         x="41.32531"
+         y="244.96974">/pom.xml</tspan></text>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:3.53361;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-9"
+       width="84.666672"
+       height="17.848555"
+       x="37.041668"
+       y="259.29083"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="39.540451"
+       y="271.78491"
+       id="text4156-0-3-8"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan7025"
+         x="39.540451"
+         y="271.78491">/README.txt</tspan></text>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:3.53361;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-9-4"
+       width="84.666664"
+       height="17.848555"
+       x="37.041668"
+       y="285.74954"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="39.700066"
+       y="298.95782"
+       id="text4156-0-3-8-9"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan7077"
+         x="39.700066"
+         y="298.95782">/LICENSE.txt</tspan></text>
+    <rect
+       style="fill:#999999;fill-opacity:1;stroke:none;stroke-width:3.06019;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-8"
+       width="63.499996"
+       height="17.848555"
+       x="74.083336"
+       y="47.625"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="87.95488"
+       y="60.475948"
+       id="text4156-0-3-7"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan6770"
+         x="87.95488"
+         y="60.475948">/main</tspan></text>
+    <rect
+       style="fill:#ff9955;fill-opacity:1;stroke:none;stroke-width:3.06019;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-8-5"
+       width="63.499996"
+       height="17.848555"
+       x="74.083336"
+       y="127"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="86.896545"
+       y="140.38008"
+       id="text4156-0-3-7-3"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan6912"
+         x="86.896545"
+         y="140.38008">/test</tspan></text>
+    <rect
+       style="fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:3.32891;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-8-5-7"
+       width="75.141647"
+       height="17.848555"
+       x="105.83334"
+       y="74.083336"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="110.80571"
+       y="86.934242"
+       id="text4156-0-3-7-3-9"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan7131"
+         x="110.80571"
+         y="86.934242">/java</tspan></text>
+    <rect
+       style="fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:3.30539;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-8-5-7-9"
+       width="74.083313"
+       height="17.848555"
+       x="105.83334"
+       y="100.54166"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="108.30696"
+       y="113.39257"
+       id="text4156-0-3-7-3-9-4"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan7183"
+         x="108.30696"
+         y="113.39257">/resources</tspan></text>
+    <rect
+       style="fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:3.32891;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-8-5-7-6"
+       width="75.141647"
+       height="17.848555"
+       x="105.83334"
+       y="153.45833"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="110.8057"
+       y="166.30923"
+       id="text4156-0-3-7-3-9-3"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan7131-6"
+         x="110.8057"
+         y="166.30923">/java</tspan></text>
+    <rect
+       style="fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:3.30539;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-1-3-8-5-7-9-3"
+       width="74.083313"
+       height="17.848555"
+       x="105.83334"
+       y="179.91667"
+       ry="4.4621391"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:Unispace;-inkscape-font-specification:'Unispace, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="109.36528"
+       y="192.76758"
+       id="text4156-0-3-7-3-9-4-7"
+       inkscape:export-filename="C:\Users\Ales\Pictures\fileStructure.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan7183-9"
+         x="109.36528"
+         y="192.76758">/resources</tspan></text>
+  </g>
+</svg>

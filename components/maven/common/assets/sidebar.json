@@ -15,24 +15,28 @@
             "contentId" : "main",
             "content" : [
                 {
-                    "text" : "POM",
-                    "content" : "maven.paths.pom"
-                },
-                {
                     "text" : "The Build LifeCycle",
                     "content" : "maven.paths.lifecycle"
-                },
-                {
-                    "text" : "Dependency Mechanisim",
-                    "content" : "maven.paths.dependency"
                 },
                 {
                     "text" : "Plugins",
                     "content" : "maven.paths.plugins"
                 },
                 {
+                    "text" : "Estructura de archivos",
+                    "content" : "maven.paths.structure"
+                },
+                {
                     "text" : "Arquetipos",
                     "content" : "maven.paths.arquetypes"
+                },
+                {
+                    "text" : "POM",
+                    "content" : "maven.paths.pom"
+                },
+                {
+                    "text" : "Dependency Mechanisim",
+                    "content" : "maven.paths.dependency"
                 },
                 {
                     "text" : "Ejemplos",
