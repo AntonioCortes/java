@@ -1,5 +1,20 @@
 <h1 class="title">Estructura estandar de los directorios</h1>
 
+<p>En el nivel superior, archivos descriptivos del proyecto: un archivo pom.xml. Además, existen documentos de texto destinados a que el usuario pueda leer inmediatamente al recibir la fuente: <b>README.txt</b>, <b>LICENSE.txt</b>, etc.</p>
+
+<p>Solo hay dos subdirectorios de esta estructura: <b>"src"</b> y <b>"target"</b>. Los únicos otros directorios que se esperarían aquí son metadatos como CVS, .git o .svn, y cualquier subproyecto en una compilación multiproyecto (cada uno de los cuales se distribuiría como se indicó anteriormente).</p>
+
+<p>El directorio <b>"target"</b> se utiliza para albergar todos los resultados de la compilación.</p>
+
+<p>El directorio <b>"src"</b> contiene todo el material fuente para construir el proyecto, su sitio, etc. Contiene un subdirectorio para cada tipo: <b>"main"</b> para el artefacto de compilación principal, <b>"test"</b> para el código de prueba de unidad y recursos, sitio, etc.</p>
+
+<div class="center-horizontal">
+    <img src=".\components\maven\structure\assets\fileStructure.svg">
+</div>
+
+<p style="margin-top: 1rem;"><b>NOTA: </b>Se recomienda ajustarse a esta estructura tanto como sea posible. Sin embargo, de no ser posible, esta configuración se puede anular a través del descriptor del proyecto.</p>
+      
+<p><b>NOTA:</b> Si hay otras fuentes que contribuyen a la construcción del artefacto, estarían en otros subdirectorios. Por ejemplo, src/main/antlr contendría archivos de definición de gramática Antlr.</p>
 
 <table class="table table-striped table-hover">
     <tbody>
@@ -61,22 +76,6 @@
         </tr>
     </tbody>
 </table>
-
-<p>En el nivel superior, archivos descriptivos del proyecto: un archivo pom.xml. Además, existen documentos de texto destinados a que el usuario pueda leer inmediatamente al recibir la fuente: <b>README.txt</b>, <b>LICENSE.txt</b>, etc.</p>
-
-<p>Solo hay dos subdirectorios de esta estructura: <b>"src"</b> y <b>"target"</b>. Los únicos otros directorios que se esperarían aquí son metadatos como CVS, .git o .svn, y cualquier subproyecto en una compilación multiproyecto (cada uno de los cuales se distribuiría como se indicó anteriormente).</p>
-
-<p>El directorio <b>"target"</b> se utiliza para albergar todos los resultados de la compilación.</p>
-
-<p>El directorio <b>"src"</b> contiene todo el material fuente para construir el proyecto, su sitio, etc. Contiene un subdirectorio para cada tipo: <b>"main"</b> para el artefacto de compilación principal, <b>"test"</b> para el código de prueba de unidad y recursos, sitio, etc.</p>
-
-<div class="center-horizontal">
-    <img src=".\components\maven\structure\assets\fileStructure.svg">
-</div>
-
-<p><b>NOTA: </b>Se recomienda ajustarse a esta estructura tanto como sea posible. Sin embargo, de no ser posible, esta configuración se puede anular a través del descriptor del proyecto.</p>
-      
-<p><b>NOTA:</b> Si hay otras fuentes que contribuyen a la construcción del artefacto, estarían en otros subdirectorios. Por ejemplo, src/main/antlr contendría archivos de definición de gramática Antlr.</p>
 
 <p class="center-horizontal">
     <a href="https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html">https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html</a>
