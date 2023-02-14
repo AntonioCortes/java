@@ -1,0 +1,228 @@
+<h1 class="title">Ejemplos de POM</h1>
+
+<h2>Ejemplo de POM superior - Proyecto microservicios</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+  &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+  
+  &lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  
+    &lt;groupId&gt;com.petStore&lt;/groupId&gt;
+    &lt;artifactId&gt;petstoreservices&lt;/artifactId&gt;
+    &lt;packaging&gt;pom&lt;/packaging&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+  
+    &lt;modules&gt;
+      &lt;module&gt;customer&lt;/module&gt;
+      &lt;module&gt;fraud&lt;/module&gt;
+      &lt;module&gt;eureka-server&lt;/module&gt;
+      &lt;module&gt;clients&lt;/module&gt;
+      &lt;module&gt;notification&lt;/module&gt;
+      &lt;module&gt;apigw&lt;/module&gt;
+      &lt;module&gt;amqp&lt;/module&gt;
+    &lt;/modules&gt;
+  
+    &lt;name&gt;petstoreservices&lt;/name&gt;
+    &lt;url&gt;https://www.petStore.com&lt;/url&gt;
+  
+    &lt;properties&gt;
+      &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+      &lt;maven.compiler.source&gt;17&lt;/maven.compiler.source&gt;
+      &lt;maven.compiler.target&gt;17&lt;/maven.compiler.target&gt;
+      &lt;spring.boot.maven.plugin.version&gt;2.5.7&lt;/spring.boot.maven.plugin.version&gt;
+      &lt;spring.boot.dependencies.version&gt;2.5.7&lt;/spring.boot.dependencies.version&gt;
+      &lt;spring.cloud-version&gt;2020.0.3&lt;/spring.cloud-version&gt;
+      &lt;image&gt;petStore/${project.artifactId}:${project.version}&lt;/image&gt;
+    &lt;/properties&gt;
+  
+    &lt;dependencyManagement&gt;
+      &lt;dependencies&gt;
+        &lt;dependency&gt;
+          &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+          &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+          &lt;version&gt;${spring.boot.dependencies.version}&lt;/version&gt;
+          &lt;scope&gt;import&lt;/scope&gt;
+          &lt;type&gt;pom&lt;/type&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+          &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+          &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+          &lt;version&gt;${spring.cloud-version}&lt;/version&gt;
+          &lt;type&gt;pom&lt;/type&gt;
+          &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+      &lt;/dependencies&gt;
+    &lt;/dependencyManagement&gt;
+  
+    &lt;dependencies&gt;
+      &lt;dependency&gt;
+        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+      &lt;/dependency&gt;
+      &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+      &lt;/dependency&gt;
+      &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
+      &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+  
+    &lt;build&gt;
+      &lt;pluginManagement&gt;&lt;!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) --&gt;
+        &lt;plugins&gt;
+          &lt;plugin&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;version&gt;${spring.boot.maven.plugin.version}&lt;/version&gt;
+            &lt;executions&gt;
+              &lt;execution&gt;
+                &lt;goals&gt;
+                  &lt;goal&gt;repackage&lt;/goal&gt;
+                &lt;/goals&gt;
+              &lt;/execution&gt;
+            &lt;/executions&gt;
+          &lt;/plugin&gt;
+          &lt;plugin&gt;
+            &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
+            &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
+            &lt;version&gt;3.1.4&lt;/version&gt;
+            &lt;configuration&gt;
+              &lt;from&gt;
+                &lt;image&gt;eclipse-temurin:17@sha256:2b47a8ea946ce1e5365a1562414ed576e378b7b670cadff3fb98ebecf2890cdc&lt;/image&gt;
+                &lt;platforms&gt;
+                  &lt;platform&gt;
+                    &lt;architecture&gt;arm64&lt;/architecture&gt;
+                    &lt;os&gt;linux&lt;/os&gt;
+                  &lt;/platform&gt;
+                  &lt;platform&gt;
+                    &lt;architecture&gt;amd64&lt;/architecture&gt;
+                    &lt;os&gt;linux&lt;/os&gt;
+                  &lt;/platform&gt;
+                &lt;/platforms&gt;
+              &lt;/from&gt;
+              &lt;to&gt;
+                &lt;tags&gt;
+                  &lt;tag&gt;latest&lt;/tag&gt;
+                &lt;/tags&gt;
+              &lt;/to&gt;
+            &lt;/configuration&gt;
+            &lt;executions&gt;
+              &lt;execution&gt;
+                &lt;phase&gt;package&lt;/phase&gt;
+                &lt;goals&gt;
+                  &lt;goal&gt;build&lt;/goal&gt;
+                &lt;/goals&gt;
+              &lt;/execution&gt;
+            &lt;/executions&gt;
+          &lt;/plugin&gt;
+        &lt;/plugins&gt;
+      &lt;/pluginManagement&gt;
+      &lt;plugins&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+          &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+          &lt;version&gt;3.8.0&lt;/version&gt;
+          &lt;configuration&gt;
+            &lt;source&gt;17&lt;/source&gt;
+            &lt;target&gt;17&lt;/target&gt;
+          &lt;/configuration&gt;
+        &lt;/plugin&gt;
+      &lt;/plugins&gt;
+    &lt;/build&gt;
+  &lt;/project&gt;
+</code></pre>
+</div>
+
+<h2>Ejemplo de POM hijo - proyecto microservicios</h2>
+
+<p><b>NOTA:</b> Este POM pertenece al modulo "customer" del proyecto</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+    &lt;parent&gt;
+        &lt;groupId&gt;com.petStore&lt;/groupId&gt;
+        &lt;artifactId&gt;petstoreservices&lt;/artifactId&gt;
+        &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+    &lt;/parent&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+    &lt;artifactId&gt;customer&lt;/artifactId&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+    &lt;profiles&gt;
+        &lt;profile&gt;
+            &lt;id&gt;build-docker-image&lt;/id&gt;
+            &lt;build&gt;
+                &lt;plugins&gt;
+                    &lt;plugin&gt;
+                        &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
+                        &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
+                    &lt;/plugin&gt;
+                &lt;/plugins&gt;
+            &lt;/build&gt;
+        &lt;/profile&gt;
+    &lt;/profiles&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+            &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-sleuth&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-sleuth-zipkin&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-amqp&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.petStore&lt;/groupId&gt;
+            &lt;artifactId&gt;amqp&lt;/artifactId&gt;
+            &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+            &lt;scope&gt;compile&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.petStore&lt;/groupId&gt;
+            &lt;artifactId&gt;clients&lt;/artifactId&gt;
+            &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+            &lt;scope&gt;compile&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/project&gt;
+</code></pre>
+</div>
