@@ -3,40 +3,82 @@
 <p>
     Maven es una herramienta de software para la gestión y construcción de proyectos Java. Tiene un modelo de configuración de construcción más simple, basado en un formato XML.
     Maven utiliza un Project Object Model (POM) para describir el proyecto de software a construir, sus dependencias de otros módulos y componentes externos, y el orden de construcción de los elementos. Viene con objetivos predefinidos para realizar ciertas tareas claramente definidas, como la compilación del código y su empaquetado.
-</p>    
-<img src=".\components\maven\introduccion\assets\maven_intro.png">
+</p>
+<div class="center-horizontal">
+    <img src=".\components\maven\introduccion\assets\maven_intro.png">
+</div>    
 
+<h2>Estructura estandar de los directorios</h2>
 
-TODO:
+<table class="table table-striped table-hover">
+    <tbody>
+        <tr>
+            <td>src/main/java</td>
+            <td>Application/Library sources</td>
+        </tr>
+        <tr>
+            <td>src/main/resources</td>
+            <td>Application/Library resources</td>
+        </tr>
+        <tr>
+            <td>src/main/filters</td>
+            <td>Resource filter files</td>
+        </tr>
+        <tr>
+            <td>src/main/webapp</td>
+            <td>Web application sources</td>
+        </tr>
+        <tr>
+            <td>src/test/java</td>
+            <td>Test sources</td>
+        </tr>
+        <tr>
+            <td>src/test/resources</td>
+            <td>Test resources</td>
+        </tr>
+        <tr>
+            <td>src/test/filters</td>
+            <td>Test resource filter files</td>
+        </tr>
+        <tr>
+            <td>src/it	</td>
+            <td>Integration Tests (primarily for plugins)</td>
+        </tr>
+        <tr>
+            <td>src/assembly</td>
+            <td>Assembly descriptors</td>
+        </tr>
+        <tr>
+            <td>src/site</td>
+            <td>Site</td>
+        </tr>
+        <tr>
+            <td>LICENSE.txt</td>
+            <td>Project's license</td>
+        </tr>
+        <tr>
+            <td>NOTICE.txt</td>
+            <td>Notices and attributions required by libraries that the project depends on</td>
+        </tr>
+        <tr>
+            <td>README.txt</td>
+            <td>Project's readme</td>
+        </tr>
+    </tbody>
+</table>
 
-<p>https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html</p>
+<p>En el nivel superior, archivos descriptivos del proyecto: un archivo pom.xml. Además, existen documentos de texto destinados a que el usuario pueda leer inmediatamente al recibir la fuente: <b>README.txt</b>, <b>LICENSE.txt</b>, etc.</p>
 
-<p>Introduction to the Standard Directory Layout
-    Having a common directory layout allows users familiar with one Maven project to immediately feel at home in another Maven project. The advantages are analogous to adopting a site-wide look-and-feel.
-    
-    The next section documents the directory layout expected by Maven and the directory layout created by Maven. Try to conform to this structure as much as possible. However, if you can't, these settings can be overridden via the project descriptor.
-    
-    src/main/java	Application/Library sources
-    src/main/resources	Application/Library resources
-    src/main/filters	Resource filter files
-    src/main/webapp	Web application sources
-    src/test/java	Test sources
-    src/test/resources	Test resources
-    src/test/filters	Test resource filter files
-    src/it	Integration Tests (primarily for plugins)
-    src/assembly	Assembly descriptors
-    src/site	Site
-    LICENSE.txt	Project's license
-    NOTICE.txt	Notices and attributions required by libraries that the project depends on
-    README.txt	Project's readme
-    At the top level, files descriptive of the project: a pom.xml file. In addition, there are textual documents meant for the user to be able to read immediately on receiving the source: README.txt, LICENSE.txt, etc.
-    
-    There are just two subdirectories of this structure: src and target. The only other directories that would be expected here are metadata like CVS, .git or .svn, and any subprojects in a multiproject build (each of which would be laid out as above).
-    
-    The target directory is used to house all output of the build.
-    
-    The src directory contains all of the source material for building the project, its site and so on. It contains a subdirectory for each type: main for the main build artifact, test for the unit test code and resources, site and so on.
-    
-    Within artifact producing source directories (ie. main and test), there is one directory for the language java (under which the normal package hierarchy exists), and one for resources (the structure which is copied to the target classpath given the default resource definition).
-    
-    If there are other contributing sources to the artifact build, they would be under other subdirectories. For example src/main/antlr would contain Antlr grammar definition files.</p>
+<p>Solo hay dos subdirectorios de esta estructura: <b>"src"</b> y <b>"target"</b>. Los únicos otros directorios que se esperarían aquí son metadatos como CVS, .git o .svn, y cualquier subproyecto en una compilación multiproyecto (cada uno de los cuales se distribuiría como se indicó anteriormente).</p>
+
+<p>El directorio <b>"target"</b> se utiliza para albergar todos los resultados de la compilación.</p>
+
+<p>El directorio <b>"src"</b> contiene todo el material fuente para construir el proyecto, su sitio, etc. Contiene un subdirectorio para cada tipo: <b>"main"</b> para el artefacto de compilación principal, <b>"test"</b> para el código de prueba de unidad y recursos, sitio, etc.</p>
+
+<p><b>NOTA: </b>Se recomienda ajustarse a esta estructura tanto como sea posible. Sin embargo, de no ser posible, esta configuración se puede anular a través del descriptor del proyecto.</p>
+      
+<p><b>NOTA:</b> Si hay otras fuentes que contribuyen a la construcción del artefacto, estarían en otros subdirectorios. Por ejemplo, src/main/antlr contendría archivos de definición de gramática Antlr.</p>
+
+<p class="center-horizontal">
+    <a href="https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html">https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html</a>
+</p>
