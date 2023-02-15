@@ -13,7 +13,7 @@
 </code></pre>
 </div>
 
-<p>La etiqueta <b>&lt;dependencyManagement&gt;</b> permite gestionar las dependencias desde un pom superior o padre.</p>
+<p>La etiqueta <b>&lt;dependencyManagement&gt;</b> permite gestionar las dependencias desde un pom superior o padre. Se utiliza para definir versiones comunes y estándares de las dependencias para todo el proyecto.</p>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
@@ -22,16 +22,23 @@
     &lt;dependency&gt;
       &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
       &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
-      &lt;version&gt;${spring.boot.maven.plugin.version}&lt;/version&gt;
+      &lt;version&gt;3.0.0&lt;/version&gt;
       &lt;scope&gt;import&lt;/scope&gt;
       &lt;type&gt;pom&lt;/type&gt;
     &lt;/dependency&gt;
   &lt;/dependencies&gt;
 &lt;/dependencyManagement&gt;
+
+&lt;dependencies&gt;
+  &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;
 </code></pre>
 </div>
 
-<p>La etiqueta <b>&lt;scope&gt;</b> toma el valor de <b>import</b> tan solo en el pom que contenga la etiqueta <b>&lt;dependencyManagement&gt;</b>. Este valor indica que las dependencias serán remplazadas por las indicadas en el POM con la etiqueta &lt;dependencyManagement&gt;.</p>
+<p>La etiqueta <b>&lt;scope&gt;</b> con valor <b>import</b>  se utiliza en la sección &lt;dependency&gt; del archivo pom.xml de Maven para importar la sección &lt;dependencyManagement&gt; de otro archivo pom.xml.</p>
 TODO: Since they are replaced, dependencies with a scope of import do not actually participate in limiting the transitivity of a dependency.
 
 <p>La etiqueta <b>&lt;scope&gt;</b> puede tomar mas valores:</p>
