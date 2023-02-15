@@ -19,7 +19,11 @@
                 "estructura" : {
                     "basePath" : "components/springboot/conceptos-basicos/estructura",
                     "html" : "estructura.html"
-                
+                },
+                "crear-un-microservicio" : {
+                    "basePath" : "components/springboot/conceptos-basicos/crear-un-microservicio",
+                    "html" : "crear-un-microservicio.html",
+                    "css" : "crear-un-microservicio.css"
                 }
             },
             "capas-principales" : {
