@@ -49,6 +49,10 @@
         {
             "text" : "Página Oficial",
             "href" : "https://maven.apache.org/"
+        },
+        {
+            "text" : "Maven central",
+            "href" : "https://search.maven.org/"
         }
     ]
 }

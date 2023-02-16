@@ -1,1 +1,22 @@
 <h1 class="title">Data</h1>
+
+<p>
+    <b>@Data</b> es la anotación de acceso directo que agrupa las características de @ToString, @EqualsAndHashCode, @Getter/@Setter y @RequiredArgsConstructor juntas: en otras palabras, @Data genera todos los estándares que normalmente se asocian con POJOS y beans:
+</p>
+<ul>
+    <li>
+        Getters para todos los campos.
+    </li>
+    <li>
+        Setters para todos los campos no finales y las implementaciones toString.
+    </li>
+    <li>
+        Equals y hashCode que involucran los campos de la clase.
+    </li>
+    <li>
+        Un constructor que inicializa todos los campos finales.
+    </li>
+    <li>
+        Así como todos los campos no finales sin inicializador que haya sido marcado con @NonNull, para garantizar que el campo nunca sea nulo.
+    </li>
+</ul>

@@ -24,6 +24,11 @@
                     "basePath" : "components/springboot/conceptos-basicos/crear-un-microservicio",
                     "html" : "crear-un-microservicio.html",
                     "css" : "crear-un-microservicio.css"
+                },
+                "maven-gradle-build" : {
+                    "basePath" : "components/springboot/conceptos-basicos/maven-gradle-build",
+                    "html" : "maven-gradle-build.html",
+                    "css" : "maven-gradle-build.css"
                 }
             },
             "capas-principales" : {

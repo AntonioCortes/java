@@ -23,14 +23,16 @@
 </div>
 <h2>Atributos</h2>
 <p>La anotación tiene como atributo (builderMethodName = "") y su valor predefinido es "builder"</p>
-<h2>Ejemplo:</h2>
+<p>Ejemplo:</p>
 <div class="center-horizontal">
     <pre><code class="language-java">
         @Builder(builderMethodName = "buildingTheThing")
         public class Customer {
             private Integer id;
             private String firstName;
-            private String secondName;
+            private String lastName;
+            private String email;
+
     
         }
     

@@ -14,7 +14,7 @@
                 },
                 {
                     "text" : "POM / Gradle Build",
-                    "content" : ""
+                    "content" : "springboot.paths.conceptos-basicos.maven-gradle-build"
                 },
                 {
                     "text" : "Archivo de configuración",
