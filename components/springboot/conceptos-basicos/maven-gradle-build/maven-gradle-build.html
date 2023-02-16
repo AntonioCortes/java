@@ -1,1 +1,95 @@
 <h1 class="title">Construcción con Maven y Gradle</h1>
+
+<h2>Con modulos de Maven</h2>
+
+<p>Se crea el documento <b>pom.xml</b> en la raiz del proyecto.</p>
+
+<p>Dentro de la etiqueta de <b>&lt;project&gt;</b> se deberá indicar la <b>versión del modelo</b>, además del grupo, artefacto, paquete y <b>versión del proyecto.</b></p>
+
+<ul>
+  <li>Un <b>grupo</b> es una colección de artefactos relacionados, generalmente producidos por un mismo equipo o proyecto.</li>
+  <li>Un <b>artefacto</b> es una unidad de distribución de software que generalmente toma la forma de un archivo JAR, WAR o ZIP, que se publica en un repositorio</li>
+  <li>Un <b>paquete</b> es una forma de organizar los archivos de un artefacto en una estructura predefinida y consistente, por ejemplo, para incluir recursos y clases compiladas en un archivo JAR.</li>
+</ul>
+<p>En resumen, un grupo es una colección de artefactos relacionados, un artefacto es la unidad más pequeña de distribución y un paquete es una forma de organizar los archivos dentro de un artefacto.</p>
+
+<p><b>&lt;modelVersion&gt;</b> es la versión del modelo de objetos de Maven que se utiliza para definir el proyecto. La versión actual del modelo de objetos de Maven es 4.0.0.  Es importante tener en cuenta que al actualizar la versión del modelo de objetos de Maven, puede haber cambios en la sintaxis y los elementos disponibles en el archivo pom.xml, por lo que es necesario revisar y actualizar el archivo en consecuencia.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+  &lt;groupId&gt;org.company&lt;/groupId&gt;
+  &lt;artifactId&gt;PetShop&lt;/artifactId&gt;
+  &lt;packaging&gt;pom&lt;/packaging&gt;
+  &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+
+&lt;/project&gt;
+</code></pre>
+</div>
+
+<p>A continuación se añade:</p>
+<ul>
+    <li>
+        El nombre del proyecto con la etiqueta <b>&lt;name&gt;</b>
+    </li>
+    <li>
+        La etiqueta <b>&lt;dependencyManagement&gt;</b> y las dependencias a gestionar desde el padre.
+    </li>
+    <li>
+        Los modulos del proyecto.
+    </li>
+    <li>
+        Las propiedades en caso de ser necesarias.
+    </li>
+</ul>
+
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+    
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    
+    &lt;groupId&gt;org.company&lt;/groupId&gt;
+    &lt;artifactId&gt;PetShop&lt;/artifactId&gt;
+    &lt;packaging&gt;pom&lt;/packaging&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+
+    &lt;modules&gt;
+        &lt;module&gt;Customer&lt;/module&gt;
+        &lt;module&gt;Operation&lt;/module&gt;
+        &lt;module&gt;Pet&lt;/module&gt;
+    &lt;/modules&gt;
+
+    &lt;name&gt;petshop&lt;/name&gt;
+
+    &lt;dependencyManagement&gt;
+        &lt;dependencies&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+                &lt;version&gt;3.0.0&lt;/version&gt;
+                &lt;scope&gt;import&lt;/scope&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+            &lt;/dependency&gt;
+        &lt;/dependencies&gt;
+    &lt;/dependencyManagement&gt;
+    
+&lt;/project&gt;
+</code></pre>
+</div>
+
+<p><b>NOTA:</b> La dependencia <b>spring-boot-dependencies</b> incluye todas las dependencias que utiliza spring boot. De esta forma se pueden gestionar las versiones desde el POM superior y habilitar dependencias transitivas.</p>
+
+<p>Mas tarde se incluiran las dependecias en los POM hijos y en el padre que se necesiten.</p>

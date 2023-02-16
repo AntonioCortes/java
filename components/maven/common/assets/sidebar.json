@@ -51,7 +51,7 @@
             "href" : "https://maven.apache.org/"
         },
         {
-            "text" : "Maven central",
+            "text" : "Maven central repository",
             "href" : "https://search.maven.org/"
         }
     ]

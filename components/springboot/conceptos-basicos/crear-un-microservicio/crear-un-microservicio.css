@@ -4,3 +4,7 @@
     border-radius: 5px;
     border-color: #1b1f23;
 }
+
+.hljs-tag, .hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-strong, .hljs-name{
+    color: #f92672 !important;
+}

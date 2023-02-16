@@ -1,21 +1,5 @@
 <h1 class="title">Getter y Setter</h1>
 <p>Con estas anotaciones Lombok genera automaticamente los Getters y Setters.</p>
-<p>Con Lombok:</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-public class GetterSetterExample {
-   
-  @Getter @Setter private int age = 10;
-  
-  @Setter(AccessLevel.PROTECTED) private String name;
-  
-  @Override public String toString() {
-    return String.format("%s (age: %d)", name, age);
-  }
-}
-</code></pre>	
-</div>
 
 <p>Vanilla Java:</p>
 
@@ -42,6 +26,23 @@ public class GetterSetterExample {
     protected void setName(String name) {
     this.name = name;
     }
+}
+</code></pre>	
+</div>
+
+<p>Con Lombok:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class GetterSetterExample {
+   
+  @Getter @Setter private int age = 10;
+  
+  @Setter(AccessLevel.PROTECTED) private String name;
+  
+  @Override public String toString() {
+    return String.format("%s (age: %d)", name, age);
+  }
 }
 </code></pre>	
 </div>
