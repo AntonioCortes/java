@@ -22,7 +22,7 @@
                 },
                 {
                     "text" : "Inyección de dependencias",
-                    "content" : ""
+                    "content" : "springboot.paths.conceptos-basicos.dependency-injection"
                 },
                 {
                     "text" : "Estructura",

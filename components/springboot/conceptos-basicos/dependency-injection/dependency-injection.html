@@ -1,0 +1,29 @@
+<h1 class="title">Inyección de dependencias</h1>
+
+<p>La Inyección de Dependencias (Dependency Injection en inglés) es un patrón de diseño en el que se separa la creación de objetos de su uso. En Spring Framework, la inyección de dependencias es una característica fundamental que permite gestionar las dependencias de los objetos de una aplicación de manera más sencilla y desacoplada.</p>
+
+<p>En lugar de crear manualmente las instancias de las clases que se necesitan en una aplicación, se definen las dependencias en un archivo de configuración y se utiliza un contenedor de Spring para crear y administrar automáticamente los objetos. De esta forma, se reduce el acoplamiento entre las diferentes partes de la aplicación y se mejora la flexibilidad y la mantenibilidad.</p>
+
+<p>Existen tres formas de inyectar dependencias por medio de la anotación <b>@Autowired</b> en Spring:</p>
+<ul>
+    <li>Por constructor</li>
+    <li>Por Atributo</li>
+    <li>Utilizando el método Set</li>
+</ul>
+<p>Ejemplo de inyección de dependencia por atributo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Autowired
+private Pet pet;
+</code></pre>
+</div>
+
+TODO:<p>Ejemplo de inyección de dependencia por constructor:</p>
+TODO:<p>Ejemplo de inyección de dependencia por medio del método Set:</p>
+
+TODO:<p><b>NOTA:</b> Constructor injection has a few advantages compared to field injection. The first benefit is testability.</p>
+
+<p>
+    <b>NOTA:</b> Spring también proporciona otras anotaciones para configurar la inyección de dependencias, como @Qualifier para especificar una dependencia concreta cuando hay varias opciones disponibles, @Value para inyectar valores de propiedades de configuración, y @Resource para inyectar dependencias por nombre.
+</p>

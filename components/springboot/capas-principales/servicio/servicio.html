@@ -1,5 +1,7 @@
 <h1 class="title">Servicio</h1>
 
+TODO: @PRIMARY
+
 <p>La capa de servicio se encargará de conectar con los recursos que estén fuera del microservicio, estos recursos pueden ser por ejemplo una base de datos, otro microservicio, una cola kafka, un bucket en la nube...</p>
 <p>Debe crearse un servicio para cada uno de estos recursos, por ejemplo no es adecuado un servicio que acceda a la base de datos y a la cola kafka si no que deberian ser dos servicios independientes aunque luego por ejemplo un servicio que accede a base de datos use otro servicio para acceder a la cola kafka</p>
 

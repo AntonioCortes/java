@@ -34,6 +34,10 @@
                     "basePath" : "components/springboot/conceptos-basicos/config",
                     "html" : "config.html",
                     "css" : "config.css"
+                },
+                "dependency-injection" : {
+                    "basePath" : "components/springboot/conceptos-basicos/dependency-injection",
+                    "html" : "dependency-injection.html"
                 }
             },
             "capas-principales" : {
