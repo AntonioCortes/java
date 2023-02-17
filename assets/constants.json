@@ -29,6 +29,11 @@
                     "basePath" : "components/springboot/conceptos-basicos/maven-gradle-build",
                     "html" : "maven-gradle-build.html",
                     "css" : "maven-gradle-build.css"
+                },
+                "config" : {
+                    "basePath" : "components/springboot/conceptos-basicos/config",
+                    "html" : "config.html",
+                    "css" : "config.css"
                 }
             },
             "capas-principales" : {

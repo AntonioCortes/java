@@ -18,7 +18,7 @@
                 },
                 {
                     "text" : "Archivo de configuración",
-                    "content" : ""
+                    "content" : "springboot.paths.conceptos-basicos.config"
                 },
                 {
                     "text" : "Inyección de dependencias",
