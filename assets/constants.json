@@ -5,6 +5,49 @@
             "sidebar" : "components/common/sidebar.html"
         }
     },
+    "java" : {
+        "topic" : "Java",
+        "mainContent" : "introduccion",
+        "paths" : {
+            "logo" : "components/maven/common/assets/img/maven-logo-white-on-black.png",
+            "sidebar" : "components/maven/common/assets/sidebar.json",
+            "tipos-de-datos" : {
+                "basePath" : "components/maven/introduccion",
+                "html" : "introduccion.html"   
+            },
+            "poo" : {
+                "basePath" : "components/maven/pom",
+                "html" : "pom.html",
+                "css" : "pom.css"   
+            },
+            "colecciones" : {
+                "basePath" : "components/maven/lifecycle",
+                "html" : "lifecycle.html"   
+            },
+            "excepciones" : {
+                "basePath" : "components/maven/plugins",
+                "html" : "plugins.html"   
+            },
+            "io" : {
+                "basePath" : "components/maven/dependency",
+                "html" : "dependency.html",
+                "css" : "dependency.css"   
+            },
+            "streams" : {
+                "basePath" : "components/maven/arquetypes",
+                "html" : "arquetypes.html"   
+            },
+            "concurrencia" : {
+                "basePath" : "components/maven/examples",
+                "html" : "examples.html" ,
+                "css" : "examples.css"  
+            },
+            "modulesystem" : {
+                "basePath" : "components/maven/structure",
+                "html" : "structure.html"
+            }
+        }
+    },
     "springboot" : {
         "topic" : "Spring Boot",
         "mainContent" : "conceptos-basicos.introduccion",
