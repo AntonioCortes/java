@@ -19,9 +19,9 @@
                 "basePath" : "components/java/tipos-de-datos",
                 "html" : "tipos-de-datos.html"   
             },
-            "flowcontrol" : {
-                "basePath" : "components/java/flowcontrol",
-                "html" : "flowcontrol.html"
+            "flow-control" : {
+                "basePath" : "components/java/flow-control",
+                "html" : "flow-control.html"
             },
             "poo" : {
                 "basePath" : "components/java/poo",
@@ -39,9 +39,9 @@
                 "basePath" : "components/java/io",
                 "html" : "io.html"
             },
-            "streams" : {
-                "basePath" : "components/java/streams",
-                "html" : "streams.html"   
+            "functional-programming" : {
+                "basePath" : "components/java/functional-programming",
+                "html" : "functional-programming.html"   
             },
             "concurrencia" : {
                 "basePath" : "components/java/concurrencia",

@@ -20,7 +20,7 @@
                 },
                 {
                     "text" : "Estructuras de control/flujo",
-                    "content" : "java.paths.flowcontrol"
+                    "content" : "java.paths.flow-control"
                 },
                 {
                     "text" : "POO",
@@ -39,8 +39,8 @@
                     "content" : "java.paths.io"
                 },
                 {
-                    "text" : "Streams",
-                    "content" : "java.paths.streams"
+                    "text" : "Programación funcional",
+                    "content" : "java.paths.functional-programming"
                 },
                 {
                     "text" : "Concurrencia",
