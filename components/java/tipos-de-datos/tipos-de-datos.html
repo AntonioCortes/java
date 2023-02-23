@@ -158,13 +158,28 @@ char caracter_3 = 'u\1001'
 <em>float numFloat = (float) 10.5</em>
 
 <p><b>NOTA:</b></p>
-<ul>
-    <li>Esto se puede: numLong = 1_000_000L</li>
-    <li>Esto se puede: numLong = 1_000_____000L</li>
-    <li>Esto NO se puede: numLong = _1_000_000L</li>
-</ul>
+<div class="center-horizontal">
+<pre><code class="language-java">
+long numLong;
+numLong = 1_000_000L; //BIEN
+numLong = 1_000_____000L; //BIEN
+numLong = _1_000_000L; //MAL ya que empieza por guión bajo
+</code></pre>	
+</div>
+
 
 <h2>Clases envoltorio</h2>
+
+<p>Cada dato primitivo tiene su representación en una clase envoltorio o wrapped class.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Integer num = Integer.MAX_VALUE;
+Boolean valorMaximo = letra.equals('b');
+Double valorMinimo = Double.MIN_VALUE;
+</code></pre>	
+</div>
+
 
 <h2>String</h2>
 
