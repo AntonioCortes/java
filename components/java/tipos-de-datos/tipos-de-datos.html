@@ -1,6 +1,81 @@
 <h1 class="title">Tipos de datos</h1>
 
-<p>NOTA: "var" es el único tipo de dato que se puede utilizar como nombre de una variable, sin que esta se considere palabra reservada</p>
+<h2>Declaración de variables</h2>
+
+<p>Es la forma en la que se reserva un espacio en memoría con el fin de guardar datos.</p>
+<p>El tamaño del espacio vendrá determinado por el tipo de dato</p>
+<p>Aceptado lo siguiente:</p>
+
+<p>"_","$","€"</p>
+<p>NOTA: se acepta el guion si es mas de uno ejemplo:</p>
+<p>BIEN => int ___;</p>
+<p>Mal => int _;</p>
+
+<p>[tipo][identificador] => int numero;</p>
+
+
+<p>Declaración multiple:</p>
+<p>Ejemplo:</p>
+<p>BIEN => int numero1, numero2, numero3;</p>
+
+<p>MAL => int numero1; int numero2; int numero3;</p>
+<p>el ejemplo anterior aunque funciona no se considera declaración multiple ya que está separado por punto y coma.</p>
+
+<p>MAL => int numero1, int numero2, int numero3;</p>
+<p>el ejemplo anterior arroja un error de compilación.</p>
+
+
+<h2>Inicialización</h2>
+
+<p>Consiste en la asignación de un valor a la variable.</p>
+
+<p>Ejemplo: int numero = 3;</p>
+
+    inicialización multiple e inicialización parcial múltiple
+
+<h2>Inicialización por defecto</h2>
+
+<p>Variables locales: NO se inicializan por defecto. Es necesario asignarles un valor antes de utilizarlas.</p>
+<p>Variables atributo: Se inicializan por defecto.</p>
+
+
+<h2>Conversión de tipos</h2>
+
+
+
+
+<h2>Identificadores</h2>
+
+<p>Se puede utilizar cualquier combinación de letras, números, $ y _.</p>
+<p>Existen las siguientes restricciones:</p>
+<ul>
+    <li>
+        No se pueden utilizar palabras reservadas como identificador (incluido "goto"). A excepción de "var".
+    </li>
+    <li>
+        No puede comenzar por carácter numérico.
+    </li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+int _1=10; //ok
+char break; //error
+int 3aj; //error
+float car.t; //error
+</code></pre>	
+</div>
+
+
+<h2>Ámbito?</h2>
+
+▪A nivel de clase compartidas por todos los métodos. Se les conoce como
+atributos o campos
+▪En el interior de un método. Se les conoce como locales. Solo visibles
+dentro de ese método
+
+
+
 
 El compilador interpreta que los numeros son enteros los que no llevan decimales
 Aquí hay error de compilacion ya que se interpreta que es un entero y se pasa de grande
@@ -21,7 +96,7 @@ float numFloat = (float) 10.5
 
 
 
-<h2>Datos primitivos</h2>
+<h2>Datos primitivos y variables objetos</h2>
 
 
 numericos
@@ -68,3 +143,76 @@ char caracter_3 = 'u\1001'
 <h2>String Builder</h2>
 
 <h2>Inferencia de tipos</h2>
+
+<p>Característica incorporada en Java 10, consistente en declarar variables locales sin indicar explícitamente el tipo.</p>
+
+<p>Se emplea la palabra "var":</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+var num=100; //entero
+var datos=new ArrayList&lt;Integer&gt;(); //ArrayList de enteros
+</code></pre>	
+</div>
+
+<p>El tipo es inferido por el compilador a partir del valor asignado a la variable</p>
+<p>Simplifica la escritura de código, ni mejora ni empeora el rendimiento de la aplicación</p>
+
+<p>Únicamente puede utilizarse con variables locales:</p>
+
+<p>Es obligatorio asignar explícitamente un valor a la variable, valor que no puede ser null:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Test{
+    var prueba=100; //error de compilación
+    void print(){
+    var res="success"; //correcto
+    }
+}
+        
+var data; //error de compilación
+var n=null; //error de compilación
+</code></pre>	
+</div>
+
+
+<p>No es posible utilizar inferencia de tipos en declaraciones múltiples:</p>
+
+<p>Se puede utilizar inferencia de tipos en bucles de tipo for:</p>
+
+<p>En arrays, no puede utilizarse con inicialización abreviada:</p>
+
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+var a,c=10; //incorrecto
+var b=5,x=30; //incorrecto
+
+for(var i=0;i&lt;10;i++){
+}
+
+for(var s:datos){
+}
+
+var s={5,9,10}; //incorrecto
+var d=new int[]{5,1,3}; //correcto
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> "var" es el único tipo de dato que se puede utilizar como nombre de una variable, sin que esta se considere palabra reservada.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+var b=DriverManager.getConnection(cadena,user,pass);
+var ej=3/0;
+var cad="";
+var n=null;
+var c, p=10;
+var [] n=new int[4];
+</code></pre>	
+</div>
+
+<p>
+    Las instrucciones 1, 2 y 3 son correctas, mientras que 4, 5 y 6 son incorrectas. La instrucción f es incorrecta porque con var no se usan los corchetes en la declaración de arrays.
+</p>
