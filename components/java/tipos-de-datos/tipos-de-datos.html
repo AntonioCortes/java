@@ -3,40 +3,52 @@
 <h2>Declaración de variables</h2>
 
 <p>Es la forma en la que se reserva un espacio en memoría con el fin de guardar datos.</p>
-<p>El tamaño del espacio vendrá determinado por el tipo de dato</p>
-<p>Aceptado lo siguiente:</p>
+<p>El tamaño del espacio vendrá determinado por el tipo de dato.</p>
 
-<p>"_","$","€"</p>
-<p>NOTA: se acepta el guion si es mas de uno ejemplo:</p>
-<p>BIEN => int ___;</p>
-<p>Mal => int _;</p>
+<p><b>[tipo][identificador]</b></p>
 
-<p>[tipo][identificador] => int numero;</p>
+<p>Declaración multiple ejemplo:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+int numero1, numero2, numero3; // BIEN
+int numero1, int numero2, int numero3; // MAL error de compilación
 
-
-<p>Declaración multiple:</p>
-<p>Ejemplo:</p>
-<p>BIEN => int numero1, numero2, numero3;</p>
-
-<p>MAL => int numero1; int numero2; int numero3;</p>
-<p>el ejemplo anterior aunque funciona no se considera declaración multiple ya que está separado por punto y coma.</p>
-
-<p>MAL => int numero1, int numero2, int numero3;</p>
-<p>el ejemplo anterior arroja un error de compilación.</p>
+int numero1; int numero2; int numero3; 
+//El ejemplo anterior aunque funciona no se 
+//considera declaración multiple 
+//ya que está separado por punto y coma.
+</code></pre>	
+</div>
 
 
 <h2>Inicialización</h2>
 
 <p>Consiste en la asignación de un valor a la variable.</p>
 
-<p>Ejemplo: int numero = 3;</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+int numero = 3;
+String name = "Juan";
+</code></pre>	
+</div>
 
-    inicialización multiple e inicialización parcial múltiple
+<p>Inicialización múltiple y parcial múltiple</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+short num0 = 23, num1 = 56, num2 = 87; // Inicialización multiple
+String name0, name1 = "Juan", name2; // Inicialización parcial múltiple
+</code></pre>	
+</div>
 
-<h2>Inicialización por defecto</h2>
-
-<p>Variables locales: NO se inicializan por defecto. Es necesario asignarles un valor antes de utilizarlas.</p>
-<p>Variables atributo: Se inicializan por defecto.</p>
+<p>Inicialización por defecto:</p>
+<ul>
+    <li>
+    Variables locales: NO se inicializan por defecto. Es necesario asignarles un valor antes de utilizarlas.
+    </li>
+    <li>
+    Variables atributo: Se inicializan por defecto.
+    </li>
+</ul>
 
 
 <h2>Conversión de tipos</h2>
@@ -66,75 +78,91 @@ float car.t; //error
 </code></pre>	
 </div>
 
-
-<h2>Ámbito?</h2>
-
-▪A nivel de clase compartidas por todos los métodos. Se les conoce como
-atributos o campos
-▪En el interior de un método. Se les conoce como locales. Solo visibles
-dentro de ese método
+<p>Aceptado lo siguiente:</p>
+<p><b>NOTA:</b> se acepta el guion si es mas de uno ejemplo:</p>
+<p><em>BIEN</em> int ___;</p>
+<p><em>MAL</em> int _;</p>
 
 
+<h2>Ámbito</h2>
+
+<p>A nivel de clase compartidas por todos los métodos. Se les conoce como atributos o campos</p>
+<p>En el interior de un método. Se les conoce como locales. Solo visibles dentro de ese método</p>
 
 
-El compilador interpreta que los numeros son enteros los que no llevan decimales
-Aquí hay error de compilacion ya que se interpreta que es un entero y se pasa de grande
-=> long numLong = 10000000000
-Para que no ocurra añadir que es un Long con L
-=> long numLong = 10000000000L
 
-El compilador interpreta que los numeros son doubles los que llevan decimales
-
-para que le compilador entienda que lo que metes es float indicar la F al final del numero:
-float numFloat = 10.5F
-de no hacer esto habría que hacer un cast
-float numFloat = (float) 10.5
-
-<p>NOTA: esto se puede => numLong = 1_000_000L</p>
-<p>NOTA: esto se puede => numLong = 1_000_____000L</p>
-<p>NOTA: esto NO se puede => numLong = _1_000_000L</p>
 
 
 
 <h2>Datos primitivos y variables objetos</h2>
 
 
-numericos
+<h4>Numéricos</h4>
 <ul>
-    <li>byte => 8 bits</li>
-    <li>short => 16 bits</li>
-    <li>int => 32 bits</li>
-    <li>long => 64 bits</li>
+    <li><b>byte 8 bits</b></li>
+    <li><b>short 16 bits</b></li>
+    <li><b>int 32 bits</b></li>
+    <li><b>long 64 bits</b></li>
 </ul>
 
-NOTA: default value 0 or 0L
+<p><b>NOTA:</b> Default value 0 or 0L</p>
 
-decimales
+<h4>Decimales</h4>
 
 <ul>
-    <li>float => 32 bits</li>
-    <li>double => 64 bits</li>
+    <li><b>float 32 bits</b></li>
+    <li><b>double 64 bits</b></li>
 </ul>
 
-NOTA: default value 0.0 or 0.0F
+<p><b>NOTA:</b> Default value 0.0 or 0.0F</p>
+
+<h4>Booleanos</h4>
+
+<p><b>boolean 1 bit</b></p>
 
 
-Booleanos
+<div class="center-horizontal">
+<pre><code class="language-java">
+boolean variable = true;
+boolean variable = false;
+</code></pre>	
+</div>
 
-ej:
-boolean varialve = true;
+<h4>Character</h4>
 
+<p><b>char 6 bits</b></p>
+<p><b>NOTA:</b> Se pueden hacer calculos con el tipo char.</p>
 
-Character
-
-NOTA: se pueden hacer calculos con el tipo char?
-
-char => 16 bits
-
-
+<div class="center-horizontal">
+<pre><code class="language-java">
 char caracter = 64;
 char caracter_2 = 'T';
 char caracter_3 = 'u\1001'
+</code></pre>	
+</div>
+
+
+
+<h4>Anotaciones sobre tipos</h4>
+
+<p>El compilador interpreta que los números que no llevan decimales son enteros. Aquí hay error de compilacion ya que se interpreta que es un entero y se pasa de grande:</p>
+<em>long numLong = 10000000000</em>
+<p>Para que no ocurra añadir que es un Long con L</p>
+<em>long numLong = 10000000000L</em>
+
+<p>El compilador interpreta que los numeros con decimales son doubles.</p>
+
+<p>para que le compilador entienda que lo que metes es float indicar la F al final del numero:</p>
+<em>float numFloat = 10.5F</em>
+<p>de no hacer esto habría que hacer un cast</p>
+<em>float numFloat = (float) 10.5</em>
+
+<p><b>NOTA:</b></p>
+<ul>
+    <li>Esto se puede: numLong = 1_000_000L</li>
+    <li>Esto se puede: numLong = 1_000_____000L</li>
+    <li>Esto NO se puede: numLong = _1_000_000L</li>
+</ul>
 
 <h2>Clases envoltorio</h2>
 
