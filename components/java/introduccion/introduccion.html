@@ -1,0 +1,63 @@
+<h1 class="title">Introducción</h1>
+
+<p>Java es un lenguaje con tipado fuerte</p>
+<p>Camelcase</p>
+<p>keysensitive</p>
+
+TODO: poner imagen de camelcase, kebabcase etc
+
+<h2>Declaración de variables</h2>
+
+<p>Es la forma en la que se reserva un espacio en memoría con el fin de guardar datos.</p>
+<p>El tamaño del espacio vendrá determinado por el tipo de dato</p>
+<p>Aceptado lo siguiente:</p>
+
+<p>"_","$","€"</p>
+<p>NOTA: se acepta el guion si es mas de uno ejemplo:</p>
+<p>BIEN => int ___;</p>
+<p>Mal => int _;</p>
+
+<p>[tipo][identificador] => int numero;</p>
+
+
+<p>Declaración multiple:</p>
+<p>Ejemplo:</p>
+<p>BIEN => int numero1, numero2, numero3;</p>
+
+<p>MAL => int numero1; int numero2; int numero3;</p>
+<p>el ejemplo anterior aunque funciona no se considera declaración multiple ya que está separado por punto y coma.</p>
+
+<p>MAL => int numero1, int numero2, int numero3;</p>
+<p>el ejemplo anterior arroja un error de compilación.</p>
+
+<h2>Iniciaización de variable</h2>
+
+<p>Consiste en la asignación de un valor a la variable.</p>
+
+<p>Ejemplo: int numero = 3;</p>
+
+
+modificador de acceso:
+TODO: volatile, transient?!?!?
+permite convertir a la variable en three save, volatile?!?!?
+asignar a los campos de clase el modificador volatil 
+cuando dos procesos acceden al mismo recurso
+
+
+<!-- ************************ -->
+Variables volátiles en Java
+Las variable volátiles en el lenguaje Java son declaradas anteponiendo el modificador de visibilidad de memoria volatile. Estas no son guardadas en el caché del procesador, es decir, toda lectura/escritura de la misma se realiza directamente contra la memoria principal.
+
+Anteponiendo volatile a la definición de la variable _stop estamos diciendo al compilador que el valor contenido en esa dirección de memoria puede modificarse en cualquier momento, y queremos que dicha modificación sea visible inmediatamente para todos los hilos que están accediendo a ella, no queremos que su valor sea copiado en la caché del procesador.
+
+That’s it! Haciendo nuestras variable volátiles obligamos a los hilos a leerlas de la memoria principal, y no del caché, garantizando que el valor leído siempre es el último valor escrito en ellas.
+<!-- ************************ -->
+
+TODO: mirar también cosas de errores
+error de compilacion, error del sistema y excepciones
+
+
+operadores:
+TODO: ++ , etc
+
+

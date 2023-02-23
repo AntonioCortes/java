@@ -9,41 +9,41 @@
         "topic" : "Java",
         "mainContent" : "introduccion",
         "paths" : {
-            "logo" : "components/maven/common/assets/img/maven-logo-white-on-black.png",
-            "sidebar" : "components/maven/common/assets/sidebar.json",
+            "logo" : "components/java/common/assets/img/java-logo-white-on-black.png",
+            "sidebar" : "components/java/common/assets/sidebar.json",
             "tipos-de-datos" : {
-                "basePath" : "components/maven/introduccion",
+                "basePath" : "components/java/introduccion",
                 "html" : "introduccion.html"   
             },
             "poo" : {
-                "basePath" : "components/maven/pom",
-                "html" : "pom.html",
-                "css" : "pom.css"   
+                "basePath" : "components/java/poo",
+                "html" : "poo.html",
+                "css" : "poo.css"   
             },
             "colecciones" : {
-                "basePath" : "components/maven/lifecycle",
+                "basePath" : "components/java/lifecycle",
                 "html" : "lifecycle.html"   
             },
             "excepciones" : {
-                "basePath" : "components/maven/plugins",
+                "basePath" : "components/java/plugins",
                 "html" : "plugins.html"   
             },
             "io" : {
-                "basePath" : "components/maven/dependency",
+                "basePath" : "components/java/dependency",
                 "html" : "dependency.html",
                 "css" : "dependency.css"   
             },
             "streams" : {
-                "basePath" : "components/maven/arquetypes",
+                "basePath" : "components/java/arquetypes",
                 "html" : "arquetypes.html"   
             },
             "concurrencia" : {
-                "basePath" : "components/maven/examples",
+                "basePath" : "components/java/examples",
                 "html" : "examples.html" ,
                 "css" : "examples.css"  
             },
             "modulesystem" : {
-                "basePath" : "components/maven/structure",
+                "basePath" : "components/java/structure",
                 "html" : "structure.html"
             }
         }

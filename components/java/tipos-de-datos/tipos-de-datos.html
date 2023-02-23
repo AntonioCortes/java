@@ -1,0 +1,62 @@
+<h1 class="title">Tipos de dato</h1>
+
+<p>NOTA: "var" es el único tipo de dato que se puede utilizar como nombre de una variable, sin que esta se considere palabra reservada</p>
+
+El compilador interpreta que los numeros son enteros los que no llevan decimales
+Aquí hay error de compilacion ya que se interpreta que es un entero y se pasa de grande
+=> long numLong = 10000000000
+Para que no ocurra añadir que es un Long con L
+=> long numLong = 10000000000L
+
+El compilador interpreta que los numeros son doubles los que llevan decimales
+
+para que le compilador entienda que lo que metes es float indicar la F al final del numero:
+float numFloat = 10.5F
+de no hacer esto habría que hacer un cast
+float numFloat = (float) 10.5
+
+<p>NOTA: esto se puede => numLong = 1_000_000L</p>
+<p>NOTA: esto se puede => numLong = 1_000_____000L</p>
+<p>NOTA: esto NO se puede => numLong = _1_000_000L</p>
+
+
+
+<h2>Datos primitivos</h2>
+
+
+numericos
+<ul>
+    <li>byte => 8 bits</li>
+    <li>short => 16 bits</li>
+    <li>int => 32 bits</li>
+    <li>long => 64 bits</li>
+</ul>
+
+NOTA: default value 0 or 0L
+
+decimales
+
+<ul>
+    <li>float => 32 bits</li>
+    <li>double => 64 bits</li>
+</ul>
+
+NOTA: default value 0.0 or 0.0F
+
+
+Booleanos
+
+ej:
+boolean varialve = true;
+
+
+Character
+
+NOTA: se pueden hacer calculos con el tipo char?
+
+char => 16 bits
+
+
+char caracter = 64;
+char caracter_2 = 'T';
+char caracter_3 = 'u\1001'
