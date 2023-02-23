@@ -1,5 +1,5 @@
 let constants = null;
-const mainView = 'springboot';
+const mainView = 'java';
 
 $(document).ready(function () 
 {
