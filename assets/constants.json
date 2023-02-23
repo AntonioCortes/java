@@ -9,42 +9,47 @@
         "topic" : "Java",
         "mainContent" : "introduccion",
         "paths" : {
-            "logo" : "components/java/common/assets/img/java-logo-white-on-black.png",
+            "logo" : "components/java/common/assets/img/java-logo-1.png",
             "sidebar" : "components/java/common/assets/sidebar.json",
-            "tipos-de-datos" : {
+            "introduccion" : {
                 "basePath" : "components/java/introduccion",
                 "html" : "introduccion.html"   
             },
+            "tipos-de-datos" : {
+                "basePath" : "components/java/tipos-de-datos",
+                "html" : "tipos-de-datos.html"   
+            },
+            "flowcontrol" : {
+                "basePath" : "components/java/flowcontrol",
+                "html" : "flowcontrol.html"
+            },
             "poo" : {
                 "basePath" : "components/java/poo",
-                "html" : "poo.html",
-                "css" : "poo.css"   
+                "html" : "poo.html"
             },
             "colecciones" : {
-                "basePath" : "components/java/lifecycle",
-                "html" : "lifecycle.html"   
+                "basePath" : "components/java/colecciones",
+                "html" : "colecciones.html"   
             },
             "excepciones" : {
-                "basePath" : "components/java/plugins",
-                "html" : "plugins.html"   
+                "basePath" : "components/java/excepciones",
+                "html" : "excepciones.html"   
             },
             "io" : {
-                "basePath" : "components/java/dependency",
-                "html" : "dependency.html",
-                "css" : "dependency.css"   
+                "basePath" : "components/java/io",
+                "html" : "io.html"
             },
             "streams" : {
-                "basePath" : "components/java/arquetypes",
-                "html" : "arquetypes.html"   
+                "basePath" : "components/java/streams",
+                "html" : "streams.html"   
             },
             "concurrencia" : {
-                "basePath" : "components/java/examples",
-                "html" : "examples.html" ,
-                "css" : "examples.css"  
+                "basePath" : "components/java/concurrencia",
+                "html" : "concurrencia.html" 
             },
             "modulesystem" : {
-                "basePath" : "components/java/structure",
-                "html" : "structure.html"
+                "basePath" : "components/java/modulesystem",
+                "html" : "modulesystem.html"
             }
         }
     },
@@ -52,7 +57,7 @@
         "topic" : "Spring Boot",
         "mainContent" : "conceptos-basicos.introduccion",
         "paths" : {
-            "logo" : "components/springboot/common/assets/img/springboot.jpg",
+            "logo" : "components/springboot/common/assets/img/spring-boot-ok-1.png",
             "sidebar" : "components/springboot/common/assets/sidebar.json",
             "conceptos-basicos": {
                 "introduccion" : {
@@ -270,7 +275,7 @@
         "topic" : "Patrones de diseño",
         "mainContent" : "cheatsheet",
         "paths" : {
-            "logo" : "components/design-patterns/common/assets/img/design-patterns-logo.png",
+            "logo" : "components/design-patterns/common/assets/img/design-patterns-logo-1.png",
             "sidebar" : "components/design-patterns/common/assets/sidebar.json",
             "cheatsheet" : {
                 "basePath" : "components/design-patterns/cheatsheet",

@@ -1,0 +1,62 @@
+{
+    "pageContent" : [
+        {
+            "text" : "Conceptos Básicos",
+            "contentId" : "basics",
+            "content" : [
+                {
+                    "text" : "Introducción",
+                    "content" : "java.paths.introduccion"
+                }
+            ]
+        },
+        {
+            "text" : "Conceptos Principales",
+            "contentId" : "main",
+            "content" : [
+                {
+                    "text" : "Tipos de datos",
+                    "content" : "java.paths.tipos-de-datos"
+                },
+                {
+                    "text" : "Estructuras de control/flujo",
+                    "content" : "java.paths.flowcontrol"
+                },
+                {
+                    "text" : "POO",
+                    "content" : "java.paths.poo"
+                },
+                {
+                    "text" : "Colecciones",
+                    "content" : "java.paths.colecciones"
+                },
+                {
+                    "text" : "Excepciones",
+                    "content" : "java.paths.excepciones"
+                },
+                {
+                    "text" : "IO",
+                    "content" : "java.paths.io"
+                },
+                {
+                    "text" : "Streams",
+                    "content" : "java.paths.streams"
+                },
+                {
+                    "text" : "Concurrencia",
+                    "content" : "java.paths.concurrencia"
+                },
+                {
+                    "text" : "Modularidad",
+                    "content" : "java.paths.modulesystem"
+                }
+            ]
+        }
+    ],
+    "links" : [
+        {
+            "text" : "***",
+            "href" : ""
+        }
+    ]
+}
