@@ -19,6 +19,10 @@
                     "content" : "java.paths.tipos-de-datos"
                 },
                 {
+                    "text" : "Arrays",
+                    "content" : "java.paths.arrays"
+                },
+                {
                     "text" : "Estructuras de control/flujo",
                     "content" : "java.paths.flow-control"
                 },

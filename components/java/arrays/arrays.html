@@ -1,0 +1,88 @@
+<h1 class="title">Arrays</h1>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+int[] numeros  = new int[6];
+System.out.println(numeros[3]);
+//Imprime lo que haya en la posición 4,
+//ya que las posiciones empiezan en 0
+
+byte bytes[] = new byte[2];
+
+String[] nombres = new String[]{"Juan","Juan","Juan"};
+System.out.println(Arrays.toString(nombres));
+//La clase Arrays permite usar el método toString
+//para visualizar datos contenidos en el array
+Arrays.copyOf()//para copiar arrays
+
+Character[] letras = {'a',null,'z'}
+</code></pre>
+</div>
+
+<p><b>NOTA:</b> no está permitido redimensionar arrays.</p>
+
+foreach y for para recorrer arrays:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+String[] nombresList = new String[]{"Juan","Juan","Juan"};
+
+for(String nombre : nombresList){
+    System.out.println(nombre);
+}
+
+for(int i=0; i&lt;nombresList.size(); i++){
+    System.out.println(
+        nombreList[i];
+        );
+}
+</code></pre>
+</div>
+
+Argumentos como arrys:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+foo.example(1,2,3,4,5,6,7,8,9)
+
+public static void example(long x, int... y){
+    System.out.println(x)
+    System.out.println(Arrays.toString(y))
+}
+
+//Imprime:
+//1
+//[2,3,4,5,6,7,8,9]
+</code></pre>
+</div>
+
+TODO: Métodos útiles
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Métodos para Arrays</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Método</th>
+            <th>Funcionalidad</th>
+        </tr>
+        <tr>
+            <td>list.length()</td>
+            <td>Devuelve la longitud de la lista.</td>
+        </tr>
+        <tr>
+            <td>list.toCharArray()</td>
+            <td>Devuelve la cadena de caracteres en minúsculas.</td>
+        </tr>
+    </tbody>
+</table>
+
+NOTA:
+<div class="center-horizontal">
+<pre><code class="language-java">
+list.length  //Aquí es un atributo de un objeto
+list.length()//Aquí se llama a un método que devuelve la longitud
+</code></pre>
+</div>

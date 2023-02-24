@@ -19,6 +19,10 @@
                 "basePath" : "components/java/tipos-de-datos",
                 "html" : "tipos-de-datos.html"   
             },
+            "arrays" : {
+                "basePath" : "components/java/arrays",
+                "html" : "arrays.html"   
+            },
             "flow-control" : {
                 "basePath" : "components/java/flow-control",
                 "html" : "flow-control.html"
