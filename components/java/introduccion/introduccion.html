@@ -1,34 +1,9 @@
 <h1 class="title">Introducción</h1>
 
-<p>Java es un lenguaje con tipado fuerte</p>
-<p>Camelcase</p>
-<p>keysensitive</p>
+<p>Java es un lenguaje de programación de alto nivel con tipado fuerte. Es compilado e interpretado en bytecode.</p>
 
-TODO: poner imagen de camelcase, kebabcase etc
+<p>Utiliza la notación Camelcase y es keysensitive(distingue mayúsculas de minúsculas).</p>
 
-
-
-modificador de acceso:
-TODO: volatile, transient?!?!?
-permite convertir a la variable en three save, volatile?!?!?
-asignar a los campos de clase el modificador volatil 
-cuando dos procesos acceden al mismo recurso
-
-
-<!-- ************************ -->
-Variables volátiles en Java
-Las variable volátiles en el lenguaje Java son declaradas anteponiendo el modificador de visibilidad de memoria volatile. Estas no son guardadas en el caché del procesador, es decir, toda lectura/escritura de la misma se realiza directamente contra la memoria principal.
-
-Anteponiendo volatile a la definición de la variable _stop estamos diciendo al compilador que el valor contenido en esa dirección de memoria puede modificarse en cualquier momento, y queremos que dicha modificación sea visible inmediatamente para todos los hilos que están accediendo a ella, no queremos que su valor sea copiado en la caché del procesador.
-
-That’s it! Haciendo nuestras variable volátiles obligamos a los hilos a leerlas de la memoria principal, y no del caché, garantizando que el valor leído siempre es el último valor escrito en ellas.
-<!-- ************************ -->
-
-TODO: mirar también cosas de errores
-error de compilacion, error del sistema y excepciones
-
-
-operadores:
-TODO: ++ , etc
-
-
+<div class="center-horizontal">
+    <img src=".\components\java\introduccion\assets\camel-case.png">
+</div>
