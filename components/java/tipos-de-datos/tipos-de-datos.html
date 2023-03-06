@@ -113,7 +113,22 @@ public final class ImmutableClass {
 
 
 
-<h2>Datos primitivos y variables objetos</h2>
+<h2>Tipos primitivos y variables objetos</h2>
+
+<p>En la asignación de un variable con tipo primitivo a otra, ocurre que, cada variable tendrá su propio espacio reservado en memoria. En cambio a la hora de hacer esto mismo pero con objetos ambas variables apuntan al mismo valor.</p>
+<p>Ejemplo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+    //Distinto espacio en memoria y distinto valor.
+    int a = 23;
+    int b = a;
+
+    //Distinto espacio en memoria y ambos apuntan al mismo valor.
+    Object objeto1 = new Object();
+    Object objeto2 = objeto1;
+</code></pre>	
+</div>
 
 <table class="table table-striped table-hover">
     <thead>
@@ -289,14 +304,32 @@ numLong = _1_000_000L; //MAL ya que empieza por guión bajo
 <h2>Clases envoltorio</h2>
 
 <p>Cada dato primitivo tiene su representación en una clase envoltorio o wrapped class.</p>
+<p>Estas clases contienen métodos estáticos que permiten convertir tipos de datos.</p>
+<p>Los objetos de las clases envoltorio son inmutables.</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 Integer num = Integer.MAX_VALUE;
 Boolean valorMaximo = letra.equals('b');
 Double valorMinimo = Double.MIN_VALUE;
+
+//Conversion de datos
+int n = Integer.parseInt("300");
 </code></pre>	
 </div>
+
+<h4>Autoboxing/Unboxing</h4>
+
+<p>Asignar el tipo primitivo a varible con clase envoltorio es <b>Autoboxing</b></p>
+<p>Recuperar el tipo primitivo es <b>Unboxing</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Integer num = 111; //autoboxing
+int num2 = num; //unboxing
+</code></pre>	
+</div>
+
 
 
 <h2>String</h2>
@@ -567,8 +600,11 @@ var [] n=new int[4];
 </div>
 
 <p>
-    Las instrucciones 1, 2 y 3 son correctas, mientras que 4, 5 y 6 son incorrectas. La instrucción f es incorrecta porque con var no se usan los corchetes en la declaración de arrays.
+    Las instrucciones 1, 2 y 3 son correctas, mientras que 4, 5 y 6 son incorrectas. La instrucción f es incorrecta porque con var no se usan los corchetes en la declaración de arrays. La c no es correcta porque no se puede utilizar en declaraciones múltiples.
 </p>
 
 <h2>Cast o conversión de tipos</h2>
+TODO:
+
+<h2>Lista de palabras reservadas</h2>
 TODO:
