@@ -32,16 +32,40 @@
                 "html" : "poo.html"
             },
             "colecciones" : {
-                "basePath" : "components/java/colecciones",
-                "html" : "colecciones.html"   
+                "list" : {
+                    "basePath" : "components/java/colecciones/list",
+                    "html" : "list.html"
+                },
+                "set" : { 
+                    "basePath" : "components/java/colecciones/set",
+                    "html" : "set.html"
+                },
+                "map" : { 
+                    "basePath" : "components/java/colecciones/map",
+                    "html" : "map.html"
+                },
+                "iterable" : { 
+                    "basePath" : "components/java/colecciones/iterable",
+                    "html" : "iterable.html"
+                },
+                "order" : { 
+                    "basePath" : "components/java/colecciones/order",
+                    "html" : "order.html"
+                }
             },
             "excepciones" : {
                 "basePath" : "components/java/excepciones",
                 "html" : "excepciones.html"   
             },
             "io" : {
-                "basePath" : "components/java/io",
-                "html" : "io.html"
+                "io" : {
+                    "basePath" : "components/java/io/io",
+                    "html" : "io.html"
+                },
+                "jdbc" : {
+                    "basePath" : "components/java/io/jdbc",
+                    "html" : "jdbc.html"
+                }
             },
             "functional-programming" : {
                 "basePath" : "components/java/functional-programming",

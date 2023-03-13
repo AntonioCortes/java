@@ -32,15 +32,48 @@
                 },
                 {
                     "text" : "Colecciones",
-                    "content" : "java.paths.colecciones"
+                    "contentId" : "colecciones",
+                    "content" : [
+                        {
+                            "text" : "Listas",
+                            "content" : "java.paths.colecciones.list"
+                        },
+                        {
+                            "text" : "Set/Conjuntos",
+                            "content" : "java.paths.colecciones.set"
+                        },
+                        {
+                            "text" : "Map",
+                            "content" : "java.paths.colecciones.map"
+                        },
+                        {
+                            "text" : "Iterables",
+                            "content" : "java.paths.colecciones.iterable"
+                        },
+                        {
+                            "text" : "Orden",
+                            "content" : "java.paths.colecciones.order"
+                        }
+
+                    ]
                 },
                 {
                     "text" : "Excepciones",
                     "content" : "java.paths.excepciones"
                 },
                 {
-                    "text" : "IO",
-                    "content" : "java.paths.io"
+                    "text" : "I/O",
+                    "contentId":"io",
+                    "content" : [
+                        {
+                            "text" : "I/O",
+                            "content" : "java.paths.io.io"
+                        },
+                        {
+                             "text" : "JDBC",
+                            "content" : "java.paths.io.jdbc"
+                        }
+                    ]
                 },
                 {
                     "text" : "Programación funcional",
