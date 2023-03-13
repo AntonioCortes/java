@@ -28,8 +28,42 @@
                 "html" : "flow-control.html"
             },
             "poo" : {
-                "basePath" : "components/java/poo",
-                "html" : "poo.html"
+                "acceso" : {
+                    "basePath" : "components/java/poo/acceso",
+                    "html" : "acceso.html"
+                },
+                "clase" : {
+                    "basePath" : "components/java/poo/clase",
+                    "html" : "clase.html"
+                },
+                "clase-abstracta" : {
+                    "basePath" : "components/java/poo/clase-abstracta",
+                    "html" : "clase-abstracta.html"
+                },
+                "clase-anidada" : {
+                    "basePath" : "components/java/poo/clase-anidada",
+                    "html" : "clase-anidada.html"
+                },
+                "clase-enumeradora" : {
+                    "basePath" : "components/java/poo/clase-enumeradora",
+                    "html" : "clase-enumeradora.html"
+                },
+                "herencia" : {
+                    "basePath" : "components/java/poo/herencia",
+                    "html" : "herencia.html"
+                },
+                "interfaz" : {
+                    "basePath" : "components/java/poo/interfaz",
+                    "html" : "interfaz.html"
+                },
+                "metodo" : {
+                    "basePath" : "components/java/poo/metodo",
+                    "html" : "metodo.html"
+                },
+                "polimorfismo" : {
+                    "basePath" : "components/java/poo/polimorfismo",
+                    "html" : "polimorfismo.html"
+                }
             },
             "colecciones" : {
                 "list" : {
