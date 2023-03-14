@@ -1,1 +1,281 @@
 <h1 class="title">Excepciones</h1>
+
+TODO: poner gráfico de la jerarquia de excepciones
+
+
+Las excepciones se capturan en un programa java a través de
+los bloques try catch:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try{
+    //instrucciones
+}
+catch(TipoExcepcion1 ex){
+  //tratamiento excepción
+}
+catch(TipoExcepcion2 ex){
+    //tratamiento excepcion
+}
+</code></pre>
+</div>
+
+No puede haber ninguna instrucción entre los bloques try y
+catch:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try{..}
+System.out.println("hello"); //error de compilación
+catch(…){}
+</code></pre>
+</div>
+
+Si se capturan varios tipos de excepciones que tienen relación
+de herencia entre ellas, los catch de las subclases deben ir
+antes que los de las superclases:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+    //COMPILACION CORRECTA
+    catch(
+        FileNotFoundException ex){
+        ..
+        }
+        catch(
+        IOException ex){
+        ..
+        }
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+    <pre><code class="language-java">
+        //ERROR DE COMPILACION
+        catch(
+            RuntimeException ex){
+            ..
+            }
+            catch(
+            ArithmeticException ex){
+            ..
+            }
+    </code></pre>
+    </div>
+
+<h2>Multicatch</h2>
+
+Si los catch de varias excepciones van a realizar la misma
+tarea, podemos agruparlos en un multicatch
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+catch(IOException ex){
+    System.out.println("exception") }
+catch(SQLException ex){
+    System.out.println("exception")
+}
+
+//Multicatch
+
+catch(IOException|SQLException ex){
+System.out.println("exception")
+}
+</code></pre>
+</div>
+
+
+Las excepciones del multicatch no pueden tener relación de
+herencia, se produciría un error de compilación
+
+<h2>Métodos</h2>
+
+Todas las clases de excepción heredan los siguientes métodos
+de Exception
+
+String getMessage (). Devuelve una cadena de caracteres
+con un mensaje de error asociado a la excepción
+
+void printStackTrace (). Genera un volcado de error que es
+enviado a la consola
+
+<h2>Finally</h2>
+
+Se ejecuta siempre, tanto si se produce la excepción como si
+no.
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try{
+    int n = 4/0;
+}catch(ArithmeticException ex){
+    System.out.println("División por cero");
+    return;
+}
+finally{
+    System.out.println("Final");
+}
+</code></pre>
+</div>
+
+Si se produce una excepción y no hay ningún catch para
+capturarla, se propagará la excepción al punto de llamada, pero
+antes ejecutará el bloque finally
+
+
+<h2>Propagación de excepciones</h2>
+
+Si un método que debe capturar una excepción no desea
+hacerlo, puede propagarla al lugar de llamada al método
+
+Se debe declarar la excepción en la cabecera del método con
+la instrucción throws:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+metodo(){
+    BufferedReader bf = new BufferedReader();
+    try{
+        //la llamda a readLine puede provocar 
+        //una IOException
+        String s= bf.readLine();
+    }catch(IOEXception ex){
+
+    }
+}
+</code></pre>
+</div>
+
+<p>=&gt; Propagación =&gt;</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+metodo() throws IOException {
+    BufferedReader bf =new BufferedReader();
+    //si se produce la excepción,
+    //se propaga al punto de llamada
+    //a metodo (), que será donde haya
+    // que capturarla
+    String s= bf.readLine();
+}
+</code></pre>
+</div>
+
+<h2>Lanzamiento de excepción</h2>
+
+Desde un método de una clase se puede lanzar una excepción
+para que sea capturada desde el punto de llamada al método
+
+Para lanzar una excepción se utiliza la instrucción throw
+objeto_excepcion
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+metodo() throws IOException{
+    /*
+    Si se lanza una excepción checked 
+    el compilador obliga a declararla
+    con throws para que se propague,
+    si es RuntimeException no es
+    necesario declararla    
+    */
+    //creación y lanzamiento de la
+    //excepción
+    throw new IOException();
+}
+</code></pre>
+</div>
+
+<h2>Excepciones personalizadas</h2>
+
+Se puede crear una excepción personalizada definiendo una
+clase que herede Exception
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class TestException extends Exception{
+
+}
+    
+class C1{
+    //propaga la excepción que lanza
+    public
+    void metodo () throws TestException{
+        //...
+        throw new TestException();
+    }
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+C1 c=new C1();
+try{
+    //al utilizar metodo () se debe capturar
+    //la excepción
+    c.metodo
+}catch(TestException t){
+    //...
+}
+</code></pre>
+</div>
+
+<h2>Cierre de objetos</h2>
+
+Algunos objetos utilizados para acceder a datos ( Connection ,
+PrintStream , BufferedReader , etc.) deben ser cerrados después
+de su uso
+
+Estos objetos exponen el método close () para realizar el cierre
+de los mismos
+
+Para garantizar el cierre, la llamada al método close () se debe
+realizar en el bloque finally
+
+Ejemplo clásico de uso:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Connection con= null;
+try{
+    con = DriverManager.getConnection(
+        //...
+    );
+}catch(SQLException ex){
+    //tratamiento excepción
+}finally{
+    if(con != null){
+        try{
+            con.close();
+        }catch(SQLException ex){
+            //...
+        }
+    }
+}
+</code></pre>
+</div>
+
+<h2>Interfaz AutoCloseable</h2>
+
+Interfaz del paquete java.lang que incorpora un único método
+llamado close
+
+Implementada desde Java 7 por las clases de objetos que
+gestionan recursos, como las de entrada y salida de java.io, o
+los objetos JDBC de acceso a datos.
+
+Objetivo: Que sea el propio entorno de ejecución el que llame
+automáticamente al método close () de cualquier objeto
+AutoCloseable , ahorrando código al programador
+
+<h2>try con recursos</h2>
+
+Variante del try en la que se crean objetos autocerrables al
+principio del mismo.
+
+Al salir del bloque try, tanto de forma natural como por una
+excepción, los objetos son cerrados automáticamente.
+
+TODO: poner codigos de esta seccion y lo que falta!
+
