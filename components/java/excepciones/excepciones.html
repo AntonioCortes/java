@@ -1,6 +1,7 @@
 <h1 class="title">Excepciones</h1>
 
 TODO: poner gráfico de la jerarquia de excepciones
+TODO: checked and unchecked exceptions
 
 
 Las excepciones se capturan en un programa java a través de
@@ -279,3 +280,124 @@ excepción, los objetos son cerrados automáticamente.
 
 TODO: poner codigos de esta seccion y lo que falta!
 
+<div class="center-horizontal">
+<pre><code class="language-java">
+try(Tipo variable = new Tipo()){
+//...
+//Llamada implicita variable.close();
+//antes de abandonar el bloque try
+}catch(TipoException ex){
+//...
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Tipo variable = new Tipo()
+try(variable){
+//...
+//Llamada implicita variable.close();
+//antes de abandonar el bloque try
+}catch(TipoException ex){
+//...
+}
+</code></pre>
+</div>
+
+<h2>Cierre con try con recursos</h2>
+
+
+TODO: el bloque de try puede ir solo 
+TODO: interfaz autocloseable y Closeable
+
+<p>Ejemplo de uso:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try(Connection con = DriverManager.getConnection()){
+//…
+/*
+No se requiere bloque
+finally para cierre de
+objetos. Importante
+ahorro de código
+*/
+}catch(SQLException ex){
+//tratamiento excepción
+}
+</code></pre>
+</div>
+
+<p>Cierre de múltiples objetos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try(FileReader fr =new FileReader("datos.txt");
+    BufferedReader bf = new BufferedReader(fr)){
+    //…
+}catch(IOException ex){
+    //tratamiento excepción
+}
+</code></pre>
+</div>
+
+<p>Son cerrados en orden inverso a su creación:
+    bf.close
+    fr.close</p>
+
+<h2>Consideraciones</h2>
+
+La creación del objeto puede realizarse antes del try,
+indicando después la variable entre paréntesis. En este caso, la
+variable se trata como constante efectiva:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//Correcto
+Connection con = DriverManager.getConnection();
+try(con){
+    //…
+}
+
+//Error de compilación
+Connection con = DriverManager.getConnection();
+con = DriverManager.getConnection(); //error
+try(con){
+…
+}
+</code></pre>
+</div>
+
+El método close () es llamado nada más abandonar el bloque
+try, antes de entrar en un posible bloque catch o finally
+
+
+<p>Revisión de concepto:</p>
+
+<p>Dada la clase:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Recurso implements AutoCloseable{
+    public void close(){ System.out.print("cerrar");}
+}
+</code></pre>
+</div>
+
+<p>Indica que se mostrará al ejecutar el siguiente código</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try(Recurso r=new Recurso()){
+    int res=5/0;
+    System.out.print("hecho");
+}catch(Exception ex){
+    System.out.print("error");
+}
+</code></pre>
+</div>
+
+<p>
+<b>RESPUESTA:</b>
+Se imprimirá: cerrar error Nada más salir del try, antes de entrar en el catch, el objeto se cierra y se llama a close
+</p>
