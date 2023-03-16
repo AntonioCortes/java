@@ -1,2 +1,149 @@
 <h1 class="title">Map</h1>
 
+Cada elemento tiene asociada una clave única
+No hay un orden o posición
+Las tablas implementan la interfaz Map
+Tanto el tipo de la clave como del valor son genéricos
+La principal clase de colección es HashMap Map
+
+
+TODO: poner gráfico de jerarquia de clases de map
+
+<h2>Creación de tablas</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//MUTABLES
+Map&lt;Integer,String&gt; contactos = new HashMap&lt;&gt;();
+
+
+//INMUTABLES, no admiten la eliminación, modificación e
+//inserción de elementos. No admiten ni claves ni valores null
+//Método factoría:
+Map&lt;Integer,String&gt; contactos = Map.ofEntries(
+    Map.entry (123, "Juan"),
+    Map.entry (300, "Ana"),
+    Map.entry (500 ,"Olivia")
+);
+
+//Método copyOf:
+Map&lt;Integer , String &gt; Map.copyOf(contactos);
+</code></pre>
+</div>
+
+<h2>Métodos de HashMap</h2>
+
+T put (K clave, T dato). Añade el dato a la colección y le asocia la
+clave indicada como primer parámetro. Si ya existiera esa clave, el
+valor existente será sustituido por el nuevo:
+<div class="center-horizontal">
+<pre><code class="language-java">
+//put admite claves null
+HashMap&lt;Integer,String&gt; tabla = new HashMap&lt;&gt;();
+tabla.put(200, "dato1");
+tabla.put(400, "dato2");
+tabla.put(200,"dato3"); //dato1 es sustituido por dato3
+</code></pre>
+</div>
+
+T putIfAbsent (K clave, T dato). Añade la entrada en caso de que
+la clave no exista o tenga asociado el valor null
+
+T get (K clave). Devuelve el dato que tenga asociada dicha clave.
+Si no hay ninguno, devolverá null
+
+
+int size (). Devuelve el tamaño de la colección
+
+T remove (Object clave). Elimina el dato que tenga dicha
+clave asociada y devuelve el elemento eliminado.
+
+<p>System.out.println(tabla.remove (400)); //muestra dato2</p>
+
+boolean containsKey (K clave). Indica si hay algún elemento
+en la colección con dicha clave asociada.
+
+boolean containsValue (T valor). Indica si el elemento está
+presente en la colección
+
+<h2>Revisión de conceptos</h2>
+
+<p>Indica que sucederá al ejecutar el siguiente código</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+HashMap&lt;Integer,String&gt; tabla = new HashMap&lt;&gt;();
+tabla.put(25,"hello");
+tabla.put(null, "by");
+System.out.println(tabla.get(null));
+</code></pre>
+</div>
+
+<p>
+    a.Se imprime by
+    b.Se imprime hello
+    c.Se imprime cadena vacía
+    d.Se produce una excepción
+</p>
+
+<p>RESPUESTA: La respuesta correcta es la a. Como admite clave null , el valor asociado con dicha clave es " by</p>
+
+Indica cual es la instrucción que falta en la línea 1
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//linea 1
+for(List String > lt:datos.values ()){
+    for(String s:lt){
+        System.out.println(s);
+    }
+}
+</code></pre>
+</div>
+
+<p>
+RESPUESTA: La instrucción que falta en línea 1 podría ser: Map&lt; String , List&lt; String &gt;&gt; datos=new HashMap&lt;&gt;();
+De hecho, la clave podría ser de cualquier tipo, lo importante es que sea un Map de valores lista de String
+</p>
+
+<h2>Recorrido de una tabla</h2>
+
+
+Se pueden utilizar los siguientes métodos:
+
+Collection <T> values (). Devuelve una colección solo con
+los valores. Puede utilizarse para recorrer el conjunto de
+valores con un for each
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Collection&lt;String&gt; datos = tabla.values();
+for(String s:datos){
+    System.out.println(s); //muestra cada elemento
+}
+</code></pre>
+</div>
+
+
+Set<K> keySet (). Devuelve el conjunto de claves de la
+tabla. Se puede recorrer con un for each
+
+Método forEach (se estudia en)
+
+<h2>TreeMap</h2>
+
+<p>
+Similar a HashMap , con la diferencia de que los objetos están ordenados por la clave:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+TreeMap&lt;Integer,String&gt; tabla=new TreeMap&lt;&gt;();       
+tabla.put(200, "dato1 ");
+tabla.put(400, "dato2 ");
+tabla.put(100,"dato3 ");
+for (String val:tabla.values()){
+    System.out.print(val); // dato3 dato1 dato2
+}
+</code></pre>
+</div>

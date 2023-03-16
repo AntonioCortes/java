@@ -23,10 +23,62 @@ TODO: poner gráfico de jerarquía de clases de set
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+//MUTABLES
 Set&lt;String&gt; nombres = new HashSet&lt;&gt;();
 
-Set&lt;String&gt; nombres = Set.of("Juan","Jake");
 
+//INMUTABLES, mo admiten la eliminación,
+//modificación e inserción de elementos. 
+//Tampoco admite valores null
+Set&lt;String&gt; nombres = Set.of("Juan","Jake");
 Set&lt;String&gt; nuevos = Set.copyOf(nombres)
 </code></pre>
 </div>
+
+boolean add ( T dato). Añade el dato a la colección si no está
+presente. Devuelve true si lo ha podido añadir.
+<div class="center-horizontal">
+<pre><code class="language-java">
+HashSet&lt;String&gt; dias =new HashSet&lt;&gt;();
+dias.add("lunes");
+dias.add("martes");
+dias.add("lunes"); //no lo añade
+</code></pre>
+</div>
+boolean remove (T dato). Elimina el elemento si se encuentra en
+la colección.
+
+int size (). Devuelve el tamaño de la colección
+
+boolean contains( Object ob ). Devuelve true si el objeto existe en
+la colección
+
+
+<h2>Recorrido de un conjnto</h2>
+Un conjunto puede ser recorrido con un for each
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+for(String s:dias){
+    System.out.println(s); //muestra cada elemento
+}
+</code></pre>
+</div>
+
+También dispone del método forEach , que estudiaremos en
+lambdas
+
+<h2>Revision de conceptos</h2>
+
+¿Qué se mostrará al ejecutar el siguiente código?:
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Set&lt;String&gt; Set.of ("María", "Ana", "Juan");
+for(String s:nombres){
+    System.out.print(s+"");
+}
+</code></pre>
+</div>
+
+<p>RESPUESTA: La respuesta correcta es la c , ya que en un conjunto los elementos no están ordenados . Si hubiera sido un TreeSet , si habría un orden natural en ese caso, la respuesta sería la b</p>

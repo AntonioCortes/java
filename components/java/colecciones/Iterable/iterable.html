@@ -1,1 +1,35 @@
 <h1 class="title">Iterables</h1>
+<p>Un iterable es un objeto que puede ser recorrido mediante un enhanced for</p>
+
+<p>Los objetos iterables implementan la interfaz java.lang.Iterable , que entre sus métodos más destacados está:</p>
+
+<p>Iterator &lt;T&gt; iterator (). Devuelve un objeto Iterator</p>
+
+<p>Las listas y los conjuntos son ejemplos de objetos Iterables</p>
+
+<h2>Interfaz Iterator</h2>
+
+<p>
+Objeto tipo cursor que Permite recorrer el contenido de un Iterable:
+</p>
+
+<p>Entre sus métodos destacan:</p>
+
+<p>boolean hasNext (). Indica si hay más elementos que recorrer</p>
+
+<p>T next (). Se desplaza al siguiente elemento y devuelve una referencia al mismo</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Iterator &lt;Integer&gt; iter = lista.iterator();
+while(iter.hasNext()){
+    System.out.println(iter.next());
+}
+</code></pre>
+</div>
+
+<p>Objeto que contiene una agrupación de datos</p>
+
+<p>La interfaz java.util.Collection representa la interfaz raíz de las colecciones Java</p>
+
+<p>Hereda Iterable y es heredada por listas y conjuntos, proporcionando gran parte de los métodos de estas colecciones: add , contains , remove , removeIf , size o stream</p>
