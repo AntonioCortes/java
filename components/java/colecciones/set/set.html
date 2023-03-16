@@ -4,3 +4,29 @@ TODO: elimina elementos repetidos??!?!?
 TODO: una forma de hacer conjuntos?
 
 poner interfaz coparator y compare!! bleto torre!
+
+
+
+Los elementos no tienen posición ni clave asociada, si bien
+cada elemento es único, no se pueden repetir
+
+Emplea internamente los métodos equals y hashcode para
+determinar la igualdad de objetos
+
+Los conjuntos implementan la interfaz Set, que es de tipo
+genérico
+
+La principal clase de conjuntos es HashSet
+
+
+TODO: poner gráfico de jerarquía de clases de set
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Set&lt;String&gt; nombres = new HashSet&lt;&gt;();
+
+Set&lt;String&gt; nombres = Set.of("Juan","Jake");
+
+Set&lt;String&gt; nuevos = Set.copyOf(nombres)
+</code></pre>
+</div>
