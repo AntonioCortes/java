@@ -270,10 +270,14 @@
     },
     "librerias" : {
         "topic" : "Librerias",
-        "mainContent" : "lombok-introduccion",
+        "mainContent" : "introduccion",
         "paths" : {
             "logo" : "components/librerias/common/assets/img/SimpleBook.svg",
             "sidebar" : "components/librerias/common/assets/sidebar.json",
+            "introduccion" : {
+                "basePath" : "components/librerias/introduccion",
+                "html" : "introduccion.html"   
+            },
             "lombok" : {
                 "introduccion" : {
                     "basePath" : "components/librerias/lombok/introduccion",
