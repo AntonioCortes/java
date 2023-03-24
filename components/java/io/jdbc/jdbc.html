@@ -1,3 +1,140 @@
 <h1 class="title">JDBC</h1>
 
-set null y setobject? jdbc clases enumeradpras
+TODO: set null y setobject? jdbc clases enumeradpras
+
+<p>Conjunto de clases e interfaces que permiten a una aplicación Java acceder a cualquier base de datos a través de un driver</p>
+
+<p>El proceso para realizar operaciones contra una BD es:</p>
+<ol>
+    <li>Carga del driver</li>
+    <li>Establecimiento de la conexión con la BD</li>
+    <li>Ejecución de la consulta SQL</li>
+    <li>Manipulación de resultados, si procede</li>
+    <li>Cierre de la conexión</li>
+</ol>
+
+<h2>El API de JDBC</h2>
+
+<p>Se encuentra en el paquete java.sql</p>
+<p></p>Entre las principales clases e interfaces están:</p>
+<ul>
+    <li>DriverManager . Proporciona un método estático para poder obtener conexiones contra la base de datos.</li>
+    <li>Connection . Representa una conexión contra la base de datos. La obtención de una conexión es un paso previo para poder operar contra la misma.</li>
+    <li>Statement . A través de este objeto podemos enviar consultas SQL a la base de datos.</li>
+    <li>PreparedStatement . Es una versión alternativa de Statement con la que podemos podemos precompilar consultas SQL antes de enviarlas a la BD.</li>
+    <li>ResultSet . Cuando una consulta devuelve resultados (caso de las instrucciones Select ), la manipulación de los mismos se realiza a través de un objeto ResultSet</li>
+</ul>
+
+<h2>Carga del driver</h2>
+
+<p>El driver es una librería . jar que se incluye dentro del classpath de la aplicación.</p>
+<p>Deberá ser cargado en memoria mediante:</p>
+<p><em>Class.forName("com.mysql.jdbc.Driver")</em></p>
+<p>Desde JDBC 4 no es necesario realizar esta operación</p>
+
+<h2>Establecer conexión</h2>
+
+<p>La conexión con la base de datos se establece a través del método getConnection() de DriverManager , que devuelve un objeto Connection</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Connection con = DriverManager.getConnection(String cadena, String user , String pwd);
+Connection con = DriverManager.getConnection(String cadena, Properties prop);
+</code></pre>	
+</div>
+
+<p>La cadena de conexión tiene el siguiente formato:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+    jdbc:&lt;subprotocolo&gt; subname
+</code></pre>	
+</div>
+
+<p>Donde subprotocolo es el tipo de base de datos y subname depende de la base de datos. Ejemplos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+jdbc:mysql://localhost:3306/mydata
+jdbc:oracle:thin:@localhost:1521/servicedata
+jdbc:db2://localhost:50000/ datasets
+</code></pre>	
+</div>
+
+<h2>Ejecución de consulta SQL</h2>
+
+<p>Para ejecutar una consulta SQL se utilizan los objetos Statement o PreparedStatement:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+//Statement
+String sql="insert ito tabla(col1,col2) values (40,'wwww')";
+Statement st con.createStatement();
+st.execute(sql);
+</code></pre>	
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+String sql = "insert ito tabla(col1,col2) values(?,?)";
+PreparedStatement st = con.prepareStatement(sql);
+st.setInt(1.40);
+st.setString(2,"wwww");
+st.execute();
+</code></pre>	
+</div>
+
+<p>En el caso de una consulta de selección, se debe obtener el objeto ResultSet para acceder a los registros:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+String sql = "select * from data";
+Statement st = con.createStatement();
+st.execute(sql);
+ResultSet rs = st.getResultSet();
+</code></pre>	
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+String sql = "Select * from data";
+Statement st = con.createStatement();
+ResultSet rs = st.executeQuery(sql);
+</code></pre>	
+</div>
+
+<h2>Revisión de conceptos</h2>
+
+<p>Dado el siguiente bloque de código, donde con es una variable que apunta a un objeto Connection , indica cual será el resultado de ejecutar el siguiente bloque de sentencias:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+String sql ="insert into clientes (code, name, type) values(?,?,?)";//1
+PreparedStatement ps con.prepareStatement(sql); //2
+ps.setInt(0,123); //3
+ps.setString(1,"bob");
+ps.setString(2,"new");
+ps.execute();
+</code></pre>	
+</div>
+
+<ul>
+    <li>A.Error de compilación en línea 1</li>
+    <li>B.Error de compilación en línea 2</li>
+    <li>C.Excepción en línea 3</li>
+    <li>D.Se añadirá el registro a la base dedatos</li>
+</ul>
+
+<p>La respuesta correcta es la C, ya que las posiciones de los parámetros comienzan por 1</p>
+
+<h2>Manipulación de resultados</h2>
+
+<p>Para acceder a los registros empleamos los siguientes métodos de ResultSet();</p>
+
+<ul>
+    boolean next(). Se desplaza al siguiente registro , si no hay ninguno devolverá false:
+xxx getXxx int col). Métodos para obtener el valor de la columna indicada.
+La posición de la primera columna es la 1. xxx es el nombre del tipo Java
+getInt , getString
+xxxgetXxx String col). Igual que el anterior, utilizando el nombre de la
+columna.
+</ul>

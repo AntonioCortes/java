@@ -477,22 +477,25 @@ Files.readAllLines(pt).stream()
 <h2>Otros métodos de Files</h2>
 
 <p>static Path copy(Path source, Path target, CopyOption... options). Copia el contenido de un fichero en otro:</p>
-<p>Si el fichero target ya existe y no se indica opción, se produce una excepción. Aunque si ambas rutas son iguales, el método se ejecuta sin cambios</p>
-<p>Si source es un directorio, se creará en target un directorio vacío</p>
-<p>Si target es un directorio, FileAlreadyExistsException</p>
-<p>Si el tercer parámetro es StandardCopyOption.REPLACE_EXISTING , en fichero target será sustituido en caso de que exista</p>
-<p>Si el tercer parámetro incluye StandardCopyOption.COPY_ATTRIBUTES , se copiarán también las propiedades del fichero origen en el destino</p>
+<ul>
+    <li>Si el fichero target ya existe y no se indica opción, se produce una excepción. Aunque si ambas rutas son iguales, el método se ejecuta sin cambios</li>
+    <li>Si source es un directorio, se creará en target un directorio vacío</li>
+    <li>Si target es un directorio, FileAlreadyExistsException</li>
+    <li>Si el tercer parámetro es StandardCopyOption.REPLACE_EXISTING , en fichero target será sustituido en caso de que exista</li>
+    <li>Si el tercer parámetro incluye StandardCopyOption.COPY_ATTRIBUTES , se copiarán también las propiedades del fichero origen en el destino</li>
+</ul>
 
 <p>static Path move(Path source, Path target, CopyOption... options). Mueve un fichero origen a otro destino:</p>
-<p>Si el fichero target ya existe y no se indica opción, se produce una excepción. Aunque si ambas rutas son iguales, el método se ejecuta sin cambios</p>
-<p>Si source es un directorio, se creará en target un directorio vacío</p>
-<p>Si target es un directorio, FileAlreadyExistsException</p>
-<p>Si el tercer parámetro es StandardCopyOption.REPLACE_EXISTING , en fichero target será sustituido en caso de que exista</p>
+<ul>
+    <li>Si el fichero target ya existe y no se indica opción, se produce una excepción. Aunque si ambas rutas son iguales, el método se ejecuta sin cambios</li>
+    <li>Si source es un directorio, se creará en target un directorio vacío</li>
+    <li>Si target es un directorio, FileAlreadyExistsException</li>
+    <li>Si el tercer parámetro es StandardCopyOption.REPLACE_EXISTING , en fichero target será sustituido en caso de que exista</li>
+</ul>
 
 <p>static void delete (Path path ). Elimina el fichero si existe , si no se produce una excepción . Si es un directorio , deberá estar vacío</p>
 <p>static void deleteIfExists (Path path ). Elimina el fichero si existe , sino no hace nada. Si es un directorio , deberá estar vacío</p>
-<p>static Path createFile (Path path , FileAttribute &lt;?&gt;... attrs ).</p>
-<p>Crea el fichero indicado vacío . Si el fichero ya existe , se produce una excepción</p>
+<p>static Path createFile (Path path , FileAttribute &lt;?&gt;... attrs ). Crea el fichero indicado vacío . Si el fichero ya existe , se produce una excepción</p>
 
 <h2>Revisión de conceptos</h2>
 
