@@ -1,52 +1,31 @@
 <h1 class="title">Entrada/Salida</h1>
 
-
-TODO: java ...
--Duser.country=UK
--Duser.language=es
--Duser.variant=...
-
-
-La entrada y salida se refiere a operaciones de recuperación
-de datos desde una fuente externa (entrada) y envío de datos
-desde el programa al exterior (salida)
-
-Dos paquetes de clases para realizar esas operaciones:
-
-java.io. Paquete tradicional, incluido desde las primeras
-versiones
-
-java.nio. Nueva entrada y salida. Incorporado en Java 5 y
-mejorado en sucesivas versiones
-
-En esta lección se estudia java.io
+<p>La entrada y salida se refiere a operaciones de recuperación de datos desde una fuente externa (entrada) y envío de datos desde el programa al exterior (salida)</p>
+<p>Dos paquetes de clases para realizar esas operaciones:</p>
+<ul>
+    <li>java.io. Paquete tradicional, incluido desde las primeras versiones</li>
+    <li>java.nio. Nueva entrada y salida. Incorporado en Java 5 y mejorado en sucesivas versiones</li>
+</ul>
+<p>En esta lección se estudia java.io</p>
 
 <h2>Salida con java.io</h2>
 
-Entre las principales clases para operaciones de salida de
-datos, están:
-
-OutputStream . Clase abstracta que representa un flujo de salida
-
-PrintStream . Subclase de OutputStream que proporciona métodos para
-enviar datos a cualquier flujo de salida
-
-FileOutputStream . Subclase de OutputStream que representa un flujo de
-salida asociado a un fichero
-
-FileWriter . Clase específica para escritura de texto en un fichero
+<p>Entre las principales clases para operaciones de salida de datos, están:</p>
+<ul>
+    <li>OutputStream . Clase abstracta que representa un flujo de salida</li>
+    <li>PrintStream . Subclase de OutputStream que proporciona métodos para enviar datos a cualquier flujo de salida</li>
+    <li>FileOutputStream . Subclase de OutputStream que representa un flujo de salida asociado a un fichero</li>
+    <li>FileWriter . Clase específica para escritura de texto en un fichero</li>
+</ul>
 
 <h2>Escritura en consola</h2>
 
-Métodos de PrintStream
-
-print (tipo dato). Escritura de cualquier tipo de dato Java, sin incluir salto de
-línea al final
-
-println (tipo dato). Escritura de cualquier tipo de dato Java, con salto de línea al
-final
-
-printf String format , Object args ). Escritura de datos con formato
+<p>Métodos de PrintStream</p>
+<ul>
+    <li>print (tipo dato). Escritura de cualquier tipo de dato Java, sin incluir salto de línea al final</li>
+    <li>println (tipo dato). Escritura de cualquier tipo de dato Java, con salto de línea al final</li>
+    <li>printf (String format , Object args ). Escritura de datos con formato</li>
+</ul>
 
 <h2>Escritura en un fichero</h2>
 
@@ -62,13 +41,9 @@ try(PrintStream out = new PrintStream(dir)){
 </code></pre>	
 </div>
 
-
-Escritura con formato
-
-Graba los datos en modo
-sobrescritura
-
-Si el fichero no existe se crea
+<p>Escritura con formato</p>
+<p>Graba los datos en modo sobrescritura</p>
+<p>Si el fichero no existe se crea</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -97,11 +72,7 @@ try(FileWriter out =new FileWriter(dir)){
 </code></pre>	
 </div>
 
-
-Graba los datos en modo
-sobrescritura
-
-Si el fichero no existe se crea
+<p>Graba los datos en modo sobrescritura Si el fichero no existe se crea</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -115,10 +86,7 @@ try(FileWriter out =new FileWriter(dir ,true)){
 </code></pre>	
 </div>
 
-
-Escritura de datos a través de un
-BufferedWriter que mejora el
-rendimiento
+<p>Escritura de datos a través de un BufferedWriter que mejora el rendimiento</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -135,7 +103,7 @@ try(FileWriter out = new FileWriter(dir,true);
 </div>
 
 <h2>Revisión de conceptos</h2>
-Dado el siguiente código, indica la respuesta correcta.
+<p>Dado el siguiente código, indica la respuesta correcta.</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -145,40 +113,22 @@ out.close(); //3
 </code></pre>	
 </div>
 
-A.
-Si el fichero no existe, se producirá una
-excepción en la línea 1
-B.
-Si el fichero no existe, se producirá una
-excepción en la línea 2
-C.
-El texto "
-hello " reemplazará al contenido
-existente
+<p>A. Si el fichero no existe, se producirá una excepción en la línea 1</p>
+<p>B. Si el fichero no existe, se producirá una excepción en la línea 2</p>
+<p>C. El texto "hello " reemplazará al contenido existente</p>
 
-A.
-Incorrecta. En la escritura si el fichero
-no existe se crea
-B.
-Incorrecta.
-C.
-Correcta. Por defecto se abre en modo
-sobrescritura
+<p><b>RESPUESTA:</b></p>
+<p>A. Incorrecta. En la escritura si el fichero no existe se crea</p>
+<p>B. Incorrecta.</p>
+<p>C. Correcta. Por defecto se abre en modo sobrescritura</p>
 
 <h2>Entrada con java.io</h2>
 
-Entre las principales clases para operaciones de entrada de
-datos, están:
-
-InputStream . Clase abstracta que representa un flujo de entrada de bytes
-
-FileInputStream . Subclase de InputStream que representa un flujo de
-entrada asociado a un fichero
-
-FileReader . Clase específica para lectura de texto en un fichero
-
-BufferedReader . Proporciona un mecanismo eficiente para la lectura de
-cadenas de texto de una fuente externa
+<p>Entre las principales clases para operaciones de entrada de datos, están:</p>
+<p>InputStream . Clase abstracta que representa un flujo de entrada de bytes</p>
+<p>FileInputStream . Subclase de InputStream que representa un flujo de entrada asociado a un fichero</p>
+<p>FileReader . Clase específica para lectura de texto en un fichero</p>
+<p>BufferedReader . Proporciona un mecanismo eficiente para la lectura de cadenas de texto de una fuente externa</p>
 
 <h2>Lectura por teclado</h2>
 
@@ -289,10 +239,288 @@ BufferedReader br = new BufferedReader(fr)){
 <p>Proporciona métodos para obtener información sobre el elemento:</p>
 
 <p>boolean exists (). Devuelve true si existe
-    
+
     boolean isFile (). Devuelve true si es un fichero
-    
+
     boolean isDirectory (). Devuelve true si es un directorio
-    
+
     boolean delete (). Elimina el elemento. Devuelve true si ha
     conseguido eliminarlo</p>
+
+<h2> Paquete java.nio.files </h2>
+
+<p>Nuevo paquete de entrada/salida para lectura y escritura en ficheros</p>
+<p>Principales clases e interfaces de este paquete:</p>
+<p>Path. Representa una ruta a un fichero o directorio</p>
+<p>Paths. Clase utilizada para crear instancias de Path</p>
+<p>Files. Dispone de diversos métodos estáticos para operar contra un fichero o directorio</p>
+
+<h2>Interfaz Path</h2>
+
+<p>Representa una ruta a un fichero o directorio.</p>
+<p>Para crear una implementación:</p>
+<p>Método of de Path</p>
+<p><em>Path pt= Path.of("/users/mydata.txt");</em></p>
+
+<p>Método get de Paths</p>
+<p><em>Path pt=Paths.get("/users/mydata.txt");</em></p>
+
+<h2>Métodos de Path I</h2>
+
+<p>Proporciona métodos para obtener información sobre la ruta:</p>
+<p>Path getFileName(). Nombre del fichero o último elemento del Path</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1 = Path.of("/user/mydata.txt");
+Path p2 = Path.of("/a/b");
+System.out.println(p1.getFileName()); //mydata.txt
+System.out.println(p2.getFileName()); //b
+</code></pre>	
+</div>
+
+<p>Path toAbsolutePath(). Ruta completa del fichero o directorio</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1= Path.of("C:\\user\\mydata.txt");
+Path p2= Path.of("datos.txt");
+System.out.println(p1.toAbsolutePath ()); // user mydata.txt
+
+
+System.out.println(p2. toAbsolutePath ()); // ejercicios datos.txt
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> Ruta completa desde el directorio actual</p>
+
+<h2>Métodos de Path II</h2>
+
+<p>Path normalize (). Resuelve las rutas relativas y devuelve el path normalizado</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+String url ="C:\\temp\\..\\data.txt";
+Path p1 = Paths.get(url);
+System.out.println(p1.normalize()); //C:\data.txt
+</code></pre>	
+</div>
+
+<p>Path relativize(Path other). Devuelve la ruta relativa de other respecto al path principal:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1 = Path.of ("C:\\temp\\mydata.txt");
+Path p2 = Paths.get ("C:\\temp\\..\\data.txt");
+System.out.println(p1.relativize(p2)); // ..\..\data.txt
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> Al aplicar relativize , las dos rutas son internamente normalizadas primero</p>
+<p><b>NOTA:</b> Si uno es ruta absoluta y el otro no, se producirá una excepción</p>
+
+<h2>Revisión de conceptos</h2>
+
+<p>Indica que se mostrará por pantalla tras la ejecución del siguiente código:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1 = Path.of ("C:\\user\\.\\..\\texto.txt");
+Path p2 = Path.of ("C:\\user\\..\\datos.txt");
+System.out.print(p1.normalize().toAbsolutePath());
+System.out.println(p1.relativize(p2));
+</code></pre>	
+</div>
+
+<p>
+A. texto.txt - datos.txt
+B. C:\texto.txt - ..\datos.txt
+C. C:\texto.txt - C:\..\datos.txt
+D. C:\user\texto.txt - ..\datos.txt
+</p>
+
+<p>La respuesta correcta es la B. Dado que ambos ficheros cuelgan de la misma carpeta, la dirección relativa de uno a otro será ..\\fichero</p>
+
+<h2>Métodos de Path III</h2>
+
+<p>Path resolve(Path other). Resuelve la ruta de other frente a la principal.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1 = Paths.get("C:\\temp\\..\\data.txt");
+Path p2 = Paths.get("new.txt");
+System.out.println(p1.resolve(p2)); // C:\temp\..\data.txt\new.txt
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> Si other es ruta absoluta se devuelve esa misma ruta</p>
+
+<p>int getNameCount(). Devuelve el número de elementos del path , sin incluir el directorio raíz.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1= Path.of("C\\temp\\..\\mydata.txt");
+System.out.println(p1.getNameCount()); //3
+</code></pre>	
+</div>
+
+<p>Path getName(int index). Devuelve la parte del path que ocupa la posición indicada. El primer elemento (sin incluir la raíz) tiene índice 0</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1 = Path.of("C:\\temp\\..\\mydata.txt");
+System.out.println(p1.getName(2)); //mydata.txt
+</code></pre>	
+</div>
+
+<h2>Revisión de conceptos</h2>
+
+<p>Indica que se mostrará por pantalla tras la ejecución del siguiente código:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1 = Path.of("C:\\user\\.\\..\\texto.txt");
+Path p2= Path.of("datos.txt");
+System.out.print(p1.resolve(p2).getName(4));
+</code></pre>	
+</div>
+
+<p>
+    A. .
+    B. datos.txt
+    C. ..
+    D. Excepción
+</p>
+
+<p>La respuesta correcta es la C. Dado que p2 es relativa, el resultado es la unión de las dos rutas: c:\user\.\..\texto.txt\..\datos.txt y en la posición número 4 nos encontramos ..</p>
+
+<h2>Lectura de un fichero con Files</h2>
+
+<p>
+    La clase Files proporciona los siguientes métodos estáticos para leer el contenido de un fichero:
+</p>
+
+<p>Stream &lt;String&gt; lines(Path path). Devuelve un Stream con todas las líneas del fichero. A partir de ahí, se pueden aplicar los métodos de streams para realizar búsquedas, transformaciones, filtrados, etc.</p>
+
+<p><b>NOTA:</b> Existen variantes de estos tres métodos que reciben como segundo parámetro un objeto Charset</p>
+
+<p>List &lt;String&gt; readAllLines(Path path). Devuelve una lista con las cadenas del fichero, donde cada elemento corresponde con una línea.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1 = Path.of (" user mydata.txt");
+List String > Files.readAllLines(p1);
+datos.forEach(s -&gt; System.out.println(s));
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> Imprime todas las líneas del fichero</p>
+
+<p>BufferedReader newBufferedReader(Path pt). Devuelve un objeto BufferedReader para realizar la lectura de forma clásica.</p>
+
+<h2>Escritura en ficheros con Files</h2>
+
+<p>Para realizar la escritura en ficheros, la clase Files proporciona los siguientes métodos:</p>
+
+<p>writeString (Path path , CharSequence csq , Charset cs , OpenOption... options). Escribe en el fichero indicado como primer parámetro , la cadena especificada en el segundo , utilizando el juego de caracteres del tercero y las opciones de escritura del cuarto</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try{
+    Path p1= Path.of (" user mydata.txt");
+    Files.writeString(p1, "nuevo texto",
+        Charset.forName("UTF 8"),
+        StandardOpenOption.APPEND);
+    //Escritura en modo append
+}catch(IOException ex){
+    ex.printStackTrace();
+}
+</code></pre>	
+</div>
+
+<p>write(Path path , Iterable &lt;? extends CharSequence &gt;, Charset cs , OpenOption... options). Escribe en el fichero indicado como primer parámetro , la colección de cadenas especificada en el segundo , utilizando el juego de caracteres del tercero y las opciones de escritura del cuarto</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+List &lt;String&gt; cadenas = List.of("lunes","martes","miércoles","jueves","viernes");
+try{
+    Path p1= Path.of("C:\\user\\mydata.txt");
+    Files.write(p1, cadenas,
+        Charset.forName("UTF 8"),
+        StandardOpenOption.APPEND);
+}catch(IOException ex){
+    ex.printStackTrace();
+}
+</code></pre>	
+</div>
+
+<h2>Revisión de conceptos</h2>
+
+<p>Dada la variable String FICHERO, que contiene la ruta de un archivo de texto, escribe dos bloques de código diferentes que impriman todas las líneas de fichero que tengan más de 10 caracteres</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//Opción 1:
+Path pt = Path.of(FICHERO);
+Files.lines(pt)
+    .filter(s-&gt;s.length ()> 10)
+    .forEach(System.println::println);
+
+//Opción 2:
+Path pt= Path.of(FICHERO);
+Files.readAllLines(pt).stream()
+    .filter(s-&gt;s.length()> 10)
+    .forEach(System.out::println);
+</code></pre>	
+</div>
+
+<h2>Otros métodos de Files</h2>
+
+<p>static Path copy(Path source, Path target, CopyOption... options). Copia el contenido de un fichero en otro:</p>
+<p>Si el fichero target ya existe y no se indica opción, se produce una excepción. Aunque si ambas rutas son iguales, el método se ejecuta sin cambios</p>
+<p>Si source es un directorio, se creará en target un directorio vacío</p>
+<p>Si target es un directorio, FileAlreadyExistsException</p>
+<p>Si el tercer parámetro es StandardCopyOption.REPLACE_EXISTING , en fichero target será sustituido en caso de que exista</p>
+<p>Si el tercer parámetro incluye StandardCopyOption.COPY_ATTRIBUTES , se copiarán también las propiedades del fichero origen en el destino</p>
+
+<p>static Path move(Path source, Path target, CopyOption... options). Mueve un fichero origen a otro destino:</p>
+<p>Si el fichero target ya existe y no se indica opción, se produce una excepción. Aunque si ambas rutas son iguales, el método se ejecuta sin cambios</p>
+<p>Si source es un directorio, se creará en target un directorio vacío</p>
+<p>Si target es un directorio, FileAlreadyExistsException</p>
+<p>Si el tercer parámetro es StandardCopyOption.REPLACE_EXISTING , en fichero target será sustituido en caso de que exista</p>
+
+<p>static void delete (Path path ). Elimina el fichero si existe , si no se produce una excepción . Si es un directorio , deberá estar vacío</p>
+<p>static void deleteIfExists (Path path ). Elimina el fichero si existe , sino no hace nada. Si es un directorio , deberá estar vacío</p>
+<p>static Path createFile (Path path , FileAttribute &lt;?&gt;... attrs ).</p>
+<p>Crea el fichero indicado vacío . Si el fichero ya existe , se produce una excepción</p>
+
+<h2>Revisión de conceptos</h2>
+
+<p>Los ficheros "test1.txt" y "test2.txt" contienen las cadenas de texto " hello" y "by", respectivamente. Indica que ocurrirá al ejecutar el siguiente código</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Path p1 = Path.of("test1.txt");
+Path p2 = Path.of("test2.txt");
+Files.copy(p1,p2,StandardCopyOption.REPLACE_EXISTING);
+Files.lines(p2).forEach(System.out::println);
+</code></pre>	
+</div>
+
+<p>
+    A. Se imprime "hello"
+    B. Se imprime "by"
+    C. Se imprime "helloby"
+    D. Se produce una excepción
+</p>
+
+<p>La respuesta correcta es la A, ya que el contenido del fichero "test1.txt" se mueve a "test2.txt", eliminando el existente.</p>
+
+<h2>Comandos de terminal</h2>
+
+<p>
+java ...
+-Duser.country=UK
+-Duser.language=es
+-Duser.variant=...
+</p>
