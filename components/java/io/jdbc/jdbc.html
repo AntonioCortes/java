@@ -47,7 +47,8 @@ Connection con = DriverManager.getConnection(String cadena, Properties prop);
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-    jdbc:&lt;subprotocolo&gt; subname
+    //...
+    jdbc:&lt;subprotocolo&gt; subname;
 </code></pre>	
 </div>
 
@@ -131,10 +132,51 @@ ps.execute();
 <p>Para acceder a los registros empleamos los siguientes métodos de ResultSet();</p>
 
 <ul>
-    boolean next(). Se desplaza al siguiente registro , si no hay ninguno devolverá false:
-xxx getXxx int col). Métodos para obtener el valor de la columna indicada.
-La posición de la primera columna es la 1. xxx es el nombre del tipo Java
-getInt , getString
-xxxgetXxx String col). Igual que el anterior, utilizando el nombre de la
-columna.
+    <li>boolean next(). Se desplaza al siguiente registro , si no hay ninguno devolverá false:</li>
+    <li>[tipo] get[tipo](int col). Métodos para obtener el valor de la columna indicada. La posición de la primera columna es la 1. [tipo] es el nombre del tipo(JavagetInt , getString, ...)</li>
+    <li>[tipo]get[tipo](String col). Igual que el anterior, utilizando el nombre de la columna.</li>
 </ul>
+
+<h2>Cierre de la conexión</h2>
+
+<p>Las conexiones deben cerrarse cuando no van a ser utilizadas:</p>
+
+<p>Utilizando el método close() de Connection o mediante un try con recursos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Connection con = new Connection();
+con.close();
+
+
+try(Cnnection con = new Connection();){
+    //...
+} //se cierra automáticamente al abandonar el try
+</code></pre>	
+</div>
+
+<p>Dado el siguiente bloque de código, completa las instrucciones que faltan para que se puedan mostrar los nombres de todos los empleados que pertenezcan al departamento de ventas:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+String sql ="select * from empleados where departamento =?";//1
+try(Connection con= DriverManager.getConnection url , user,pwd){
+        /*
+        codigo
+        */
+}
+</code></pre>	
+</div>
+
+<p><b>RESPUESTA:</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+PreparedStatement ps = con.prepareStatement(sql);
+ps.setString(1,"ventas");
+ResultSet rs = ps.executeQuery();
+while(rs.next()){
+System.out.println(rs.getString ("nombre"));
+}
+</code></pre>	
+</div>

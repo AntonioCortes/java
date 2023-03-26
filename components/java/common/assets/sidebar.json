@@ -65,6 +65,10 @@
                         {
                             "text" : "Interfaz",
                             "content" : "java.paths.poo.interfaz"
+                        },
+                        {
+                            "text" : "Comparator/Comparable",
+                            "content" : "java.paths.poo.comparable-comparator"
                         }
                     ]
                 },

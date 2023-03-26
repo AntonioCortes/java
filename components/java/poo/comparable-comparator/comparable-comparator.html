@@ -1,0 +1,48 @@
+<h1 class="title">Interfaces: Comparable y Comparator</h1>
+
+
+<h2>Comparator</h2>
+
+<p>Comparator, es una interfaz que se implementa en clases que nos ayudan o que están destinadas a comparar aspectos de otras clases. Por lo que la clase donde se implemente dicha interfaz, no se utilizará en la comparación, si no que es la clase destinada a realizar comparación.
+    Para realizar la comparación sobrescribe el método <b>compare().</b>
+</p>
+
+<p>Ejemplo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Class to compare Movies by ratings
+class RatingCompare implements Comparator&lt;Movie&gt;
+{
+    @Override
+    public int compare(Movie m1, Movie m2)
+    {
+        if (m1.getRating() &lt; m2.getRating()) return -1;
+        if (m1.getRating() &gt; m2.getRating()) return 1;
+        else return 0;
+    }
+}
+</code></pre>	
+</div>
+
+<h2>Comparable</h2>
+
+<p>Al contrario que Comparator, la clase que implemente la interfaz Comparable adquiere la funcionalidad de poder ser comparada con otros objetos. Para ello sobrescribe el método <b>compareTo()</b>.</p>
+
+<p>Ejemplo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Movie implements Comparable&lt;Movie&gt;{
+    
+    private double rating;
+    private String name;
+    private int year;
+        
+    // Used to sort movies by year
+    public int compareTo(Movie m){
+        return this.year - m.year;
+    }
+}
+</code></pre>	
+</div>

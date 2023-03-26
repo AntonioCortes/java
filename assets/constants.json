@@ -63,6 +63,10 @@
                 "polimorfismo" : {
                     "basePath" : "components/java/poo/polimorfismo",
                     "html" : "polimorfismo.html"
+                },
+                "comparable-comparator" : {
+                    "basePath" : "components/java/poo/comparable-comparator",
+                    "html" : "comparable-comparator.html"
                 }
             },
             "colecciones" : {
