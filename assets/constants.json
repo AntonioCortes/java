@@ -15,9 +15,17 @@
                 "basePath" : "components/java/introduccion",
                 "html" : "introduccion.html"   
             },
+            "text-date-time" : {
+                "basePath" : "components/java/text-date-time",
+                "html" : "text-date-time.html"   
+            },
             "tipos-de-datos" : {
                 "basePath" : "components/java/tipos-de-datos",
                 "html" : "tipos-de-datos.html"   
+            },
+            "operators" : {
+                "basePath" : "components/java/operators",
+                "html" : "operators.html"   
             },
             "arrays" : {
                 "basePath" : "components/java/arrays",

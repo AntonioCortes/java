@@ -19,6 +19,14 @@
                     "content" : "java.paths.tipos-de-datos"
                 },
                 {
+                    "text" : "text-date-time",
+                    "content" : "java.paths.text-date-time"
+                },
+                {
+                    "text" : "Operadores",
+                    "content" : "java.paths.operators"
+                },
+                {
                     "text" : "Arrays",
                     "content" : "java.paths.arrays"
                 },
