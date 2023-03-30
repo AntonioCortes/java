@@ -1,0 +1,23 @@
+<h1 class="title">Interfaces funcionales</h1>
+
+TODO: parallel y parallelstream!, me parece que con arrays no se puede tabajar en paralelo, CONSULTAR!!!!
+
+<h2></h2>
+
+Any stream in Java can easily be transformed from sequential to parallel.
+
+We can achieve this by adding the parallel method to a sequential stream or by creating a stream using the parallelStream method of a collection:
+
+List<Integer> listOfNumbers = Arrays.asList(1, 2, 3, 4);
+listOfNumbers.parallelStream().forEach(number ->
+    System.out.println(number + " " + Thread.currentThread().getName())
+);
+Copy
+Parallel streams enable us to execute code in parallel on separate cores. The final result is the combination of each individual outcome.
+
+However, the order of execution is out of our control. It may change every time we run the program:
+
+4 ForkJoinPool.commonPool-worker-3
+2 ForkJoinPool.commonPool-worker-5
+1 ForkJoinPool.commonPool-worker-7
+3 main

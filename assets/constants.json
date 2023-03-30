@@ -15,13 +15,23 @@
                 "basePath" : "components/java/introduccion",
                 "html" : "introduccion.html"   
             },
-            "text-date-time" : {
-                "basePath" : "components/java/text-date-time",
-                "html" : "text-date-time.html"   
-            },
-            "tipos-de-datos" : {
-                "basePath" : "components/java/tipos-de-datos",
-                "html" : "tipos-de-datos.html"   
+            "tiposDeDatos" : {
+                "introduccion" : {
+                    "basePath" : "components/java/tipos-de-datos/introduccion",
+                    "html" : "introduccion.html"
+                },
+                "tiposPrimitivos" : { 
+                    "basePath" : "components/java/tipos-de-datos/tipos-primitivos",
+                    "html" : "tipos-primitivos.html"
+                },
+                "texto" : { 
+                    "basePath" : "components/java/tipos-de-datos/texto",
+                    "html" : "texto.html"
+                },
+                "fecha" : { 
+                    "basePath" : "components/java/tipos-de-datos/fecha",
+                    "html" : "fecha.html"
+                }
             },
             "operators" : {
                 "basePath" : "components/java/operators",
@@ -113,9 +123,19 @@
                     "html" : "jdbc.html"
                 }
             },
-            "functional-programming" : {
-                "basePath" : "components/java/functional-programming",
-                "html" : "functional-programming.html"   
+            "functionalProgramming" : {
+                "functionalInterface" : {
+                    "basePath" : "components/java/functional-programming/functional-interface",
+                    "html" : "functional-interface.html"
+                },
+                "lambda" : {
+                    "basePath" : "components/java/functional-programming/lambda",
+                    "html" : "lambda.html"
+                },
+                "streams" : {
+                    "basePath" : "components/java/functional-programming/streams",
+                    "html" : "streams.html"
+                }
             },
             "concurrencia" : {
                 "basePath" : "components/java/concurrencia",

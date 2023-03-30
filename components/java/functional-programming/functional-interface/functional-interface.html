@@ -1,0 +1,59 @@
+<h1 class="title">Interfaces funcionales</h1>
+
+<h2></h2>
+TODO: doublePredicate etc!!!!
+
+TODO: Function!!!!
+
+
+DUDA: PORQUE ES INTERFAZ DOUBLE PREDICATE
+<!-- (double d) -> d == 0 || d < 100 -->
+
+
+<h1 class="title">Programación funcional</h1>
+
+TODO: clases annónimas!
+
+
+<h2>Interfaces funcionales</h2>
+
+<p>Para que una interfaz sea funcional tiene UN único método abstracto.</p>
+<p>Se le indica que es una interfaz funcional mediante la anotación <b>@FunctionalInterface</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FunctionalInterface
+public interface Predicate<T> {
+    
+    /**
+    * Evaluates this predicate on the given argument.
+    *
+    * @param t the input argument
+    * @return {@code true} if the input argument matches the predicate,
+    * otherwise {@code false}
+    */
+    boolean test(T t);
+}
+</code></pre>
+</div>
+
+<h2>Streams</h2>
+
+<h2>Lambdas</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+
+public static void
+
+
+(String m) -&gt; {
+    //Code here
+}
+        
+
+
+</code></pre>
+</div>
+
+<p><b>NOTA:</b> A partir de dos o mas parámetros es necesario poner prentesis a los parámetros o si el único parámetro tiene especificado su tipo.</p>

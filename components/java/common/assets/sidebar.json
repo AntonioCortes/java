@@ -16,11 +16,25 @@
             "content" : [
                 {
                     "text" : "Tipos de datos",
-                    "content" : "java.paths.tipos-de-datos"
-                },
-                {
-                    "text" : "Texto/Fechas",
-                    "content" : "java.paths.text-date-time"
+                    "contentId":"tiposDeDatos",
+                    "content" : [
+                        {
+                            "text" : "Introducción",
+                            "content" : "java.paths.tiposDeDatos.introduccion"
+                        },
+                        {
+                             "text" : "Tipos primitivos",
+                            "content" : "java.paths.tiposDeDatos.tiposPrimitivos"
+                        },
+                        {
+                            "text" : "Texto",
+                            "content" : "java.paths.tiposDeDatos.texto"
+                        },
+                        {
+                            "text" : "Fecha",
+                            "content" : "java.paths.tiposDeDatos.fecha"
+                        }
+                    ]
                 },
                 {
                     "text" : "Operadores",
@@ -127,7 +141,21 @@
                 },
                 {
                     "text" : "Programación funcional",
-                    "content" : "java.paths.functional-programming"
+                    "contentId":"functionalProgramming",
+                    "content" : [
+                        {
+                            "text" : "Interfaces Funcionales",
+                            "content" : "java.paths.functionalProgramming.functionalInterface"
+                        },
+                        {
+                             "text" : "Expresiones Lambda",
+                            "content" : "java.paths.functionalProgramming.lambda"
+                        },
+                        {
+                            "text" : "Streams",
+                            "content" : "java.paths.functionalProgramming.streams"
+                        }
+                    ]
                 },
                 {
                     "text" : "Concurrencia",
