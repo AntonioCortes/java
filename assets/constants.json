@@ -123,27 +123,41 @@
                     "html" : "jdbc.html"
                 }
             },
-            "functionalProgramming" : {
+            "programacionFuncional" : {
                 "functionalInterface" : {
-                    "basePath" : "components/java/functional-programming/functional-interface",
+                    "basePath" : "components/java/programacion-funcional/functional-interface",
                     "html" : "functional-interface.html"
                 },
                 "lambda" : {
-                    "basePath" : "components/java/functional-programming/lambda",
+                    "basePath" : "components/java/programacion-funcional/lambda",
                     "html" : "lambda.html"
                 },
                 "streams" : {
-                    "basePath" : "components/java/functional-programming/streams",
+                    "basePath" : "components/java/programacion-funcional/streams",
                     "html" : "streams.html"
                 }
             },
-            "concurrencia" : {
-                "basePath" : "components/java/concurrencia",
-                "html" : "concurrencia.html" 
+            "programacionParalela" : {
+                "introduccion" : {
+                    "basePath" : "components/java/programacion-paralela/introduccion",
+                    "html" : "introduccion.html"
+                },
+                "concurrencia" : {
+                    "basePath" : "components/java/programacion-paralela/concurrencia",
+                    "html" : "concurrencia.html"
+                }
             },
             "modulesystem" : {
                 "basePath" : "components/java/modulesystem",
                 "html" : "modulesystem.html"
+            },
+            "anotaciones" : {
+                "basePath" : "components/java/otros/anotaciones",
+                "html" : "anotaciones.html"
+            },
+            "localizacion" : {
+                "basePath" : "components/java/otros/localizacion",
+                "html" : "localizacion.html"
             }
         }
     },

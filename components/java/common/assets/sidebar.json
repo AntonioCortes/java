@@ -141,29 +141,53 @@
                 },
                 {
                     "text" : "Programación funcional",
-                    "contentId":"functionalProgramming",
+                    "contentId":"programacionFuncional",
                     "content" : [
                         {
                             "text" : "Interfaces Funcionales",
-                            "content" : "java.paths.functionalProgramming.functionalInterface"
+                            "content" : "java.paths.programacionFuncional.functionalInterface"
                         },
                         {
                              "text" : "Expresiones Lambda",
-                            "content" : "java.paths.functionalProgramming.lambda"
+                            "content" : "java.paths.programacionFuncional.lambda"
                         },
                         {
                             "text" : "Streams",
-                            "content" : "java.paths.functionalProgramming.streams"
+                            "content" : "java.paths.programacionFuncional.streams"
                         }
                     ]
                 },
                 {
-                    "text" : "Concurrencia",
-                    "content" : "java.paths.concurrencia"
+                    "text" : "Programación paralela",
+                    "contentId":"programacionParalela",
+                    "content" : [
+                        {
+                            "text" : "Introduccion",
+                            "content" : "java.paths.programacionParalela.introduccion"
+                        },
+                        {
+                             "text" : "Concurrencia",
+                            "content" : "java.paths.programacionParalela.concurrencia"
+                        }
+                    ]
                 },
                 {
                     "text" : "Modularidad",
                     "content" : "java.paths.modulesystem"
+                }
+            ]
+        },
+        {
+            "text" : "Otros Aspectos",
+            "contentId" : "otros",
+            "content" : [
+                {
+                    "text" : "Anotaciones",
+                    "content" : "java.paths.anotaciones"
+                },
+                {
+                    "text" : "Localización",
+                    "content" : "java.paths.localizacion"
                 }
             ]
         }
