@@ -158,6 +158,10 @@
             "localizacion" : {
                 "basePath" : "components/java/otros/localizacion",
                 "html" : "localizacion.html"
+            },
+            "seguridad" : {
+                "basePath" : "components/java/otros/seguridad",
+                "html" : "seguridad.html"
             }
         }
     },

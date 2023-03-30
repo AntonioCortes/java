@@ -188,6 +188,10 @@
                 {
                     "text" : "Localización",
                     "content" : "java.paths.localizacion"
+                },
+                {
+                    "text" : "Seguridad",
+                    "content" : "java.paths.seguridad"
                 }
             ]
         }
