@@ -9,6 +9,29 @@ DUDA: PORQUE ES INTERFAZ DOUBLE PREDICATE
 <p>Para que una interfaz sea funcional ha de tener UN único método abstracto. La implementación de este método da lugar a la expresion lambda</p>
 <p>Se le indica que es una interfaz funcional mediante la anotación <b>@FunctionalInterface</b></p>
 
+<p><b>Ejemplo:</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FunctionalInterface
+public interface myPersonalFunctionalInterface&lt;T&gt; {
+        
+    String mySuperAbstractMethod(T t);
+    
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//...
+
+myPersonalFunctionalInterface i = (String p)->(p+" ");
+
+//...
+</code></pre>
+</div>
+
 <h2>Interfaz Predicate</h2>
 
 <div class="center-horizontal">
@@ -61,14 +84,14 @@ public interface BiPredicate&lt;T, U&gt; {
 </code></pre>
 </div>
 
-<p><b>NOTA:</b> Igual que Predicate pero recibiendo dos parámetros.</p>
+<p><b>NOTA:</b> Igual que Predicate pero recibiendo dos argumentos.</p>
 
 <h2>Interfaz Function</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 @FunctionalInterface
-public interface Function<T, R> {
+public interface Function&lt;T, R&gt; {
     
     /**
     * Applies this function to the given argument.
@@ -97,9 +120,24 @@ st.map(cad-&gt;cad.length());
 
 <h2>Interfaz BiFunction</h2>
 
+<p>Variante de Function, pero el método apply(T t, U u) recibe dos argumentos.</p>
+
 <div class="center-horizontal">
 <pre><code class="language-java">
+@FunctionalInterface
+public interface BiFunction&lt;T, U, R&gt; {
+    
+    /**
+     * Applies this function to the given arguments.
+     *
+     * @param t the first function argument
+     * @param u the second function argument
+     * @return the function result
+     */
+    R apply(T t, U u);
 
+    //...
+} 
 </code></pre>
 </div>
 
@@ -135,9 +173,24 @@ lista.forEach(n-&gt;System.out.println());
 
 <h2>Interfaz BiConsumer</h2>
 
+<p>Variante de Consumer pero con dos argumentos en lugar de uno.</p>
+
 <div class="center-horizontal">
 <pre><code class="language-java">
+@FunctionalInterface
+public interface BiConsumer&lt;T, U&gt; {
+    
+    /**
+     * Performs this operation on the given arguments.
+     *
+     * @param t the first input argument
+     * @param u the second input argument
+     */
+    void accept(T t, U u);
 
+    //...
+
+}
 </code></pre>
 </div>
 
@@ -204,7 +257,7 @@ lista.replaceAll(n-&gt;n*n);
 <div class="center-horizontal">
 <pre><code class="language-java">
     @FunctionalInterface
-    public interface BinaryOperator<T> extends BiFunction<T,T,T> {
+    public interface BinaryOperator&lt;T&gt; extends BiFunction&lt;T,T,T&gt; {
         //...
     }
 </code></pre>
