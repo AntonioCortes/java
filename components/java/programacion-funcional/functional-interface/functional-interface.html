@@ -1,29 +1,20 @@
 <h1 class="title">Interfaces funcionales</h1>
 
-<h2></h2>
+TODO: clases annónimas!
 TODO: doublePredicate etc!!!!
-
-TODO: Function!!!!
-
 
 DUDA: PORQUE ES INTERFAZ DOUBLE PREDICATE
 <!-- (double d) -> d == 0 || d < 100 -->
 
-
-<h1 class="title">Programación funcional</h1>
-
-TODO: clases annónimas!
-
-
-<h2>Interfaces funcionales</h2>
-
-<p>Para que una interfaz sea funcional tiene UN único método abstracto.</p>
+<p>Para que una interfaz sea funcional ha de tener UN único método abstracto. La implementación de este método da lugar a la expresion lambda</p>
 <p>Se le indica que es una interfaz funcional mediante la anotación <b>@FunctionalInterface</b></p>
+
+<h2>Interfaz Predicate</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 @FunctionalInterface
-public interface Predicate<T> {
+public interface Predicate&lt;T&gt; {
     
     /**
     * Evaluates this predicate on the given argument.
@@ -33,27 +24,188 @@ public interface Predicate<T> {
     * otherwise {@code false}
     */
     boolean test(T t);
+
+    //...
 }
 </code></pre>
 </div>
 
-<h2>Streams</h2>
+<p><b>IMPLEMENTACIÓN:</b></p>
 
-<h2>Lambdas</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+//eliminación de numeros pares de una colección:
+lista.removeIf(n-&gt;n%2==0);
+</code></pre>
+</div>
+
+<p>El método <b>removeIf</b> de Collections recive como parámetro un objeto que implemente la interfaz <b>Predicate</b></p>
+
+<h2>Interfaz BiPredicate</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FunctionalInterface
+public interface BiPredicate&lt;T, U&gt; {
+    
+    /**
+    * Evaluates this predicate on the given arguments.
+    *
+    * @param t the first input argument
+    * @param u the second input argument
+    * @return {@code true} if the input arguments match the predicate,
+    * otherwise {@code false}
+    */
+    boolean test(T t, U u);
+}
+</code></pre>
+</div>
+
+<p><b>NOTA:</b> Igual que Predicate pero recibiendo dos parámetros.</p>
+
+<h2>Interfaz Function</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FunctionalInterface
+public interface Function<T, R> {
+    
+    /**
+    * Applies this function to the given argument.
+    *
+    * @param t the function argument
+    * @return the function result
+    */
+    R apply(T t);
+
+    //...
+}
+</code></pre>
+</div>
+
+<p><b>IMPLEMENTACIÓN:</b></p>
+
+<p>Utilizado en operaciones de transformación de datos. Por ejemplo, método map() de Stream</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//genera un nuevo Stream con la longitud
+//de las cadenas del Stream original
+st.map(cad-&gt;cad.length());
+</code></pre>
+</div>
+
+<h2>Interfaz BiFunction</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 
-public static void
+</code></pre>
+</div>
 
+<h2>Interfaz Consumer</h2>
 
-(String m) -&gt; {
-    //Code here
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FunctionalInterface
+public interface Consumer&lt;T&gt; {
+    
+    /**
+    * Performs this operation on the given argument.
+    *
+    * @param t the input argument
+    */
+    void accept(T t);
+
+    //...
 }
-        
+</code></pre>
+</div>
 
+<p><b>IMPLEMENTACIÓN:</b></p>
+
+<p>Utilizada en operaciones de procesamiento de datos. Por ejemplo, método forEach() de listas y conjuntos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//imprime el contenido de la lista:
+lista.forEach(n-&gt;System.out.println());
+</code></pre>
+</div>
+
+<h2>Interfaz BiConsumer</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
 
 </code></pre>
 </div>
 
-<p><b>NOTA:</b> A partir de dos o mas parámetros es necesario poner prentesis a los parámetros o si el único parámetro tiene especificado su tipo.</p>
+<h2>Interfaz Supplier</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FunctionalInterface
+public interface Supplier&lt;T&gt; {
+    
+    /**
+    * Gets a result.
+    *
+    * @return a result
+    */
+    T get();
+
+}
+</code></pre>
+</div>
+
+<p><b>IMPLEMENTACIÓN:</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//devuelve un Stream de números aleatorios
+//entre 1 y 500:
+Stream.generate(()-&gt;(int)(Math.random()*500+1));
+</code></pre>
+</div>
+
+<h2>Interfaz UnaryOperator</h2>
+
+<p>UnaryOperator hereda de Function y su método abstracto apply(T t)</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FunctionalInterface
+public interface UnaryOperator&lt;T&gt; extends Function&lt;T, T&gt; {
+    
+
+    //EL MÉTODO ABSTRACTO DE UNARY OPERATOR
+    //      SE HEREDA DE FUNCTION
+
+    //...
+}
+</code></pre>
+</div>
+
+<p><b>IMPLEMENTACIÓN:</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//sustituye cada elemento de la colección
+//por su cuadrado
+lista.replaceAll(n-&gt;n*n);
+</code></pre>
+</div>
+
+<h2>Interfaz BinaryOperator</h2>
+
+<p>Variante de UnaryOperator que hereda de BiFunction y su método abstracto apply(T t, U u)</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+    @FunctionalInterface
+    public interface BinaryOperator<T> extends BiFunction<T,T,T> {
+        //...
+    }
+</code></pre>
+</div>
