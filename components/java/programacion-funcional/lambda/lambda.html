@@ -17,12 +17,29 @@ public interface myPersonalFunctionalInterface&lt;T&gt; {
 <pre><code class="language-java">
 //...
 
-myPersonalFunctionalInterface i = (String p)->(p+" ");
+myPersonalFunctionalInterface l = (String p)->(p+" ");
 
 //...
 </code></pre>
 </div>
 
-<p><b>NOTA:</b> A partir de dos o mas parámetros, o si el único parámetro tiene especificado su tipo, es necesario poner paréntesis.</p>
-
 <p>Los parámetros pueden especificar o no el tipo</p>
+
+<p><b>NOTA:</b> A partir de dos o mas parámetros, o si el único parámetro tiene especificado su tipo, es necesario poner paréntesis.</p>
+<p><b>NOTA:</b> Si se especifica el <em>return</em> en la devolución es necesario poner paréntesis a aquello a devolver.</p>
+
+<h2>Inferencia de tipos</h2>
+
+<p>Es posible inferir el tipo en los parámetros de las expresiones lambda:</p>
+<p>Aunque no se puede combinar inferencia de tipos y tipos específicos en una misma expresión:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+(var a)-&gt;System.out.println(a)
+    
+(var a, int c)-&gt;m(a) //ERROR DE COMPILACION
+    
+(@NotNull var c)-&gt;m(a) //OK
+(@NotNull c)-&gt;m(a) //ERROR DE COMPILACION
+</code></pre>
+</div>

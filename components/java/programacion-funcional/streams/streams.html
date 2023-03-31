@@ -1,23 +1,24 @@
-<h1 class="title">Interfaces funcionales</h1>
+<h1 class="title">Streams</h1>
 
-TODO: parallel y parallelstream!, me parece que con arrays no se puede tabajar en paralelo, CONSULTAR!!!!
+<h2>Streams paralelos</h2>
 
-<h2></h2>
+<p>Cualquier Stream en java puede ser utilizado de forma secuencial o en paralelo. Para ello se utiliza el método de Collections <b>parallelStream()</b></p>
 
-Any stream in Java can easily be transformed from sequential to parallel.
+<div class="center-horizontal">
+<pre><code class="language-java">
+List&lt;Integer&gt; listOfNumbers = Arrays.asList(1, 2, 3, 4);
+listOfNumbers.parallelStream().forEach((number) -&gt;
+System.out.println(number + " " + Thread.currentThread().getName()));
+</code></pre>
+</div>
 
-We can achieve this by adding the parallel method to a sequential stream or by creating a stream using the parallelStream method of a collection:
+<p>Output:</p>
 
-List<Integer> listOfNumbers = Arrays.asList(1, 2, 3, 4);
-listOfNumbers.parallelStream().forEach(number ->
-    System.out.println(number + " " + Thread.currentThread().getName())
-);
-Copy
-Parallel streams enable us to execute code in parallel on separate cores. The final result is the combination of each individual outcome.
-
-However, the order of execution is out of our control. It may change every time we run the program:
-
+<div class="center-horizontal">
+<pre><code class="language-java">
 4 ForkJoinPool.commonPool-worker-3
 2 ForkJoinPool.commonPool-worker-5
 1 ForkJoinPool.commonPool-worker-7
 3 main
+</code></pre>
+</div>
