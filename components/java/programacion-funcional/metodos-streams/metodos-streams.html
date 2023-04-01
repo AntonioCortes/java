@@ -211,12 +211,6 @@ System.out.println(datos.stream()
     <li>OptionalDouble average(). Método final que devuelve la media encapsulada en un OptionalDouble en los tres casos </li>
     <li>OptionalInt max () y min(). Devuelven el mayor y menor de los números, respectivamente. En DoubleStream y LongStream el tipo de devolución es OptionalDouble y OptionalLong, respectivamente.</li>
 </ul>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-//CODE
-</code></pre>
-</div>
 <!-- *********************** -->
 <!-- *****Stream Methods***** -->
 <h2>Procesamiento intermedio</h2>
@@ -292,12 +286,22 @@ System.out.println(nums
 <h2>Reducción a colección</h2>
 
 <p>
-    INFO
+    R collect(Collector &lt;? super T, A, R&gt; collector). Devuelve un List, Map o Set con los datos del Stream, en función de la implementación de Collector proporcionada: <em>Método final</em>
 </p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-//CODE
+Stream&lt;Integer&gt; nums = Stream.of(20,5,8,8,3,3,9);
+//Genera una lista con los elementos del Stream sin duplicados
+List&lt;Integer&gt; = nums.distinct().collect(Collectors.toList());
+Stream&lt;Persona&gt; personas = Stream.of(new Persona("Jaime",5431),
+    new Persona("Marta",5213),
+    new Persona("Pilar",6792)
+);
+//genera una tabla con los datos de las personas, utilizando el dni como clave
+//y el nombre como valor
+Map&lt;Integer,String&gt; lista = personas
+    .collect(Collectors.toMap(p-&gt;p.getDni(),p-&gt;p.getNombre()));
 </code></pre>
 </div>
 <!-- *********************** -->
@@ -305,12 +309,23 @@ System.out.println(nums
 <h2>Agrupación</h2>
 
 <p>
-    INFO
+    Utilizando el método <b>collect()</b> de Stream , se puede generar una agrupación de objetos utilizando el siguiente método de Collectors
 </p>
+<small>
+    Collector &lt;T, ?, Map &lt;K, List&lt;T&gt; <b>groupingBy( Function &lt;? super T, ? extends K&gt; classifier)</b>. Devuelve un Collector que implementa una agrupación de tipo groupBy . El método recibe como parámetro un objeto Function con el criterio de agrupación. Con este tipo de Collector , la llamada a <b>collect()</b> devolverá un Map de listas. Cada elemento del mapa tiene una clave, que es el dato por el que se hace la agrupación, y un valor con la lista de objetos de cada grupo.
+</small>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-//CODE
+Stream<Persona> st Stream.of(
+    new Persona("Juan",30,"jj@gmail.com"),
+    new Persona("Ana",40,"anaj@gmail.com"),
+    new Persona("Bea",35,"bae@gmail.com"),
+    new Persona("Pedro",40,"bae@gmail.com")
+);
+//agrupa las personas por edad
+Map&lt;Integer, List&lt;Persona&gt;&gt; personas = st.collect(Collectors.groupingBy(p-&gt;p.getEdad()));
+personas.forEach((k,v)-&gt;System.out.println(v));
 </code></pre>
 </div>
 <!-- *********************** -->
@@ -318,12 +333,20 @@ System.out.println(nums
 <h2>Partición</h2>
 
 <p>
-    INFO
+    Mediante el siguiente método de Collectors podemos proporcionar una implementación de collect() que genere una partición:
 </p>
+<small>
+    Collector &lt;T, ?, Map Boolean , List &lt;T&gt; <b>partitioningBy(Predicate&lt;? super T&gt; predicate)</b>. Devuelve un Collector para generar una agrupación Map de clave boolean y valor lista de objetos. El método recibe como parámetro un predicate para aplicar la condición a cada elemento, de modo que los que la cumplan serán agrupados en una lista con clave true, y los que no en otra lista con clave "false".
+</small>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-//CODE
+Stream&lt;Persona&gt; st Stream.of(new Persona("Juan",15,"jj@gmail.com"),
+        new Persona("Ana",23,"anaj@gmail.com"),
+        new Persona("Bea",16,"bae@gmail.com"),
+        new Persona("Pedro",34,"bae@gmail.com"));
+        //agrupa las personas menores de edad por un lado, y mayores por otro
+        Map&lt;Boolean,List &lt;Persona&gt;&gt; personas = st.collect(Collectors.partitionBy(p-&gt;p.getEdad()&gt;18));
 </code></pre>
 </div>
 <!-- *********************** -->
@@ -331,12 +354,27 @@ System.out.println(nums
 <h2>Otras implementaciones de Collector</h2>
 
 <p>
-    INFO
+    Collectors ofrece estos otros métodos de interés:
 </p>
+
+<ul>
+    <li>Collector&lt;T, ?, Double&gt; averagingDouble(ToDoubleFunction &lt;? super T&gt; mapper). Permite calcula la media a partir de los valores devueltos por la función. Existe también averagingInt y averagingLong.</li>
+    <li>Collector&lt;T, ?, Integer&gt; summingInt(ToIntFunction &lt;? super T&gt; mapper). Permite calcular la suma a partir de los valores devueltos por la función. Existe también summingLong y summingDouble.</li>
+    <li>Collector&lt;CharSequence , ?, String&gt; joining(CharSequence delimiter). Devuelve un Collector que concatena en un único String todos los String resultantes de la llamada a toString() sobre cada objeto del Stream.</li>
+</ul>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-//CODE
+Stream&lt;Persona&gt; st = Stream.of(
+    new Persona("Juan",30,"jj@gmail.com")
+    new Persona("Ana",40,"anaj@gmail.com"),
+    new Persona("Bea",35,"bae@gmail.com")
+);
+//imprime los nombres de todas las personas, separados por una coma
+System.out.println(st
+        .map(p-&gt;p.getNombre())
+        .collect(Collectors.joining(","))
+);
 </code></pre>
 </div>
 <!-- *********************** -->
