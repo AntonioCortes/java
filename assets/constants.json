@@ -138,7 +138,8 @@
                 },
                 "metodosStreams" : {
                     "basePath" : "components/java/programacion-funcional/metodos-streams",
-                    "html" : "metodos-streams.html"
+                    "html" : "metodos-streams.html",
+                    "css" : "metodos-streams.css"
                 }
             },
             "programacionParalela" : {

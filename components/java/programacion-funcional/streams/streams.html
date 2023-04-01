@@ -55,6 +55,17 @@ IntStream stint2 = IntStream.rangeClosed(1,10);
 <p>Métodos intermedios. El resultado de su ejecución es un nuevo Stream . Ejemplos: filtrado y transformación de datos, ordenación, etc.</p>
 <p>Métodos finales. Generan un resultado. Pueden ser void o devolver un valor resultado de alguna operación. Ejemplos: calculo (suma, mayor, menor, …), búsquedas, reducción, etc.</p>
 
+<h2>Clase Optional</h2>
+
+<p>Encapsula resultados de una operación final de un Stream.</p>
+<p>Podemos utilizar los siguientes métodos para manipularlo:</p>
+<ul>
+    <li>T <b>get()</b>. Devuelve el valor encapsulado. Si no hay ningún valor, lanza una NoSuchElementException.</li>
+    <li>T <b>orElse(T other)</b>. Devuelve el valor encapsulado. Si no hay ninguno, entonces devuelve el valor pasado como parámetro.</li>
+    <li>boolean <b>isPresent()</b>. Permite comprobar si contiene o no algún valor.</li>
+</ul>
+<p>Existen las variantes OptionalInt y OptionalDouble que encapsulan tipos primitivos</p>
+
 <h2>Streams paralelos</h2>
 
 <p>Cualquier Stream en java puede ser utilizado de forma secuencial o en paralelo. Para ello se utiliza el método de Collections <b>parallelStream()</b></p>
