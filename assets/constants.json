@@ -135,6 +135,10 @@
                 "streams" : {
                     "basePath" : "components/java/programacion-funcional/streams",
                     "html" : "streams.html"
+                },
+                "metodosStreams" : {
+                    "basePath" : "components/java/programacion-funcional/metodos-streams",
+                    "html" : "metodos-streams.html"
                 }
             },
             "programacionParalela" : {

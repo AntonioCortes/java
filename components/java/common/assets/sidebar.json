@@ -154,6 +154,10 @@
                         {
                             "text" : "Streams",
                             "content" : "java.paths.programacionFuncional.streams"
+                        },
+                        {
+                            "text" : "Métodos Streams",
+                            "content" : "java.paths.programacionFuncional.metodosStreams"
                         }
                     ]
                 },

@@ -1,5 +1,60 @@
 <h1 class="title">Streams</h1>
 
+<p>
+    Objeto que permite realizar de forma rápida y sencilla operaciones de búsqueda, filtrado, recolección, etc. sobre un grupo de datos (array , colección o serie discreta de datos).
+    Para manipular un Stream utilizamos la interfaz Stream de java.util.stream.
+    Otras variantes como IntStream , LongStream o DoubleStream se emplean para trabajar con tipos primitivos.
+    Recorre los datos desde el principio hasta el final y durante el recorrido realiza algún tipo de cálculo u operación.
+    Una vez realizado el recorrido, el stream se cierra y no puede volver a utilizarse.
+</p>
+
+<h2>Crear un Stream</h2>
+
+<p>
+    A partir de una colección:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+ArrayList&lt;Integer&gt; nums = new ArrayList&lt;&gt;();
+nums.add(20);nums.add(100);nums.add(8);
+Stream&lt;Integer&gt; st = nums.stream();
+</code></pre>
+</div>
+<p>
+    A partir de un array
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+String[] cads ={a”,”xy”,”jk”,”mv};
+Stream&lt;String&gt; = Arrays.stream(cads);
+</code></pre>
+</div>
+<p>
+    A partir de una serie discreta de datos:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+//...
+Stream&lt;Double&gt; st = Stream.of(2.4, 7.4,9.1);
+//...
+</code></pre>
+</div>
+<p>
+    A partir de un rango de datos:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+//Stream tipos primitivos
+IntStream stint = IntStream.range(1,10);
+IntStream stint2 = IntStream.rangeClosed(1,10);
+</code></pre>
+</div>
+
+<h2>Tipos de métodos de Stream</h2>
+
+<p>Métodos intermedios. El resultado de su ejecución es un nuevo Stream . Ejemplos: filtrado y transformación de datos, ordenación, etc.</p>
+<p>Métodos finales. Generan un resultado. Pueden ser void o devolver un valor resultado de alguna operación. Ejemplos: calculo (suma, mayor, menor, …), búsquedas, reducción, etc.</p>
+
 <h2>Streams paralelos</h2>
 
 <p>Cualquier Stream en java puede ser utilizado de forma secuencial o en paralelo. Para ello se utiliza el método de Collections <b>parallelStream()</b></p>
