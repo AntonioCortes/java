@@ -1,10 +1,10 @@
 <h1 class="title">Streams</h1>
 
 <p>
-    Objeto que permite realizar de forma rápida y sencilla operaciones de búsqueda, filtrado, recolección, etc. sobre un grupo de datos (array , colección o serie discreta de datos).
+    Objeto que permite realizar de forma rápida y sencilla operaciones de búsqueda, filtrado, recolección, etc. sobre un grupo de datos (array, colección o serie discreta de datos).
     Para manipular un Stream utilizamos la interfaz Stream de java.util.stream.
     Otras variantes como IntStream , LongStream o DoubleStream se emplean para trabajar con tipos primitivos.
-    Recorre los datos desde el principio hasta el final y durante el recorrido realiza algún tipo de cálculo u operación.
+    Un Stream recorre los datos desde el principio hasta el final y durante el recorrido realiza algún tipo de cálculo u operación.
     Una vez realizado el recorrido, el stream se cierra y no puede volver a utilizarse.
 </p>
 
@@ -25,7 +25,7 @@ Stream&lt;Integer&gt; st = nums.stream();
 </p>
 <div class="center-horizontal">
 <pre><code class="language-java">
-String[] cads ={a”,”xy”,”jk”,”mv};
+String[] cads = {"a","xy","jk","mv"};
 Stream&lt;String&gt; = Arrays.stream(cads);
 </code></pre>
 </div>
