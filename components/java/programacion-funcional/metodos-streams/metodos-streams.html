@@ -3,9 +3,7 @@
 <!-- *****Stream Methods***** -->
 <h2>Conteo y procesado</h2>
 
-<p>
-    long <b>count().</b> Devuelve el número de elementos de un Stream. <em>Método final</em>
-</p>
+<p>long <b>count().</b> Devuelve el número de elementos de un Stream. <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -15,9 +13,7 @@ System.out.println(st.count()); //8
 </code></pre>
 </div>
 
-<p>
-    void <b>forEach (Consumer&lt;? super T&gt; action)</b>. Realiza una acción para cada elemento del stream. <em>Método final</em>
-</p>
+<p>void <b>forEach (Consumer&lt;? super T&gt; action)</b>. Realiza una acción para cada elemento del stream. <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -33,9 +29,7 @@ System.out.println(st.count()); //ERROR!!!
 <!-- *****Stream Methods***** -->
 <h2>Extracción de datos</h2>
 
-<p>
-    Stream&lt;T&gt; <b>distinct()</b>. Devuelve un Stream eliminando los elementos duplicados, según aplicación de equals(). <em>Método intermedio</em>
-</p>
+<p>Stream&lt;T&gt; <b>distinct()</b>. Devuelve un Stream eliminando los elementos duplicados, según aplicación de equals(). <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -45,9 +39,7 @@ System.out.println(st.distinct().count()); //5
 </code></pre>
 </div>
 
-<p>
-    Stream&lt;T&gt; <b>limit(long n)</b>. Devuelve un nuevo Stream con los "n" primeros elementos del mismo. <em>Método intermedio</em>
-</p>
+<p>Stream&lt;T&gt; <b>limit(long n)</b>. Devuelve un nuevo Stream con los "n" primeros elementos del mismo. <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -57,17 +49,13 @@ Stream&lt;Integer&gt; st2 = st.limit(3).
 </code></pre>
 </div>
     
-<p>
-    Stream&lt;T&gt; <b>skip(long n)</b>. Devuelve un nuevo Stream , saltándose los n primeros elementos. <em>Método intermedio</em>
-</p>
+<p>Stream&lt;T&gt; <b>skip(long n)</b>. Devuelve un nuevo Stream , saltándose los n primeros elementos. <em>Método intermedio</em></p>
 <!-- *********************** -->
 
 <!-- *****Stream Methods***** -->
 <h2>Comprobaciones</h2>
 
-<p>
-    boolean <b>anyMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si algún elemento del Stream cumple con la condición del predicado: <em>Método final</em>
-</p>
+<p>boolean <b>anyMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si algún elemento del Stream cumple con la condición del predicado: <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -77,20 +65,14 @@ System.out.println("alguno mayor 5?" + st.anyMatch(n-&gt;n&gt;5)); //true
 </code></pre>
 </div>
 
-<p>
-    boolean <b>allMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si todos cumplen con la condición del predicado. <em>Método final</em>
-</p>
-<p>
-    boolean <b>noneMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si ninguno cumple con la condición del predicado. <em>Método final</em>
-</p>
+<p>boolean <b>allMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si todos cumplen con la condición del predicado. <em>Método final</em></p>
+<p>boolean <b>noneMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si ninguno cumple con la condición del predicado. <em>Método final</em></p>
 <!-- *********************** -->
 
 <!-- *****Stream Methods***** -->
 <h2>Filtrado</h2>
 
-<p>
-    Stream &lt;T&gt; <b>filter(Predicate &lt;? super T&gt; predicate)</b>. Aplica un filtro sobre el Stream , devolviendo un nuevo Stream con los elementos que cumplen el predicado: <em>Método intermedio</em>
-</p>
+<p>Stream &lt;T&gt; <b>filter(Predicate &lt;? super T&gt; predicate)</b>. Aplica un filtro sobre el Stream , devolviendo un nuevo Stream con los elementos que cumplen el predicado: <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -108,9 +90,7 @@ Stream&lt;Integer&gt; st = Stream.of(1,5,7,9,7,4,6,4,8,4,3,1);
 <!-- *****Stream Methods***** -->
 <h2>Búsquedas</h2>
 
-<p>
-    Optional &lt;T&gt; <b>findFirst()()</b>. Devuelve el primer elemento del Stream , o un Optional vacío si no hay nada. <em>Método final</em>
-</p>
+<p>Optional &lt;T&gt; <b>findFirst()()</b>. Devuelve el primer elemento del Stream , o un Optional vacío si no hay nada. <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -125,16 +105,12 @@ if(op.isPresent()){
 </code></pre>
 </div>
 
-<p>
-    Optional&lt;T&gt; <b>findAny()</b>. Devuelve cualquiera de los elementos del Stream . Normalmente, el primero. <em>Método final</em>
-</p>
+<p>Optional&lt;T&gt; <b>findAny()</b>. Devuelve cualquiera de los elementos del Stream . Normalmente, el primero. <em>Método final</em></p>
 <!-- *********************** -->
 <!-- *****Stream Methods***** -->
 <h2>Obtención de extremos</h2>
 
-<p>
-    Optional &lt;T&gt; <b>max(Comparator&lt;? super T&gt; comparator)</b>. Devuelve el mayor de los elementos , según el criterio de comparación del objeto Comparator: <em>Método final</em>
-</p>
+<p>Optional &lt;T&gt; <b>max(Comparator&lt;? super T&gt; comparator)</b>. Devuelve el mayor de los elementos , según el criterio de comparación del objeto Comparator: <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -145,16 +121,12 @@ System.out.println("mayor: "+op.get());
 </code></pre>
 </div>
 
-<p>
-    Optional &lt;T&gt; <b>min(Comparator&lt;? super T&gt; comparator)</b>. Operación contraria a max. <em>Método final</em>
-</p>
+<p>Optional &lt;T&gt; <b>min(Comparator&lt;? super T&gt; comparator)</b>. Operación contraria a max. <em>Método final</em></p>
 <!-- *********************** -->
 <!-- *****Stream Methods***** -->
 <h2>Transformación</h2>
 
-<p>
-    Stream &lt;R&gt; <b>map(Function&lt;? super T, ? extends R&gt; mapper)</b>. Transforma cada elemento del Stream en otro según el criterio definido por el objeto Function que se le pasa como parámetro: <em>Métodos intermedios</em>
-</p>
+<p>Stream &lt;R&gt; <b>map(Function&lt;? super T, ? extends R&gt; mapper)</b>. Transforma cada elemento del Stream en otro según el criterio definido por el objeto Function que se le pasa como parámetro: <em>Métodos intermedios</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -164,9 +136,7 @@ Stream&lt;String&gt; st2 = st.map(s-&gt;s.toUpperCase());
 </code></pre>
 </div>
 
-<p>
-    IntStream <b>mapToInt(ToIntFunction&lt;? super T&gt; mapper)</b>. Aplica una función a cada elemento del Stream que genera un int de cada elemento. El resultado se devuelve como IntStream: <em>Métodos intermedios</em>
-</p>
+<p>IntStream <b>mapToInt(ToIntFunction&lt;? super T&gt; mapper)</b>. Aplica una función a cada elemento del Stream que genera un int de cada elemento. El resultado se devuelve como IntStream: <em>Métodos intermedios</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -181,13 +151,11 @@ System.out.println(st
 <!-- *****Stream Methods***** -->
 <h2>Transformación y aplanamiento</h2>
 
-<p>
-    Stream&lt;R&gt; <b>flatMap(Function&lt;T, Stream&lt;R&gt; mapper)</b>. Devuelve un nuevo Stream , resultante de unir los Streams generados por la aplicación de una función sobre cada elemento. <em>Método intermedio</em>
-</p>
+<p>Stream&lt;R&gt; <b>flatMap(Function&lt;T, Stream&lt;R&gt; mapper)</b>. Devuelve un nuevo Stream , resultante de unir los Streams generados por la aplicación de una función sobre cada elemento. <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-List&lt;List &lt;String&gl; &gl; datos = Arrays.asList(
+List&lt;List &lt;String&gt;&gt; datos = Arrays.asList(
     Arrays.asList("Gema","María","Carlos"),
     Arrays.asList("Laura","Ana","Luis")
 );
@@ -202,9 +170,7 @@ System.out.println(datos.stream()
 <!-- *****Stream Methods***** -->
 <h2>Stream de tipos primitivos</h2>
 
-<p>
-    Las interfaces IntStream , DoubleStream y LongStream , cuyos objetos son obtenidos mediante los métodos mapToInt, mapToDouble y mapToLong, respectivamente, proporcionan los siguientes métodos de cálculo:
-</p>
+<p>Las interfaces IntStream , DoubleStream y LongStream , cuyos objetos son obtenidos mediante los métodos mapToInt, mapToDouble y mapToLong, respectivamente, proporcionan los siguientes métodos de cálculo:</p>
 
 <ul>
     <li>int sum(). Método final que devuelve la suma de todos los elementos del stream. En DoubleStream y LongStream el tipo de devolución es double y long, respectivamente.</li>
@@ -215,9 +181,7 @@ System.out.println(datos.stream()
 <!-- *****Stream Methods***** -->
 <h2>Procesamiento intermedio</h2>
 
-<p>
-    Stream&lt;T&gt; <b>peek(Consumer&lt;? super T&gt; proceso)</b>. Aplica el consumer a cada elemento del Stream, devolviendo un nuevo stream idéntico para continuar con la manipulación de los elementos: <em>Métodos intermedio</em>
-</p>
+<p>Stream&lt;T&gt; <b>peek(Consumer&lt;? super T&gt; proceso)</b>. Aplica el consumer a cada elemento del Stream, devolviendo un nuevo stream idéntico para continuar con la manipulación de los elementos: <em>Métodos intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -241,12 +205,8 @@ System.out.println("total:"+nums
 <!-- *****Stream Methods***** -->
 <h2>Ordenación</h2>
 
-<p>
-    Stream&lt;T&gt; <b>sorted()()</b>. Devuelve un Stream con loselementos ordenados, según el orden natural de los mismos. <em>Método intermedio</em>
-</p>
-<p>
-    Stream&lt;T&gt; <b>sorted(Comparator&lt;? super T&gt; comparator)</b>. Devuelve un Stream con los elementos ordenados, según el criterio de comparación especificado. <em>Método intermedio</em>
-</p>
+<p>Stream&lt;T&gt; <b>sorted()</b>. Devuelve un Stream con loselementos ordenados, según el orden natural de los mismos. <em>Método intermedio</em></p>
+<p>Stream&lt;T&gt; <b>sorted(Comparator&lt;? super T&gt; comparator)</b>. Devuelve un Stream con los elementos ordenados, según el criterio de comparación especificado. <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -267,9 +227,7 @@ st.sorted(Comparator.comparing(p-&gt;g.getEdad()))
 <!-- *****Stream Methods***** -->
 <h2>Reducción</h2>
 
-<p>
-    Optional&lt;T&gt; <b>reduce(BinaryOperator&lt;T&gt; accumulator)</b>. Realiza la reducción de los elementos del stream a un único valor, utilizando la función proporcionada como parámetro: <em>Método final</em>
-</p>
+<p>Optional&lt;T&gt; <b>reduce(BinaryOperator&lt;T&gt; accumulator)</b>. Realiza la reducción de los elementos del stream a un único valor, utilizando la función proporcionada como parámetro: <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -285,9 +243,7 @@ System.out.println(nums
 <!-- *****Stream Methods***** -->
 <h2>Reducción a colección</h2>
 
-<p>
-    R collect(Collector&lt;? super T, A, R&gt; collector). Devuelve un List, Map o Set con los datos del Stream, en función de la implementación de Collector proporcionada: <em>Método final</em>
-</p>
+<p>R <b>collect(Collector&lt;? super T, A, R&gt; collector)</b>. Devuelve un List, Map o Set con los datos del Stream, en función de la implementación de Collector proporcionada: <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -308,16 +264,12 @@ Map&lt;Integer,String&gt; lista = personas
 <!-- *****Stream Methods***** -->
 <h2>Agrupación</h2>
 
-<p>
-    Utilizando el método <b>collect()</b> de Stream , se puede generar una agrupación de objetos utilizando el siguiente método de Collectors
-</p>
-<p>
-    Collector&lt;T, ?, Map &lt;K, List&lt;T&gt; <b>groupingBy( Function &lt;? super T, ? extends K&gt; classifier)</b>. Devuelve un Collector que implementa una agrupación de tipo groupBy . El método recibe como parámetro un objeto Function con el criterio de agrupación. Con este tipo de Collector , la llamada a <b>collect()</b> devolverá un Map de listas. Cada elemento del mapa tiene una clave, que es el dato por el que se hace la agrupación, y un valor con la lista de objetos de cada grupo.
-</p>
+<p>Utilizando el método <b>collect()</b> de Stream , se puede generar una agrupación de objetos utilizando el siguiente método de Collectors</p>
+<p>Collector&lt;T, ?, Map &lt;K, List&lt;T&gt; <b>groupingBy( Function &lt;? super T, ? extends K&gt; classifier)</b>. Devuelve un Collector que implementa una agrupación de tipo groupBy . El método recibe como parámetro un objeto Function con el criterio de agrupación. Con este tipo de Collector , la llamada a <b>collect()</b> devolverá un Map de listas. Cada elemento del mapa tiene una clave, que es el dato por el que se hace la agrupación, y un valor con la lista de objetos de cada grupo.</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-Stream<Persona> st Stream.of(
+Stream&lt;Persona&gt; st = Stream.of(
     new Persona("Juan",30,"jj@gmail.com"),
     new Persona("Ana",40,"anaj@gmail.com"),
     new Persona("Bea",35,"bae@gmail.com"),
@@ -332,35 +284,30 @@ personas.forEach((k,v)-&gt;System.out.println(v));
 <!-- *****Stream Methods***** -->
 <h2>Partición</h2>
 
-<p>
-    Mediante el siguiente método de Collectors podemos proporcionar una implementación de collect() que genere una partición:
-</p>
-<p>
-    Collector&lt;T, ?, Map Boolean , List&lt;T&gt; <b>partitioningBy(Predicate&lt;? super T&gt; predicate)</b>. Devuelve un Collector para generar una agrupación Map de clave boolean y valor lista de objetos. El método recibe como parámetro un predicate para aplicar la condición a cada elemento, de modo que los que la cumplan serán agrupados en una lista con clave true, y los que no en otra lista con clave "false".
-</p>
+<p>Mediante el siguiente método de Collectors podemos proporcionar una implementación de collect() que genere una partición:</p>
+<p>Collector&lt;T, ?, Map&lt;Boolean, List&lt;T&gt;&gt;&gt; <b>partitioningBy(Predicate&lt;? super T&gt; predicate)</b>. Devuelve un Collector para generar una agrupación Map de clave boolean y valor lista de objetos. El método recibe como parámetro un predicate para aplicar la condición a cada elemento, de modo que los que la cumplan serán agrupados en una lista con clave true, y los que no en otra lista con clave "false".</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 Stream&lt;Persona&gt; st Stream.of(new Persona("Juan",15,"jj@gmail.com"),
-        new Persona("Ana",23,"anaj@gmail.com"),
-        new Persona("Bea",16,"bae@gmail.com"),
-        new Persona("Pedro",34,"bae@gmail.com"));
-        //agrupa las personas menores de edad por un lado, y mayores por otro
-        Map&lt;Boolean,List &lt;Persona&gt;&gt; personas = st.collect(Collectors.partitionBy(p-&gt;p.getEdad()&gt;18));
+    new Persona("Ana",23,"anaj@gmail.com"),
+    new Persona("Bea",16,"bae@gmail.com"),
+    new Persona("Pedro",34,"bae@gmail.com")
+);
+//agrupa las personas menores de edad por un lado, y mayores por otro
+Map&lt;Boolean,List &lt;Persona&gt;&gt; personas = st.collect(Collectors.partitionBy(p-&gt;p.getEdad()&gt;18));
 </code></pre>
 </div>
 <!-- *********************** -->
 <!-- *****Stream Methods***** -->
 <h2>Otras implementaciones de Collector</h2>
 
-<p>
-    Collectors ofrece estos otros métodos de interés:
-</p>
+<p>Collectors ofrece estos otros métodos de interés:</p>
 
 <ul>
-    <li>Collector&lt;T, ?, Double&gt; averagingDouble(ToDoubleFunction &lt;? super T&gt; mapper). Permite calcula la media a partir de los valores devueltos por la función. Existe también averagingInt y averagingLong.</li>
-    <li>Collector&lt;T, ?, Integer&gt; summingInt(ToIntFunction &lt;? super T&gt; mapper). Permite calcular la suma a partir de los valores devueltos por la función. Existe también summingLong y summingDouble.</li>
-    <li>Collector&lt;CharSequence , ?, String&gt; joining(CharSequence delimiter). Devuelve un Collector que concatena en un único String todos los String resultantes de la llamada a toString() sobre cada objeto del Stream.</li>
+    <li>Collector&lt;T, ?, Double&gt; <b>averagingDouble(ToDoubleFunction&lt;? super T&gt; mapper)</b>. Permite calcula la media a partir de los valores devueltos por la función. Existe también averagingInt y averagingLong.</li>
+    <li>Collector&lt;T, ?, Integer&gt; <b>summingInt(ToIntFunction&lt;? super T&gt; mapper)</b>. Permite calcular la suma a partir de los valores devueltos por la función. Existe también summingLong y summingDouble.</li>
+    <li>Collector&lt;CharSequence , ?, String&gt; <b>joining(CharSequence delimiter)</b>. Devuelve un Collector que concatena en un único String todos los String resultantes de la llamada a toString() sobre cada objeto del Stream.</li>
 </ul>
 
 <div class="center-horizontal">
