@@ -1,1 +1,58 @@
 <h1 class="title">Concurrencia o Multithreading</h1>
+
+<p>En el paquete java.util.concurrent se incluyen nuevas clases e interfaces para la implementación de aplicaciones multitarea</p>
+
+<ul>
+    <li>
+        Clase Executors
+    </li>
+    <li>
+        Interfaz ExecutorsService
+    </li>
+    <li>
+        Interfaz Future
+    </li>
+    <li>
+        Interfaz Callable
+    </li>
+</ul>
+
+<h2>Interfaz ExecutorsService</h2>
+
+<p>Proporciona métodos para el lanzamiento y ejecución de tareas de forma concurrente, utilizando un pool de threads. Entre estos métodos:</p>
+<ul>
+    <li><b>submit(Runnable tarea).</b> Lanza la tarea y la pone en ejecución concurrente con el resto</li>
+    <li><b>submit(Callable tarea).</b> Lo mismo que el anterior, pero para objetos Callable</li>
+    <li><b>shutdown().</b> Inicia el final del pool de hilos, por lo que no se aceptarán nuevas tareas</li>
+</ul>
+
+<p>Creación de un ExecutorsService</p>
+
+<p>Se pueden crear implementaciones de ExecutorService a partir de los siguientes métodos estáticos de Executors:</p>
+<ul>
+    <li><b>newCachedThreadPools()</b>. Crea una instancia de ExecutorService con un pool de threads variable que se crean a demanda</li>
+    <li><b>newFixedThreadPools(int hilos)</b>. Crea una instancia de un pool con un número fijo de threads</li>
+    <li><b>newSingleThreadExecutor()</b>. Crea una instancia de ExecutorService que utiliza un único thread</li>
+    <li><b>newScheduledThreadPool(int corePoolSize)</b>. Devuelve un ScheduledExecutorService que permite ejecutar tareas periódicamente</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//Ejemplo de pool de threads :D
+ExecutorService ex= Executors.newCachedThreadPools();
+ex.submit(()-&gt;System.out.print("hello"));
+ex.submit(()-&gt;System.out.print("by")); 
+</code></pre>
+</div>
+
+<h2>Interfaz Callable</h2>
+<p>Al igual que Runnable , implementa una tarea que va a ser ejecutada concurrentemente con otras.</p>
+<p>Su único método, call(), devuelve un resultado.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public interface Callable&lt;T&gt;{
+    call() throws Exception;
+}
+</code></pre>
+</div>

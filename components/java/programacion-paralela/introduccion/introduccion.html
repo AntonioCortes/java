@@ -1,1 +1,86 @@
 <h1 class="title">Introducción a la programación paralela</h1>
+
+
+<p>Ejecución de varios procesos simultáneamente.</p>
+<p>A diferencia de la ejecución secuencial, el gestor de multitarea de Java reparte el tiempo de CPU entre los procesos</p>
+
+
+<p>Para implementar el código de las tareas existen dos posibilidades en la multitarea clásica:</p>
+<ul>
+    <li>Extender la clase Thread</li>
+    <li>Implementar la interfaz Runnable</li>
+</ul>
+
+<h2>Extensión de la clase run()</h2>
+
+<p>Proporciona el método run(), que debe ser sobrescrito para incluir el código de la tarea/tareas.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Tarea extends Thread{
+    public void run(){
+    //código de la tarea
+    }
+}
+</code></pre>
+</div>
+
+<p>Para poner en ejecución concurrente las tareas, se llamará al método start() de Thread , que invoca al gestor de multitarea de Java para que ponga los objetos en ejecución concurrente:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Tarea t1=new Tarea();
+Tarea t2=new Tarea();
+t1.start();
+t2.start();
+</code></pre>
+</div>
+
+<h2>Interfaz Runnable</h2>
+
+<p>Incluye el método run () y permite a las clases que la implementan poder heredar otras clases:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Tarea implements Runnable{
+    public void run(){
+        //código de la tarea
+    }
+}
+</code></pre>
+</div>
+
+<p>Para poner las tareas en ejecución, se crearán instancias de Thread a partir del objeto Runnable</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Tarea obj =new Thread();
+t1=new Thread obj Thread(obj);
+t2=new Thread obj Thread(obj);
+t1.start();
+t2.start();
+</code></pre>
+</div>
+
+<h2>Condiciones de carrera</h2>
+
+<p>Se da cuando dos o más hilos acceden a un recurso compartido.</p>
+<p>Si un hilo debe completar un proceso con el recurso (sección crítica) antes de que otro lo manipule, se puede producir una situación anómala.</p>
+
+<p>La solución a este problema es la sincronización.</p>
+
+<h2>Sincronización</h2>
+
+<p>Consiste en bloquear el acceso a un bloque de código a otros hilos , hasta que el hilo que entró primero complete su ejecución.</p>
+<p>Se utiliza la palabra synchronized para delimitar el bloque sincronizado.</p>
+<p>Cuando un hilo entra en el bloque sincronizado, adquiere el monitor del objeto y no lo suelta hasta completarlo.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+synchronized(obj){
+    int value = obj.getValue();
+    value++;
+    obj.setValue(value);
+}
+</code></pre>
+</div>
