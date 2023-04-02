@@ -26,7 +26,7 @@ Stream&lt;Integer&gt; st = nums.stream();
 <div class="center-horizontal">
 <pre><code class="language-java">
 String[] cads = {"a","xy","jk","mv"};
-Stream&lt;String&gt; = Arrays.stream(cads);
+Stream&lt;String&gt; st = Arrays.stream(cads);
 </code></pre>
 </div>
 <p>
@@ -47,6 +47,18 @@ Stream&lt;Double&gt; st = Stream.of(2.4, 7.4,9.1);
 //Stream tipos primitivos
 IntStream stint = IntStream.range(1,10);
 IntStream stint2 = IntStream.rangeClosed(1,10);
+</code></pre>
+</div>
+<p>
+    A partir de un array de datos primitivos:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+//Encuentra el minimo y como min()
+//devuelve un Optional se obtiene el valor 
+//con el metodo getAsInt()
+int[] args = new int[]{34, 15, 88, 2}
+IntStream.of(args).min().getAsInt();
 </code></pre>
 </div>
 

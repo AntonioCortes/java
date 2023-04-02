@@ -46,7 +46,7 @@ ex.submit(()-&gt;System.out.print("by"));
 </div>
 
 <h2>Interfaz Callable</h2>
-<p>Al igual que Runnable , implementa una tarea que va a ser ejecutada concurrentemente con otras.</p>
+<p>Al igual que Runnable, implementa una tarea que va a ser ejecutada concurrentemente con otras.</p>
 <p>Su único método, call(), devuelve un resultado.</p>
 
 <div class="center-horizontal">
@@ -64,7 +64,7 @@ public interface Callable&lt;T&gt;{
 <p>Entre sus métodos están:</p>
 <ul>
     <li><b>isDone()</b>. Permite conocer si la tarea ha finalizado</li>
-    <li><b>get()</b>. Devuelve el valor generado por Callable . Si aún no ha terminado la tarea, queda a la espera del resultado.</li>
+    <li><b>get()</b>. Devuelve el valor generado por Callable. Si aún no ha terminado la tarea, queda a la espera del resultado.</li>
 </ul>
 
 <div class="center-horizontal">
@@ -79,10 +79,10 @@ System.out.println("El resultado de la tarea es "+t1.get());
 
 <h2>Sincronización</h2>
 
-<p>En las nuevas clases de multitarea la sincronización se lleva a cabo con la interfaz Lock que proporciona los siguientes métodos :</p>
+<p>En las nuevas clases de multitarea la sincronización se lleva a cabo con la interfaz Lock que proporciona los siguientes métodos:</p>
 <ul>
-    <li>void lock (). Bloquea acceso al código a otros hilos</li>
-    <li>void unlock (). Desbloquea el acceso al código</li>
+    <li>void <b>lock()</b>. Bloquea acceso al código a otros hilos</li>
+    <li>void <b>unlock()</b>. Desbloquea el acceso al código</li>
 </ul>
 <p>Se puede obtener una implementación de Lock instanciando ReentrantLock</p>
 
@@ -95,7 +95,7 @@ lc.unlock(): //desbloquea acceso
 </code></pre>
 </div>
 
-<p>Existen otras implementaciones como ReadLock(permite a otros hilos con bloqueo de lectura) o WriteLock (no permite a otros ni lectura ni escritura)</p>
+<p>Existen otras implementaciones como <b>ReadLock(permite a otros hilos con bloqueo de lectura)</b> o <b>WriteLock(no permite a otros ni lectura ni escritura)</b></p>
 
 <h2>Colecciones para concurrencia</h2>
 
@@ -103,7 +103,7 @@ lc.unlock(): //desbloquea acceso
 <ul>
     <li>ConcurrentMap &lt;K,V&gt;. Subinterfaz de Map que garantiza operaciones thread safe en un entorno multitarea. Su principal implementación es ConcurrentHashMap</li>
     <li>CopyOnWriteArrayList &lt;E&gt;. Variante de ArrayList para entornos thread safe</li>
-    <li>CopyOnWriteArraySet &lt;E&gt;. Variante de HashSet para entornos thread safe . Internamente utiliza un CopyOnWriteArrayList para realizar las operaciones.</li>
+    <li>CopyOnWriteArraySet &lt;E&gt;. Variante de HashSet para entornos thread safe. Internamente utiliza un CopyOnWriteArrayList para realizar las operaciones.</li>
 </ul>
 
 <h2>CyclicBarrier</h2>
