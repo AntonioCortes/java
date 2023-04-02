@@ -52,7 +52,78 @@ ex.submit(()-&gt;System.out.print("by"));
 <div class="center-horizontal">
 <pre><code class="language-java">
 public interface Callable&lt;T&gt;{
+    //Permite declarar checked exceptions
     call() throws Exception;
 }
 </code></pre>
 </div>
+
+<h2>Interfaz Future</h2>
+
+<p>El método <b>submit(Callable tarea)</b> de ExecutorService devuelve un objeto Future que puede ser utilizado para acceder al resultado de la tarea y controlar su ejecución.</p>
+<p>Entre sus métodos están:</p>
+<ul>
+    <li><b>isDone()</b>. Permite conocer si la tarea ha finalizado</li>
+    <li><b>get()</b>. Devuelve el valor generado por Callable . Si aún no ha terminado la tarea, queda a la espera del resultado.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Future&lt;Tipo_resultado&gt; t1 = exec.submit(objetoCallable);
+while(!t1.isDone()){
+    System.out.println("Esperando fin de tarea");
+}
+System.out.println("El resultado de la tarea es "+t1.get());
+</code></pre>
+</div>
+
+<h2>Sincronización</h2>
+
+<p>En las nuevas clases de multitarea la sincronización se lleva a cabo con la interfaz Lock que proporciona los siguientes métodos :</p>
+<ul>
+    <li>void lock (). Bloquea acceso al código a otros hilos</li>
+    <li>void unlock (). Desbloquea el acceso al código</li>
+</ul>
+<p>Se puede obtener una implementación de Lock instanciando ReentrantLock</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Lock lc = new ReentrantLock();
+lc.lock();//bloquea el acceso
+//...
+lc.unlock(): //desbloquea acceso
+</code></pre>
+</div>
+
+<p>Existen otras implementaciones como ReadLock(permite a otros hilos con bloqueo de lectura) o WriteLock (no permite a otros ni lectura ni escritura)</p>
+
+<h2>Colecciones para concurrencia</h2>
+
+<p>El paquete java.util.concurrent incluye interfaces y clases de colección con operaciones thread safe:</p>
+<ul>
+    <li>ConcurrentMap &lt;K,V&gt;. Subinterfaz de Map que garantiza operaciones thread safe en un entorno multitarea. Su principal implementación es ConcurrentHashMap</li>
+    <li>CopyOnWriteArrayList &lt;E&gt;. Variante de ArrayList para entornos thread safe</li>
+    <li>CopyOnWriteArraySet &lt;E&gt;. Variante de HashSet para entornos thread safe . Internamente utiliza un CopyOnWriteArrayList para realizar las operaciones.</li>
+</ul>
+
+<h2>CyclicBarrier</h2>
+
+<p>Mecanismo que permite sincronizar la ejecución de un grupo de threads</p>
+<p>Objeto que permite que un conjunto de hilos puedan esperarse unos a otros en un determinado punto.</p>
+<p>Cuando todos los hilos del grupo alcanzan la barrera, se desbloquean y continúan su ejecución.</p>
+
+<h3>Construcción</h3>
+
+<p>Se instancian como objetos de la clase CyclicBarrier de java.util.concurrent</p>
+<p>Dispone de dos constructores:</p>
+<ul>
+    <li><b>CyclicBarrier(int hilos)</b>. Crea un CyclicBarrier que permite sincronizar el número de hilos indicados en el constructor</li>
+    <li><b>CyclicBarrier(int hilos, Runnable action)</b>. Cuando todos los hilos alcanzan la barrera, se ejecuta la acción indicada en el segundo parámetro del constructor</li>
+</ul>
+
+<h3>Sincronización de hilos</h3>
+
+<p>La sincronización de los hilos se realiza a través del método <b>await()</b> de CyclicBarrier</p>
+<p>Cuando un hilo llama a este método, queda en espera en ese punto.</p>
+<p>Cuando el total de hilos que ha realizado la llamada a <b>await()</b> es igual al valor indicado en el constructor, se liberan todos los hilos y se ejecuta el Runnable</p>
+<p>El contador vuelve a ponerse a 0 tras alcanzar todos los hilos la barrera.</p>
