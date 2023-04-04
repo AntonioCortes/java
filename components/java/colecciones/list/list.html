@@ -1,35 +1,35 @@
 <h1 class="title">Listas</h1>
 
-➢Una colección es una agrupación de objetos sin tamaño fijo
-➢Se puede añadir y eliminar objetos de una colección
-dinámicamente
-➢Para gestionar colecciones disponemos de clases e interfaces
-específicas en java.util
-➢Tipos:
-➢Listas
-➢Tablas
-➢Conjuntos
+<p>Una colección es una agrupación de objetos sin tamaño fijo</p>
+<p>Se puede añadir y eliminar objetos de una colección dinámicamente</p>
+<p>Para gestionar colecciones disponemos de clases e interfaces específicas en java.util</p>
+<p>Tipos:</p>
+<ul>
+    <li>Listas</li>
+    <li>Tablas</li>
+    <li>Conjuntos</li>
+</ul>
 
 <h2>Listas</h2>
 TODO: extends y super en operador diamante???? 
 TODO: insertar imagen de jerarquias de la clase arraylist linkedList y vector
 
-➢Cada elemento tiene una posición asociada a partir del orden
+Cada elemento tiene una posición asociada a partir del orden
 de llegada, siendo 0 la posición del primero
-➢Las listas implementan la interfaz List, que a su vez
+Las listas implementan la interfaz List, que a su vez
 implementa Collection.
-➢Son colecciones de tipo genérico (preparadas para admitir
+Son colecciones de tipo genérico (preparadas para admitir
 cualquier objeto Java)
-➢La principal clase de colección es ArrayList.
+La principal clase de colección es ArrayList.
 
 <h4>Creacion de listas</h4>
-➢Como instancias de ArrayList:
+Como instancias de ArrayList:
 
-➢A partir del método asList de Arrays:
+A partir del método asList de Arrays:
 
-➢Mediante método de factoría de List:
+Mediante método de factoría de List:
 
-➢Mediante el método copyOf de List:
+Mediante el método copyOf de List:
 List<Integer> enteros=new ArrayList<>();
 
 List<Integer> enteros=Arrays.asList(6,2,4,10,21);
@@ -67,11 +67,11 @@ valores null
 </table>
 <!---======================-->
 
-➢boolean add(T dato). Añade el dato a la colección y lo coloca
+boolean add(T dato). Añade el dato a la colección y lo coloca
 al final de la misma. T representa el tipo indicado al crear el
 objeto de colección:
 
-➢boolean add(int pos,T dato). Añade el elemento en la
+boolean add(int pos,T dato). Añade el elemento en la
 posición indicada, desplazando hacia adelante los que se
 encuentren en dicha posición
 
@@ -81,20 +81,20 @@ nombres.add(“Angel”); //elemento en posición 1
 
 nombres.add(“Luis”, 1); //desplaza a Angel a la posición 2
 
-➢T set(int pos, T dato). Sustituye el elemento existente en la
+T set(int pos, T dato). Sustituye el elemento existente en la
 posición indicada por el nuevo dato suministrado como
 parámetro. Devuelve el elemento sustituido
 
-➢int size(). Devuelve el total de elementos de la colección
-➢T get(int pos). Devuelve el elemento que ocupa la posición
+int size(). Devuelve el total de elementos de la colección
+T get(int pos). Devuelve el elemento que ocupa la posición
 indicada. Si la posición es menor que 0 o mayor o igual que size(),
 se producirá una excepción
 
-➢T remove (int pos). Elimina el elemento que ocupa la posición
+T remove (int pos). Elimina el elemento que ocupa la posición
 indicada y lo devuelve. Si la posición es menor que 0 o mayor o
 igual que size(), se producirá una excepción
 
-➢boolean remove(Object ob). Elimina el elemento indicado en
+boolean remove(Object ob). Elimina el elemento indicado en
 caso de que exista. Devuelve true si dicho elemento estaba
 presente en la colección. Si hay más de un elemento, elimina la
 primera ocurrencia
@@ -112,11 +112,11 @@ System.out.println(nums.get(2)-nums.get(0));
 <p>Se producirá una excepción en la segunda instrucción, ya que se trata de una lista inmutable y no se puede modificar su contenido</p>
 
 <h4>Recorrido de una lista</h4>
-➢Se puede recorrer con un bucle for estándar:
+Se puede recorrer con un bucle for estándar:
 
-➢También mediante un for each:
+También mediante un for each:
 
-➢Método forEach (se estudia en lambdas)
+Método forEach (se estudia en lambdas)
 
 
 <div class="center-horizontal">

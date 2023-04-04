@@ -47,7 +47,7 @@ ex.submit(()-&gt;System.out.print("by"));
 
 <h2>Interfaz Callable</h2>
 <p>Al igual que Runnable, implementa una tarea que va a ser ejecutada concurrentemente con otras.</p>
-<p>Su único método, call(), devuelve un resultado.</p>
+<p>Su único método, <b>call()</b>, devuelve un resultado.</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -101,9 +101,9 @@ lc.unlock(): //desbloquea acceso
 
 <p>El paquete java.util.concurrent incluye interfaces y clases de colección con operaciones thread safe:</p>
 <ul>
-    <li>ConcurrentMap &lt;K,V&gt;. Subinterfaz de Map que garantiza operaciones thread safe en un entorno multitarea. Su principal implementación es ConcurrentHashMap</li>
-    <li>CopyOnWriteArrayList &lt;E&gt;. Variante de ArrayList para entornos thread safe</li>
-    <li>CopyOnWriteArraySet &lt;E&gt;. Variante de HashSet para entornos thread safe. Internamente utiliza un CopyOnWriteArrayList para realizar las operaciones.</li>
+    <li><b>ConcurrentMap&lt;K,V&gt;</b>. Subinterfaz de Map que garantiza operaciones thread safe en un entorno multitarea. Su principal implementación es ConcurrentHashMap</li>
+    <li><b>CopyOnWriteArrayList&lt;E&gt;</b>. Variante de ArrayList para entornos thread safe</li>
+    <li><b>CopyOnWriteArraySet&lt;E&gt;</b>. Variante de HashSet para entornos thread safe. Internamente utiliza un CopyOnWriteArrayList para realizar las operaciones.</li>
 </ul>
 
 <h2>CyclicBarrier</h2>
