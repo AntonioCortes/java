@@ -85,8 +85,6 @@ List&lt;String&gt; nombres = List.of("Juan","Juana","Jake");
 Stream st = Stream.of(nombres);
 //muestra todos los elementos
 st.forEach(n-&gt;System.out.println(n));
-System.out.println(st.count()); //ERROR!!!
-//Tras llamar a un Stream se cierra y no puede volver a utilizarse.
 </code></pre>
 </div>
 
@@ -110,7 +108,7 @@ System.out.println(st.count()); //ERROR!!!
         <tr>
             <td>list.<b>add(T dato)</b></td>
             <td>boolean</td>
-            <td>(T dato). Añade el dato a la colección y lo coloca al final de la misma. "T" representa el tipo indicado al crear el objeto de colección.</td>
+            <td>Añade el dato a la colección y lo coloca al final de la misma. "T" representa el tipo indicado al crear el objeto de colección.</td>
         </tr>
         <tr>
             <td>list.<b>add(int pos,T dato)</b></td>
