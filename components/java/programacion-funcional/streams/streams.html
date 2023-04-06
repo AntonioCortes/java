@@ -110,3 +110,24 @@ System.out.println(number + " " + Thread.currentThread().getName()));
 3 main
 </code></pre>
 </div>
+
+<h2>APENDICE</h2>
+
+<p>Streams de enteros para estadistica:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+int[] arr = new int[]{23,3,19,21,16};
+
+//Returns an IntSummaryStatistics describing various summary data about the elements of this stream.
+//This is a special case of a reduction.
+//This is a terminal operation.
+var stats = stream(arr).summaryStatistics();
+
+//Métdodos de IntSummaryStatistics
+stats.getAverage();
+stats.getMax();
+stats.getMin();
+stats.combine();
+</code></pre>
+</div>

@@ -10,39 +10,88 @@
     <li>Conjuntos</li>
 </ul>
 
-<h2>Listas</h2>
-TODO: extends y super en operador diamante???? 
-TODO: insertar imagen de jerarquias de la clase arraylist linkedList y vector
+</div><div class="center-horizontal">
+    <img src=".\components\java\colecciones\list\assets\list_tree.png">
+</div>
 
-Cada elemento tiene una posición asociada a partir del orden
-de llegada, siendo 0 la posición del primero
-Las listas implementan la interfaz List, que a su vez
-implementa Collection.
-Son colecciones de tipo genérico (preparadas para admitir
-cualquier objeto Java)
-La principal clase de colección es ArrayList.
+<p>Cada elemento tiene una posición asociada a partir del orden de llegada, siendo 0 la posición del primero.</p>
+<p>Las listas implementan la interfaz List, que a su vez implementa Collection.</p>
+<p>Son colecciones de tipo genérico (preparadas para admitir cualquier objeto Java).</p>
+<p>La principal clase de colección es ArrayList.</p>
 
-<h4>Creacion de listas</h4>
-Como instancias de ArrayList:
+<h2>Creacion de listas</h2>
 
-A partir del método asList de Arrays:
+<p>Como instancias de ArrayList:</p>
 
-Mediante método de factoría de List:
+<div class="center-horizontal">
+<pre><code class="language-java">
+List&lt;Integer&gt; enteros = new ArrayList&lt;&gt;();
 
-Mediante el método copyOf de List:
-List<Integer> enteros=new ArrayList<>();
+//...
+</code></pre>
+</div>
 
-List<Integer> enteros=Arrays.asList(6,2,4,10,21);
+<p>A partir del método asList de Arrays:</p>
 
-List<Integer> enteros=List.of(40,29,11,28);
+<p><b>NOTA:</b> Lista de tamaño FIJO, no admite inserción ni eliminación.</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+List&lt;Integer&gt; enteros = arrays.asList(6,2,54,678,1);
 
-INMUTABLES, no admiten la
-eliminación, modificación e
-inserción de elementos, ni
+//...
+</code></pre>
+</div>
 
-valores null
+<p>Mediante método de factoría y coptOf() de List:</p>
 
-<h4>Principales métodos para listas</h4>
+<p><b>NOTA:</b> INMUTABLES, no admiten la modificación e inserción de elementos, ni valores null.</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+//...
+List&lt;Integer&gt; enteros = List.of(40,5,76,1);
+
+List&lt;Integer&gt; copia = arrays.copyOf(enteros);
+</code></pre>
+</div>
+
+<h2>Recorrido de una lista</h2>
+
+<p>Se puede recorrer con un bucle for estándar:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+List&lt;String&gt; nombres = List.of("Juan","Juana","Jake");
+//muestra el contenido de la lista de nombres
+for(int i=0; i &lt; nombres.size(); i++){
+    System.out.println(nombres.get(i));
+}
+</code></pre>
+</div>
+
+<p>También mediante un for each:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+List&lt;String&gt; nombres = List.of("Juan","Juana","Jake");
+//misma función que el bloque anterior
+for(String s:nombres){
+    System.out.println(s);
+}
+</code></pre>
+</div>
+
+<p>Método forEach(lambda)</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+List&lt;String&gt; nombres = List.of("Juan","Juana","Jake");
+Stream st = Stream.of(nombres);
+//muestra todos los elementos
+st.forEach(n-&gt;System.out.println(n));
+System.out.println(st.count()); //ERROR!!!
+//Tras llamar a un Stream se cierra y no puede volver a utilizarse.
+</code></pre>
+</div>
+
+
+<h2>Principales métodos para listas</h2>
 
 
 <!---======================-->
@@ -59,47 +108,45 @@ valores null
             <th>Funcionalidad</th>
         </tr>
         <tr>
-            <td>name.append([tipo dato])</td>
-            <td>StringBuilder</td>
-            <td>(tipo dato). Método sobrecargado para añadir cualquier tipo Java a la cadena. Modifica la cadena original y devuelve una referencia al propio objeto</td>
+            <td>list.<b>add(T dato)</b></td>
+            <td>boolean</td>
+            <td>(T dato). Añade el dato a la colección y lo coloca al final de la misma. "T" representa el tipo indicado al crear el objeto de colección.</td>
+        </tr>
+        <tr>
+            <td>list.<b>add(int pos,T dato)</b></td>
+            <td>boolean</td>
+            <td>Añade el elemento en la posición indicada, desplazando hacia adelante los que se encuentren en dicha posición.</td>
+        </tr>
+        <tr>
+            <td>list.<b>set(int pos,T dato)</b></td>
+            <td>T</td>
+            <td>Sustituye el elemento existente en la posición indicada por el nuevo dato suministrado como parámetro. Devuelve el elemento sustituido</td>
+        </tr>
+        <tr>
+            <td>list.<b>size()</b></td>
+            <td>int</td>
+            <td>Devuelve el total de elementos de la colección.</td>
+        </tr>
+        <tr>
+            <td>list.<b>get(int pos)</b></td>
+            <td>T</td>
+            <td>Devuelve el elemento que ocupa la posición indicada. Si la posición es menor que 0 o mayor o igual que size(), se producirá una excepción.</td>
+        </tr>
+        <tr>
+            <td>list.<b>remove(int pos)</b></td>
+            <td>T</td>
+            <td>Elimina el elemento que ocupa la posición indicada y lo devuelve. Si la posición es menor que 0 o mayor o igual que size(), se producirá una excepción.</td>
+        </tr>
+        <tr>
+            <td>list.<b>remove(Object ob)</b></td>
+            <td>boolean</td>
+            <td>Elimina el elemento indicado en caso de que exista. Devuelve true si dicho elemento estaba presente en la colección. Si hay más de un elemento, elimina la primera ocurrencia</td>
         </tr>
     </tbody>
 </table>
 <!---======================-->
 
-boolean add(T dato). Añade el dato a la colección y lo coloca
-al final de la misma. T representa el tipo indicado al crear el
-objeto de colección:
-
-boolean add(int pos,T dato). Añade el elemento en la
-posición indicada, desplazando hacia adelante los que se
-encuentren en dicha posición
-
-ArrayList<String> nombres=new ArrayList<>();
-nombres.add(“Maria”); //elemento en posición 0
-nombres.add(“Angel”); //elemento en posición 1
-
-nombres.add(“Luis”, 1); //desplaza a Angel a la posición 2
-
-T set(int pos, T dato). Sustituye el elemento existente en la
-posición indicada por el nuevo dato suministrado como
-parámetro. Devuelve el elemento sustituido
-
-int size(). Devuelve el total de elementos de la colección
-T get(int pos). Devuelve el elemento que ocupa la posición
-indicada. Si la posición es menor que 0 o mayor o igual que size(),
-se producirá una excepción
-
-T remove (int pos). Elimina el elemento que ocupa la posición
-indicada y lo devuelve. Si la posición es menor que 0 o mayor o
-igual que size(), se producirá una excepción
-
-boolean remove(Object ob). Elimina el elemento indicado en
-caso de que exista. Devuelve true si dicho elemento estaba
-presente en la colección. Si hay más de un elemento, elimina la
-primera ocurrencia
-
-
+<h2>Revisión de conceptos</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -110,14 +157,6 @@ System.out.println(nums.get(2)-nums.get(0));
 </div>
 
 <p>Se producirá una excepción en la segunda instrucción, ya que se trata de una lista inmutable y no se puede modificar su contenido</p>
-
-<h4>Recorrido de una lista</h4>
-Se puede recorrer con un bucle for estándar:
-
-También mediante un for each:
-
-Método forEach (se estudia en lambdas)
-
 
 <div class="center-horizontal">
 <pre><code class="language-java">
