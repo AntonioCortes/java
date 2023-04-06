@@ -1,13 +1,17 @@
 <h1 class="title">Map</h1>
 
-Cada elemento tiene asociada una clave única
-No hay un orden o posición
-Las tablas implementan la interfaz Map
-Tanto el tipo de la clave como del valor son genéricos
-La principal clase de colección es HashMap Map
+<ul>
+    <li>Cada elemento tiene asociada una clave única</li>
+    <li>No hay un orden o posición</li>
+    <li>Las tablas implementan la interfaz Map</li>
+    <li>Tanto el tipo de la clave como del valor son genéricos</li>
+    <li>La principal clase de colección es HashMap Map</li>
+</ul>
 
 
-TODO: poner gráfico de jerarquia de clases de map
+</div><div class="center-horizontal">
+    <img src=".\components\java\colecciones\map\assets\map_tree.png">
+</div>
 
 <h2>Creación de tablas</h2>
 
@@ -33,39 +37,118 @@ Map&lt;Integer , String &gt; Map.copyOf(contactos);
 
 <h2>Métodos de HashMap</h2>
 
-T put (K clave, T dato). Añade el dato a la colección y le asocia la
-clave indicada como primer parámetro. Si ya existiera esa clave, el
-valor existente será sustituido por el nuevo:
+<!---======================-->
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Métodos de HashMap</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Método</th>
+            <th>Retorno</th>
+            <th>Funcionalidad</th>
+        </tr>
+        <tr>
+            <td>hashMap.<b>put(K clave, T dato)</b></td>
+            <td>T</td>
+            <td>Añade el dato a la colección y le asocia la clave indicada como primer parámetro. Si ya existiera esa clave, el valor existente será sustituido por el nuevo. <b>NOTA:</b> el método admite claves null</td>
+        </tr>
+        <tr>
+            <td>hashMap.<b>putIfAbsent(K clave, T dato)</b></td>
+            <td>T</td>
+            <td>Añade la entrada en caso de que la clave no exista o tenga asociado el valor null</td>
+        </tr>
+        <tr>
+            <td>hashMap.<b>get()</b></td>
+            <td>T</td>
+            <td>Devuelve el dato que tenga asociada dicha clave. Si no hay ninguno, devolverá null</td>
+        </tr>
+        <tr>
+            <td>hashMap.<b>size()</b></td>
+            <td>int</td>
+            <td>Devuelve el tamaño de la colección</td>
+        </tr>
+        <tr>
+            <td>hashMap.<b>remove(Object clave)</b></td>
+            <td>T</td>
+            <td>Elimina el dato que tenga dicha clave asociada y devuelve el elemento eliminado</td>
+        </tr>
+        <tr>
+            <td>hashMap.<b>containsKey(K key)</b></td>
+            <td>boolean</td>
+            <td>Indica si hay algún elemento en la colección con dicha clave asociada</td>
+        </tr>
+        <tr>
+            <td>hashMap.<b>containsValue(T valor)</b></td>
+            <td>boolean</td>
+            <td>Indica si el elemento está presente en la colección</td>
+        </tr>
+    </tbody>
+</table>
+<!---======================-->
+
+<h2>Recorrido de una tabla</h2>
+
+<p>Se pueden utilizar los siguientes métodos:</p>
+
+<ul>
+
+    <li>Collection&lt;T&gt; values(). Devuelve una colección solo con los valores. Puede utilizarse para recorrer el conjunto de valores con un for each.</li>
+    
+    <div class="center-horizontal">
+    <pre><code class="language-java">
+    Collection&lt;String&gt; datos = tabla.values();
+    for(String s:datos){
+        System.out.println(s); //muestra cada elemento
+    }
+    </code></pre>
+    </div>
+
+    <li>Set&lt;K&gt; keySet(). Devuelve el conjunto de claves de la tabla. Se puede recorrer con un for each.</li>
+    
+    <div class="center-horizontal">
+    <pre><code class="language-java">
+    Map&lt;Integer, String&gt; map = new HashMap&lt;&gt;(Map.of(1,"Juan",23,"Jake"));
+    Stream.of(map.keySet()).forEach(k-&gt; System.out.println(k));
+    </code></pre>
+    </div>
+    
+    
+    <li>Método forEach(lambda)</li>
+
+    <div class="center-horizontal">
+    <pre><code class="language-java">
+    Map&lt;Integer, String&gt; map = new HashMap&lt;&gt;(Map.of(1,"Juan",23,"Jake"));
+    Stream.of(map.keySet()).forEach(k-&gt; System.out.println(k));
+    </code></pre>
+    </div>
+
+</ul>
+
+
+
+<h2>TreeMap</h2>
+
+<p>
+Similar a HashMap , con la diferencia de que los objetos están ordenados por la clave:
+</p>
+
 <div class="center-horizontal">
 <pre><code class="language-java">
-//put admite claves null
-HashMap&lt;Integer,String&gt; tabla = new HashMap&lt;&gt;();
+TreeMap&lt;Integer,String&gt; tabla=new TreeMap&lt;&gt;();       
 tabla.put(200, "dato1");
 tabla.put(400, "dato2");
-tabla.put(200,"dato3"); //dato1 es sustituido por dato3
+tabla.put(100,"dato3");
+for (String val:tabla.values()){
+    System.out.print(val); // dato3 dato1 dato2
+}
 </code></pre>
 </div>
 
-T putIfAbsent (K clave, T dato). Añade la entrada en caso de que
-la clave no exista o tenga asociado el valor null
 
-T get (K clave). Devuelve el dato que tenga asociada dicha clave.
-Si no hay ninguno, devolverá null
-
-
-int size (). Devuelve el tamaño de la colección
-
-T remove (Object clave). Elimina el dato que tenga dicha
-clave asociada y devuelve el elemento eliminado.
-
-<p>System.out.println(tabla.remove (400)); //muestra dato2</p>
-
-boolean containsKey (K clave). Indica si hay algún elemento
-en la colección con dicha clave asociada.
-
-boolean containsValue (T valor). Indica si el elemento está
-presente en la colección
-
+<!-- ============================= -->
 <h2>Revisión de conceptos</h2>
 
 <p>Indica que sucederá al ejecutar el siguiente código</p>
@@ -88,7 +171,7 @@ System.out.println(tabla.get(null));
 
 <p>RESPUESTA: La respuesta correcta es la a. Como admite clave null , el valor asociado con dicha clave es " by</p>
 
-Indica cual es la instrucción que falta en la línea 1
+<p>Indica cual es la instrucción que falta en la línea 1</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -106,44 +189,4 @@ RESPUESTA: La instrucción que falta en línea 1 podría ser: Map&lt; String , L
 De hecho, la clave podría ser de cualquier tipo, lo importante es que sea un Map de valores lista de String
 </p>
 
-<h2>Recorrido de una tabla</h2>
 
-
-Se pueden utilizar los siguientes métodos:
-
-Collection <T> values (). Devuelve una colección solo con
-los valores. Puede utilizarse para recorrer el conjunto de
-valores con un for each
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-Collection&lt;String&gt; datos = tabla.values();
-for(String s:datos){
-    System.out.println(s); //muestra cada elemento
-}
-</code></pre>
-</div>
-
-
-Set<K> keySet (). Devuelve el conjunto de claves de la
-tabla. Se puede recorrer con un for each
-
-Método forEach (se estudia en)
-
-<h2>TreeMap</h2>
-
-<p>
-Similar a HashMap , con la diferencia de que los objetos están ordenados por la clave:
-</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-TreeMap&lt;Integer,String&gt; tabla=new TreeMap&lt;&gt;();       
-tabla.put(200, "dato1 ");
-tabla.put(400, "dato2 ");
-tabla.put(100,"dato3 ");
-for (String val:tabla.values()){
-    System.out.print(val); // dato3 dato1 dato2
-}
-</code></pre>
-</div>
