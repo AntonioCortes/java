@@ -128,3 +128,22 @@ function changeView(viewKey)
 
 	changeContent(viewKey + '.paths.' + view.mainContent);
 }
+
+
+// ===Change Theme===
+function changeTheme(){	
+	if($('#themeButton').attr("status") == "light-theme"){
+		$('#navbarTheme').attr("href","css/dark-theme/navbar.css")
+		$('#contentTheme').attr("href","css/dark-theme/content.css")
+		$('#generalStyleTheme').attr("href","css/dark-theme/general-style.css")
+		$('#sidebarTheme').attr("href","css/dark-theme/sidebar.css")
+		$('#themeButton').attr("status","dark-theme")
+	}else if($('#themeButton').attr("status") == "dark-theme"){
+		$('#navbarTheme').attr("href","css/navbar.css")
+		$('#contentTheme').attr("href","css/content.css")
+		$('#generalStyleTheme').attr("href","css/general-style.css")
+		$('#sidebarTheme').attr("href","css/sidebar.css")
+		$('#themeButton').attr("status","light-theme")
+	}
+}
+// ================
