@@ -1,10 +1,72 @@
 <h1 class="title">Ordenación arrays y listas</h1>
 
+<ul>
+    <li>Arrays y listas pueden ser ordenados según el orden natural de los objetos</li>
+    <li>El orden natural se define a través de la interfaz Comparable, que deberá ser implementada por los objetos a ordenar</li>
+    <li>Si las clases no implementan Comparable, se deberá definir el orden natural en otra interfaz llamada Comparator</li>
+</ul>
 
-<p>Arrays y listas pueden ser ordenados según el orden natural de los objetos</p>
-
-<p>El orden natural se define a través de la interfaz Comparable, que deberá ser implementada por los objetos a ordenar</p>
-
-<p>Si las clases no implementan Comparable, se deberá definir el orden natural en otra interfaz llamada Comparator</p>
+<h2>Interfaz Comparable</h2>
 
 <p>Se encuentra en el paquete java.lang:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+interface Comparable&lt;T&gt;{
+    int compareTo(T obj);
+}
+</code></pre>
+</div>
+
+<p>Es implementada por clases de envoltorio y String</p>
+<p>Para poder ordenar listas y arrays de otro tipo de objetos, sus clases deberán implementar esta interfaz.</p>
+
+<h2>Orenación de arrays</h2>
+
+<p>Se emplea el método <b>sort(T[] datos)</b> de la clase Arrays</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+int[] numeros ={0,4,12,6,72,48,89}
+Arrays.sort(numeros);
+for(int n:numeros){
+    System.out.println(n);
+}    
+//0,4,6,12,48,72,89
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Persona [] personas={new Persona("Ana",25),
+    new Persona("Marcos",19),
+    new Persona("Ana",21)
+};
+Arrays.sort(personas);
+for(Persona p:personas){
+    System.out.println(p.getNombre()+"-"+p.getEdad());
+}    
+//"Ana"-21
+//"Ana"-25
+//"Marcos"-19
+</code></pre>
+</div>
+
+<h2>Ordenación de listas</h2>
+
+<p>Se emplea el método <b>sort(List&lt;T&gt; datos)</b> de Collections</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+    Persona [] personas={new Persona("Ana",25),
+        new Persona("Marcos",19),
+        new Persona("Ana",21)
+    };
+    Arrays.sort(personas);
+    for(Persona p:personas){
+        System.out.println(p.getNombre()+"-"+p.getEdad());
+    }    
+    //"Ana"-21
+    //"Ana"-25
+    //"Marcos"-19
+</code></pre>
+</div>

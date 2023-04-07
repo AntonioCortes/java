@@ -46,3 +46,22 @@ class Movie implements Comparable&lt;Movie&gt;{
 }
 </code></pre>	
 </div>
+
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Persona implements Comparable&lt;Persona&gt;{
+    private String nombre;
+    private int edad;
+    //constructores, setter y getter
+    //...
+    public int compareTo(Persona p){
+        if(this.nombre.compareTo(p.getNombre())==0){
+            return((Integer)this.edad)compareTo(p.getEdad());
+        }else{
+            return this.nombre.compareTo(p.getNombre());
+        }
+    }
+}    
+</code></pre>
+</div>
