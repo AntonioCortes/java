@@ -133,4 +133,52 @@ System.out.println(Arrays.binarySearch(a1, 10)); // 5
 
 <h2>Comparación de Arrays</h2>
 
-TODO:
+<p>La clase Arrays incorpora en Java 11 el siguiente método para comparar arrays:</p>
+<ul>
+    <li>int <b>compare(tipo[] array1, tipo[] array2)</b>. Devuelve el resultado de la comparación lexicográfica de ambos arrays</li>
+</ul>
+<p>El resultado de la comparación será:</p>
+<ul>
+    <li>-1 Si array1 es menor que array2</li>
+    <li>0 si ambos arrays son iguales</li>
+    <li>1 Si array1 es mayor que array2</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+int[] a1= {1,2,5};
+int[] a2= {1,2,1,4};
+int[] a3= {1,2,1,4,1};
+System.out.println(Arrays.compare (a1, a2)); //1
+System.out.println(Arrays.compare (a2, a3)); //-1
+</code></pre>
+</div>
+
+<p>La clase Arrays incorpora en Java 9 el siguiente método para comprobar diferencias entre arrays:</p>
+<ul>
+    <li>int mismatch(tipo[] array1, tipo[] array2). Devuelve la posición de la primera diferencia entre los dos arrays , o -1 si no hay diferencias.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+int[] a1= {1,2,5};
+int[] a2= {1,2,1,4};
+int[] a3= {1,2,1,4};
+System.out.println(Arrays.mismatch(a1, a2)); //2
+System.out.println(Arrays.mismatch(a2, a3)); //-1
+</code></pre>
+</div>
+
+<h2>Revisión de conceptos</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+int[] a1= {9,5,7,1,4};
+int[] a2= {4,5,7,9,6,1};
+Arrays.sort(a1);
+Arrays.sort(a2);
+System.out.println(Arrays.mismatch(a1,a2));
+</code></pre>
+</div>
+
+<p><b>RESPUESTA:</b> Al ordenar los arrays, la primera discrepancia se produce en el cuarto elemento, es decir, en la posición 3</p>

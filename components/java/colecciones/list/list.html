@@ -54,6 +54,17 @@ List&lt;Integer&gt; copia = arrays.copyOf(enteros);
 </code></pre>
 </div>
 
+<p>Desde un Set o Conjunto</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public void givenUsingCoreJava_whenListConvertedToSet_thenCorrect(){
+    List&lt;Integer&gt; sourceList = Arrays.asList(0, 1, 2, 3, 4, 5);
+    Set&lt;Integer&gt; targetSet = new HashSet&lt;&gt;(sourceList);
+}
+</code></pre>
+</div>
+
 <h2>Recorrido de una lista</h2>
 
 <p>Se puede recorrer con un bucle for estándar:</p>
