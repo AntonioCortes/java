@@ -1,1 +1,163 @@
-<h1 class="title">Clase Anidada</h1>
+<h1 class="title">Clases Anidadas</h1>
+
+</div><div class="center-horizontal">
+    <img src=".\components\java\poo\clase-anidada\assets\nested_classes_tree.png">
+</div>
+
+<p>
+    Java permite definir una clase dentro de otra. Esta tipo de clases se denominan anidadas (Nested Classes).
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class OuterClass {
+    //...
+    class NestedClass {
+        //...
+    }
+}
+</code></pre>	
+</div>
+
+<p>
+    Las clases anidadas están divididas en dos categorías:
+</p>
+<ul>
+    <li><b>No estáticas(Inner Classes)</b></li>
+    <li><b>Estáticas(static nested classes)</b></li>
+</ul>
+
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class OuterClass {
+    //...
+    class InnerClass {
+        //...
+    }
+    static class StaticNestedClass {
+        //...
+    }
+}
+</code></pre>	
+</div>
+
+
+A nested class is a member of its enclosing class. 
+Non-static nested classes (inner classes) have access to other members of the enclosing class,
+ even if they are declared private. Static nested classes do not have access to other
+  members of the enclosing class. As a member of the OuterClass, a nested class can be declared private,
+   public, protected, or package private. (Recall that outer classes can only be declared public or package private.)
+<p>
+Las clases internas(inner classes) tienen acceso a la clase que las contiene mientras que las estáticas no.
+</p>
+
+
+<h2>Clases Internas(Inner Classes)</h2>
+
+
+<p>Se definen como un miembro más de otra clase:</p>
+<p>Para instanciar una clase interna se necesita un objeto de la externa:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+Externa ext =new Externa.Interna();
+Externa.Interna inter=ext.new Interna();
+</code></pre>	
+</div>
+<p>Una clase interna puede definirse con cualquier modificador de acceso, incluso private</p>
+
+<h2>Clases Estáticas(static nested classes)</h2>
+
+<p>Se definen como un miembro estático de la clase externa:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Externa{
+    static class Interna{
+        // metodos y atributos
+    }
+}
+</code></pre>	
+</div>
+<p>Para instanciar una clase interna estática no se necesita un objeto de la externa:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+Externa.Interna inter = new Externa.Interna();
+//...
+</code></pre>	
+</div>
+<p>La clase estática interna, solo puede acceder a otros miembros estáticos de la clase Externa</p>
+
+<h2>Clases locales a métodos</h2>
+
+<p>Se definen dentro de un método de la clase externa:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Externa{
+    void metodo(){
+        class Local{
+            //...
+        }
+    }
+}
+</code></pre>	
+</div>
+<p>Únicamente pueden ser instanciadas desde el interior del método al que pertenecen, y no tienen acceso a otras variables locales del método, salvo que sean finales.</p>
+
+<h2>Clases Anónimas</h2>
+
+<p>Son clases que no tienen nombre. Heredan una clase existente o implementan una interfaz</p>
+<p>Se definen al vuelo, en la misma instrucción de instanciación:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Runnable rb = new Runnable(){
+    public void run(){
+        //código del método
+    }
+}
+//Ejemplo de clase anónima que implementa la
+//interfaz Runnable
+</code></pre>	
+</div>
+
+<h2>Revisión de conceptos</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Externa{
+    private static int k;
+    private static class Interna{
+        public void imprimir(){
+            System.out.println(k);
+        }
+    }
+}
+
+
+Externa.Interna inter = new Externa.Interna();
+inter.imprimir();
+</code></pre>	
+</div>
+
+<p><b>RESPUESTA:</b> Se produce un error de compilación al intentar crear una instancia de la clase interna, ya que es privada a su clase y no visible desde fuera. Si se hubiera declarado como pública, se mostraría 0.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class InternaMetodo{
+    int a=3;
+    void metodo(){
+        var c=10;
+        c++;
+        class Local{
+            private void met(){
+                a++; //1
+                System.out.println(c);//2
+            }
+        }
+        Local l = new Local(); //3
+    }
+}
+</code></pre>	
+</div>
+
+<p><b>RESPUESTA:</b>La única que no compila es la 2. Dado que solo es posible acceder a la variable local si es final o efectivamente final, al haber realizado una operación de incremento con la misma se considera variable y no constante</p>
