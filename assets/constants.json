@@ -142,13 +142,13 @@
                     "css" : "metodos-streams.css"
                 }
             },
-            "programacionParalela" : {
+            "concurrencia" : {
                 "introduccion" : {
-                    "basePath" : "components/java/programacion-paralela/introduccion",
+                    "basePath" : "components/java/concurrencia/introduccion",
                     "html" : "introduccion.html"
                 },
                 "concurrencia" : {
-                    "basePath" : "components/java/programacion-paralela/concurrencia",
+                    "basePath" : "components/java/concurrencia/concurrencia",
                     "html" : "concurrencia.html"
                 }
             },

@@ -162,16 +162,16 @@
                     ]
                 },
                 {
-                    "text" : "Programación paralela",
-                    "contentId":"programacionParalela",
+                    "text" : "Concurrencia",
+                    "contentId":"concurrencia",
                     "content" : [
                         {
                             "text" : "Introduccion",
-                            "content" : "java.paths.programacionParalela.introduccion"
+                            "content" : "java.paths.concurrencia.introduccion"
                         },
                         {
                              "text" : "Concurrencia",
-                            "content" : "java.paths.programacionParalela.concurrencia"
+                            "content" : "java.paths.concurrencia.concurrencia"
                         }
                     ]
                 },
