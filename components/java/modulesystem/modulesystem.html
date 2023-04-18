@@ -1,1 +1,181 @@
 <h1 class="title">Modularización</h1>
+
+<h2>Cheetsheet</h2>
+
+<!-- ================ -->
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>KeyWords</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>KeyWord</th>
+            <th>Definition</th>
+        </tr>
+        <tr>
+            <td><b>exports… to</b></td>
+            <td>Expone un paquete, opcionalmente a un módulo concreto</td>
+        </tr>
+        <tr>
+            <td><b>import</b></td>
+            <td>El típico import de Java. Lo normal es usar nombres completos de paquetes en vez de imports, pero si repites mucho un tipo, puede ser de utilidad.</td>
+        </tr>
+        <tr>
+            <td><b>module</b></td>
+            <td>Comienza la definición de un módulo.</td>
+        </tr>
+        <tr>
+            <td><b>open</b></td>
+            <td>Permite la reflexión en un módulo.</td>
+        </tr>
+        <tr>
+            <td><b>opens</b></td>
+            <td>Permite la reflexión en un paquete concreto, para alguno o todos los paquetes.</td>
+        </tr>
+        <tr>
+            <td><b>provides…with</b></td>
+            <td>Indica un servicio y su implementación.</td>
+        </tr>
+        <tr>
+            <td><b>requires, static, transitive</b></td>
+            <td><b>requires</b> indica la dependencia con un módulo. Añade
+                <b>static</b> para que sea requerido durante compilación y opcional durante la ejecución. Añade
+                <b>transitive</b> para indicar dependencia con las dependencias del módulo requerido.</td>
+        </tr>
+        <tr>
+            <td><b>uses</b></td>
+            <td>Para definir el módulo que consume o usa el provider o implementación del servicio, <b>NOTA:</b> ver apartado servicios</td>
+        </tr>
+    </tbody>
+</table>
+<!-- ================ -->
+
+<h2>¿Qué es un módulo?</h2>
+<ul>
+    <li>Agrupa un conjunto de paquetes e incluye información de dependencia de los mismos</li>
+    <li>Nivel de división superior al de paquete</li>
+</ul>
+
+<p><b>NOTA:</b> El propio JDK está organizado de forma modular</p>
+
+<h2>Descriptor de módulo</h2>
+
+<ul>
+    <li>Se trata del archivo <b>module-info.java</b></li>
+    <li>Debe estar en el directorio raíz del módulo</li>
+    <li>Indica los módulos requeridos por nuestro módulo y los paquetes a exportar para otros módulos</li>
+</ul>
+
+<h2>Ventajas</h2>
+
+<ul>
+    <li>Mejor control de acceso. Permite que sólo ciertos paquetes sean utilizados por otras aplicaciones.</li>
+    <li>Claridad en las dependencias. A través de module info , se especifica claramente las dependencias entre módulos, que son evaluadas al compilar y al lanzar la aplicación.</li>
+    <li>Paquetes de distribución más pequeños. Facilita la distribución de aplicaciones y mejora el rendimiento.</li>
+    <li>Existencia de paquetes únicos. No puede haber dos módulos que expongan el mismo paquete.</li>
+</ul>
+
+<h2>Exportación específica</h2>
+
+<ul>
+    <li>Se puede indicar que un determinado paquete de un módulo sea accesible únicamente por cierto módulo.</li>
+    <li>Se emplea la palabra reservada to:</li>
+</ul>
+<div class="center-horizontal">
+<pre><code class="language-java">
+module modulo1{
+    exports com.paquete1 to moduloX , modK
+}
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> El paquete com.paquete1 sólo es accesible para moduloX y modK</p>
+
+<h2>Dependencias transitivas</h2>
+
+<p>Evita redundancias a la hora de requerir dos módulos en los que, a su vez, uno requiere al otro:</p>
+<p>A &#8834; C, B &#8834; C</p>
+<p>Con dependencia transitiva:</p>
+<p>A &#8834; B, B &#8834; C ==> A &#8834; C</p>
+</div><div class="center-horizontal">
+    <img src=".\components\java\modulesystem\assets\capt_1.png">
+</div>
+
+<h2>Servicios</h2>
+
+<p><b>Servicio:</b> Interfaz definida en un módulo:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+module service {
+    exports com.Interfaz1;
+}
+</code></pre>	
+</div>
+
+<p><b>Proveedor de servicio:</b> Módulo que implementa la interfaz:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+module proveedor{
+    provides com.Interfaz1 with com.Clase1;
+}
+</code></pre>	
+</div>
+
+<p><b>Consumidor:</b> Módulo que utiliza el servicio:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+module consumidor{
+    uses com.Interfaz1;
+}
+</code></pre>	
+</div>
+
+<h2>Acceso por reflexión</h2>
+
+<p>Es posible especificar que los paquetes especificados del módulo son accesibles vía reflexión a otros módulos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+module moduloX {
+    opens com.paquete;
+}
+</code></pre>	
+</div>
+
+<p>Incluso, que lo sean solo a ciertos módulos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+module moduloX {
+    opens com.paquete to modA, modB;
+}
+</code></pre>	
+</div>
+
+<h2>Módulos anónimos</h2>
+
+<p>Conjunto de paquetes de clases de una aplicación que no forman parte de un módulo. Habitualmente, se distribuyen en un .jar</p>
+<p>Desde estas clases, se puede acceder a cualquier paquete de clases que se encuentre en el classpath. En el caso de paquetes modularizados , a exportados y no exportados</p>
+<p>Solo pueden acceder a las clases de un módulo anónimo las clases de otros módulos anónimos (o automáticos)</p>
+
+</div><div class="center-horizontal">
+    <img src=".\components\java\modulesystem\assets\mod_anon.png">
+</div>
+
+<h2>Módulos automáticos</h2>
+
+<p>Cuando un módulo anónimo se incluye en el module path de una aplicación, se convierte en un módulo automático</p>
+<p>Desde estas clases, se puede acceder a cualquier paquete de clases, tanto de módulos anónimos/automáticos como de estándares.</p>
+<p>Exportan implícitamente todas sus clases, que podrán ser utilizadas por otros módulos que lo requieran</p>
+
+</div><div class="center-horizontal">
+    <img src=".\components\java\modulesystem\assets\mod_auto.png">
+</div>
+
+<p>Ejemplo:</p>
+
+</div><div class="center-horizontal">
+    <img src=".\components\java\modulesystem\assets\capt_5.png">
+</div>
