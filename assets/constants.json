@@ -154,7 +154,8 @@
             },
             "modulesystem" : {
                 "basePath" : "components/java/modulesystem",
-                "html" : "modulesystem.html"
+                "html" : "modulesystem.html",
+                "css" : "modulesystem.css"
             },
             "anotaciones" : {
                 "basePath" : "components/java/otros/anotaciones",

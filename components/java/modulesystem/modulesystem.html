@@ -1,5 +1,7 @@
 <h1 class="title">Modularización</h1>
 
+TODO: modulesystem java commands!
+
 <h2>Cheetsheet</h2>
 
 <!-- ================ -->
@@ -99,10 +101,18 @@ module modulo1{
 <p>A &#8834; C, B &#8834; C</p>
 <p>Con dependencia transitiva:</p>
 <p>A &#8834; B, B &#8834; C ==> A &#8834; C</p>
-</div><div class="center-horizontal">
-    <img src=".\components\java\modulesystem\assets\capt_1.png">
+<div class="transitive-example">
+    <div class="center-horizontal">
+        <img src=".\components\java\modulesystem\assets\capt_2.png">
+        
+        <img src=".\components\java\modulesystem\assets\capt_1.png">
+        
+        <img src=".\components\java\modulesystem\assets\capt_4.png">
+    </div>
+    <div class="center-horizontal">
+        <img src=".\components\java\modulesystem\assets\capt_3.png">
+    </div>
 </div>
-
 <h2>Servicios</h2>
 
 <p><b>Servicio:</b> Interfaz definida en un módulo:</p>
@@ -160,7 +170,7 @@ module moduloX {
 <p>Desde estas clases, se puede acceder a cualquier paquete de clases que se encuentre en el classpath. En el caso de paquetes modularizados , a exportados y no exportados</p>
 <p>Solo pueden acceder a las clases de un módulo anónimo las clases de otros módulos anónimos (o automáticos)</p>
 
-</div><div class="center-horizontal">
+<div class="center-horizontal">
     <img src=".\components\java\modulesystem\assets\mod_anon.png">
 </div>
 
@@ -170,12 +180,12 @@ module moduloX {
 <p>Desde estas clases, se puede acceder a cualquier paquete de clases, tanto de módulos anónimos/automáticos como de estándares.</p>
 <p>Exportan implícitamente todas sus clases, que podrán ser utilizadas por otros módulos que lo requieran</p>
 
-</div><div class="center-horizontal">
+<div class="center-horizontal">
     <img src=".\components\java\modulesystem\assets\mod_auto.png">
 </div>
 
 <p>Ejemplo:</p>
 
-</div><div class="center-horizontal">
+<div class="center-horizontal">
     <img src=".\components\java\modulesystem\assets\capt_5.png">
 </div>
