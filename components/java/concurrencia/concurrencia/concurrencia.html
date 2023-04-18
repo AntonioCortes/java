@@ -45,6 +45,37 @@ ex.submit(()-&gt;System.out.print("by"));
 </code></pre>
 </div>
 
+<p>Ejemplo de un pool de tres hilos:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+ScheduledExecutorService ses = Executors.newScheduledThreadPool(3);
+Runnable task1 = () -&gt; {
+    count++;
+    System.out.println("Running...task2 - count : " + count);
+};
+// init Delay = 5, repeat the task every 1 second
+ScheduledFuture&lt;?&gt; scheduledFuture = ses.scheduleWithFixedDelay(task1, 2, 2, TimeUnit.SECONDS);
+
+while (true) {
+    System.out.println("count :" + count);
+    try {
+        System.out.println(" Antes de dormir " + LocalDateTime.now());
+        Thread.sleep(1000);
+    } catch (InterruptedException ex) {
+        Logger.getLogger(AtFixedVSWithFixedExample.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    if (count == 5) {
+        System.out.println("Count is " + count + ", cancel the scheduledFuture!");
+        scheduledFuture.cancel(true);
+        ses.shutdown();
+        Main.Log("withFixedDelay termina");
+        break;
+    }
+
+}
+</code></pre>
+</div>
+
 <h2>Interfaz Callable</h2>
 <p>Al igual que Runnable, implementa una tarea que va a ser ejecutada concurrentemente con otras.</p>
 <p>Su único método, <b>call()</b>, devuelve un resultado.</p>
