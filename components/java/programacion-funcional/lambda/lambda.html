@@ -37,9 +37,33 @@ myPersonalFunctionalInterface l = (String p)->(p+" ");
 <pre><code class="language-java">
 (var a)-&gt;System.out.println(a)
     
-(var a, int c)-&gt;m(a) //ERROR DE COMPILACION
+(var a, int c)-&gt;a+c //ERROR DE COMPILACION
     
-(@NotNull var c)-&gt;m(a) //OK
-(@NotNull c)-&gt;m(a) //ERROR DE COMPILACION
+(@NotNull var c)-&gt;... //OK
+(@NotNull c)-&gt;... //ERROR DE COMPILACION
+</code></pre>
+</div>
+
+<h2>Comparator con lambdas</h2>
+
+<p>Interfaz utilizada para la ordenación de colecciones y arrays</p>
+<p>Al ser funcional, se puede implementar con lambdas:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+List&lt;String&gt; textos=new ArrayList&lt;&gt;();
+textos.add("mi texto"); textos.add("hello");textos.add("es el más largo");
+//ordenación de la lista de textos por longitud
+textos.sort((a,b)-&gt;a.length()-b.length());
+//recorrido y presentación de datos
+for(String s:textos){
+    System.out.println(s);
+}
+
+/*OUTPUT:
+*hello
+*mi texto
+*es el mas largo
+*/
 </code></pre>
 </div>
