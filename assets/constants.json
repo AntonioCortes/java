@@ -121,6 +121,10 @@
                 "jdbc" : {
                     "basePath" : "components/java/io/jdbc",
                     "html" : "jdbc.html"
+                },
+                "serializable" : {
+                    "basePath" : "components/java/io/serializable",
+                    "html" : "serializable.html"
                 }
             },
             "programacionFuncional" : {

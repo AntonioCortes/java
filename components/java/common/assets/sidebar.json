@@ -134,6 +134,10 @@
                             "content" : "java.paths.io.io"
                         },
                         {
+                            "text" : "Serialización",
+                           "content" : "java.paths.io.serializable"
+                        },
+                        {
                              "text" : "JDBC",
                             "content" : "java.paths.io.jdbc"
                         }
