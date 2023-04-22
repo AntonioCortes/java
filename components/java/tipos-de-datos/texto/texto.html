@@ -40,9 +40,6 @@ char caracter_3 = 'u\1001';
 
 <h2>String</h2>
 
-TODO: cuando comparas dos string se compara los hascode: str1 == str2
-TODO: no se esta comparando el valor
-
 <p>Un objeto de la clase String es una cadena de caracteres inmutable, no se pueden modificar.</p>
 <p>Los métodos que operan con String devuelven una copia de la cadena modificada</p>
 <div class="center-horizontal">
@@ -142,34 +139,35 @@ String n1 = "mi cadena";
             <td>boolean</td>
             <td>Devuelve true si es una cadena vacía.</td>
         </tr>
-        TODO:
         <tr>
             <td>name.contains([String que se desea buscar])</td>
-            <td></td>
-            <td></td>
+            <td>boolean</td>
+            <td>Comprueba si existe la cadena que se pasa por argumento dentro del String</td>
         </tr>
         <tr>
             <td>name.isBlank()</td>
-            <td></td>
-            <td></td>
+            <td>boolean</td>
+            <td>Comprueba si el String está vacio o contiene huecos en blanco</td>
         </tr>
         <tr>
             <td>name.repeat([int numero de veces a repetir])</td>
-            <td></td>
-            <td></td>
+            <td>String</td>
+            <td>devuelve el String original concatenado a si mismo el número de veces que se le pasa por argumento</td>
         </tr>
         <tr>
             <td>name.strip()</td>
-            <td></td>
-            <td></td>
+            <td>String</td>
+            <td>Devuelve la cadena quitando todos los espacios en blanco que contenga.</td>
         </tr>
         <tr>
             <td>name.toCharArray()</td>
-            <td></td>
-            <td></td>
+            <td>char[]</td>
+            <td>Devuelve un array con cada uno de los caracteres de la cadena.</td>
         </tr>
     </tbody>
 </table>
+
+<p><b>NOTA:</b> Cuando comparas dos string se compara los hascode: str1 == str2, no se esta comparando el valor. Para comparar el valor se utiliza el método <b>equals()</b>.</p>
 
 <h2>String Builder</h2>
 
