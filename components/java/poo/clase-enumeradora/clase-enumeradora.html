@@ -1,1 +1,121 @@
 <h1 class="title">Clase Enumeradora</h1>
+
+<p>Una enumeración define un tipo de dato que puede tomar una lista de valores posibles.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+modificador enum NombreEnumeracion{
+    valor1, valor2, valor3;
+}
+</code></pre>	
+</div>
+
+<p>Una variable de un tipo enumerado sólo puede tomar los valores definidos en dicho tipo.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public enum Dias{
+    LUNES, MARTES, MIERCOLES, JUEVES;
+}
+
+//Ejemplo de uso de la clase Dias
+Dias obj;
+obj = Dias.LUNES;
+</code></pre>	
+</div>
+
+<h2>Uso en instrucciones de control</h2>
+
+<p>La variables de tipo enumerado se pueden utilizar con el operador == para comprobar la igualdad:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+if(obj Dias.MARTES){
+    //...
+}
+</code></pre>	
+</div>
+
+<p>También puede utilizar un tipo enumerado en un switch:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+switch(obj){
+    case LUNES:
+        //...
+    case MARTES:
+        //...
+}
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> Como valores de los case se emplean directamente las constantes de la enumeración.</p>
+
+<h2>Constructor</h2>
+
+<p>A cada valor de la enumeración se le asignan los posibles valores de los parámetros del constructor:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+enum Dias{
+    LUNES(20), MARTES(8), MIERCOLES(12), JUEVES(1);
+    int data;
+    Dias(int n){
+        data=n;
+    }
+}
+</code></pre>	
+</div>
+
+<p>Cada objeto enumerado tendrá asociado su correspondiente valor:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Dias d = Dias.MIERCOLES;
+System.out.println(d.data);//12
+</code></pre>	
+</div>
+
+<h2>Métodos de una enumeración</h2>
+
+<p>Toda enumeración es una subclase de <b>java.lang.Enum</b>, que proporciona los siguientes métodos:</p>
+
+<ul>
+    <li><b>values()</b>. Método estático que devuelve un array con todos los valores de la enumeración</li>
+    <li><b>name()</b>. Cadena de caracteres con el nombre del valor</li>
+    <li><b>ordinal()</b>. Posición del valor dentro de la enumeración, siendo 0 la posición del primero</li>
+    <li><b>toString()</b>. Devuelve el mismo resultado que name</li>
+</ul>
+
+<h2>Revisión de conceptos:</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+enum Estados{
+    ON(2), OFF(1), UNKNOWN(4);
+}
+for(var e:Estados.values()) {
+    System.out.println("Val: " + e + "Ordinal:" + " e.ordinal());
+}
+</code></pre>	
+</div>
+
+<p><b>RESPUESTA:</b> Se produce un error de compilación en la enumeración, ya que si se le asignan valores a cada uno de sus elementos es obligatorio definir un constructor que reciba como parámetro estos valores</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+enum Estados{
+    ON(2), OFF(1), UNKNOWN(4);
+    int s;
+    Estados(int k){s=k;}
+}
+for(var e:Estados.values()) {
+    System.out.println("Val:" + e.s +"Ordinal:" + " e.ordinal());
+}
+</code></pre>	
+</div>
+
+<p><b>RESPUESTA:</b>
+Val: 2 Ordinal:0
+Val: 1 Ordinal:1
+Val: 4 Ordinal:2</p>
