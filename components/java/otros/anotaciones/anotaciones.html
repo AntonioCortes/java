@@ -1,2 +1,195 @@
 <h1 class="title">Anotaciones</h1>
-TODO: marker annotations poner una tabla con algunas!! @Override @Inherikljasd @Serializable, @Documented etc
+
+<p>Permiten suministrar información al entorno de ejecución(metadatos) desde el propio código.</p>
+<p>Su sintaxis es:</p>
+<p class="center-horizontal"><b>@NombreAnotacion(atributo1="valor", atributo2="valor")</b></p>
+<p>Se pueden indicar delante de clases, métodos o atributos. Siempre deben ir delante del nombre del tipo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Anotacion var data; //correcto
+@Anotacion public void metodo(){} //correcto
+String Anotacion car; //incorrecto
+var n=@Anotacion "texto"; //incorrecto
+</code></pre>	
+</div>
+
+<h2>Anotaciones personalizadas</h2>
+
+<p>Podemos crear nuestras propias anotaciones personalizadas definiéndolas como una interfaz especial: <b>@interface</b></p>
+<p>La interfaz anterior debe estar anotada a su vez con dos anotaciones especiales, conocidas como metaanotaciones: <b>@Target</b> y <b>Retention</b>.</p>
+<p>En cuanto al interior de la interfaz, ésta está formada por una serie de métodos que determinan los atributos expuestos por la anotación</p>
+
+<h2>Metaanotaciones</h2>
+
+<p>Target. Indica a qué tipo de elemento se aplicará la anotación:</p>
+<ul>
+    <li>ElementType.<b>TYPE</b>. Se aplica a un tipo (clase, interface, enumeración).</li>
+    <li>ElementType.<b>FIELD</b>. Se aplica a un miembro de la clase.</li>
+    <li>ElementType.<b>METHOD</b>. Se aplica a un a un método</li>
+    <li>ElementType.<b>PARAMETER</b>. Se aplica a parámetros de un método.</li>
+    <li>ElementType.<b>CONSTRUCTOR</b>. Se aplica a constructores</li>
+    <li>ElementType.<b>LOCAL_VARIABLE</b>. Se aplica a variables locales</li>
+    <li>ElementType.<b>ANNOTATION_TYPE</b>. Indica que el tipo declarado en sí es un tipo de anotación.</li>
+</ul>
+<p>Retention. Indica el nivel de retención de la anotación, es decir, su ámbito de acceso:</p>
+<ul>    
+    <li>RetentionPolicy.<b>SOURCE</b>. Retenida sólo a nivel de código, por lo que es ignorada por el compilador.</li>
+    <li>RetentionPolicy.<b>CLASS</b>. Retenida en tiempo de compilación, pero ignorada en tiempo de ejecución.</li>
+    <li>RetentionPolicy.<b>RUNTIME</b>. Retenida en tiempo de ejecución y sólo se puede acceder a ella en este tiempo</li>
+</ul>
+
+<p>Anotación que, a través de su atributo "level", define el nivel de detalle de un método encargado de un registro de sucesos:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Retention(RUNTIME)
+@Target(METHOD)
+public @interface Log{
+    Valores level() default Valores.UNO;
+}
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> Si indica valores por defecto, el atributo es opcional</p>
+
+<p>Los valores de un atributo de anotación solo pueden ser primitivos, envoltorio, String o enumeraciones. También array de éstos.</p>
+
+<h2>Manejo de la anotación</h2>
+
+<p>Utiliza la anotación:</p>
+<!-- =============== -->
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class UsoAnotacion{
+    @Log(level = Valores.DOS)
+    public void prueba( String mensaje) {
+        System.out.println(mensaje);
+    }
+}
+</code></pre>	
+</div>
+<!-- =============== -->
+
+<p>Lanza la aplicación:</p>
+
+<!-- =============== -->
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Inicio {
+    public static void main(String[] args){
+        UsoAnotacion miobjeto = new UsoAnotacion();
+        Interprete interprete = new Interprete();
+        interprete.process(miobjeto);
+    }
+}
+</code></pre>	
+</div>
+<!-- =============== -->
+
+<p>Interpreta la anotación:</p>
+
+<!-- =============== -->
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Interprete {
+    public void process(UsoAnotacion prueba) {
+        try {
+            Method[] methods = prueba.getClass().getMethods();
+            for(Method method : methods){
+                procesarMetodo(method, prueba);
+            }
+        } catch (final Exception e) {
+            System.err.println("Hubo un error:" + e.getMessage());
+        }
+    }
+    
+    private void procesarMetodo(Method method , UsoAnotacion prueba) throws 
+    IllegalAccessException , IllegalArgumentException , InvocationTargetException{
+        Log log = method.getAnnotation(Log.class);
+        //si el método incluye la anotación Log, comprueba el atributo level
+        //y llama al método con el texto que corresponda a ese nivel
+        if(log != null){
+            final Valores level = log.level();
+            switch(level){
+            case UNO:
+                method.invoke(prueba, "mensaje simple");
+                break;
+            case DOS:
+                method.invoke(prueba, "mensaje detallado");
+                break;
+            case TRES:
+                method.invoke(prueba, "mensaje simple a las "+LocalDate.now());
+                break;  
+            }
+        }
+    }
+}
+</code></pre>	
+</div>
+<!-- =============== -->
+
+<h2>Metaanotación @Repetable</h2>
+
+<p>Permite que una anotación pueda aplicarse más de una vez sobre el elemento</p>
+<p>Además de la anotación principal, se debe crear otra que incluya un array de objetos anotación:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Repeatable(Autores.class)
+public @interface Autor{
+    int id() default 0;
+    String value();
+}
+
+public @interface Autores{
+    Autor[] value();
+}
+</code></pre>	
+</div>
+
+<p>Para utilizarla:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Autor(...)
+@Autor(...)
+class MiClase{
+    //...
+}
+
+@Autores({@Autor(...), @Autor(...)})
+class MiClase{
+}
+</code></pre>	
+</div>
+
+<h2>Anotación @SuppressWarnings</h2>
+
+<p>Anotación especial para eliminar avisos en código fuente.</p>
+
+<p>Entre los posibles valores de value:</p>
+<ul>
+    <li><b>unchecked</b>. Se suprimen avisos de código inseguro</li>
+    <li><b>deprecation</b>. Se suprimen avisos de código deprecado</li>
+    <li><b>unused</b>. Se suprimen avisos de elementos no utilizados</li>
+</ul>
+
+<h2>Otras anotaciones especiales</h2>
+
+<p><b>@Override</b>. Se utiliza delante de un método de instancia para indicar que dicho método está siendo sobreescrito. Es utilizada por el compilador</p>
+<p><b>@Deprecated</b>. Se utiliza para indicar que una clase, atributo o método está deprecated y no se recomienda su uso. Es utilizada en tiempo de ejecución</p>
+<p><b>@SafeVarargs</b>. Utilizada sobre métodos y constructores para afirmar que el parámetro varargs no realiza operaciones potencialmente inseguras</p>
+
+<h2>Marker Annotation</h2>
+
+<p>Son anotaciones cuyo proposito son solo el de marcar un elemento. No contienen ni miembros ni datos.</p>
+
+<ul>
+    <li><b>@Deprecated</b> Indica que el elemento anotado está obsoleto y no debería utilizarse en nuevas aplicaciones.</li>
+    <li><b>@Override</b> Indica que el método anotado sobrescribe un método en la clase padre.</li>
+    <li><b>@SuppressWarnings</b> Indica al compilador que ignore uno o más tipos específicos de advertencias durante la compilación.</li>
+    <li><b>@FunctionalInterface</b> Indica que una interfaz es una interfaz funcional, es decir, una interfaz con un solo método abstracto.</li>
+    <li><b>@SafeVarargs</b> Indica que un método o constructor no realiza ninguna operación potencialmente insegura en argumentos variables.</li>
+    <li><b>@NonNull</b> Indica que un parámetro, variable o valor de retorno no puede ser nulo.</li>
+    <li><b>@Nullable</b> Indica que un parámetro, variable o valor de retorno puede ser nulo.</li>
+</ul>
