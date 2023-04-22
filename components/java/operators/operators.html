@@ -1,9 +1,6 @@
 <h1 class="title">Operadores</h1>
 
 <h2>Operadores</h2>
-TODO: en el examen de certificación no se pondran preguntas con operadores de bits:
-~, &lt;&lt;, etc
-TODO: poner los operadores a nivel de bits
 <!-- ================= -->
 <table class="table table-striped table-hover">
     <thead>
@@ -164,4 +161,51 @@ int d = ++c;
 //c = 1
 //d = 1
 </code></pre>	
+</div>
+
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Operadores a nivel de bits</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Simbolo</th>
+            <th>Funcionalidad</th>
+            <th>Ejemplo</th>
+        </tr>
+        <tr>
+            <td>~</td>
+            <td>Realiza el opuesto</td>
+            <td>{int n=~6} =&gt; {n=-7}</td>
+        </tr>
+        <tr>
+            <td>&gt;&gt;</td>
+            <td>Desplaza los bits a la derecha la cantidad indicada</td>
+            <td>{short n=8&gt;&gt;1} =&gt; {n=4}</td>
+        </tr>
+        <tr>
+            <td>&lt;&lt;</td>
+            <td>Desplaza los bits a la izquierda la cantidad indicada</td>
+            <td>{short n=8&lt;&lt;1} =&gt; {n=16}</td>
+        </tr>
+        <tr>
+            <td>&gt;&gt;</td>
+            <td>Desplaza los bits a la izquierda la cantidad indicada</td>
+            <td>{char let='ñ'&gt;&gt;&gt;2} =&gt; {let=&lt;}</td>
+        </tr>
+        <tr>
+            <td>|(OR), &(AND), ^(XOR)</td>
+            <td>Realiza la operacion lógica</td>
+            <td>{int n=10 & 5} =&gt; {n=0}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Precedencia de operadores</h2>
+
+</div><div class="center-horizontal">
+    <img src=".\components\java\operators\assets\piramid.png">
 </div>

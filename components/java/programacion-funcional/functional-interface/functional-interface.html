@@ -1,10 +1,5 @@
 <h1 class="title">Interfaces funcionales</h1>
 
-TODO: clases annónimas!
-TODO: doublePredicate etc!!!!
-
-DUDA: PORQUE ES INTERFAZ DOUBLE PREDICATE
-<!-- (double d) -> d == 0 || d < 100 -->
 
 <p>Para que una interfaz sea funcional ha de tener UN único método abstracto. La implementación de este método da lugar a la expresion lambda</p>
 <p>Se le indica que es una interfaz funcional mediante la anotación <b>@FunctionalInterface</b></p>
@@ -63,6 +58,8 @@ lista.removeIf(n-&gt;n%2==0);
 </div>
 
 <p>El método <b>removeIf</b> de Collections recive como parámetro un objeto que implemente la interfaz <b>Predicate</b></p>
+
+<p><b>NOTA:</b> Para utilizar la interfaz Predicte con tipos primitivos numéricos se utilizan las interfaces <b>DoublePredicate</b>, <b>IntPredicate</b> y <b>LongPredicate</b>.</p>
 
 <h2>Interfaz BiPredicate</h2>
 

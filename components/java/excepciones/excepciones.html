@@ -1,11 +1,10 @@
 <h1 class="title">Excepciones</h1>
 
-TODO: poner gráfico de la jerarquia de excepciones
-TODO: checked and unchecked exceptions
+</div><div class="center-horizontal">
+    <img src=".\components\java\excepciones\assets\throwable_tree.png">
+</div>
 
-
-Las excepciones se capturan en un programa java a través de
-los bloques try catch:
+<p>Las excepciones se capturan en un programa java a través de los bloques try catch:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -21,53 +20,60 @@ catch(TipoExcepcion2 ex){
 </code></pre>
 </div>
 
-No puede haber ninguna instrucción entre los bloques try y
-catch:
+<p>No puede haber ninguna instrucción entre los bloques try y catch:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-try{..}
+try{}
 System.out.println("hello"); //error de compilación
-catch(…){}
+catch(){}
 </code></pre>
 </div>
 
-Si se capturan varios tipos de excepciones que tienen relación
-de herencia entre ellas, los catch de las subclases deben ir
-antes que los de las superclases:
+<p>Si se capturan varios tipos de excepciones que tienen relación de herencia entre ellas, los catch de las subclases deben ir antes que los de las superclases:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-    //COMPILACION CORRECTA
+//COMPILACION CORRECTA
+catch(
+    FileNotFoundException ex){
+    //...
+    }
     catch(
-        FileNotFoundException ex){
-        ..
-        }
-        catch(
-        IOException ex){
-        ..
-        }
+    IOException ex){
+    //...
+    }
 </code></pre>
 </div>
 
 <div class="center-horizontal">
-    <pre><code class="language-java">
-        //ERROR DE COMPILACION
-        catch(
-            RuntimeException ex){
-            ..
-            }
-            catch(
-            ArithmeticException ex){
-            ..
-            }
-    </code></pre>
-    </div>
+<pre><code class="language-java">
+//ERROR DE COMPILACION
+catch(
+    RuntimeException ex){
+    //...
+    }
+    catch(
+    ArithmeticException ex){
+    //...
+    }
+</code></pre>
+</div>
+
+<h2>Checked y Unchecked </h2>
+<ul>
+    <li>Una <b>Checked exception</b> se detecta en tiempo de compilación, mientras que una <b>Unchecked</b> en tiempo de ejecución.</li>
+    <li>Una <b>Checked exception</b> debe manejarse propagando la excepción o con un bloque try catch. El compilador obliga a manejarlas.</li>
+    <li>Una <b>Unchecked exception</b> o excepción en tiempo de ejecución(runtime exception) deja al programa irrecuperable. La mas conocida es NullPointerException.</li>
+</ul>
+
+<p><b>Checked exception:</b> ClassNotFoundException, InterruptedException, IOException, InstantionException, SQLException, FileNotFoundException.</p>
+<p><b>Unchecked exception:</b>ArithmeticException, ClassCastException, NullPointerException, ArrayIndexOutOfBoundsException, ArrayStoreException, IllegalThreadStateException.</p>
+
 
 <h2>Multicatch</h2>
 
-Si los catch de varias excepciones van a realizar la misma
-tarea, podemos agruparlos en un multicatch
+<p>Si los catch de varias excepciones van a realizar la misma tarea, podemos agruparlos en un multicatch</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -85,25 +91,17 @@ System.out.println("exception")
 </code></pre>
 </div>
 
-
-Las excepciones del multicatch no pueden tener relación de
-herencia, se produciría un error de compilación
+<p>Las excepciones del multicatch no pueden tener relación de herencia, se produciría un error de compilación</p>
 
 <h2>Métodos</h2>
 
-Todas las clases de excepción heredan los siguientes métodos
-de Exception
-
-String getMessage (). Devuelve una cadena de caracteres
-con un mensaje de error asociado a la excepción
-
-void printStackTrace (). Genera un volcado de error que es
-enviado a la consola
+<p>Todas las clases de excepción heredan los siguientes métodos de Exception:</p>
+<p><b>String getMessage()</b>. Devuelve una cadena de caracteres con un mensaje de error asociado a la excepción</p>
+<p><b>void printStackTrace()</b>. Genera un volcado de error que es enviado a la consola</p>
 
 <h2>Finally</h2>
 
-Se ejecuta siempre, tanto si se produce la excepción como si
-no.
+<p>Se ejecuta siempre, tanto si se produce la excepción como si no.</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -119,18 +117,14 @@ finally{
 </code></pre>
 </div>
 
-Si se produce una excepción y no hay ningún catch para
-capturarla, se propagará la excepción al punto de llamada, pero
-antes ejecutará el bloque finally
+<p>Si se produce una excepción y no hay ningún catch para capturarla, se propagará la excepción al punto de llamada, pero antes ejecutará el bloque finally.</p>
 
 
 <h2>Propagación de excepciones</h2>
 
-Si un método que debe capturar una excepción no desea
-hacerlo, puede propagarla al lugar de llamada al método
+<p>Si un método que debe capturar una excepción no desea hacerlo, puede propagarla al lugar de llamada al método</p>
 
-Se debe declarar la excepción en la cabecera del método con
-la instrucción throws:
+<p>Se debe declarar la excepción en la cabecera del método con la instrucción throws:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -164,11 +158,8 @@ metodo() throws IOException {
 
 <h2>Lanzamiento de excepción</h2>
 
-Desde un método de una clase se puede lanzar una excepción
-para que sea capturada desde el punto de llamada al método
-
-Para lanzar una excepción se utiliza la instrucción throw
-objeto_excepcion
+<p>Desde un método de una clase se puede lanzar una excepción para que sea capturada desde el punto de llamada al método</p>
+<p>Para lanzar una excepción se utiliza la instrucción throw objeto_excepcion</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -189,8 +180,7 @@ metodo() throws IOException{
 
 <h2>Excepciones personalizadas</h2>
 
-Se puede crear una excepción personalizada definiendo una
-clase que herede Exception
+<p>Se puede crear una excepción personalizada definiendo una clase que herede Exception</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -201,7 +191,7 @@ class TestException extends Exception{
 class C1{
     //propaga la excepción que lanza
     public
-    void metodo () throws TestException{
+    void metodo() throws TestException{
         //...
         throw new TestException();
     }
@@ -224,17 +214,13 @@ try{
 
 <h2>Cierre de objetos</h2>
 
-Algunos objetos utilizados para acceder a datos ( Connection ,
-PrintStream , BufferedReader , etc.) deben ser cerrados después
-de su uso
-
-Estos objetos exponen el método close () para realizar el cierre
-de los mismos
-
-Para garantizar el cierre, la llamada al método close () se debe
-realizar en el bloque finally
+<ul>
+    <li>Algunos objetos utilizados para acceder a datos( Connection, PrintStream, BufferedReader, etc.) deben ser cerrados después de su uso</li>
+    <li>Estos objetos exponen el método close() para realizar el cierre de los mismos</li>
+    <li>Para garantizar el cierre, la llamada al método close() se debe realizar en el bloque finally</li>
+</ul>
 
-Ejemplo clásico de uso:
+<p>Ejemplo clásico de uso:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -259,26 +245,16 @@ try{
 
 <h2>Interfaz AutoCloseable</h2>
 
-Interfaz del paquete java.lang que incorpora un único método
-llamado close
-
-Implementada desde Java 7 por las clases de objetos que
-gestionan recursos, como las de entrada y salida de java.io, o
-los objetos JDBC de acceso a datos.
-
-Objetivo: Que sea el propio entorno de ejecución el que llame
-automáticamente al método close () de cualquier objeto
-AutoCloseable , ahorrando código al programador
+<ul>
+    <li>Interfaz del paquete java.lang que incorpora un único método llamado close</li>
+    <li>Implementada desde Java 7 por las clases de objetos que gestionan recursos, como las de entrada y salida de java.io, o los objetos JDBC de acceso a datos.</li>
+    <li>Objetivo: Que sea el propio entorno de ejecución el que llame automáticamente al método close () de cualquier objeto AutoCloseable , ahorrando código al programador</li>
+</ul>
 
 <h2>try con recursos</h2>
 
-Variante del try en la que se crean objetos autocerrables al
-principio del mismo.
-
-Al salir del bloque try, tanto de forma natural como por una
-excepción, los objetos son cerrados automáticamente.
-
-TODO: poner codigos de esta seccion y lo que falta!
+<p>Variante del try en la que se crean objetos autocerrables al principio del mismo.</p>
+<p>Al salir del bloque try, tanto de forma natural como por una excepción, los objetos son cerrados automáticamente.</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -306,10 +282,6 @@ try(variable){
 </div>
 
 <h2>Cierre con try con recursos</h2>
-
-
-TODO: el bloque de try puede ir solo 
-TODO: interfaz autocloseable y Closeable
 
 <p>Ejemplo de uso:</p>
 
@@ -343,14 +315,12 @@ try(FileReader fr =new FileReader("datos.txt");
 </div>
 
 <p>Son cerrados en orden inverso a su creación:
-    bf.close
-    fr.close</p>
+    bf.close()
+    fr.close()</p>
 
 <h2>Consideraciones</h2>
 
-La creación del objeto puede realizarse antes del try,
-indicando después la variable entre paréntesis. En este caso, la
-variable se trata como constante efectiva:
+<p>La creación del objeto puede realizarse antes del try, indicando después la variable entre paréntesis. En este caso, la variable se trata como constante efectiva:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -369,8 +339,7 @@ try(con){
 </code></pre>
 </div>
 
-El método close () es llamado nada más abandonar el bloque
-try, antes de entrar en un posible bloque catch o finally
+<p>El método <b>close()</b> es llamado nada más abandonar el bloque try, antes de entrar en un posible bloque catch o finally</p>
 
 
 <p>Revisión de concepto:</p>
@@ -384,7 +353,7 @@ class Recurso implements AutoCloseable{
 </code></pre>
 </div>
 
-<p>Indica que se mostrará al ejecutar el siguiente código</p>
+<p>Indica que se mostrará al ejecutar el siguiente código:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -397,7 +366,4 @@ try(Recurso r=new Recurso()){
 </code></pre>
 </div>
 
-<p>
-<b>RESPUESTA:</b>
-Se imprimirá: cerrar error Nada más salir del try, antes de entrar en el catch, el objeto se cierra y se llama a close
-</p>
+<p><b>RESPUESTA:</b> Se imprimirá: cerrar error Nada más salir del try, antes de entrar en el catch, el objeto se cierra y se llama a close()</p>
