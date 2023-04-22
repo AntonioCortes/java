@@ -1,1 +1,57 @@
 <h1 class="title">Polimorfismo</h1>
+
+<p>Se basa en la asignación de referencias a objetos de subclases en variables de su superclase (abstractas o no)</p>
+<p>Consiste en utilizar una misma instrucción para llamar a diferentes versiones de un mismo método</p>
+<p>Principales ventajas: reutilización de código, flexibilidad, dinamismo.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+abstract class Figura{
+    private String color;
+    public Figura(String color){
+        this.color=color;
+    }
+    public abstract double area();
+}
+
+class Circulo extends Figura{
+    private int radio;
+    
+    public Circulo( String color, int radio){
+        super(color);
+        this.radio = radio;
+    }
+    
+    public double area(){
+        return Math.PI*radio*radio;
+    }
+}
+
+class Triangulo extends Figura{
+    private int base,altura;
+    public Triangulo( String color, int base, int altura){
+        super(color);
+        this.base=base; 
+        this.altura=altura;
+    }
+    public double area(){
+        return base*altura/2;
+    }
+}
+</code></pre>	
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Figura f=new Triangulo(…);
+f.area();//método área de Triangulo
+f=new Circulo(…);
+f.area();//método área de Circulo
+
+/*
+*Misma instrucción,
+*llama a diferentes
+*métodos
+*/
+</code></pre>	
+</div>

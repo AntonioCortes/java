@@ -1,1 +1,54 @@
 <h1 class="title">Clase Abstracta</h1>
+
+
+<p>Es una clase que cuenta, al menos, con un método abstracto, que es aquel que está declarado en la clase pero no implementado.</p>
+<p>Tanto la clase como los métodos abstractos se definen con la palabra abstract</p>
+
+<h2>Características de clases abstractas</h2>
+
+<ul>
+    <li>No es posible crear objetos de una clase abstracta.</li>
+    <li>Además de métodos abstractos, las clases abstractas pueden incluir atributos, constructores y métodos estándares.</li>
+    <li>Una clase que herede una clase abstracta está obligada a sobrescribir los métodos abstractos heredados (o declararse también como abstract).</li>
+    <li>El objetivo de los métodos abstractos es forzar a que todas las subclases tengan el mismo formato de método.</p>
+</ul>
+
+<p>Ejemplo</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+abstract class Figura{
+    private String color;
+    public Figura(String color){
+        this.color=color;
+    }
+    public abstract double area();
+}
+
+class Circulo extends Figura{
+    private int radio;
+    
+    public Circulo( String color, int radio){
+        super(color);
+        this.radio = radio;
+    }
+    
+    public double area(){
+        return Math.PI*radio*radio;
+    }
+}
+
+class Triangulo extends Figura{
+    private int base,altura;
+    public Triangulo( String color, int base, int altura){
+        super(color);
+        this.base=base; 
+        this.altura=altura;
+    }
+    public double area(){
+        return base*altura/2;
+    }
+}
+</code></pre>	
+</div>
+

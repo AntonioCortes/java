@@ -1,7 +1,87 @@
 <h1 class="title">Metodo</h1>
 
-TODO: coincidencia exacta, promoción de tipo, y autoboxing
+<h2>Referencia a métodos</h2>
 
-TODO: referencias a métodos!
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Methods {
+    public static void sayStaticHello() {
+        System.out.println("Hey!!! i'am a static hello!");
+    }
 
-TODO: coincidencia exacta, promoción de tipos y Autoboxing | es el orden de prioridad a la hora de usar sobrecarga de métodos
+    public void sayInstanceHello() {
+        System.out.println("Hey!!! i'am a instance hello");
+    }
+
+    public static void main(String[] args) {
+        //Referencia a un método estatico
+        IHello staticRef = Methods::sayStaticHello;
+        staticRef.sayHello();
+
+        //Referencia a un método de un objeto
+        Methods methods = new Methods();
+        IHello instanceRef = methods::sayInstanceHello;
+        instanceRef.sayHello();
+
+        //Referencia a un método de un objeto arbitrario
+        String[] names = new String[]{"Oscar", "Alex", "Maria", "Samuel", "Perla", "Fausto"};
+        Arrays.sort(names, String::compareToIgnoreCase);
+        System.out.println("Hey!!! i'am a ordered array " + Arrays.toString(names));
+
+        //Referencia a un constructor
+        IHello hello = Hello::new;
+        hello.sayHello();
+    }
+}
+</code></pre>	
+</div>
+
+<h2>Sobrecarga de métodos</h2>
+
+<p>Una clase puede contener varios métodos con el mismo nombre, pero deben diferenciarse en el número y/o tipo de parámetros.</p>
+<p>El tipo de devolución no afecta en la sobrecarga, puede ser el mismo o diferente.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public int sumar(int a, int b){..}
+public int sumar(int a){..}
+public int sumar(long b){..}
+</code></pre>	
+</div>
+
+<p>Cuando hay sobrecarga de métodos la forma de elegir la prioridad entre ellos es la siguiente:</p>
+<ol>
+    <li>Coincidencia exacta</li>
+    <li>Promoción de tipos</li>
+    <li>Autoboxing</li>
+</ol>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//1.
+public int soyUnMetodo(int a){}
+//2.
+public int soyUnMetodo(long b){}
+//3.
+public int soyUnMetodo(Integer a){}
+
+soyUnMetodo(23);
+</code></pre>	
+</div>
+
+
+<h2>Métodos abstractos vs finales</h2>
+
+<p>Lo contrario a un método abstracto es un método final.</p>
+<p>Un método final es aquel que no puede ser sobrescrito. El modificador final se utiliza delante del tipo</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Clase1{
+    public final int calculo(){}
+}
+class Clase2 extends Clase1{
+    public int calculo{} //error de compilación
+}
+</code></pre>	
+</div>
