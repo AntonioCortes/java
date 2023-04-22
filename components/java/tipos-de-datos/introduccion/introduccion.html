@@ -184,3 +184,62 @@ var [] n=new int[4];
     Las instrucciones 1, 2 y 3 son correctas, mientras que 4, 5 y 6 son incorrectas. La instrucción f es incorrecta porque con var no se usan los corchetes en la declaración de arrays. La c no es correcta porque no se puede utilizar en declaraciones múltiples.
 </p>
 
+<h2>Formateo de datos</h2>
+
+
+<p>El paquete java.text incluye las siguientes clases para el formateado de números y fechas según una determinada localización:</p>
+<ul>
+    <li>NumberFormat. Establece un formato para</li>
+<!-- =============== -->
+<div class="center-horizontal">
+<pre><code class="language-java">
+double salario=1256.678;
+NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.GERMANY);
+System.out.println(nf.format(salario)); //1.256,68
+</code></pre>	
+</div>
+<!-- =============== -->
+
+    <li>DateFormat. Permite formatear fechas</li>
+<!-- =============== -->
+<div class="center-horizontal">
+<pre><code class="language-java">
+DateFormat df = DateFormat.getDateInstance(DateFormat.FULL, Locale.US);
+System.out.println(df.format (new Date())); // Tuesday , May 4, 2021
+</code></pre>	
+</div>
+<!-- =============== -->
+    
+    <li>DateTimeFormatter. Formateado de nuevas clases de fecha</li>
+
+<!-- =============== -->
+<div class="center-horizontal">
+<pre><code class="language-java">
+LocalDate ld = LocalDate.now();
+DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+System.out.println(dtf.format(ld)); //07/05/2021
+</code></pre>	
+</div>
+<!-- =============== -->
+
+</ul>
+
+<p>Revisión de conceptos</p>
+
+<!-- =============== -->
+<div class="center-horizontal">
+<pre><code class="language-java">
+DateFormat df = DateFormat.getDateInstance(DateFormat.FULL , new Locale("es"));
+SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+DateFormat df =new DateFormat("dd/MM/yyyy");
+</code></pre>	
+</div>
+<!-- =============== -->
+
+<ul>
+    <li>a. Incorrecta. El formato largo muestra el nombre del mes al completo y el día de la semana.</li>
+    <li>b. Correcta. SimpleDateFormat es una subclase de DateFormat que ofrece un constructor para proporcionar la cadena de formato.</li>
+    <li>c. Correcta. Crea correctamente un DateTimeFormatter que se emplea para el formateado de nuevas fechas.</li>
+    <li>d. Incorrecta. DateFormat es abstracta, no permite crear objetos con constructor público.</li>
+</ul>
