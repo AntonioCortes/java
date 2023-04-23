@@ -1,3 +1,83 @@
 <h1 class="title">Interfaz Serializable</h1>
-TODO: transient!
-<p></p>
+
+
+<ul>
+    <li>Proceso mediante el cual un objeto es transformado en un conjunto de unos y ceros para poder ser almacenado en un fichero o enviado por una red</li>
+    <li>Todo objeto serializado debe ser posteriormente convertido a su estado original en un proceso de deserialización</li>
+    <li>Para que un objeto pueda ser serializado, su clase debe implementar Serializable</li>
+</ul>
+
+<h2>Interfaz Serializable</h2>
+
+<p>Interfaz del paquete java.io</p>
+<p>No contiene ningún método, pero debe ser implementada por una clase para que sus objetos puedan ser serializados:</p>
+
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Persona implements Serializable{
+    //...
+}
+</code></pre>
+</div>
+
+<p>Las clases de envoltorio, String y las clases de colección ya implementan esta interfaz</p>
+
+<h2>Escritura de objeto en un fichero</h2>
+
+<p>Un objeto serializable puede ser almacenado en un fichero utilizando la clase ObjectOutputStream</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Persona implements Serializable{
+    //...
+}
+
+String dir="user/dato.obj";
+try(FileOutputStream fos = new FileOutputStream(dir);
+ObjectOutputStream out = new ObjectOutputStream(fos)){
+    out.writeObject(new Persona(...));
+    //...
+}catch(IOException ex){
+    //...
+}
+</code></pre>
+</div>
+
+<p><b>NOTA:</b> El objeto es serializado durante el proceso de escritura</p>
+
+<h2>Lectura de objeto de un fichero</h2>
+
+<p>Para recuperar un objeto almacenado en un fichero utilizamos readObject() de la clase ObjectInputStream</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+String dir = "/user/dato.obj";
+try(FileInputStream fis = new FileInputStream(dir);
+ObjectInputStream in = new ObjectInputStream(fis)){
+    Persona persona = (Persona)in.readObject();
+    //...
+}catch(IOException ex){
+    //...
+}
+</code></pre>
+</div>
+
+<h2>Atributos transient</h2>
+
+<p>Si a la hora de serializar un objeto queremos que alguno de sus atributos no sea serializado, deberá ser declarado como transient</p>
+<p>Se utiliza con campos sensibles que por seguridad, no queremos serializar:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Perfil implements Serializable{
+    private transient String password;
+    //...
+}
+//Al recuperar un objeto serializado, el valor de
+//este atributo sería null
+</code></pre>
+</div>
+
+<p><b>Pregunta:</b> ¿Cuántos métodos debe proporcionar una clase que no sea abstracta y que implemente la interfaz Serializable?</p>
+<p><b>Respuesta:</b> Ningún método, ya que la interfaz Serializable no define métodos y, por tanto, no obliga a las clases a implementar ninguno.</p>

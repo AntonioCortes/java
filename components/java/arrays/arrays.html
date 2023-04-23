@@ -1,15 +1,6 @@
 <h1 class="title">Arrays</h1>
 
 TODO: arrays bidimensionales y n-dimensionales
-comparator
-TODO: Arrays.binarysearch()!!!! ya esta puesto en colecciones orden pero poner aqui también!
-comparator
-como implementar compare y compareTo
-interfaz comparable metodo compareTo solo recibe un Argumentos
-compare recibe dos Argumentos
-
-
-
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -88,18 +79,18 @@ public static void example(long x, int... y){
         </tr>
         <tr>
             <td>unString.toCharArray()</td>
-            <td></td>
+            <td>char[]</td>
             <td>Devuelve la cadena en un array de caracteres.</td>
         </tr>
         <tr>
             <td>Arrays.binarySearch()</td>
-            <td></td>
-            <td></td>
+            <td>int</td>
+            <td>Devuelve la posición del valor dentro del array, que previamente debe estar ordenado, VER: Colecciones =&gt; Orden</td>
         </tr>
     </tbody>
 </table>
 
-NOTA:
+<p><b>NOTA:</b></p>
 <div class="center-horizontal">
 <pre><code class="language-java">
 list.length  //Aquí es un atributo de un objeto
@@ -111,12 +102,30 @@ list.length()//Aquí se llama a un método que devuelve la longitud
 
 <h2>Métodos Arrays</h2>
 
-Arrays.compare()!!!
+<p>Arrays.<b>compare([array],[array])</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+var a = new int[]{1,2,3,4,5};
+var b = new int[]{1,2,3,4,5,3};
+var c = new int[]{1,2,3,4,5,6};
+
+int x = Arrays.compare(a,c);
+int y = Arrays.compare(b,c);
+
+System.out.println(x + " " + y);
+//OUTPUT: 
+//-1 -1
+</code></pre>
+</div>
 
 <h2>Métodos ArraysList</h2>
 
+
+
+
+
 <h2>Métodos ArrayDeque</h2>
-TODO:
 <table class="table table-striped table-hover">
     <thead>
         <tr>
@@ -130,19 +139,29 @@ TODO:
             <th>Funcionalidad</th>
         </tr>
         <tr>
-            <td>unArrayDeque.remove()</td>
+            <td>unArrayDeque.<b>push([E])</b></td>
+            <td>void</td>
+            <td>Añade el elemento que recibe por argumento en la posición 0 del array y desplaza el resto de elementos.</td>
+        </tr>
+        <tr>
+            <td>unArrayDeque.<b>add([E])</b></td>
+            <td>boolean</td>
+            <td>Añade el elemento que recibe por argumento en la última posición del array, es decir, al final. <b>NOTA:</b> todo lo contrario que el método push()</td>
+        </tr>
+        <tr>
+            <td>unArrayDeque.<b>remove()</b></td>
+            <td>E</td>
+            <td>Elimina el elemento en la posición 0 del array y lo devuelve.</td>
+        </tr>
+        <tr>
+            <td>unArrayDeque.<b>peek()</b></td>
+            <td>E</td>
+            <td>Devuelve el elemento en la posicion 0 del array.</td>
+        </tr>
+        <tr>
+            <td>unArrayDeque.<b>size()</b></td>
             <td>int</td>
-            <td>Devuelve la longitud de la lista.</td>
-        </tr>
-        <tr>
-            <td>unArrayDeque.peek()</td>
-            <td></td>
-            <td>Devuelve la cadena en un array de caracteres.</td>
-        </tr>
-        <tr>
-            <td>unArrayDeque.size()</td>
-            <td></td>
-            <td></td>
+            <td>Devuelve el tamaño del array</td>
         </tr>
     </tbody>
 </table>
