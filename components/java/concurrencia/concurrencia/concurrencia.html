@@ -128,6 +128,30 @@ lc.unlock(): //desbloquea acceso
 
 <p>Existen otras implementaciones como <b>ReadLock(permite a otros hilos con bloqueo de lectura)</b> o <b>WriteLock(no permite a otros ni lectura ni escritura)</b></p>
 
+<!-- =============== -->
+<div class="center-horizontal">
+<pre><code class="language-java">
+//Se deberá crear un objeto Lock compartido por todos los hilos:
+Lock lc =new ReentrantLock();
+/*
+Después, las tres instrucciones anteriores se incluirán en una sección crítica
+para que solo un hilo la ejecute a la vez, incluyendo la llamada a unlock() en
+el finally para garantizar su ejecución
+*/
+lc.lock();
+try{
+    int tmp = cont.getValue();
+    tmp++;
+    cont.setValue(tmp);
+}finally{
+    lc.unlock();
+}
+</code></pre>	
+</div>
+<!-- =============== -->
+
+<p><b>NOTA:</b> System.Exit es la una acción que impediría la ejecución del bloque finally. y el unlock()</p>
+
 <h2>Colecciones para concurrencia</h2>
 
 <p>El paquete java.util.concurrent incluye interfaces y clases de colección con operaciones thread safe:</p>
