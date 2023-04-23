@@ -1,1 +1,61 @@
 <h1 class="title">Localización</h1>
+
+
+<ul>
+    <li>Consiste en desarrollar aplicaciones para múltiples idiomas y adaptadas a determinadas localizaciones geográficas.</li>
+    <li>Los textos se incluyen en archivos de recursos que son cargados dinámicamente en tiempo de ejecución</li>
+    <li>La clase Locale permite establecer la localización geográfica e idioma con el que se va a trabajar</li>
+</ul>
+
+<p>Para cada idioma, se creará un archivo de texto. properties con parejas clave=valor que incluyan los diferentes textos a mostrar.</p>
+<p>Los archivos se nombrarán:</p>
+<p class="center-horizontal"><em>nombrearchivo_prefijo.properties</em></p>
+
+<h2>Objeto Locale</h2>
+
+<p>La clase java.util.Locale representa una localización e idioma</p>
+<p>Se puede usar la constantes Locale.US, Locale.CANADA, Locale.FRENCH, etc.</p>
+
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Locale l1 = new Locale("fr","FR");
+Locale l2 = new Locale("en", "US");
+
+//Localización por defecto:
+
+static void setDefault(Locale newLocale)
+static void setDefault(Locale.Category category, Locale newLocale)
+</code></pre>
+</div>
+
+<h2>Carga del archivo de recursos</h2>
+
+<p>Para obtener el archivo de recursos asociado a una determinada localización debemos crear un objeto ResourceBundle</p>
+
+<p><b>NOTA:</b> si no existe archivo para la localización indicada, intenta el de la localización por defecto, sino el predeterminado(sin prefijo)</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+ResourceBundle rb = ResourceBundle.getBundle(String nombrearchivo , Locale locale);
+
+ResourceBundle rb1 = ResourceBundle.getBundle("mensajes", Locale.US);
+//localización por defecto
+ResourceBundle rb2 = ResourceBundle.getBundle ("mensajes", Locale.getDefault());
+</code></pre>
+</div>
+
+<p>Para obtener los textos se emplea el método getString(String clave) de ResourceBundle</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+System.out.println("1: "+rb1.getString("dato1"));
+System.out.println("2: "+rb1.getString("dato2"));
+
+
+//REVISION DE CONCEPTOS
+ResourceBundle messages= ResourceBundle.getBundle("mensajes",new Locale("de"));
+</code></pre>
+</div>
+
+<p><b>RESPUESTA:</b> Como no existe un archivo de recursos para ese idioma, se cargará el archivo de recursos de la localización predeterminada. Si no es "es" ni "en", entonces se cargará mensajes.properties</p>
