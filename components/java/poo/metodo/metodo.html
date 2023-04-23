@@ -132,3 +132,112 @@ class Clase2 extends Clase1{
 }
 </code></pre>	
 </div>
+
+<h2>Sobrescritura de métodos</h2>
+
+<p>Cuando una clase hereda un método de otra puede sobrescribirlo, lo que significa que vuelve a definirlo en la nueva clase</p>
+
+<h2>@Override</h2>
+
+<p>Indica al compilador que se está intentando sobrescribir un método. Su uso no es obligatorio, pero si conveniente:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Clase1{
+    public void test(){
+        System.out.println("uno");
+    }
+}
+class Clase2 extends Clase1{
+    @Override
+    public void test(){
+        System.out.println("dos");
+    }
+}
+</code></pre>	
+</div>
+
+<h4>Reglas de sobrescritura</h4>
+<ul>
+    <li>El nombre y lista de parámetros debe ser idéntico</li>
+    <li>El ámbito debe ser igual o menos restrictivo</li>
+    <li>El tipo de devolución debe ser igual o un subtipo del original</li>
+    <li>La nueva versión del método no debe propagar excepciones que no estén definidas en el original (esta restricción NO afecta a las excepciones Runtime)</li>
+</ul>
+
+<h4>Ejemplos de sobrescritura correcta</h4>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//Tipo devolución subclase de Object
+
+class Clase1{
+    public Object test(){}
+}
+class Clase2 extends Clase1{
+    @Override
+    public String test(){}
+}
+
+//===================
+
+//Ámbito
+//superior a default
+class Clase1{
+    void test(){}
+}
+class Clase2 extends Clase1{
+    @Override
+    public void test(){}
+}
+
+//===================
+
+//Subtipo de IOException
+class Clase1{
+    void test() throws IOException{}
+}
+class Clase2 extends Clase1{
+    @Override
+    public void test() throws FileNotFoundException {}
+}
+</code></pre>	
+</div>
+
+<h4>Ejemplos de sobrescritura incorrecta</h4>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//El tipo devolución debería ser void
+
+class Clase1{
+    public void test(){}
+}
+class Clase2 extends Clase1{
+    @Override
+    public String test(){}//ERROR de compilación
+}
+
+//===================
+
+//Ámbito inferior a public
+class Clase1{
+    public void test(){}
+}
+class Clase2 extends Clase1{
+    @Override
+    void test(){}//ERROR de compilación
+}
+
+//===================
+
+//Excepción no declarada en la superclase
+class Clase1{
+    void test(){}
+}
+class Clase2 extends Clase1{
+    @Override
+    public void test() throws SQLException{} //ERROR de compilación
+}
+</code></pre>	
+</div>

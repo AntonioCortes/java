@@ -1,1 +1,110 @@
 <h1 class="title">Interfaz</h1>
+
+<ul>
+    <li>Una interfaz es un conjunto de métodos abstractos</li>
+    <li>Su objetivo es definir el formato de ciertos métodos, que posteriormente las clases se encargarán de implementar</li>
+    <li>También puede incluir constantes, que serán públicas y estáticas</li>
+</ul>
+
+<h2>Creación</h2>
+
+<p>Una interfaz se crea, al igual que las clases, en archivos .java</p>
+<p>Se define con la palabra reservada <b>interface</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public interface Operaciones{
+    int k=10;
+    void girar(int grados);
+    int invertir();
+}
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> En el caso de las constantes, se omiten las palabras public, final y static</p>
+<p><b>NOTA:</b> Como los métodos solo pueden ser públicos y abstractos, se pueden omitir las palabras abstract y public</p>
+
+<h2>Implementación de una interfaz</h2>
+
+<p>Una clase que implementa una interfaz está obligada a sobrescribir (implementar) todos los métodos de la misma.</p>
+<p>Una clase puede implementar varias interfaces</p>
+<p>Una clase puede heredar otra clase y, a su vez, implementar una o varias interfaces</p>
+
+<h2>Herencia</h2>
+
+<p>Una interfaz puede heredar una o varias interfaces:</p>
+
+<h4>Ejemplos de sobrescritura correcta</h4>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public interface Operaciones{
+    void girar(int grados);
+    int invertir();
+}
+public interface Inter1{
+    int miMetodo();
+}
+public interface InterFin extends Operaciones, Inter1{
+    void nuevoMetodo();
+}
+
+
+public class Prueba implements InterFin{
+    public void girar(int grados){...}
+    public int invertir(){...}
+    public int miMetodo(){...}
+    public void nuevoMetodo(){...}
+}
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> La clase está obligada a implementar los métodos de la interfaz que implementa y los de las interfaces que esta hereda.</p>
+
+<h2>Revisión de conceptos</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class C2 implements I1, I2 {…} //A
+class C3 extends C1 implements I1, I2{…} //B
+interface I3 implements I1, I2{…} //C
+interface I4 extends I1 implements C1{…} //D
+interface I5 extends I1, I2 //E
+</code></pre>	
+</div>
+
+<ul>
+    <li>a.Correcta, una clase puede implementar varias interfaces</li>
+    <li>b.Correcta, una clase puede heredar otra e implementar varias interfaces</li>
+    <li>c.Incorrecta, una interfaz no implementa, sino que hereda otras interfaces</li>
+    <li>d.Incorrecta, una interfaz no puede implementar ni heredar clases</li>
+    <li>e.Correcta, una interfaz puede heredar varias interfaces</li>
+</ul>
+
+<p>Mediante una interfaz, se puede hacer referencia a un objeto que la implementa.</p>
+<p>Con esta referencia se podría llamar a las implementaciones de los métodos declarados en la de la interfaz, pudiendo llevar a cabo el polimorfismo a través de las interfaces.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+interface Test{
+    int CONV=8.75;
+    void metodo1(int x);
+    int metodo2(String s);
+}
+class ClasePrueba implements Test{
+    public void metodo1(int x){...}
+    public int metodo2(String s){...}
+    public void metodoPropio(){...}
+}
+
+
+Test ts = new ClasePrueba;
+ts.metodo1(10);
+ts.metodo2("hello");
+ts.metodoPropio();//ERROR DE COMPILACIÓN
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> A las constantes se les puede llamar con la interfaz o con las clases que la implementan.</p>
+
+<p class="center-horizontal"><em>Test.CONV ClasePrueba.CONV</em></p>
