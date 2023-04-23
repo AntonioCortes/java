@@ -1,5 +1,50 @@
 <h1 class="title">Metodo</h1>
 
+<h2>Métodos estáticos</h2>
+
+<p>Son métodos que no están asociados a ningún objeto particular de la clase. Pertenecen a la clase, no a la instancia</p>
+
+<p>Se declaran con la palabra static:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Calc{
+    public static int cuadrado(int a){
+        return a*a;
+    }
+}
+</code></pre>
+</div>
+
+<p>No es necesario crear un objeto para llamar a estos métodos, se utiliza el nombre de la clase:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+//...
+int r= Calc.cuadrado(4);
+</code></pre>
+</div>
+
+<p>Solo pueden llamar a otros miembros de su misma clase que también sean static</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Test{
+    
+    int a=2;
+    static int b=5;
+    
+    public static int metodo(){
+        int c = a*3;// error de compilación
+        int n = b+1; //ok
+        imprime(n); //ok
+    }
+    
+    static void imprime(int s){..}
+}
+</code></pre>
+</div>
+
+<p>No se puede usar en su interior ni <b>this</b> ni <b>super</b></p>
+
+
 <h2>Referencia a métodos</h2>
 
 <div class="center-horizontal">
@@ -68,6 +113,8 @@ public int soyUnMetodo(Integer a){}
 soyUnMetodo(23);
 </code></pre>	
 </div>
+
+
 
 
 <h2>Métodos abstractos vs finales</h2>

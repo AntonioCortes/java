@@ -1,3 +1,57 @@
 <h1 class="title">Herencia</h1>
 
-TODO:Con la anotacion override no se puede cambiar la firma de un metodo salvo su modificador de acceso a uno mas restringido
+TODO:Con la anotacion override no se puede cambiar la firma de un metodo
+TODO: en herencia no se puede modificar el acceso a uno mas restrictivo en un metodo sobreescrito
+
+<ul>
+    <li>Herencia es una característica que permite crear nuevas clases a partir de clases ya existentes, de forma que la nueva clase adquiera (herede) los miembros de la ya existente.</li>
+    <li>A la clase “padre” se le conoce como superclase, mientras que la “hija” es la subclase</li>
+    <li>Se emplea extends</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class Clase1{
+    public void metodo(){}
+}
+class Clase2 extends Clase1{
+    //automaticamente adquiere metodo()
+}
+</code></pre>
+</div>
+
+<ul>
+    <li>Una clase solo puede heredar otra clase, aunque la superclase puede heredar a su vez a otra y así hasta n niveles.</li>
+    <li>Varias clases pueden heredar la misma clase</li>
+    <li>Los miembros privados de la superclase no son accesibles directamente desde la subclase</li>
+    <li>Si queremos que una clase no se pueda heredar, la definiremos con final</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+final class Clase1{ //no podrá ser heredada
+    public void metodo(){}
+}
+class Clase2 extends Clase1{} //error de compilación
+</code></pre>
+</div>
+
+<ul>
+    <li>Todas las clases Java heredan Object</li>
+    <li>Si una clase no hereda explicitamente otra clase, implícitamente heredará Object</li>
+    <li>Todas las clases disponen de los métodos de Object, entre ellos: toString(), equals() y hashCode()</li>
+</ul>
+
+<h2>Llamada al constructor de la super clase</h2>
+
+<p>Toda clase incluye de forma implícita en sus constructores como primera línea de código la instrucción super();, que es una llamada al constructor sin parámetros de la superclase</p>
+<p>Si la superclase no dispone de constructor sin parámetros, se produce un error de compilación en la subclase</p>
+
+<h2>Clases final</h2>
+
+<ul>
+    <li>Una clase final es una clase que no puede ser heredada.</li>
+    <li>Se declaran con la palabra final</li>
+    <li>Si se intenta heredar una clase final, se producirá un error de compilación.</li>
+    <li>Java SE incluye bastantes clases finales, como por ejemplo String o las clases de envoltorio.</li>
+</ul>

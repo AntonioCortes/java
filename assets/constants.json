@@ -111,7 +111,8 @@
             },
             "excepciones" : {
                 "basePath" : "components/java/excepciones",
-                "html" : "excepciones.html"   
+                "html" : "excepciones.html",
+                "css" : "excepciones.css"
             },
             "io" : {
                 "io" : {

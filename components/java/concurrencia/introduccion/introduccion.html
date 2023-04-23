@@ -84,3 +84,17 @@ synchronized(obj){
 }
 </code></pre>
 </div>
+
+<h2>volatile</h2>
+
+<p>Permite convertir a la variable o campos de clase(atributos) en Thread safe</p>
+<p>Las variable volátiles son declaradas anteponiendo el modificador de visibilidad de memoria volatile. Estas no son guardadas en el caché del procesador, es decir, toda lectura/escritura de la misma se realiza directamente contra la memoria principal.</p>
+<p>Anteponiendo volatile a la definición de la variable estamos diciendo al compilador que el valor contenido en esa dirección de memoria puede modificarse en cualquier momento, y queremos que dicha modificación sea visible inmediatamente para todos los hilos que están accediendo a ella, no queremos que su valor sea copiado en la caché del procesador.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+//...
+static volatile int count = 0;
+//...
+</code></pre>
+</div>
