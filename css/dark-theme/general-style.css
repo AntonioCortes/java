@@ -14,22 +14,3 @@ main {
     width: 100%;
     align-items: stretch;
 }
-
-#themeButton {
-    position: fixed;
-    top: 20px;
-    right: 30px;
-    z-index: 99;
-    font-size: 11px;
-    border: none;
-    border-radius: 20px;
-    outline: none;
-    background-color: #ffc400;
-    color: white;
-    cursor: pointer;
-    padding: 7px;
-  }
-
-  #themeButton:active{
-    background-color: #9d7800;
-  }

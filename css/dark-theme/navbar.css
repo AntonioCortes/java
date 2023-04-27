@@ -21,3 +21,21 @@
     font-size: 2rem;
     color: white;
 }
+
+/* light/dark mode button */
+#themeButton {
+    margin-right: 3px;
+    display: inline;
+    font-size: 11px;
+    border: none;
+    border-radius: 20px;
+    outline: none;
+    background-color: #ffc400;
+    color: white;
+    cursor: pointer;
+    padding: 7px;
+  }
+
+  #themeButton:active{
+    background-color: #9d7800;
+  }
