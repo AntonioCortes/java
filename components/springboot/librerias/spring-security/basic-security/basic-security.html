@@ -1,0 +1,131 @@
+<h1 class="title">Basic Security</h1>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Configuración</h2>
+
+<p>Para configurar Spring Security se utiliza una clase que contenga la anotación <b>@Configuration</b> y <b>@EnableWebSecurity</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Configuration
+@EnableWebSecurity
+public class ApplicationSecurityConfiguration {
+
+    //...
+    
+} 
+</code></pre>
+</div>
+
+<h2>Método de configuración de HttpSecurity</h2>
+
+<p>Spring Security necesita del siguiente método de configuración donde se definirá el comportamiento. A continuación un ejemplo de lo que podría ser un método con partes que se pueden activar y desactivar utilizando comentarios en función de las necesidades:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Configuration
+@EnableWebSecurity
+public class ApplicationSecurityConfiguration {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                //Disabled csrf just in case of NO user client
+                //.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrf().disable()
+                //.and()
+                .authorizeHttpRequests((authz) -> authz
+                        /* 
+                        .requestMatchers(ApiPaths.USER_VALIDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name(),USER.name())
+                        .requestMatchers(HttpMethod.POST,ApiPaths.USER_MANAGER_CREATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
+                        .requestMatchers(HttpMethod.PUT,ApiPaths.USER_MANAGER_UPDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
+                        .requestMatchers(HttpMethod.GET,ApiPaths.USER_MANAGER_READ.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
+                        .requestMatchers(HttpMethod.DELETE,ApiPaths.USER_MANAGER_DELETE.getPath()).hasRole(ADMIN.name())
+                        */
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(withDefaults())
+                .rememberMe().tokenValiditySeconds((int) TimeUnit.HOURS.toSeconds(1));
+        return http.build();
+    }
+    
+} 
+</code></pre>
+</div>
+
+<p><b>NOTA:</b> El método necesita de la anotación <b>@Bean</b> para que el contenedor de Spring la pueda utilizar cuando este se levante.</p>
+
+<h2>Definición de usuarios</h2>
+
+<p>Para poder controlar el acceso a la aplicación se utilizan los privilegios o roles de usuarios</p>
+
+<p>Se pueden defininir de la siguiente manera dentro de la clase de configuración:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Configuration
+@EnableWebSecurity
+public class ApplicationSecurityConfiguration {
+
+    @Bean
+    public UserDetailsManager users(DataSource dataSource) {
+        UserDetails user = User.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("admin"))
+                .roles(ADMIN.name())
+                //.authorities(ADMIN.getGrantedAuthorities())
+                .build();
+        JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
+        users.createUser(user);
+        return users;
+    }
+    
+} 
+</code></pre>
+</div>
+
+
+<h2>Anotaciones @EnableMethodSecurity y @PreAuthorize</h2>
+
+<p>Para permitir acceso a los controladores en función del rol o los privilegios que se hayan definido se utiliza la anotación <b>@PreAuthorize</b>. En esta anotación se indica el valor al cual se le dará acceso. Por lo que si viene especificado que el rol de acceso es ROLE_ADMIN solo los usuarios que posean rol de administrador podran realizar llamadas a dicho controlador.</p>
+<p>Ejemplo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@RestController
+@RequestMapping("api/pet")
+public class PetController {
+
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_ADMINTRAINEE')")
+    @PostMapping("/management/create")
+    public ResponseEntity&lt;PetDTO&gt; createPet(@RequestBody final PetDTO petDTO){
+        return new ResponseEntity&lt;&gt;(HttpStatus.NOT_IMPLEMENTED);
+    }
+
+}
+</code></pre>
+</div>
+
+<p>Para que la anotación @PreAuthorize tenga efecto se debe indicar en la clase de configuración la anotación <b>@EnableMethodSecurity</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class ApplicationSecurityConfiguration {
+
+   //...
+    
+} 
+</code></pre>
+</div>
+

@@ -276,6 +276,16 @@
                         "basePath" : "components/springboot/librerias/spring-cloud/eureka-server",
                         "html" : "eureka-server.html"
                     }
+                },
+                "spring-security" : {
+                    "basic" : {
+                        "basePath" : "components/springboot/librerias/spring-security/basic-security",
+                        "html" : "basic-security.html"
+                    },
+                    "microservices" : {
+                        "basePath" : "components/springboot/librerias/spring-security/microservices",
+                        "html" : "microservices.html"
+                    }
                 }
             }
         }

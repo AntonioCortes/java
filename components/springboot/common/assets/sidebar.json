@@ -117,6 +117,20 @@
                             "content" : "springboot.paths.librerias.spring-cloud.loadBalancers"
                         }
                     ]
+                },
+                {
+                    "text" : "Spring Security",
+                    "contentId" : "springSecurity",
+                    "content" : [
+                        {
+                            "text" : "Basic Secutiry",
+                            "content" : "springboot.paths.librerias.spring-security.basic"
+                        },
+                        {
+                            "text" : "Microservicios",
+                            "content" : "springboot.paths.librerias.spring-security.microservices"
+                        }
+                    ]
                 }
             ]
         }
