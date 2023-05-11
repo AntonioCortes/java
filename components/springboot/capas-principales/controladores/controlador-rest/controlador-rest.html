@@ -1,4 +1,4 @@
-<h1 class="title">Controladores</h1>
+<h1 class="title">Controladores REST</h1>
 
 <h1>Controlador</h1>
 
@@ -140,6 +140,17 @@ public class PetController
 	</li>
 
 	<li><b>@PathVariable:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PathVariable y sirve para recibir una variable de la ruta 
+		de la llamada al método y asignarsela a una variable de java, para hacer esto se debe haber especificado previamente la variable en alguna de las anotaciones de tipo @MetodoMapping anteriores. 
+		Si la variable java se llama igual que la variable de la ruta no hace falta especificar en la anotación cómo se llama la variable, si no se le debe indiciar por parámetro a la anotación. 
+		Ejemplo: 
+		
+		<ul>
+			<li>Anotacion previa: @GetMapping("/ruta/al/recurso/{variable}")</li>
+			<li>Ruta: "/ruta/al/recurso/variable"</li>
+			<li>Anotación: @PathVariable("variable")</li>
+		</ul>
+	</li>
+	<li><b>@RequestHeader:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PathVariable y sirve para recibir una variable de la ruta 
 		de la llamada al método y asignarsela a una variable de java, para hacer esto se debe haber especificado previamente la variable en alguna de las anotaciones de tipo @MetodoMapping anteriores. 
 		Si la variable java se llama igual que la variable de la ruta no hace falta especificar en la anotación cómo se llama la variable, si no se le debe indiciar por parámetro a la anotación. 
 		Ejemplo: 

@@ -212,9 +212,15 @@
                 }
             },
             "capas-principales" : {
-                "controlador" : {
-                    "basePath" : "components/springboot/capas-principales/controlador",
-                    "html" : "controlador.html"
+                "controladores" : {
+                    "controlador":{
+                        "basePath" : "components/springboot/capas-principales/controladores/controlador",
+                        "html" : "controlador.html"
+                    },
+                    "controladorRest":{
+                        "basePath" : "components/springboot/capas-principales/controladores/controlador-rest",
+                        "html" : "controlador-rest.html"
+                    }
                 },
                 "dto" : {
                     "basePath" : "components/springboot/capas-principales/dto",

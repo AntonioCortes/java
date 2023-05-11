@@ -43,8 +43,18 @@
                     "content" : "springboot.paths.capas-principales.dto"
                 },
                 {
-                    "text" : "Controlador",
-                    "content" : "springboot.paths.capas-principales.controlador"
+                    "text" : "Controladores",
+                    "contentId" : "controladores",
+                    "content" : [
+                        {
+                            "text":"Controlador",
+                            "content":"springboot.paths.capas-principales.controladores.controlador"
+                        },
+                        {
+                            "text":"Controlador REST",
+                            "content":"springboot.paths.capas-principales.controladores.controladorRest"
+                        }
+                    ]
                 },
                 {
                     "text" : "Servicio",
