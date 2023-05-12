@@ -1,3 +1,9 @@
 <h1 class="title">Controlador</h1>
 
+<p>Para definir una clase como controlador debe tener una serie de anotaciones que son las siguientes:</p>
 
+<ul>
+	<li><b>@Controller:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RestController y sirve para registrar la clase como controlador.</li>
+	<li><b>@ResponseBody:</b> Le dice a un controlador que el objeto devuelto se serializa automáticamente en JSON y se devuelve al objeto HttpResponse.</li>
+	<li><b>@RequestMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestMapping y sirve para asignar al cuerpo de HttpRequest un objeto de transferencia o de dominio, lo que permite la deserialización automática del cuerpo de HttpRequest entrante en un objeto Java.</li>
+</ul>
