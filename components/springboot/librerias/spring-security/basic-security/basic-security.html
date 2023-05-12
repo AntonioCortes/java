@@ -42,7 +42,7 @@ public class ApplicationSecurityConfiguration {
                 //.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrf().disable()
                 //.and()
-                .authorizeHttpRequests((authz) -> authz
+                .authorizeHttpRequests((authz) -&gt; authz
                         /* 
                         .requestMatchers(ApiPaths.USER_VALIDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name(),USER.name())
                         .requestMatchers(HttpMethod.POST,ApiPaths.USER_MANAGER_CREATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
@@ -53,7 +53,7 @@ public class ApplicationSecurityConfiguration {
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults())
-                .rememberMe().tokenValiditySeconds((int) TimeUnit.HOURS.toSeconds(1));
+                .rememberMe().tokenValiditySeconds((int) TimeUnit.HOURS.toSeconds(4));
         return http.build();
     }
     
@@ -119,19 +119,19 @@ public enum ApplicationUserRole {
     ADMINTRAINEE(Sets.newHashSet(API_READ,API_WRITE,API_EXECUTE)),
     USER(Sets.newHashSet(API_READ));
 
-    private final Set<ApplicationUserPermission> permission;
+    private final Set&lt;ApplicationUserPermission&gt; permission;
 
-    ApplicationUserRole(Set<ApplicationUserPermission> permission) {
+    ApplicationUserRole(Set&lt;ApplicationUserPermission&gt; permission) {
         this.permission = permission;
     }
 
-    public Set<ApplicationUserPermission> getPermission() {
+    public Set&lt;ApplicationUserPermission&gt; getPermission() {
         return permission;
     }
 
-    public Set<SimpleGrantedAuthority> getGrantedAuthorities(){
-        Set<SimpleGrantedAuthority> permissions = getPermission().stream()
-                .map(p -> new SimpleGrantedAuthority(p.getPermission()))
+    public Set&lt;SimpleGrantedAuthority&gt; getGrantedAuthorities(){
+        Set&lt;SimpleGrantedAuthority&gt; permissions = getPermission().stream()
+                .map(p -&gt; new SimpleGrantedAuthority(p.getPermission()))
                 .collect(Collectors.toSet());
         permissions.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
         return permissions;
@@ -174,7 +174,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             //.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
             .csrf().disable()
             //.and()
-            .authorizeHttpRequests((authz) -> authz
+            .authorizeHttpRequests((authz) -&gt; authz
                     .requestMatchers(ApiPaths.USER_VALIDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name(),USER.name())
                     .requestMatchers(HttpMethod.POST,ApiPaths.USER_MANAGER_CREATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
                     .requestMatchers(HttpMethod.PUT,ApiPaths.USER_MANAGER_UPDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
