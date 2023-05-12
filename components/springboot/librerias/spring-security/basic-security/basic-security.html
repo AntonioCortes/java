@@ -65,7 +65,7 @@ public class ApplicationSecurityConfiguration {
 
 <h2>Definición de usuarios</h2>
 
-<p>Para poder controlar el acceso a la aplicación se utilizan los privilegios o roles de usuarios</p>
+<p>Para poder controlar el acceso a la aplicación se utilizan los privilegios(authorities) o roles de usuarios</p>
 
 <p>Se pueden defininir de la siguiente manera dentro de la clase de configuración:</p>
 
@@ -92,6 +92,125 @@ public class ApplicationSecurityConfiguration {
 </code></pre>
 </div>
 
+<p><b>NOTA:</b> Se recomienda codificar la contraseña antes de asignarla. Una posibilidad es utilizar la interfaz de PasswordEncoder y la clase BCryptPasswordEncoder de Spring Security</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Configuration
+public class PasswordConfig {
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder(10);
+    }
+
+}
+</code></pre>
+</div>
+
+<h2>Clase enumeradora para roles y permisos</h2>
+
+<p>Aunque esto no deja de ser una recomendación definir en una clase enumeradora los roles y permisos que un usuario puede tomar puede ser buena práctica.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public enum ApplicationUserRole {
+    ADMIN(Sets.newHashSet(API_READ,API_WRITE,API_EXECUTE)),
+    ADMINTRAINEE(Sets.newHashSet(API_READ,API_WRITE,API_EXECUTE)),
+    USER(Sets.newHashSet(API_READ));
+
+    private final Set<ApplicationUserPermission> permission;
+
+    ApplicationUserRole(Set<ApplicationUserPermission> permission) {
+        this.permission = permission;
+    }
+
+    public Set<ApplicationUserPermission> getPermission() {
+        return permission;
+    }
+
+    public Set<SimpleGrantedAuthority> getGrantedAuthorities(){
+        Set<SimpleGrantedAuthority> permissions = getPermission().stream()
+                .map(p -> new SimpleGrantedAuthority(p.getPermission()))
+                .collect(Collectors.toSet());
+        permissions.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
+        return permissions;
+    }
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public enum ApplicationUserPermission {
+    API_READ("api:read"),
+    API_WRITE("api:write"),
+    API_EXECUTE("api:execute");
+
+    private final String permission;
+    ApplicationUserPermission(String permission) {
+        this.permission = permission;
+    }
+
+    public String getPermission() {
+        return permission;
+    }
+} 
+</code></pre>
+</div>
+
+<h2>AntMatchers</h2>
+
+<p>Es una forma de definir los permisos utilizando el sistema de rutas del API</p>
+
+<p>En el siguiente ejemplo se puede ver como en el método de configuración se definen una serie de <b>reqeustMatchers</b> los cuales tendrán especificado el método de http(GET, POST, PUT, etc), la ruta y el rol que tiene permitido el acceso a dicha ruta.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+            //Disabled csrf just in case of NO user client
+            //.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .csrf().disable()
+            //.and()
+            .authorizeHttpRequests((authz) -> authz
+                    .requestMatchers(ApiPaths.USER_VALIDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name(),USER.name())
+                    .requestMatchers(HttpMethod.POST,ApiPaths.USER_MANAGER_CREATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
+                    .requestMatchers(HttpMethod.PUT,ApiPaths.USER_MANAGER_UPDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
+                    .requestMatchers(HttpMethod.GET,ApiPaths.USER_MANAGER_READ.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
+                    .requestMatchers(HttpMethod.DELETE,ApiPaths.USER_MANAGER_DELETE.getPath()).hasRole(ADMIN.name())
+                    .anyRequest().authenticated()
+            )
+            .httpBasic(withDefaults())
+            .rememberMe().tokenValiditySeconds((int) TimeUnit.HOURS.toSeconds(1));
+    return http.build();
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public enum ApiPaths {
+
+    USER_MANAGER_CREATE("/user/manager/create/**"),
+    USER_MANAGER_READ("/user/manager/read/**"),
+    USER_MANAGER_UPDATE("/user/manager/update/**"),
+    USER_MANAGER_DELETE("/user/manager/delete/**"),
+    USER_VALIDATE("/user/validate/**");
+
+    private final String path;
+
+    ApiPaths(String path) {
+        this.path = path;
+    }
+
+    public String getPath() {
+        return path;
+    }
+}
+</code></pre>
+</div>
 
 <h2>Anotaciones @EnableMethodSecurity y @PreAuthorize</h2>
 
