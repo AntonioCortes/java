@@ -200,6 +200,10 @@
                 {
                     "text" : "Seguridad",
                     "content" : "java.paths.seguridad"
+                },
+                {
+                    "text" : "Matemáticas",
+                    "content" : "java.paths.matematicas"
                 }
             ]
         }

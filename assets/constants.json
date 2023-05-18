@@ -173,6 +173,10 @@
             "seguridad" : {
                 "basePath" : "components/java/otros/seguridad",
                 "html" : "seguridad.html"
+            },
+            "matematicas" : {
+                "basePath" : "components/java/otros/matematicas",
+                "html" : "matematicas.html"
             }
         }
     },
