@@ -7,3 +7,42 @@
 	<li><b>@ResponseBody:</b> Le dice a un controlador que el objeto devuelto se serializa automáticamente en JSON y se devuelve al objeto HttpResponse.</li>
 	<li><b>@RequestMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestMapping y sirve para asignar al cuerpo de HttpRequest un objeto de transferencia o de dominio, lo que permite la deserialización automática del cuerpo de HttpRequest entrante en un objeto Java.</li>
 </ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Controller
+@RequestMapping("/film")
+public class FilmController {
+	
+	@Autowired
+	FilmService filmService;
+	
+	@Secured({"ROLE_USER","ROLE_ADMIN"})
+	@PostMapping("/save")
+	public String saveFilm(Film film, BindingResult result, @RequestParam("cover") MultipartFile cover, Model model)
+	{
+		if (!cover.isEmpty()) {
+
+			Path directorioRecursos = Paths.get("src/main/resources/static/uploads");
+			String rootPath = directorioRecursos.toFile().getAbsolutePath();
+
+			try {
+				byte[] bytes = cover.getBytes();
+				Path rutaCompleta = Paths.get(rootPath + "/" + cover.getOriginalFilename());
+				Files.write(rutaCompleta, bytes);
+				film.setCover(cover.getOriginalFilename());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if(film.getCover() == null && film.getId() != null) {
+			film.setCover((filmService.readFilmById(film.getId())).getCover());
+		}
+		filmService.saveFilm(film);
+		model.addAttribute("listOfFilms", filmService.readAllFilms());
+		return "redirect:/film/list";
+	}
+}
+</code></pre>
+</div>
