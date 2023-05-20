@@ -1,1 +1,18 @@
 <h1 class="title">Tipos de datos para fechas y horas</h1>
+
+<p>java.time</p>
+
+<p>Clases inmutables LocalDate, LocalTime, LocalDateTime</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+LocalDate today = LocalDate.now();
+LocalDate foolsDay = LocalDate.of(2019, Month, APRIL, 1);
+Instant timeStamp = Instant.now();
+int nanoSecondsFromLastSecond = timeStamp.getNano();
+Period howLong = Period.between(foolsDay, today);
+Duration twoHours = Duration.ofHours(2);
+long seconds = twoHours.minusMinutes(15).getSeconds();
+int days = howLong.getDays();
+</code></pre>	
+</div>
