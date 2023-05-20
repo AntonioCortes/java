@@ -1,9 +1,83 @@
-<h1 class="title">Métodos Streams</h1>
+<h1 class="title" id="title">Métodos Streams</h1>
+
+<a id="scrollBtn" href="#title"><img src="assets/vendor/bootstrap-icons/1.7.0/arrow-up-circle.svg"></a>
+
+<!-- ***ACCESO RAPIDO*** -->
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Stream Pipeline Processing Operations</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Intermediate</th>
+            <th>Terminal</th>
+        </tr>
+        <tr>
+            <td><a href="#filter">filter</a></td>
+            <td><a href="#forEach">forEach</a></td>
+        </tr>
+        <tr>
+            <td><a href="#map">map</a></td>
+            <td><a href="#forEachOrdered">forEachOrdered</a></td>
+        </tr>
+        <tr>
+            <td><a href="#flatMap">flatMap</a></td>
+            <td><a href="#count">count</a></td>
+        </tr>
+        <tr>
+            <td><a href="#peek">peek</a></td>
+            <td><a href="#min">min</a></td>
+        </tr>
+        <tr>
+            <td><a href="#distinct">distinct</a></td>
+            <td><a href="#max">max</a></td>
+        </tr>
+        <tr>
+            <td><a href="#sorted">sorted</a></td>
+            <td><a href="#sum">sum</a></td>
+        </tr>
+        <tr>
+            <td><a href="#dropWhile">dropWhile</a></td>
+            <td><a href="#average">average</a></td>
+        </tr>
+        <tr>
+            <td><a href="#skip">skip</a></td>
+            <td><a href="#collect">collect</a></td>
+        </tr>
+        <tr>
+            <td><a href="#limit">limit</a></td>
+            <td><a href="#reduce">reduce</a></td>
+        </tr>
+        <tr>
+            <td><a href="#takeWhile">takeWhile</a></td>
+            <td><a href="#allMatch">allMatch</a></td>
+        </tr>
+        <tr>
+            <td><a href="#-">-</a></td>
+            <td><a href="#anyMatch">anyMatch</a></td>
+        </tr>
+        <tr>
+            <td><a href="#-">-</a></td>
+            <td><a href="#noneMatch">noneMatch</a></td>
+        </tr>
+        <tr>
+            <td><a href="#-">-</a></td>
+            <td><a href="#findAny">findAny</a></td>
+        </tr>
+        <tr>
+            <td><a href="#-">-</a></td>
+            <td><a href="#findFirst">findFirst</a></td>
+        </tr>
+    </tbody>
+</table>
+<!-- ****** -->
 
 <!-- *****Stream Methods***** -->
 <h2>Conteo y procesado</h2>
 
-<p>long <b>count().</b> Devuelve el número de elementos de un Stream. <em>Método final</em></p>
+<p id="count">long <b>count().</b> Devuelve el número de elementos de un Stream. <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -13,7 +87,7 @@ System.out.println(st.count()); //8
 </code></pre>
 </div>
 
-<p>void <b>forEach (Consumer&lt;? super T&gt; action)</b>. Realiza una acción para cada elemento del stream. <em>Método final</em></p>
+<p id="forEach">void <b>forEach (Consumer&lt;? super T&gt; action)</b>. Realiza una acción para cada elemento del stream. <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -29,7 +103,7 @@ System.out.println(st.count()); //ERROR!!!
 <!-- *****Stream Methods***** -->
 <h2>Extracción de datos</h2>
 
-<p>Stream&lt;T&gt; <b>distinct()</b>. Devuelve un Stream eliminando los elementos duplicados, según aplicación de equals(). <em>Método intermedio</em></p>
+<p id="distinct">Stream&lt;T&gt; <b>distinct()</b>. Devuelve un Stream eliminando los elementos duplicados, según aplicación de equals(). <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -39,7 +113,7 @@ System.out.println(st.distinct().count()); //5
 </code></pre>
 </div>
 
-<p>Stream&lt;T&gt; <b>limit(long n)</b>. Devuelve un nuevo Stream con los "n" primeros elementos del mismo. <em>Método intermedio</em></p>
+<p id="limit">Stream&lt;T&gt; <b>limit(long n)</b>. Devuelve un nuevo Stream con los "n" primeros elementos del mismo. <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -49,13 +123,13 @@ Stream&lt;Integer&gt; st2 = st.limit(3).
 </code></pre>
 </div>
     
-<p>Stream&lt;T&gt; <b>skip(long n)</b>. Devuelve un nuevo Stream , saltándose los n primeros elementos. <em>Método intermedio</em></p>
+<p id="skip">Stream&lt;T&gt; <b>skip(long n)</b>. Devuelve un nuevo Stream , saltándose los n primeros elementos. <em>Método intermedio</em></p>
 <!-- *********************** -->
 
 <!-- *****Stream Methods***** -->
 <h2>Comprobaciones</h2>
 
-<p>boolean <b>anyMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si algún elemento del Stream cumple con la condición del predicado: <em>Método final</em></p>
+<p id="anyMatch">boolean <b>anyMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si algún elemento del Stream cumple con la condición del predicado: <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -65,14 +139,14 @@ System.out.println("alguno mayor 5?" + st.anyMatch(n-&gt;n&gt;5)); //true
 </code></pre>
 </div>
 
-<p>boolean <b>allMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si todos cumplen con la condición del predicado. <em>Método final</em></p>
-<p>boolean <b>noneMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si ninguno cumple con la condición del predicado. <em>Método final</em></p>
+<p id="allMatch">boolean <b>allMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si todos cumplen con la condición del predicado. <em>Método final</em></p>
+<p id="noneMatch">boolean <b>noneMatch(Predicate&lt;? super T&gt; predicate)</b>. Devuelve true si ninguno cumple con la condición del predicado. <em>Método final</em></p>
 <!-- *********************** -->
 
 <!-- *****Stream Methods***** -->
 <h2>Filtrado</h2>
 
-<p>Stream &lt;T&gt; <b>filter(Predicate &lt;? super T&gt; predicate)</b>. Aplica un filtro sobre el Stream , devolviendo un nuevo Stream con los elementos que cumplen el predicado: <em>Método intermedio</em></p>
+<p id="filter">Stream &lt;T&gt; <b>filter(Predicate &lt;? super T&gt; predicate)</b>. Aplica un filtro sobre el Stream , devolviendo un nuevo Stream con los elementos que cumplen el predicado: <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -90,7 +164,7 @@ Stream&lt;Integer&gt; st = Stream.of(1,5,7,9,7,4,6,4,8,4,3,1);
 <!-- *****Stream Methods***** -->
 <h2>Búsquedas</h2>
 
-<p>Optional &lt;T&gt; <b>findFirst()</b>. Devuelve el primer elemento del Stream , o un Optional vacío si no hay nada. <em>Método final</em></p>
+<p id="findFirst">Optional &lt;T&gt; <b>findFirst()</b>. Devuelve el primer elemento del Stream , o un Optional vacío si no hay nada. <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -105,12 +179,12 @@ if(op.isPresent()){
 </code></pre>
 </div>
 
-<p>Optional&lt;T&gt; <b>findAny()</b>. Devuelve cualquiera de los elementos del Stream . Normalmente, el primero. <em>Método final</em></p>
+<p id="findAny">Optional&lt;T&gt; <b>findAny()</b>. Devuelve cualquiera de los elementos del Stream . Normalmente, el primero. <em>Método final</em></p>
 <!-- *********************** -->
 <!-- *****Stream Methods***** -->
 <h2>Obtención de extremos</h2>
 
-<p>Optional &lt;T&gt; <b>max(Comparator&lt;? super T&gt; comparator)</b>. Devuelve el mayor de los elementos , según el criterio de comparación del objeto Comparator: <em>Método final</em></p>
+<p id="max">Optional &lt;T&gt; <b>max(Comparator&lt;? super T&gt; comparator)</b>. Devuelve el mayor de los elementos , según el criterio de comparación del objeto Comparator: <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -121,12 +195,12 @@ System.out.println("mayor: "+op.get());
 </code></pre>
 </div>
 
-<p>Optional &lt;T&gt; <b>min(Comparator&lt;? super T&gt; comparator)</b>. Operación contraria a max. <em>Método final</em></p>
+<p id="min">Optional &lt;T&gt; <b>min(Comparator&lt;? super T&gt; comparator)</b>. Operación contraria a max. <em>Método final</em></p>
 <!-- *********************** -->
 <!-- *****Stream Methods***** -->
 <h2>Transformación</h2>
 
-<p>Stream &lt;R&gt; <b>map(Function&lt;? super T, ? extends R&gt; mapper)</b>. Transforma cada elemento del Stream en otro según el criterio definido por el objeto Function que se le pasa como parámetro: <em>Métodos intermedios</em></p>
+<p id="map">Stream &lt;R&gt; <b>map(Function&lt;? super T, ? extends R&gt; mapper)</b>. Transforma cada elemento del Stream en otro según el criterio definido por el objeto Function que se le pasa como parámetro: <em>Métodos intermedios</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -151,7 +225,7 @@ System.out.println(st
 <!-- *****Stream Methods***** -->
 <h2>Transformación y aplanamiento</h2>
 
-<p>Stream&lt;R&gt; <b>flatMap(Function&lt;T, Stream&lt;R&gt; mapper)</b>. Devuelve un nuevo Stream , resultante de unir los Streams generados por la aplicación de una función sobre cada elemento. <em>Método intermedio</em></p>
+<p id="flatMap">Stream&lt;R&gt; <b>flatMap(Function&lt;T, Stream&lt;R&gt; mapper)</b>. Devuelve un nuevo Stream , resultante de unir los Streams generados por la aplicación de una función sobre cada elemento. <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -173,15 +247,15 @@ System.out.println(datos.stream()
 <p>Las interfaces <b>IntStream</b>, <b>DoubleStream</b> y <b>LongStream</b>, cuyos objetos son obtenidos mediante los métodos <b>mapToInt</b>, <b>mapToDouble</b> y <b>mapToLong</b>, respectivamente, proporcionan los siguientes métodos de cálculo:</p>
 
 <ul>
-    <li>int <b>sum()</b>. Método final que devuelve la suma de todos los elementos del stream. En DoubleStream y LongStream el tipo de devolución es double y long, respectivamente.</li>
-    <li>OptionalDouble <b>average()</b>. Método final que devuelve la media encapsulada en un OptionalDouble en los tres casos </li>
+    <li id="sum">int <b>sum()</b>. Método final que devuelve la suma de todos los elementos del stream. En DoubleStream y LongStream el tipo de devolución es double y long, respectivamente.</li>
+    <li id="average">OptionalDouble <b>average()</b>. Método final que devuelve la media encapsulada en un OptionalDouble en los tres casos </li>
     <li>OptionalInt <b>max()</b> y <b>min()</b>. Devuelven el mayor y menor de los números, respectivamente. En DoubleStream y LongStream el tipo de devolución es OptionalDouble y OptionalLong, respectivamente.</li>
 </ul>
 <!-- *********************** -->
 <!-- *****Stream Methods***** -->
 <h2>Procesamiento intermedio</h2>
 
-<p>Stream&lt;T&gt; <b>peek(Consumer&lt;? super T&gt; proceso)</b>. Aplica el consumer a cada elemento del Stream, devolviendo un nuevo stream idéntico para continuar con la manipulación de los elementos: <em>Métodos intermedio</em></p>
+<p id="peek">Stream&lt;T&gt; <b>peek(Consumer&lt;? super T&gt; proceso)</b>. Aplica el consumer a cada elemento del Stream, devolviendo un nuevo stream idéntico para continuar con la manipulación de los elementos: <em>Métodos intermedio</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -205,7 +279,7 @@ System.out.println("total:"+nums
 <!-- *****Stream Methods***** -->
 <h2>Ordenación</h2>
 
-<p>Stream&lt;T&gt; <b>sorted()</b>. Devuelve un Stream con loselementos ordenados, según el orden natural de los mismos. <em>Método intermedio</em></p>
+<p id="sorted">Stream&lt;T&gt; <b>sorted()</b>. Devuelve un Stream con loselementos ordenados, según el orden natural de los mismos. <em>Método intermedio</em></p>
 <p>Stream&lt;T&gt; <b>sorted(Comparator&lt;? super T&gt; comparator)</b>. Devuelve un Stream con los elementos ordenados, según el criterio de comparación especificado. <em>Método intermedio</em></p>
 
 <div class="center-horizontal">
@@ -227,7 +301,7 @@ st.sorted(Comparator.comparing(p-&gt;g.getEdad()))
 <!-- *****Stream Methods***** -->
 <h2>Reducción</h2>
 
-<p>Optional&lt;T&gt; <b>reduce(BinaryOperator&lt;T&gt; accumulator)</b>. Realiza la reducción de los elementos del stream a un único valor, utilizando la función proporcionada como parámetro: <em>Método final</em></p>
+<p id="reduce">Optional&lt;T&gt; <b>reduce(BinaryOperator&lt;T&gt; accumulator)</b>. Realiza la reducción de los elementos del stream a un único valor, utilizando la función proporcionada como parámetro: <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -243,7 +317,7 @@ System.out.println(nums
 <!-- *****Stream Methods***** -->
 <h2>Reducción a colección</h2>
 
-<p>R <b>collect(Collector&lt;? super T, A, R&gt; collector)</b>. Devuelve un List, Map o Set con los datos del Stream, en función de la implementación de Collector proporcionada: <em>Método final</em></p>
+<p id="collect">R <b>collect(Collector&lt;? super T, A, R&gt; collector)</b>. Devuelve un List, Map o Set con los datos del Stream, en función de la implementación de Collector proporcionada: <em>Método final</em></p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">

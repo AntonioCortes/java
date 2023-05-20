@@ -3,3 +3,26 @@ em {
     font-weight: 600;
     font-style: unset;
 }
+
+
+
+/* Scroll Back To Top Button */
+#scrollBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 35px;
+    z-index: 99;
+    font-size: 11px;
+    border: none;
+    outline: none;
+    background-color: #00e1ff;
+    color: black;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 30px;
+  }
+  
+  #scrollBtn:hover {
+    background-color: #008697;
+  }
+/* Scroll Back To Top Button */
