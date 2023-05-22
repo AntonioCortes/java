@@ -22,7 +22,7 @@ em {
     border-radius: 30px;
   }
   
-  #scrollBtn:hover {
+  #scrollBtn:active {
     background-color: #008697;
   }
 /* Scroll Back To Top Button */
