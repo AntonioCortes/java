@@ -79,10 +79,6 @@
                     "content" : "springboot.paths.otros.springConfig"
                 },
                 {
-                    "text" : "Tests",
-                    "content" : "springboot.paths.otros.test"
-                },
-                {
                     "text" : "Excepciones",
                     "content" : "springboot.paths.otros.exceptions"
                 }
@@ -131,6 +127,32 @@
                             "content" : "springboot.paths.librerias.spring-security.microservices"
                         }
                     ]
+                }
+            ]
+        },
+        {
+            "text" : "Tests",
+            "contentId" : "test",
+            "content" : [
+                {
+                    "text" : "Unitarios",
+                    "content" : "springboot.paths.test.unitarios"
+                },
+                {
+                    "text" : "Funcionales",
+                    "content" : "springboot.paths.test.funcionales"
+                },
+                {
+                    "text" : "Integración",
+                    "content" : "springboot.paths.test.integracion"
+                },
+                {
+                    "text" : "TDD",
+                    "content" : "springboot.paths.test.tdd"
+                },
+                {
+                    "text" : "Ejemplos",
+                    "content" : "springboot.paths.test.ejemplos"
                 }
             ]
         }

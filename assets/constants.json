@@ -258,6 +258,33 @@
                     "html" : "exceptions.html"
                 }
             },
+            "test" : {
+                "unitarios" : {
+                    "basePath" : "components/springboot/test/unitarios",
+                    "html" : "unitarios.html",
+                    "css":"unitarios.css"
+                },
+                "funcionales" : {
+                    "basePath" : "components/springboot/test/funcionales",
+                    "html" : "funcionales.html",
+                    "css":"funcionales.css"
+                },
+                "integracion" : {
+                    "basePath" : "components/springboot/test/integracion",
+                    "html" : "integracion.html",
+                    "css":"integracion.css"
+                },
+                "tdd" : {
+                    "basePath" : "components/springboot/test/tdd",
+                    "html" : "tdd.html",
+                    "css":"tdd.css"
+                },
+                "ejemplos" : {
+                    "basePath" : "components/springboot/test/ejemplos",
+                    "html" : "ejemplos.html",
+                    "css":"ejemplos.css"
+                }
+            },
             "librerias" : {
                 "spring-cloud" : {
                     "introduccionSpringCloud" : {

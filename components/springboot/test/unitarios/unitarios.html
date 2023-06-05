@@ -1,0 +1,89 @@
+<h1 class="title">Tests unitarios</h1>
+
+<p><b>Dependencias:</b></p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+    &lt;exclusions&gt;
+        &lt;exclusion&gt;
+            &lt;groupId&gt;org.junit.vintage&lt;/groupId&gt;
+            &lt;artifactId&gt;junit-vintage-engine&lt;/artifactId&gt;
+        &lt;/exclusion&gt;
+    &lt;/exclusions&gt;
+&lt;/dependency&gt;
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> junit-vintage-engine se usa para ejecutar test en JUnit 4, por lo que para proyectos nuevos no sería necesario, puesto que con la edición de JUnit 5 es suficiente, de ahí que en el ejemplo anterior se muestre como excluido.</p>
+
+<h2>Tests unitarios</h2>
+
+<p>Son pruebas individuales que se enfocan en probar pequeñas porciones de código, como métodos individuales o clases pequeñas. Suelen realizarse durante el proceso de desarrollo.</p>
+<p><b>NOTA:</b> En IntelliJ Click derecho sobre la clase o interfaz a testear. Generate... => Test...</p>
+<p><b>NOTA:</b> Por convención se deja el nombre de la clase o interfaz seguido de la palabra "Test"</p>
+<p><b>NOTA:</b> Es recomendable que el nombre del método empiece por "itShould" o "itShouldNot", de esta forma se indica que el método debería llevar a cabo o no, una función concreta.</p>
+<p><b>@Test:</b> Se debe utilizar esta etiqueta para métodos que realizan un test unitario.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class CustomerRepositoryTest{
+
+    @Test
+    void itShouldSelectCustomerByPhoneNumber(){
+        //Given
+        //When
+        //Then
+    }
+
+}
+</code></pre>	
+</div>
+
+<p><b>NOTA:</b> Se recomienda seguir el patrón GWT(Given, When, Then) en el cuerpo del método.</p>
+
+<p>Ejemplo de Test completo, que comprobará que un Usuario se está guardando correctamente en una base de datos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class CustomerRepositoryTest {
+
+    @Autowired
+    private CustomerRepository underTest;
+
+    @Test
+    void itShouldSaveCustomer() {
+        // Given
+        UUID id = UUID.randomUUID();
+        Customer customer = new Customer(id, "Abel", "0000");
+        
+        // When
+        underTest.save(customer);
+        
+        // Then
+        Optional<Customer> optionalCustomer = underTest.findById(id);
+        assertThat(optionalCustomer)
+        .isPresent()
+        .hasValueSatisfying(c -> {
+        //          assertThat(c.getId()).isEqualTo(id);
+        //          assertThat(c.getName()).isEqualTo("Abel");
+        //          assertThat(c.getPhoneNumber()).isEqualTo("1111");
+                    assertThat(c).isEqualToComparingFieldByField(customer);
+        });
+    }
+}
+</code></pre>
+</div>
+
+<p>La librería AssertJ nos permite ejecutar los "assert" (afirmar o aseverar) que comprobaran que cada uno de los valores, que en este caso son obtenidos de la consulta a base de datos, coinciden con los valores que se le indiquen.</p>
+
+<h3>AssertJ</h3>
+<p>Esta librería permite multitud de pruebas de todo tipo. Para mas información consultar la documentación oficial en la sección de links.</p>
+
+
+<h3>Anotaciones</h3>
+TODO:
+<p>@DataJpaTest, @Test,</p>
