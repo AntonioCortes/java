@@ -11,6 +11,15 @@
 <h2>Crear un Stream</h2>
 
 <p>
+    A partir de un String:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+String str = "aeiou";
+Stream&lt;String&gt; stream =  Stream.of(str);
+</code></pre>
+</div>
+<p>
     A partir de una colección:
 </p>
 <div class="center-horizontal">
@@ -69,6 +78,8 @@ IntStream.of(args).min().getAsInt();
 <pre><code class="language-java">
 String p = "((()())((";
 p.chars();
+//Cuenta el número de vocales que hay en el String
+p.chars().filter(c->c == 'a' | c == 'e' | c == 'i' | c == 'o' | c == 'u').count();
 </code></pre>
 </div>
 
