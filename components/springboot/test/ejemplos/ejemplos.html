@@ -1,1 +1,65 @@
 <h1 class="title">Ejemplos de Tests</h1>
+
+
+<h2>Repository</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public interface CustomerRepository extends CrudRepository&lt;Customer, UUID&gt; {
+    @Query(
+            value = "select id, name, phone_number " +
+            "from customer where phone_number = :phone_number",
+            nativeQuery = true
+    )
+    Optional&lt;Customer&gt; selectCustomerByPhoneNumber(
+            @Param("phone_number") String phoneNumber);
+}
+</code></pre>	
+</div>
+<div class="center-horizontal">
+<pre><code class="language-java">
+@DataJpaTest(
+    properties = {
+            "spring.jpa.properties.javax.persistence.validation.mode=none"
+    }
+)
+class CustomerRepositoryTest {
+    @Autowired
+    private CustomerRepository underTest;
+
+    @Test
+    void itShouldSelectCustomerByPhoneNumber() {
+        // Given
+        UUID id = UUID.randomUUID();
+        String phoneNumber = "0000";
+        Customer customer = new Customer(id, "Abel", phoneNumber);
+
+        // When
+        underTest.save(customer);
+
+        // Then
+        Optional&lt;Customer&gt; optionalCustomer = underTest.selectCustomerByPhoneNumber(phoneNumber);
+        assertThat(optionalCustomer)
+                .isPresent()
+                .hasValueSatisfying(c -&gt; {
+                    assertThat(c).isEqualToComparingFieldByField(customer);
+                });
+    }
+
+    @Test
+    void itShouldNotSaveCustomerWhenPhoneNumberIsNull() {
+        // Given
+        UUID id = UUID.randomUUID();
+        Customer customer = new Customer(id, "Alex", null);
+
+        // When
+        // Then
+        assertThatThrownBy(() -&gt; underTest.save(customer))
+                .hasMessageContaining("not-null property references a null or transient value : com.amigoscode.testing.customer.Customer.phoneNumber")
+                .isInstanceOf(DataIntegrityViolationException.class);
+
+    }
+
+}
+</code></pre>	
+</div>

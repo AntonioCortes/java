@@ -1,6 +1,6 @@
 <h1 class="title">Tests unitarios</h1>
 
-<p><b>Dependencias:</b></p>
+<h2>Dependencia</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
@@ -20,17 +20,36 @@
 
 <p><b>NOTA:</b> junit-vintage-engine se usa para ejecutar test en JUnit 4, por lo que para proyectos nuevos no sería necesario, puesto que con la edición de JUnit 5 es suficiente, de ahí que en el ejemplo anterior se muestre como excluido.</p>
 
-<h2>Tests unitarios</h2>
+<h2>Introducción</h2>
 
 <p>Son pruebas individuales que se enfocan en probar pequeñas porciones de código, como métodos individuales o clases pequeñas. Suelen realizarse durante el proceso de desarrollo.</p>
 <p><b>NOTA:</b> En IntelliJ Click derecho sobre la clase o interfaz a testear. Generate... => Test...</p>
 <p><b>NOTA:</b> Por convención se deja el nombre de la clase o interfaz seguido de la palabra "Test"</p>
 <p><b>NOTA:</b> Es recomendable que el nombre del método empiece por "itShould" o "itShouldNot", de esta forma se indica que el método debería llevar a cabo o no, una función concreta.</p>
-<p><b>@Test:</b> Se debe utilizar esta etiqueta para métodos que realizan un test unitario.</p>
+<p><b>NOTA:</b> Se recomienda seguir el patrón GWT(Given, When, Then) en el cuerpo del método.</p>
+
+<h2>Anotaciones</h2>
+<ul>
+    <li><b>@Test:</b> Indica que el método es un test</li>
+    <li><b>@DataJpaTest:</b> Anotación que se indica sobre la clase para permitir el testeo de queries JPA.</li>
+    <li><b>@BeforeEach:</b> Se utiliza en el método setUp() para indicar que se ejecutará antes que los test.</li>
+    <li><b>@AfterEach:</b> Se utiliza en el método tearDown() para indicar que se ejecutará después de los test.</li>
+</ul>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+@DataJpaTest
 class CustomerRepositoryTest{
+
+    @BeforeEach
+    void setUp() {
+        //code
+    }
+
+    @AfterEach
+    void tearDown() {
+        //code
+    }
 
     @Test
     void itShouldSelectCustomerByPhoneNumber(){
@@ -43,7 +62,22 @@ class CustomerRepositoryTest{
 </code></pre>	
 </div>
 
-<p><b>NOTA:</b> Se recomienda seguir el patrón GWT(Given, When, Then) en el cuerpo del método.</p>
+
+
+<h2>Modificación de Plantillas IntelliJ</h2>
+
+<p>Se puede utilizar el editor de plantillas de IntelliJ para que automáticamente genere los métodos de los test según las recomendaciones anteriores.</p>
+
+<div class="center-horizontal">
+    <img src=".\components\springboot\test\unitarios\assets\capt_1.png">
+</div>
+
+<div class="center-horizontal">
+    <img src=".\components\springboot\test\unitarios\assets\capt_2.png">
+</div>
+
+
+<h2>Ejemplo</h2>
 
 <p>Ejemplo de Test completo, que comprobará que un Usuario se está guardando correctamente en una base de datos:</p>
 
@@ -64,7 +98,7 @@ class CustomerRepositoryTest {
         underTest.save(customer);
         
         // Then
-        Optional<Customer> optionalCustomer = underTest.findById(id);
+        Optional&lt;Customer&gt; optionalCustomer = underTest.findById(id);
         assertThat(optionalCustomer)
         .isPresent()
         .hasValueSatisfying(c -> {
@@ -80,10 +114,5 @@ class CustomerRepositoryTest {
 
 <p>La librería AssertJ nos permite ejecutar los "assert" (afirmar o aseverar) que comprobaran que cada uno de los valores, que en este caso son obtenidos de la consulta a base de datos, coinciden con los valores que se le indiquen.</p>
 
-<h3>AssertJ</h3>
+<h2>AssertJ</h2>
 <p>Esta librería permite multitud de pruebas de todo tipo. Para mas información consultar la documentación oficial en la sección de links.</p>
-
-
-<h3>Anotaciones</h3>
-TODO:
-<p>@DataJpaTest, @Test,</p>
