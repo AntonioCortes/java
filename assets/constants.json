@@ -248,10 +248,10 @@
                     "basePath" : "components/springboot/otros/spring-config",
                     "html" : "spring-config.html"
                 },
-                "test" : {
-                    "basePath" : "components/springboot/otros/test",
-                    "html" : "test.html",
-                    "css" : "test.css"
+                "rabbitmq" : {
+                    "basePath" : "components/springboot/otros/rabbitmq",
+                    "html" : "rabbitmq.html",
+                    "css" : "rabbitmq.css"
                 },
                 "exceptions" : {
                     "basePath" : "components/springboot/otros/exceptions",
