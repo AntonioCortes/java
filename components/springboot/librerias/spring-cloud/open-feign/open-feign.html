@@ -1,4 +1,134 @@
 <h1 class="title">Open Feign</h1>
 TODO
-<h2>Introducción</h2>
-<p></p>
+<h2>Dependencia</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Estructura carpetas</h2>
+
+<div class="center-horizontal">
+    <img src=".\components\springboot\librerias\spring-cloud\open-feign\assets\img\capt_1.png">
+</div>
+
+<h2>Ejemplo de cliente y respuesta</h2>
+
+<p>Interfaz del cliente:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FeignClient(
+        name = "fraud",
+        url = "${clients.fraud.url}"
+)
+public interface FraudClient {
+
+    @GetMapping(path = "api/v1/fraud-check/{customerId}")
+    FraudCheckResponse isFraudster(
+            @PathVariable("customerId") Integer customerId);
+
+}
+</code></pre>
+</div>
+
+<p>Clase record para la respuesta:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public record FraudCheckResponse(Boolean isFraudster) {
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo de cliente y solicitud(request)</h2>
+
+<p>Interfaz del cliente:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@FeignClient(
+        name = "notification",
+        url = "${clients.notification.url}"
+)
+public interface NotificationClient {
+
+    @PostMapping("api/v1/notification")
+    void sendNotification(NotificationRequest notificationRequest);
+}
+</code></pre>
+</div>
+
+<p>Clase record para la solicitud(request):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public record NotificationRequest(
+    Integer toCustomerId,
+    String toCustomerName,
+    String message
+) {
+}
+</code></pre>
+</div>
+
+<h2>Utilización del cliente para llamar a un controlador</h2>
+
+<p>Ejemplo de llamada de un controlador desde un servicio:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import com.amigoscode.amqp.RabbitMQMessageProducer;
+import com.amigoscode.clients.fraud.FraudCheckResponse;
+import com.amigoscode.clients.fraud.FraudClient;
+import com.amigoscode.clients.notification.NotificationClient;
+import com.amigoscode.clients.notification.NotificationRequest;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@AllArgsConstructor
+public class CustomerService {
+
+    private final CustomerRepository customerRepository;
+    private final FraudClient fraudClient;
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
+
+    public void registerCustomer(CustomerRegistrationRequest request) {
+        Customer customer = Customer.builder()
+                .firstName(request.firstName())
+                .lastName(request.lastName())
+                .email(request.email())
+                .build();
+        // todo: check if email valid
+        // todo: check if email not taken
+        customerRepository.saveAndFlush(customer);
+
+        FraudCheckResponse fraudCheckResponse =
+                fraudClient.isFraudster(customer.getId());
+
+        if (fraudCheckResponse.isFraudster()) {
+            throw new IllegalStateException("fraudster");
+        }
+
+        NotificationRequest notificationRequest = new NotificationRequest(
+                customer.getId(),
+                customer.getEmail(),
+                String.format("Hi %s, welcome to Amigoscode...",
+                        customer.getFirstName())
+        );
+        rabbitMQMessageProducer.publish(
+                notificationRequest,
+                "internal.exchange",
+                "internal.notification.routing-key"
+        );
+
+    }
+}
+</code></pre>
+</div>
