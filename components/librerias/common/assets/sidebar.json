@@ -1,109 +1,106 @@
 {
-    "pageContent" : [
+    "pageContent": [
         {
-            "text" : "Introducción",
-            "contentId" : "lombok",
-            "content" : "librerias.paths.introduccion"
+            "text": "Introducción",
+            "contentId": "lombok",
+            "content": "component-librerias-introduccion"
         },
         {
-            "text" : "Lombok",
-            "contentId" : "lombok",
-            "content" : [
+            "text": "Lombok",
+            "contentId": "lombok",
+            "content": [
                 {
-                    "text" : "Introducción",
-                    "content" : "librerias.paths.lombok.introduccion"
+                    "text": "Introducción",
+                    "content": "component-librerias-lombok-introduccion"
                 },
                 {
-                    "text" : "Constructores",
-                    "content" : "librerias.paths.lombok.constructor"
+                    "text": "Constructores",
+                    "content": "component-librerias-lombok-constructor"
                 },
                 {
-                    "text" : "Getter y Setter",
-                    "content" : "librerias.paths.lombok.getter-setter"
+                    "text": "Getter y Setter",
+                    "content": "component-librerias-lombok-getter-setter"
                 },
                 {
-                    "text" : "Accessors",
-                    "content" : "librerias.paths.lombok.accessors"
+                    "text": "Accessors",
+                    "content": "component-librerias-lombok-accessors"
                 },
                 {
-                    "text" : "ToString",
-                    "content" : "librerias.paths.lombok.tostring"
+                    "text": "ToString",
+                    "content": "component-librerias-lombok-tostring"
                 },
                 {
-                    "text" : "Data",
-                    "content" : "librerias.paths.lombok.data"
+                    "text": "Data",
+                    "content": "component-librerias-lombok-data"
                 },
                 {
-                    "text" : "Log",
-                    "content" : "librerias.paths.lombok.log"
+                    "text": "Log",
+                    "content": "component-librerias-lombok-log"
                 },
                 {
-                    "text" : "Builder",
-                    "content" : "librerias.paths.lombok.builder"
+                    "text": "Builder",
+                    "content": "component-librerias-lombok-builder"
                 }
             ]
         },
         {
-            "text" : "ModelMapper",
-            "contentId" : "modelMapper",
-            "content" : [
-            ]
+            "text": "ModelMapper",
+            "contentId": "modelMapper",
+            "content": []
         },
         {
-            "text" : "Flyway",
-            "contentId" : "flyway",
-            "content" : [
-            ]
+            "text": "Flyway",
+            "contentId": "flyway",
+            "content": []
         },
         {
-            "text" : "SpringFox",
-            "contentId" : "springfox",
-            "content" : [
-            ]
+            "text": "SpringFox",
+            "contentId": "springfox",
+            "content": []
         },
         {
-            "text" : "Hibernate",
-            "contentId" : "hibernate",
-            "content" : [
+            "text": "Hibernate",
+            "contentId": "hibernate",
+            "content": [
                 {
-                    "text" : "Conceptos Básicos",
-                    "contentId" : "hibernate-insertion",
-                    "content" : [
+                    "text": "Conceptos Básicos",
+                    "contentId": "hibernate-insertion",
+                    "content": [
                         {
-                            "text" : "Inserción",
-                            "content" : "librerias.paths.hibernate.conceptos-basicos.insercion"
+                            "text": "Inserción",
+                            "content": "component-librerias-hibernate-conceptos-basicos-insercion"
                         }
                     ]
                 }
             ]
         },
         {
-            "text" : "Apache HttpClient",
-            "contentId" : "apacheHttpClient",
-            "content" : [
+            "text": "Apache HttpClient",
+            "contentId": "apacheHttpClient",
+            "content": [
                 {
-                    "text" : "Introducción",
-                    "content" : "librerias.paths.apacheHttpClient.intro"
+                    "text": "Introducción",
+                    "content": "component-librerias-apachehttpclient-intro"
                 },
                 {
-                    "text" : "Request",
-                    "content" : "librerias.paths.apacheHttpClient.request"
+                    "text": "Request",
+                    "content": "component-librerias-apachehttpclient-request"
                 },
                 {
-                    "text" : "Ejemplos",
-                    "content" : "librerias.paths.apacheHttpClient.examples"
+                    "text": "Ejemplos",
+                    "content": "component-librerias-apachehttpclient-examples"
                 }
             ]
         }
     ],
-    "links" : [
+    "links": [
         {
-            "text" : "Lombok",
-            "href" : "https://projectlombok.org/"
+            "text": "Lombok",
+            "href": "https://projectlombok.org/"
         },
         {
-            "text" : "Hibernate",
-            "href" : "https://hibernate.org/"
+            "text": "Hibernate",
+            "href": "https://hibernate.org/"
         }
     ]
 }

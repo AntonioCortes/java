@@ -1,0 +1,8 @@
+:root {
+    --navbar-color: white;
+    --sidebar-background-color: #0c669e;
+    --sidebar-item-color: var(--navbar-color);
+    --divider-background-color: lightgrey;
+    --arrow-image-background-color: var(--navbar-color);
+    --sidebar-link-background-color: var(--sidebar-background-color);
+}

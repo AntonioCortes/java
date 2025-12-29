@@ -1,58 +1,58 @@
 {
-    "pageContent" : [
+    "pageContent": [
         {
-            "text" : "Conceptos Básicos",
-            "contentId" : "basics",
-            "content" : [
+            "text": "Conceptos Básicos",
+            "contentId": "basics",
+            "content": [
                 {
-                    "text" : "Introducción",
-                    "content" : "maven.paths.introduccion"
+                    "text": "Introducción",
+                    "content": "component-maven-introduccion"
                 }
             ]
         },
         {
-            "text" : "Conceptos Principales",
-            "contentId" : "main",
-            "content" : [
+            "text": "Conceptos Principales",
+            "contentId": "main",
+            "content": [
                 {
-                    "text" : "The Build LifeCycle",
-                    "content" : "maven.paths.lifecycle"
+                    "text": "The Build LifeCycle",
+                    "content": "component-maven-lifecycle"
                 },
                 {
-                    "text" : "Plugins",
-                    "content" : "maven.paths.plugins"
+                    "text": "Plugins",
+                    "content": "component-maven-plugins"
                 },
                 {
-                    "text" : "Estructura de archivos",
-                    "content" : "maven.paths.structure"
+                    "text": "Estructura de archivos",
+                    "content": "component-maven-structure"
                 },
                 {
-                    "text" : "Arquetipos",
-                    "content" : "maven.paths.arquetypes"
+                    "text": "Arquetipos",
+                    "content": "component-maven-arquetypes"
                 },
                 {
-                    "text" : "POM",
-                    "content" : "maven.paths.pom"
+                    "text": "POM",
+                    "content": "component-maven-pom"
                 },
                 {
-                    "text" : "Dependency Mechanisim",
-                    "content" : "maven.paths.dependency"
+                    "text": "Dependency Mechanisim",
+                    "content": "component-maven-dependency"
                 },
                 {
-                    "text" : "Ejemplos",
-                    "content" : "maven.paths.examples"
+                    "text": "Ejemplos",
+                    "content": "component-maven-examples"
                 }
             ]
         }
     ],
-    "links" : [
+    "links": [
         {
-            "text" : "Página Oficial",
-            "href" : "https://maven.apache.org/"
+            "text": "Página Oficial",
+            "href": "https://maven.apache.org/"
         },
         {
-            "text" : "Maven central repository",
-            "href" : "https://search.maven.org/"
+            "text": "Maven central repository",
+            "href": "https://search.maven.org/"
         }
     ]
 }

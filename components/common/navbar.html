@@ -1,4 +1,4 @@
-<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
                 
         <div class="brand-container">
@@ -8,22 +8,11 @@
             
             <img id="logo" height="40px">
             
-            <a id="nav-topic" class="navbar-brand" href="#" onclick="changeView('springboot')"></a>
+            <a id="nav-topic" class="navbar-brand" href="#" onclick="changeView('mainView')"></a>
         </div>
         
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div id="navbarNavAltMarkup" class="collapse navbar-collapse">
             <div id="navbar-navlinks" class="navbar-nav">
-                <a class="nav-link active" aria-current="page" href="#" onclick="changeView('java')">Java</a>
-                <a class="nav-link active" aria-current="page" href="#" onclick="changeView('springboot')">Spring Boot</a>
-                <a class="nav-link active" aria-current="page" href="#" onclick="changeView('maven')">Maven</a>
-                <a class="nav-link active" aria-current="page" href="#" onclick="changeView('gradle')">Gradle</a>
-                <a class="nav-link active" aria-current="page" href="#" onclick="changeView('librerias')">Librerias</a>
-                <a class="nav-link active" aria-current="page" href="#" onclick="changeView('designPatterns')">Patrones de diseño</a>
-            </div>
-        </div>
-        <div class="tools-container">
-            <div onclick="changeTheme()" id="themeButton" status="light-theme">
-                <img src="assets/vendor/bootstrap-icons/1.7.0/circle-half.svg">
             </div>
         </div>
     </div>

@@ -1,24 +1,24 @@
 {
-    "pageContent" : [
+    "pageContent": [
         {
-            "text" : "Conceptos Básicos",
-            "contentId" : "basics",
-            "content" : [
+            "text": "Conceptos Básicos",
+            "contentId": "basics",
+            "content": [
                 {
-                    "text" : "CheatSheet",
-                    "content" : "designPatterns.paths.cheatsheet"
+                    "text": "CheatSheet",
+                    "content": "component-designPatterns-cheatsheet"
                 },
                 {
-                    "text" : "Explicación Detallada",
-                    "content" : "designPatterns.paths.explicacion-detallada"
+                    "text": "Explicación Detallada",
+                    "content": "component-designPatterns-explicacion-detallada"
                 }
             ]
         }
     ],
-    "links" : [
+    "links": [
         {
-            "text" : "Videos Explicativos",
-            "href" : "https://www.youtube.com/playlist?list=PLC238B0613515968F"
+            "text": "Videos Explicativos",
+            "href": "https://www.youtube.com/playlist?list=PLC238B0613515968F"
         }
     ]
 }

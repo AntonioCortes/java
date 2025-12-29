@@ -1,178 +1,178 @@
 {
-    "pageContent" : [
+    "pageContent": [
         {
-            "text" : "Conceptos Básicos",
-            "contentId" : "basics",
-            "content" : [
+            "text": "Conceptos Básicos",
+            "contentId": "basics",
+            "content": [
                 {
-                    "text" : "Introducción",
-                    "content" : "springboot.paths.conceptos-basicos.introduccion"
+                    "text": "Introducción",
+                    "content": "component-springboot-conceptos-basicos-introduccion"
                 },
                 {
-                    "text" : "Crear un microservicio",
-                    "content" : "springboot.paths.conceptos-basicos.crear-un-microservicio"
+                    "text": "Crear un microservicio",
+                    "content": "component-springboot-conceptos-basicos-crear-un-microservicio"
                 },
                 {
-                    "text" : "POM / Gradle Build",
-                    "content" : "springboot.paths.conceptos-basicos.maven-gradle-build"
+                    "text": "POM / Gradle Build",
+                    "content": "component-springboot-conceptos-basicos-maven-gradle-build"
                 },
                 {
-                    "text" : "Archivo de configuración",
-                    "content" : "springboot.paths.conceptos-basicos.config"
+                    "text": "Archivo de configuración",
+                    "content": "component-springboot-conceptos-basicos-config"
                 },
                 {
-                    "text" : "Inyección de dependencias",
-                    "content" : "springboot.paths.conceptos-basicos.dependency-injection"
+                    "text": "Inyección de dependencias",
+                    "content": "component-springboot-conceptos-basicos-dependency-injection"
                 },
                 {
-                    "text" : "Estructura",
-                    "content" : "springboot.paths.conceptos-basicos.estructura"
+                    "text": "Estructura",
+                    "content": "component-springboot-conceptos-basicos-estructura"
                 },
                 {
-                    "text" : "Arquitectura de un proyecto",
-                    "content" : ""
+                    "text": "Arquitectura de un proyecto",
+                    "content": ""
                 }
             ]
         },
         {
-            "text" : "Capas Principales",
-            "contentId" : "mainLayers",
-            "content" : [
+            "text": "Capas Principales",
+            "contentId": "mainLayers",
+            "content": [
                 {
-                    "text" : "DTO",
-                    "content" : "springboot.paths.capas-principales.dto"
+                    "text": "DTO",
+                    "content": "component-springboot-capas-principales-dto"
                 },
                 {
-                    "text" : "Controladores",
-                    "contentId" : "controladores",
-                    "content" : [
+                    "text": "Controladores",
+                    "contentId": "controladores",
+                    "content": [
                         {
-                            "text":"Controlador",
-                            "content":"springboot.paths.capas-principales.controladores.controlador"
+                            "text": "Controlador",
+                            "content": "component-springboot-capas-principales-controladores-controlador"
                         },
                         {
-                            "text":"Controlador REST",
-                            "content":"springboot.paths.capas-principales.controladores.controladorRest"
+                            "text": "Controlador REST",
+                            "content": "component-springboot-capas-principales-controladores-controladorRest"
                         }
                     ]
                 },
                 {
-                    "text" : "Servicio",
-                    "content" : "springboot.paths.capas-principales.servicio"
+                    "text": "Servicio",
+                    "content": "component-springboot-capas-principales-servicio"
                 },
                 {
-                    "text" : "Repositorio/DAO",
-                    "content" : "springboot.paths.capas-principales.repositorio"
+                    "text": "Repositorio/DAO",
+                    "content": "component-springboot-capas-principales-repositorio"
                 },
                 {
-                    "text" : "Entidad",
-                    "content" : "springboot.paths.capas-principales.entidad"
+                    "text": "Entidad",
+                    "content": "component-springboot-capas-principales-entidad"
                 }
             ]
         },
         {
-            "text" : "Otros",
-            "contentId" : "otherStuff",
-            "content" : [
+            "text": "Otros",
+            "contentId": "otherStuff",
+            "content": [
                 {
-                    "text" : "Configuración",
-                    "content" : "springboot.paths.otros.springConfig"
+                    "text": "Configuración",
+                    "content": "component-springboot-otros-springConfig"
                 },
                 {
-                    "text" : "Excepciones",
-                    "content" : "springboot.paths.otros.exceptions"
+                    "text": "Excepciones",
+                    "content": "component-springboot-otros-exceptions"
                 },
                 {
-                    "text" : "RabbitMQ",
-                    "content" : "springboot.paths.otros.rabbitmq"
+                    "text": "RabbitMQ",
+                    "content": "component-springboot-otros-rabbitmq"
                 }
             ]
         },
         {
-            "text" : "Librerias",
-            "contentId" : "springBootLibraries",
-            "content" : [
+            "text": "Librerias",
+            "contentId": "springBootLibraries",
+            "content": [
                 {
-                    "text" : "Spring Cloud",
-                    "contentId" : "springCloud",
-                    "content" : [
+                    "text": "Spring Cloud",
+                    "contentId": "springCloud",
+                    "content": [
                         {
-                            "text" : "Introducción",
-                            "content" : "springboot.paths.librerias.spring-cloud.introduccionSpringCloud"
+                            "text": "Introducción",
+                            "content": "component-springboot-librerias-spring-cloud-introduccionSpringCloud"
                         },
                         {
-                            "text" : "Open Feign",
-                            "content" : "springboot.paths.librerias.spring-cloud.openFeign"
+                            "text": "Open Feign",
+                            "content": "component-springboot-librerias-spring-cloud-openFeign"
                         },
                         {
-                            "text" : "Eureka server",
-                            "content" : "springboot.paths.librerias.spring-cloud.eurekaServer"
+                            "text": "Eureka server",
+                            "content": "component-springboot-librerias-spring-cloud-eurekaServer"
                         },
                         {
-                            "text" : "Trazas distribuidas",
-                            "content" : "springboot.paths.librerias.spring-cloud.distributedTracing"
+                            "text": "Trazas distribuidas",
+                            "content": "component-springboot-librerias-spring-cloud-distributedTracing"
                         },
                         {
-                            "text" : "Load Balancers",
-                            "content" : "springboot.paths.librerias.spring-cloud.loadBalancers"
+                            "text": "Load Balancers",
+                            "content": "component-springboot-librerias-spring-cloud-loadBalancers"
                         }
                     ]
                 },
                 {
-                    "text" : "Spring Security",
-                    "contentId" : "springSecurity",
-                    "content" : [
+                    "text": "Spring Security",
+                    "contentId": "springSecurity",
+                    "content": [
                         {
-                            "text" : "Basic Secutiry",
-                            "content" : "springboot.paths.librerias.spring-security.basic"
+                            "text": "Basic Secutiry",
+                            "content": "component-springboot-librerias-spring-security-basic"
                         },
                         {
-                            "text" : "Microservicios",
-                            "content" : "springboot.paths.librerias.spring-security.microservices"
+                            "text": "Microservicios",
+                            "content": "component-springboot-librerias-spring-security-microservices"
                         }
                     ]
                 }
             ]
         },
         {
-            "text" : "Tests",
-            "contentId" : "test",
-            "content" : [
+            "text": "Tests",
+            "contentId": "test",
+            "content": [
                 {
-                    "text" : "Unitarios",
-                    "content" : "springboot.paths.test.unitarios"
+                    "text": "Unitarios",
+                    "content": "component-springboot-test-unitarios"
                 },
                 {
-                    "text" : "Funcionales",
-                    "content" : "springboot.paths.test.funcionales"
+                    "text": "Funcionales",
+                    "content": "component-springboot-test-funcionales"
                 },
                 {
-                    "text" : "Integración",
-                    "content" : "springboot.paths.test.integracion"
+                    "text": "Integración",
+                    "content": "component-springboot-test-integracion"
                 },
                 {
-                    "text" : "TDD",
-                    "content" : "springboot.paths.test.tdd"
+                    "text": "TDD",
+                    "content": "component-springboot-test-tdd"
                 },
                 {
-                    "text" : "Ejemplos",
-                    "content" : "springboot.paths.test.ejemplos"
+                    "text": "Ejemplos",
+                    "content": "component-springboot-test-ejemplos"
                 }
             ]
         }
     ],
-    "links" : [
+    "links": [
         {
-            "text" : "Página Oficial",
-            "href" : "https://spring.io/projects/spring-boot#overview"
+            "text": "Página Oficial",
+            "href": "https://spring.io/projects/spring-boot#overview"
         },
         {
-            "text" : "AssertJ",
-            "href" : "https://assertj.github.io/doc/"
+            "text": "AssertJ",
+            "href": "https://assertj.github.io/doc/"
         },
         {
-            "text" : "Mockito",
-            "href" : "https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html"
+            "text": "Mockito",
+            "href": "https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html"
         }
     ]
 }

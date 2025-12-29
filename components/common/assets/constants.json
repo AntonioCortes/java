@@ -1,0 +1,32 @@
+{
+    "common": {
+        "paths": {
+            "navbar": "components/common/navbar.html",
+            "sidebar": "components/common/sidebar.html"
+        }
+    },
+    "mainView": {
+        "topic": "Java",
+        "basePath": "components/java"
+    },
+    "springboot": {
+        "topic": "Spring Boot",
+        "basePath": "components/springboot"
+    },
+    "maven": {
+        "topic": "Maven",
+        "basePath": "components/maven"
+    },
+    "gradle": {
+        "topic": "Gradle",
+        "basePath": "components/gradle"
+    },
+    "librerias": {
+        "topic": "Librerías",
+        "basePath": "components/librerias"
+    },
+    "designPatterns": {
+        "topic": "Patrones de Diseño",
+        "basePath": "components/design-patterns"
+    }
+}

@@ -1,217 +1,216 @@
 {
-    "pageContent" : [
+    "pageContent": [
         {
-            "text" : "Conceptos Básicos",
-            "contentId" : "basics",
-            "content" : [
+            "text": "Conceptos Básicos",
+            "contentId": "basics",
+            "content": [
                 {
-                    "text" : "Introducción",
-                    "content" : "java.paths.introduccion"
+                    "text": "Introducción",
+                    "content": "component-java-introduccion"
                 }
             ]
         },
         {
-            "text" : "Conceptos Principales",
-            "contentId" : "main",
-            "content" : [
+            "text": "Conceptos Principales",
+            "contentId": "main",
+            "content": [
                 {
-                    "text" : "Tipos de datos",
-                    "contentId":"tiposDeDatos",
-                    "content" : [
+                    "text": "Tipos de datos",
+                    "contentId": "tiposDeDatos",
+                    "content": [
                         {
-                            "text" : "Introducción",
-                            "content" : "java.paths.tiposDeDatos.introduccion"
+                            "text": "Introducción",
+                            "content": "component-java-tiposDeDatos-introduccion"
                         },
                         {
-                             "text" : "Tipos primitivos",
-                            "content" : "java.paths.tiposDeDatos.tiposPrimitivos"
+                            "text": "Tipos primitivos",
+                            "content": "component-java-tiposDeDatos-tiposPrimitivos"
                         },
                         {
-                            "text" : "Texto",
-                            "content" : "java.paths.tiposDeDatos.texto"
+                            "text": "Texto",
+                            "content": "component-java-tiposDeDatos-texto"
                         },
                         {
-                            "text" : "Fecha",
-                            "content" : "java.paths.tiposDeDatos.fecha"
+                            "text": "Fecha",
+                            "content": "component-java-tiposDeDatos-fecha"
                         }
                     ]
                 },
                 {
-                    "text" : "Operadores",
-                    "content" : "java.paths.operators"
+                    "text": "Operadores",
+                    "content": "component-java-operators"
                 },
                 {
-                    "text" : "Arrays",
-                    "content" : "java.paths.arrays"
+                    "text": "Arrays",
+                    "content": "component-java-arrays"
                 },
                 {
-                    "text" : "Estructuras de control/flujo",
-                    "content" : "java.paths.flow-control"
+                    "text": "Estructuras de control/flujo",
+                    "content": "component-java-flow-control"
                 },
                 {
-                    "text" : "POO",
+                    "text": "POO",
                     "contentId": "poo",
-                    "content" : [
+                    "content": [
                         {
-                            "text" : "Clase",
-                            "content" : "java.paths.poo.clase"
+                            "text": "Clase",
+                            "content": "component-java-poo-clase"
                         },
                         {
-                            "text" : "Método",
-                            "content" : "java.paths.poo.metodo"
+                            "text": "Método",
+                            "content": "component-java-poo-metodo"
                         },
                         {
-                            "text" : "Modificadores de acceso",
-                            "content" : "java.paths.poo.acceso"
+                            "text": "Modificadores de acceso",
+                            "content": "component-java-poo-acceso"
                         },
                         {
-                            "text" : "Clase Abstracta",
-                            "content" : "java.paths.poo.clase-abstracta"
+                            "text": "Clase Abstracta",
+                            "content": "component-java-poo-clase-abstracta"
                         },
                         {
-                            "text" : "Clase Anidada",
-                            "content" : "java.paths.poo.clase-anidada"
+                            "text": "Clase Anidada",
+                            "content": "component-java-poo-clase-anidada"
                         },
                         {
-                            "text" : "Clase Enumeradora",
-                            "content" : "java.paths.poo.clase-enumeradora"
+                            "text": "Clase Enumeradora",
+                            "content": "component-java-poo-clase-enumeradora"
                         },
                         {
-                            "text" : "Herencia",
-                            "content" : "java.paths.poo.herencia"
+                            "text": "Herencia",
+                            "content": "component-java-poo-herencia"
                         },
                         {
-                            "text" : "Polimorfismo",
-                            "content" : "java.paths.poo.polimorfismo"
+                            "text": "Polimorfismo",
+                            "content": "component-java-poo-polimorfismo"
                         },
                         {
-                            "text" : "Interfaz",
-                            "content" : "java.paths.poo.interfaz"
+                            "text": "Interfaz",
+                            "content": "component-java-poo-interfaz"
                         },
                         {
-                            "text" : "Comparator/Comparable",
-                            "content" : "java.paths.poo.comparable-comparator"
+                            "text": "Comparator/Comparable",
+                            "content": "component-java-poo-comparable-comparator"
                         }
                     ]
                 },
                 {
-                    "text" : "Colecciones",
-                    "contentId" : "colecciones",
-                    "content" : [
+                    "text": "Colecciones",
+                    "contentId": "colecciones",
+                    "content": [
                         {
-                            "text" : "Listas",
-                            "content" : "java.paths.colecciones.list"
+                            "text": "Listas",
+                            "content": "component-java-colecciones-list"
                         },
                         {
-                            "text" : "Set",
-                            "content" : "java.paths.colecciones.set"
+                            "text": "Set",
+                            "content": "component-java-colecciones-set"
                         },
                         {
-                            "text" : "Map",
-                            "content" : "java.paths.colecciones.map"
+                            "text": "Map",
+                            "content": "component-java-colecciones-map"
                         },
                         {
-                            "text" : "Iterables",
-                            "content" : "java.paths.colecciones.iterable"
+                            "text": "Iterables",
+                            "content": "component-java-colecciones-iterable"
                         },
                         {
-                            "text" : "Orden",
-                            "content" : "java.paths.colecciones.order"
-                        }
-
-                    ]
-                },
-                {
-                    "text" : "Excepciones",
-                    "content" : "java.paths.excepciones"
-                },
-                {
-                    "text" : "I/O",
-                    "contentId":"io",
-                    "content" : [
-                        {
-                            "text" : "I/O",
-                            "content" : "java.paths.io.io"
-                        },
-                        {
-                            "text" : "Serialización",
-                           "content" : "java.paths.io.serializable"
-                        },
-                        {
-                             "text" : "JDBC",
-                            "content" : "java.paths.io.jdbc"
+                            "text": "Orden",
+                            "content": "component-java-colecciones-order"
                         }
                     ]
                 },
                 {
-                    "text" : "Programación funcional",
-                    "contentId":"programacionFuncional",
-                    "content" : [
+                    "text": "Excepciones",
+                    "content": "component-java-excepciones"
+                },
+                {
+                    "text": "Input Output",
+                    "contentId": "io",
+                    "content": [
                         {
-                            "text" : "Interfaces Funcionales",
-                            "content" : "java.paths.programacionFuncional.functionalInterface"
+                            "text": "Input Output",
+                            "content": "component-java-io-io"
                         },
                         {
-                             "text" : "Expresiones Lambda",
-                            "content" : "java.paths.programacionFuncional.lambda"
+                            "text": "Serialización",
+                            "content": "component-java-io-serializable"
                         },
                         {
-                            "text" : "Streams",
-                            "content" : "java.paths.programacionFuncional.streams"
-                        },
-                        {
-                            "text" : "Métodos Streams",
-                            "content" : "java.paths.programacionFuncional.metodosStreams"
+                            "text": "JDBC",
+                            "content": "component-java-io-jdbc"
                         }
                     ]
                 },
                 {
-                    "text" : "Concurrencia",
-                    "contentId":"concurrencia",
-                    "content" : [
+                    "text": "Programación funcional",
+                    "contentId": "programacionFuncional",
+                    "content": [
                         {
-                            "text" : "Introduccion",
-                            "content" : "java.paths.concurrencia.introduccion"
+                            "text": "Interfaces Funcionales",
+                            "content": "component-java-programacionFuncional-functionalInterface"
                         },
                         {
-                             "text" : "Concurrencia",
-                            "content" : "java.paths.concurrencia.concurrencia"
+                            "text": "Expresiones Lambda",
+                            "content": "component-java-programacionFuncional-lambda"
+                        },
+                        {
+                            "text": "Streams",
+                            "content": "component-java-programacionFuncional-streams"
+                        },
+                        {
+                            "text": "Métodos Streams",
+                            "content": "component-java-programacionFuncional-metodosStreams"
                         }
                     ]
                 },
                 {
-                    "text" : "Modularidad",
-                    "content" : "java.paths.modulesystem"
+                    "text": "Concurrencia",
+                    "contentId": "concurrencia",
+                    "content": [
+                        {
+                            "text": "Introduccion",
+                            "content": "component-java-concurrencia-introduccion"
+                        },
+                        {
+                            "text": "Concurrencia",
+                            "content": "component-java-concurrencia-concurrencia"
+                        }
+                    ]
+                },
+                {
+                    "text": "Modularidad",
+                    "content": "component-java-modulesystem"
                 }
             ]
         },
         {
-            "text" : "Otros Aspectos",
-            "contentId" : "otros",
-            "content" : [
+            "text": "Otros Aspectos",
+            "contentId": "otros",
+            "content": [
                 {
-                    "text" : "Anotaciones",
-                    "content" : "java.paths.anotaciones"
+                    "text": "Anotaciones",
+                    "content": "component-java-anotaciones"
                 },
                 {
-                    "text" : "Localización",
-                    "content" : "java.paths.localizacion"
+                    "text": "Localización",
+                    "content": "component-java-localizacion"
                 },
                 {
-                    "text" : "Seguridad",
-                    "content" : "java.paths.seguridad"
+                    "text": "Seguridad",
+                    "content": "component-java-seguridad"
                 },
                 {
-                    "text" : "Matemáticas",
-                    "content" : "java.paths.matematicas"
+                    "text": "Matemáticas",
+                    "content": "component-java-matematicas"
                 }
             ]
         }
     ],
-    "links" : [
+    "links": [
         {
-            "text" : "***",
-            "href" : ""
+            "text": "***",
+            "href": ""
         }
     ]
 }

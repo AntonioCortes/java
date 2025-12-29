@@ -1,20 +1,20 @@
 {
-    "pageContent" : [
+    "pageContent": [
         {
-            "text" : "Conceptos Básicos",
-            "contentId" : "basics",
-            "content" : [
+            "text": "Conceptos Básicos",
+            "contentId": "basics",
+            "content": [
                 {
-                    "text" : "Ejemplo",
-                    "content" : "gradle.paths.ejemplo"
+                    "text": "Ejemplo",
+                    "content": "component-gradle-ejemplo"
                 }
             ]
         }
     ],
-    "links" : [
+    "links": [
         {
-            "text" : "Página Oficial",
-            "href" : "https://gradle.org/"
+            "text": "Página Oficial",
+            "href": "https://gradle.org/"
         }
     ]
 }
