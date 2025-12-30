@@ -1,6 +1,52 @@
 // ===== DESIGN PATTERNS =====
 import '../components/design-patterns/cheatsheet/cheatsheet.js';
 import '../components/design-patterns/explicacion-detallada/explicacion-detallada.js';
+// Ejemplos
+import '../components/design-patterns/ejemplos/singleton/singleton.js';
+import '../components/design-patterns/ejemplos/factory-method/factory-method.js';
+import '../components/design-patterns/ejemplos/observer/observer.js';
+import '../components/design-patterns/ejemplos/builder/builder.js';
+import '../components/design-patterns/ejemplos/adapter/adapter.js';
+import '../components/design-patterns/ejemplos/decorator/decorator.js';
+import '../components/design-patterns/ejemplos/strategy/strategy.js';
+import '../components/design-patterns/ejemplos/proxy/proxy.js';
+import '../components/design-patterns/ejemplos/command/command.js';
+import '../components/design-patterns/ejemplos/abstract-factory/abstract-factory.js';
+import '../components/design-patterns/ejemplos/prototype/prototype.js';
+import '../components/design-patterns/ejemplos/bridge/bridge.js';
+import '../components/design-patterns/ejemplos/composite/composite.js';
+import '../components/design-patterns/ejemplos/facade/facade.js';
+import '../components/design-patterns/ejemplos/flyweight/flyweight.js';
+import '../components/design-patterns/ejemplos/chain-of-responsibility/chain-of-responsibility.js';
+import '../components/design-patterns/ejemplos/interpreter/interpreter.js';
+import '../components/design-patterns/ejemplos/iterator/iterator.js';
+import '../components/design-patterns/ejemplos/mediator/mediator.js';
+import '../components/design-patterns/ejemplos/memento/memento.js';
+import '../components/design-patterns/ejemplos/state/state.js';
+import '../components/design-patterns/ejemplos/template-method/template-method.js';
+import '../components/design-patterns/ejemplos/visitor/visitor.js';
+
+// Java EE
+import '../components/design-patterns/ejemplos/intercepting-filter/intercepting-filter.js';
+import '../components/design-patterns/ejemplos/front-controller/front-controller.js';
+import '../components/design-patterns/ejemplos/view-helper/view-helper.js';
+import '../components/design-patterns/ejemplos/composite-view/composite-view.js';
+import '../components/design-patterns/ejemplos/dispatcher-view/dispatcher-view.js';
+import '../components/design-patterns/ejemplos/service-to-worker/service-to-worker.js';
+import '../components/design-patterns/ejemplos/business-delegate/business-delegate.js';
+import '../components/design-patterns/ejemplos/service-locator/service-locator.js';
+import '../components/design-patterns/ejemplos/session-facade/session-facade.js';
+import '../components/design-patterns/ejemplos/application-service/application-service.js';
+import '../components/design-patterns/ejemplos/business-object/business-object.js';
+import '../components/design-patterns/ejemplos/composite-entity/composite-entity.js';
+import '../components/design-patterns/ejemplos/transfer-object/transfer-object.js';
+import '../components/design-patterns/ejemplos/data-access-object/data-access-object.js';
+import '../components/design-patterns/ejemplos/value-list-handler/value-list-handler.js';
+import '../components/design-patterns/ejemplos/web-service-broker/web-service-broker.js';
+import '../components/design-patterns/ejemplos/mvc/mvc.js';
+import '../components/design-patterns/ejemplos/transfer-object-assembler/transfer-object-assembler.js';
+import '../components/design-patterns/ejemplos/context-object/context-object.js';
+import '../components/design-patterns/ejemplos/application-controller/application-controller.js';
 
 // ===== GRADLE =====
 import '../components/gradle/ejemplo/ejemplo.js';

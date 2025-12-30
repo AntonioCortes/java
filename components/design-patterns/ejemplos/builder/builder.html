@@ -1,0 +1,94 @@
+<h1 class="title">Patrón Builder</h1>
+
+<p>El patrón <strong>Builder</strong> es un patrón creacional que permite construir objetos complejos paso a paso. Permite producir diferentes tipos y representaciones de un objeto empleando el mismo código de construcción.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Separar la construcción de un objeto complejo de su representación, de modo que el mismo proceso de construcción pueda crear diferentes representaciones. Es especialmente útil cuando un objeto tiene muchos parámetros, algunos obligatorios y otros opcionales (evitando el "Telescoping Constructor Anti-pattern").</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Construcción de una <strong>Pizza</strong> o un <strong>Request HTTP</strong>. Una pizza puede tener masa fina o gruesa, con o sin queso, con o sin pepperoni, etc. Un constructor normal con todos los parámetros sería ilegible.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Producto
+class Pizza {
+    private String dough;
+    private String sauce;
+    private String topping;
+
+    public void setDough(String dough) { this.dough = dough; }
+    public void setSauce(String sauce) { this.sauce = sauce; }
+    public void setTopping(String topping) { this.topping = topping; }
+    
+    @Override
+    public String toString() {
+        return "Pizza [dough=" + dough + ", sauce=" + sauce + ", topping=" + topping + "]";
+    }
+}
+
+// Builder
+class PizzaBuilder {
+    private Pizza pizza;
+
+    public PizzaBuilder() {
+        this.pizza = new Pizza();
+    }
+
+    public PizzaBuilder withDough(String dough) {
+        pizza.setDough(dough);
+        return this;
+    }
+
+    public PizzaBuilder withSauce(String sauce) {
+        pizza.setSauce(sauce);
+        return this;
+    }
+
+    public PizzaBuilder withTopping(String topping) {
+        pizza.setTopping(topping);
+        return this;
+    }
+
+    public Pizza build() {
+        return pizza;
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Patrón Builder Básico</span>
+
+<br>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        Pizza pizza = new PizzaBuilder()
+                        .withDough("Fina")
+                        .withSauce("Tomate")
+                        .withTopping("Pepperoni")
+                        .build();
+
+        System.out.println(pizza);
+        
+        Pizza basicPizza = new PizzaBuilder()
+                            .withDough("Gruesa")
+                            .build(); // Sin salsa ni topping
+                            
+        System.out.println(basicPizza);
+    }
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-plaintext">
+Output:
+Pizza [dough=Fina, sauce=Tomate, topping=Pepperoni]
+Pizza [dough=Gruesa, sauce=null, topping=null]
+</code></pre>
+</div>

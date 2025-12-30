@@ -1,0 +1,35 @@
+<h1 class="title">Patrón Template Method</h1>
+
+<p>El patrón <strong>Template Method</strong> es un patrón de comportamiento que define el esqueleto de un algoritmo en la superclase pero permite que las subclases sobrescriban pasos específicos del algoritmo sin cambiar su estructura.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Definir el esqueleto de un algoritmo, delegando algunos pasos a las subclases.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Construcción de casas (Cimientos -> Paredes -> Techo), donde Paredes y Techo varían (Madera vs Ladrillo). Compilación de código (Parse -> Compile -> Link).</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+abstract class Game {
+    abstract void initialize();
+    abstract void startPlay();
+    abstract void endPlay();
+
+    // Template method
+    public final void play() {
+        initialize();
+        startPlay();
+        endPlay();
+    }
+}
+
+class Cricket extends Game {
+    void endPlay() { System.out.println("Cricket Game Finished!"); }
+    void initialize() { System.out.println("Cricket Game Initialized!"); }
+    void startPlay() { System.out.println("Cricket Game Started!"); }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Template Method</span>

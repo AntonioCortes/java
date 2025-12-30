@@ -1,0 +1,25 @@
+<h1 class="title">Patrón Web Service Broker</h1>
+
+<p>El patrón <strong>Web Service Broker</strong> es un patrón de la arquitectura Java EE que brinda un punto de acceso a uno o más servicios utilizando estándares web (SOAP/REST).</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Interoperabilidad entre sistemas heterogéneos.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Un API Gateway que expone servicios internos como REST APIs.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Path("/users")
+public class UserResource {
+    @GET
+    @Produces("application/json")
+    public List<UserDTO> getUsers() {
+        return userService.findAll();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Web Service Broker</span>

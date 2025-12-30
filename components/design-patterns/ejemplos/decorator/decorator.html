@@ -1,0 +1,114 @@
+<h1 class="title">Patrón Decorator</h1>
+
+<p>El patrón <strong>Decorator</strong> es un patrón estructural que permite añadir funcionalidades a objetos colocando estos objetos dentro de objetos encapsuladores especiales que contienen estas funcionalidades.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Añadir responsabilidades a un objeto de forma dinámica. Provee una alternativa flexible a la herencia para extender la funcionalidad.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Java I/O Streams (`new BufferedReader(new FileReader(...))`) o un sistema de precios de café donde quieres añadir ingredientes (Leche, Azúcar, Chocolate) a un café base, combinándolos de cualquier forma.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Componente
+interface Coffee {
+    String getDescription();
+    double getCost();
+}
+
+// Componente Concreto
+class SimpleCoffee implements Coffee {
+    @Override
+    public String getDescription() {
+        return "Café Simple";
+    }
+    @Override
+    public double getCost() {
+        return 1.0;
+    }
+}
+
+// Decorador Base
+abstract class CoffeeDecorator implements Coffee {
+    protected Coffee decoratedCoffee;
+
+    public CoffeeDecorator(Coffee coffee) {
+        this.decoratedCoffee = coffee;
+    }
+
+    @Override
+    public String getDescription() {
+        return decoratedCoffee.getDescription();
+    }
+    @Override
+    public double getCost() {
+        return decoratedCoffee.getCost();
+    }
+}
+
+// Decoradores Concretos
+class MilkDecorator extends CoffeeDecorator {
+    public MilkDecorator(Coffee coffee) {
+        super(coffee);
+    }
+    @Override
+    public String getDescription() {
+        return super.getDescription() + ", con Leche";
+    }
+    @Override
+    public double getCost() {
+        return super.getCost() + 0.5;
+    }
+}
+
+class SugarDecorator extends CoffeeDecorator {
+    public SugarDecorator(Coffee coffee) {
+        super(coffee);
+    }
+    @Override
+    public String getDescription() {
+        return super.getDescription() + ", con Azúcar";
+    }
+    @Override
+    public double getCost() {
+        return super.getCost() + 0.2;
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Estructura Decorator</span>
+
+<br>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        // Café simple
+        Coffee myCoffee = new SimpleCoffee();
+        System.out.println(myCoffee.getDescription() + " $" + myCoffee.getCost());
+
+        // Café con leche
+        myCoffee = new MilkDecorator(myCoffee);
+        System.out.println(myCoffee.getDescription() + " $" + myCoffee.getCost());
+
+        // Café con leche y azúcar
+        myCoffee = new SugarDecorator(myCoffee);
+        System.out.println(myCoffee.getDescription() + " $" + myCoffee.getCost());
+    }
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-plaintext">
+Output:
+Café Simple $1.0
+Café Simple, con Leche $1.5
+Café Simple, con Leche, con Azúcar $1.7
+</code></pre>
+</div>

@@ -1,0 +1,32 @@
+<h1 class="title">Patrón Service Locator</h1>
+
+<p>El patrón <strong>Service Locator</strong> es un patrón de la arquitectura Java EE que centraliza la lógica para buscar recursos externos (EJBs, DataSources).</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Evitar la redundancia de código de búsqueda JNDI y mejorar performance con caching.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Búsqueda de DataSources en un servidor de aplicaciones.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class ServiceLocator {
+    private static Cache cache;
+    
+    static { cache = new Cache(); }
+
+    public Service getService(String jndiName) {
+        Service service = cache.getService(jndiName);
+        if (service != null) return service;
+
+        Context context = new InitialContext();
+        service = (Service) context.lookup(jndiName);
+        cache.addService(service);
+        return service;
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Service Locator</span>

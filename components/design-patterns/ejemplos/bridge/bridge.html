@@ -1,0 +1,47 @@
+<h1 class="title">Patrón Bridge</h1>
+
+<p>El patrón <strong>Bridge</strong> es un patrón estructural que divide una clase grande o un conjunto de clases estrechamente relacionadas en dos jerarquías separadas (abstracción e implementación) que pueden desarrollarse independientemente.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Desacoplar una abstracción de su implementación, de modo que ambas puedan variar independientemente.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Drivers de Base de Datos (JDBC) o Sistemas Gráficos (OpenGL vs DirectX) usados por una misma API de alto nivel.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Implementor
+interface Device {
+    void turnOn();
+    void turnOff();
+    void setChannel(int channel);
+}
+
+// Abstraction
+class RemoteControl {
+    protected Device device;
+    
+    public RemoteControl(Device device) {
+        this.device = device;
+    }
+    
+    public void togglePower() {
+        // lógica genérica
+    }
+}
+
+// Refined Abstraction
+class AdvancedRemoteControl extends RemoteControl {
+    public AdvancedRemoteControl(Device device) {
+        super(device);
+    }
+    
+    public void mute() {
+        device.setVolume(0);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Bridge</span>

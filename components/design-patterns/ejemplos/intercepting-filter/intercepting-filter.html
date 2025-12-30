@@ -1,0 +1,35 @@
+<h1 class="title">Patrón Intercepting Filter</h1>
+
+<p>El patrón <strong>Intercepting Filter</strong> es un patrón de la arquitectura Java EE que se utiliza para manipular una petición antes de que llegue a su destino. Permite aplicar filtros secuenciales.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Procesamiento previo y posterior de peticiones (autenticación, logging, encoding) de forma centralizada.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Filtros de Servlets en Java EE. Validar si un usuario está logueado antes de acceder a un recurso.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class FilterManager {
+    FilterChain filterChain;
+
+    public FilterManager(Target target) {
+        filterChain = new FilterChain();
+        filterChain.setTarget(target);
+    }
+    public void setFilter(Filter filter) {
+        filterChain.addFilter(filter);
+    }
+    public void filterRequest(String request) {
+        filterChain.execute(request);
+    }
+}
+interface Filter { void execute(String request); }
+class AuthFilter implements Filter {
+    public void execute(String request) { System.out.println("Authenticating: " + request); }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Intercepting Filter</span>

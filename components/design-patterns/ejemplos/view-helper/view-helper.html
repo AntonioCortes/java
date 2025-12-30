@@ -1,0 +1,27 @@
+<h1 class="title">Patrón View Helper</h1>
+
+<p>El patrón <strong>View Helper</strong> es un patrón de la arquitectura Java EE que encapsula lógica de negocio o de acceso a datos que no debería estar directamente en la vista (JSP/HTML).</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Mantener las vistas limpias y sin código Java complejo (scriptlets).</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>JSP Custom Tags o Beans auxiliares que formatean fechas o calculan totales para ser mostrados.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Helper
+public class UserViewHelper {
+    public String getFormattedName(User user) {
+        return user.getLastName().toUpperCase() + ", " + user.getFirstName();
+    }
+}
+
+// En la vista (simulado)
+// <% UserViewHelper helper = new UserViewHelper(); %>
+// <h1>Hola, <%= helper.getFormattedName(currentUser) %></h1>
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de View Helper</span>

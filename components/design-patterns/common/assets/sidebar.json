@@ -13,6 +13,194 @@
                     "content": "component-design-patterns-explicacion-detallada"
                 }
             ]
+        },
+        {
+            "text": "Ejemplos",
+            "contentId": "examples",
+            "content": [
+                {
+                    "text": "Gang of Four",
+                    "content": [
+                        {
+                            "text": "Singleton",
+                            "content": "component-design-patterns-ejemplos-singleton"
+                        },
+                        {
+                            "text": "Factory Method",
+                            "content": "component-design-patterns-ejemplos-factory-method"
+                        },
+                        {
+                            "text": "Abstract Factory",
+                            "content": "component-design-patterns-ejemplos-abstract-factory"
+                        },
+                        {
+                            "text": "Builder",
+                            "content": "component-design-patterns-ejemplos-builder"
+                        },
+                        {
+                            "text": "Prototype",
+                            "content": "component-design-patterns-ejemplos-prototype"
+                        },
+                        {
+                            "text": "Adapter",
+                            "content": "component-design-patterns-ejemplos-adapter"
+                        },
+                        {
+                            "text": "Bridge",
+                            "content": "component-design-patterns-ejemplos-bridge"
+                        },
+                        {
+                            "text": "Composite",
+                            "content": "component-design-patterns-ejemplos-composite"
+                        },
+                        {
+                            "text": "Decorator",
+                            "content": "component-design-patterns-ejemplos-decorator"
+                        },
+                        {
+                            "text": "Facade",
+                            "content": "component-design-patterns-ejemplos-facade"
+                        },
+                        {
+                            "text": "Flyweight",
+                            "content": "component-design-patterns-ejemplos-flyweight"
+                        },
+                        {
+                            "text": "Proxy",
+                            "content": "component-design-patterns-ejemplos-proxy"
+                        },
+                        {
+                            "text": "Chain of Responsibility",
+                            "content": "component-design-patterns-ejemplos-chain-of-responsibility"
+                        },
+                        {
+                            "text": "Command",
+                            "content": "component-design-patterns-ejemplos-command"
+                        },
+                        {
+                            "text": "Interpreter",
+                            "content": "component-design-patterns-ejemplos-interpreter"
+                        },
+                        {
+                            "text": "Iterator",
+                            "content": "component-design-patterns-ejemplos-iterator"
+                        },
+                        {
+                            "text": "Mediator",
+                            "content": "component-design-patterns-ejemplos-mediator"
+                        },
+                        {
+                            "text": "Memento",
+                            "content": "component-design-patterns-ejemplos-memento"
+                        },
+                        {
+                            "text": "Observer",
+                            "content": "component-design-patterns-ejemplos-observer"
+                        },
+                        {
+                            "text": "State",
+                            "content": "component-design-patterns-ejemplos-state"
+                        },
+                        {
+                            "text": "Strategy",
+                            "content": "component-design-patterns-ejemplos-strategy"
+                        },
+                        {
+                            "text": "Template Method",
+                            "content": "component-design-patterns-ejemplos-template-method"
+                        },
+                        {
+                            "text": "Visitor",
+                            "content": "component-design-patterns-ejemplos-visitor"
+                        }
+                    ]
+                },
+                {
+                    "text": "Java EE",
+                    "content": [
+                        {
+                            "text": "Intercepting Filter",
+                            "content": "component-design-patterns-ejemplos-intercepting-filter"
+                        },
+                        {
+                            "text": "Front Controller",
+                            "content": "component-design-patterns-ejemplos-front-controller"
+                        },
+                        {
+                            "text": "View Helper",
+                            "content": "component-design-patterns-ejemplos-view-helper"
+                        },
+                        {
+                            "text": "Composite View",
+                            "content": "component-design-patterns-ejemplos-composite-view"
+                        },
+                        {
+                            "text": "Dispatcher View",
+                            "content": "component-design-patterns-ejemplos-dispatcher-view"
+                        },
+                        {
+                            "text": "Service to Worker",
+                            "content": "component-design-patterns-ejemplos-service-to-worker"
+                        },
+                        {
+                            "text": "Business Delegate",
+                            "content": "component-design-patterns-ejemplos-business-delegate"
+                        },
+                        {
+                            "text": "Service Locator",
+                            "content": "component-design-patterns-ejemplos-service-locator"
+                        },
+                        {
+                            "text": "Session Facade",
+                            "content": "component-design-patterns-ejemplos-session-facade"
+                        },
+                        {
+                            "text": "Application Service",
+                            "content": "component-design-patterns-ejemplos-application-service"
+                        },
+                        {
+                            "text": "Business Object",
+                            "content": "component-design-patterns-ejemplos-business-object"
+                        },
+                        {
+                            "text": "Composite Entity",
+                            "content": "component-design-patterns-ejemplos-composite-entity"
+                        },
+                        {
+                            "text": "Transfer Object (DTO)",
+                            "content": "component-design-patterns-ejemplos-transfer-object"
+                        },
+                        {
+                            "text": "Data Access Object (DAO)",
+                            "content": "component-design-patterns-ejemplos-data-access-object"
+                        },
+                        {
+                            "text": "Value List Handler",
+                            "content": "component-design-patterns-ejemplos-value-list-handler"
+                        },
+                        {
+                            "text": "Web Service Broker",
+                            "content": "component-design-patterns-ejemplos-web-service-broker"
+                        },
+                        {
+                            "text": "MVC",
+                            "content": "component-design-patterns-ejemplos-mvc"
+                        },
+                        {
+                            "text": "Transfer Object Assembler",
+                            "content": "component-design-patterns-ejemplos-transfer-object-assembler"
+                        },
+                        {
+                            "text": "Context Object",
+                            "content": "component-design-patterns-ejemplos-context-object"
+                        },
+                        {
+                            "text": "Application Controller",
+                            "content": "component-design-patterns-ejemplos-application-controller"
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "links": [

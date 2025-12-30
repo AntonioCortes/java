@@ -1,0 +1,95 @@
+<h1 class="title">Patrón Strategy</h1>
+
+<p>El patrón <strong>Strategy</strong> es un patrón de comportamiento que permite definir una familia de algoritmos, encapsular cada uno de ellos y hacerlos intercambiables. Permite que el algoritmo varíe independientemente de los clientes que lo usan.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Permitir seleccionar un algoritmo en tiempo de ejecución. Evita grandes sentencias <code>switch</code> o <code>if-else</code>.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Métodos de pago en un e-commerce (Tarjeta, PayPal, Bitcoin). Todos procesan un pago pero la lógica interna es diferente.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Estrategia
+interface PaymentStrategy {
+    void pay(int amount);
+}
+
+// Estrategias Concretas
+class CreditCardPayment implements PaymentStrategy {
+    private String cardNumber;
+
+    public CreditCardPayment(String cardNumber) {
+        this.cardNumber = cardNumber;
+    }
+
+    @Override
+    public void pay(int amount) {
+        System.out.println("Pagado " + amount + " usando Tarjeta de Crédito: " + cardNumber);
+    }
+}
+
+class PayPalPayment implements PaymentStrategy {
+    private String email;
+
+    public PayPalPayment(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public void pay(int amount) {
+        System.out.println("Pagado " + amount + " usando PayPal: " + email);
+    }
+}
+
+// Contexto
+class ShoppingCart {
+    private PaymentStrategy paymentStrategy;
+
+    public void setPaymentStrategy(PaymentStrategy paymentStrategy) {
+        this.paymentStrategy = paymentStrategy;
+    }
+
+    public void checkout(int amount) {
+        if (paymentStrategy == null) {
+            System.out.println("Seleccione un método de pago.");
+        } else {
+            paymentStrategy.pay(amount);
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Estructura Strategy</span>
+
+<br>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        ShoppingCart cart = new ShoppingCart();
+
+        // Pagar con PayPal
+        cart.setPaymentStrategy(new PayPalPayment("user@example.com"));
+        cart.checkout(100);
+
+        // Cambiar estrategia a Tarjeta
+        cart.setPaymentStrategy(new CreditCardPayment("1234-5678-9012-3456"));
+        cart.checkout(200);
+    }
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-plaintext">
+Output:
+Pagado 100 usando PayPal: user@example.com
+Pagado 200 usando Tarjeta de Crédito: 1234-5678-9012-3456
+</code></pre>
+</div>

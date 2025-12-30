@@ -1,0 +1,25 @@
+<h1 class="title">Patrón Composite View</h1>
+
+<p>El patrón <strong>Composite View</strong> es un patrón de la arquitectura Java EE que permite construir una página completa ensamblando header, footer, menú y contenido, gestionados independientemente.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Reutilización de componentes de interfaz y layouts consistentes (Tiles, SiteMesh).</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Un layout maestro donde el Header y Footer son fijos y el cuerpo cambia dinámicamente según la página solicitada.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+<!-- Layout Template -->
+<html>
+<body>
+    <div id="header"><include page="header.jsp"/></div>
+    <div id="body"><include page="{dynamicBody}"/></div>
+    <div id="footer"><include page="footer.jsp"/></div>
+</body>
+</html>
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Composite View</span>

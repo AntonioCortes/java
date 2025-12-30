@@ -1,0 +1,30 @@
+<h1 class="title">Patrón Mediator</h1>
+
+<p>El patrón <strong>Mediator</strong> es un patrón de comportamiento que reduce el acoplamiento caótico entre objetos. El patrón restringe las comunicaciones directas entre los objetos y los fuerza a colaborar únicamente a través de un objeto mediador.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Definir un objeto que encapsule cómo interactúan un conjunto de objetos.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Torre de Control de Aeropuerto (aviones no hablan entre sí, hablan con la torre). Chat Room (usuarios no envían P2P a todos, envían al servidor).</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class ChatRoom {
+    public static void showMessage(User user, String message) {
+        System.out.println(new Date().toString() + " [" + user.getName() + "] : " + message);
+    }
+}
+
+class User {
+    private String name;
+    public User(String name) { this.name = name; }
+    public void sendMessage(String message) {
+        ChatRoom.showMessage(this, message);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Mediator</span>

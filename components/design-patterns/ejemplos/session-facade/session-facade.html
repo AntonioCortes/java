@@ -1,0 +1,29 @@
+<h1 class="title">Patrón Session Facade</h1>
+
+<p>El patrón <strong>Session Facade</strong> es un patrón de la arquitectura Java EE que proporciona una interfaz de grano grueso para disminuir el tráfico de red entre el cliente y los objetos de negocio.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Reducir el número de llamadas remotas y transacciones distribuidas.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Un EJB de tipo Session Bean que coordina varios Entity Beans para completar una operación de 'Comprar Carrito'.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Stateless
+public class OrderFacade {
+    @EJB private InventoryService inventory;
+    @EJB private PaymentService payment;
+    @EJB private ShippingService shipping;
+
+    public void placeOrder(Order order) {
+        inventory.reserve(order.getItems());
+        payment.charge(order.getTotal());
+        shipping.schedule(order);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Session Facade</span>

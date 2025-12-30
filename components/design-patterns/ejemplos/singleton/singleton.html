@@ -1,0 +1,85 @@
+<h1 class="title">Patrón Singleton</h1>
+
+<p>El patrón <strong>Singleton</strong> es un patrón de diseño creacional que garantiza que una clase tenga una única instancia y proporciona un punto de acceso global a ella.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Asegurar que una clase solo tenga una instancia y proporcionar un punto de acceso global a ella.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Un caso de uso común es un <strong>Administrador de Configuración</strong> o un <strong>Pool de Conexiones a Base de Datos</strong>. En una aplicación, generalmente queremos una sola configuración centralizada o un solo pool de conexiones para evitar inconsistencias y ahorrar recursos.</p>
+
+<h2 class="subtitle">Implementación (Thread Safe)</h2>
+
+<p>A continuación se muestra una implementación segura para hilos usando "Double-Checked Locking".</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class DatabaseConnection {
+    // La variable estática que contendrá la única instancia
+    private static volatile DatabaseConnection instance;
+    
+    // Datos de la conexión (ejemplo)
+    private String connectionString;
+
+    // Constructor privado para evitar instanciación externa
+    private DatabaseConnection() {
+        this.connectionString = "jdbc:mysql://localhost:3306/mydb";
+        System.out.println("Conexión a base de datos iniciada.");
+    }
+
+    // Método público estático para obtener la instancia
+    public static DatabaseConnection getInstance() {
+        // Primera comprobación (sin bloqueo) para rendimiento
+        if (instance == null) {
+            // Bloqueo solo si la instancia no existe
+            synchronized (DatabaseConnection.class) {
+                // Segunda comprobación (dentro del bloqueo)
+                if (instance == null) {
+                    instance = new DatabaseConnection();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public void executeQuery(String query) {
+        System.out.println("Ejecutando query: " + query);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Singleton Thread-Safe con Double-Checked Locking</span>
+
+<br>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        // Intentamos obtener la instancia varias veces
+        DatabaseConnection db1 = DatabaseConnection.getInstance();
+        DatabaseConnection db2 = DatabaseConnection.getInstance();
+
+        db1.executeQuery("SELECT * FROM users");
+
+        // Comprobamos si son la misma referencia
+        if (db1 == db2) {
+            System.out.println("Ambas variables apuntan a la misma instancia.");
+        } else {
+            System.out.println("Son instancias diferentes.");
+        }
+    }
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-plaintext">
+Output:
+Conexión a base de datos iniciada.
+Ejecutando query: SELECT * FROM users
+Ambas variables apuntan a la misma instancia.
+</code></pre>
+</div>

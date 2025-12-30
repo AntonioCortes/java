@@ -1,0 +1,36 @@
+<h1 class="title">Patrón Interpreter</h1>
+
+<p>El patrón <strong>Interpreter</strong> es un patrón de comportamiento que dado un lenguaje, define una representación de su gramática junto con un intérprete que usa la representación para interpretar sentencias del lenguaje.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Evaluar sentencias en un lenguaje simple definido por una gramática.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Expresiones matemáticas (calculadora), consultas SQL, expresiones regulares.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+interface Expression {
+    boolean interpret(String context);
+}
+
+class TerminalExpression implements Expression {
+    private String data;
+    public TerminalExpression(String data) { this.data = data; }
+    public boolean interpret(String context) {
+        return context.contains(data);
+    }
+}
+
+class OrExpression implements Expression {
+    private Expression expr1, expr2;
+    public OrExpression(Expression expr1, Expression expr2) { ... }
+    public boolean interpret(String context) {
+        return expr1.interpret(context) || expr2.interpret(context);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Interpreter</span>

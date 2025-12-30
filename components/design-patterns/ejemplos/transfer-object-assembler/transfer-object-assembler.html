@@ -1,0 +1,25 @@
+<h1 class="title">Patrón Transfer Object Assembler</h1>
+
+<p>El patrón <strong>Transfer Object Assembler</strong> es un patrón de la arquitectura Java EE que se encarga de recolectar datos de varias fuentes y ensamblarlos en un objeto de transferencia completo para la vista.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Proveer a la vista de todos los datos necesarios en un solo objeto optimizado.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Un 'DashboardDTO' que contiene datos de usuario, últimas órdenes y mensajes, recogidos de 3 servicios diferentes.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class DashboardAssembler {
+    public DashboardDTO createDashboard(Long userId) {
+        User user = userService.getUser(userId);
+        List<Order> orders = orderService.getRecent(userId);
+        List<Message> msgs = msgService.getUnread(userId);
+        return new DashboardDTO(user, orders, msgs);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Transfer Object Assembler</span>

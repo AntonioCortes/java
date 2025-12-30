@@ -1,0 +1,53 @@
+<h1 class="title">Patrón Abstract Factory</h1>
+
+<p>El patrón <strong>Abstract Factory</strong> es un patrón creacional que permite producir familias de objetos relacionados sin especificar sus clases concretas.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Crear familias de objetos relacionados o dependientes sin especificar sus clases concretas.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Interfaz Gráfica (UI) multiplataforma. Una fábrica crea botones y menús estilo Windows, otra estilo Mac, pero el cliente usa la interfaz genérica.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Interfaces
+interface Button { void paint(); }
+interface Checkbox { void paint(); }
+
+// Abstract Factory
+interface GUIFactory {
+    Button createButton();
+    Checkbox createCheckbox();
+}
+
+// Concrete Factory 1: Win
+class WinFactory implements GUIFactory {
+    public Button createButton() { return new WinButton(); }
+    public Checkbox createCheckbox() { return new WinCheckbox(); }
+}
+
+// Concrete Factory 2: Mac
+class MacFactory implements GUIFactory {
+    public Button createButton() { return new MacButton(); }
+    public Checkbox createCheckbox() { return new MacCheckbox(); }
+}
+
+class Application {
+    private Button button;
+    private Checkbox checkbox;
+
+    public Application(GUIFactory factory) {
+        button = factory.createButton();
+        checkbox = factory.createCheckbox();
+    }
+
+    public void paint() {
+        button.paint();
+        checkbox.paint();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Abstract Factory</span>

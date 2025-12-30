@@ -1,0 +1,31 @@
+<h1 class="title">Patrón Business Delegate</h1>
+
+<p>El patrón <strong>Business Delegate</strong> es un patrón de la arquitectura Java EE que oculta la complejidad de buscar y ejecutar servicios de negocio remotos o locales (EJB).</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Abstraer la implementación de los servicios de negocio y manejar excepciones (reintentos, caché).</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Un cliente web que llama a un EJB remoto. El Business Delegate maneja la búsqueda JNDI y la llamada RMI.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+class BusinessDelegate {
+    private BusinessService businessService;
+    private ServiceLocator serviceLocator = new ServiceLocator();
+    private String serviceType;
+    
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+    }
+    
+    public void doTask() {
+        businessService = serviceLocator.getService(serviceType);
+        businessService.doProcessing();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Business Delegate</span>

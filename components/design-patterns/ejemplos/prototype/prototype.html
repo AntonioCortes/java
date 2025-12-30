@@ -1,0 +1,47 @@
+<h1 class="title">Patrón Prototype</h1>
+
+<p>El patrón <strong>Prototype</strong> es un patrón creacional que permite copiar objetos existentes sin que el código dependa de sus clases.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Crear nuevos objetos clonando una instancia existente (prototipo). Reduce el costo de creación.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Clonación de configuraciones complejas o personajes en un juego (spawning enemies).</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+abstract class Shape implements Cloneable {
+    public int x, y;
+    
+    public Shape() {}
+    
+    public Shape(Shape target) {
+        if (target != null) {
+            this.x = target.x;
+            this.y = target.y;
+        }
+    }
+    
+    public abstract Shape clone();
+}
+
+class Circle extends Shape {
+    public int radius;
+
+    public Circle(Circle target) {
+        super(target);
+        if (target != null) {
+            this.radius = target.radius;
+        }
+    }
+
+    @Override
+    public Shape clone() {
+        return new Circle(this);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Prototype</span>

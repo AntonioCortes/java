@@ -1,0 +1,42 @@
+<h1 class="title">Patrón Composite</h1>
+
+<p>El patrón <strong>Composite</strong> es un patrón estructural que permite componer objetos en estructuras de árbol y trabajar con esas estructuras como si fueran objetos individuales.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Tratar objetos individuales y composiciones de objetos de manera uniforme.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Sistema de Archivos (Directorios que contienen Archivos u otros Directorios). Menús y submenús gráficos.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Componente
+interface FileSystemComponent {
+    void showDetails();
+}
+
+// Hoja
+class File implements FileSystemComponent {
+    private String name;
+    public File(String name) { this.name = name; }
+    public void showDetails() { System.out.println("File: " + name); }
+}
+
+// Compuesto
+class Directory implements FileSystemComponent {
+    private String name;
+    private List<FileSystemComponent> children = new ArrayList<>();
+    
+    public Directory(String name) { this.name = name; }
+    public void add(FileSystemComponent c) { children.add(c); }
+    
+    public void showDetails() {
+        System.out.println("Directory: " + name);
+        for (FileSystemComponent c : children) c.showDetails();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Composite</span>

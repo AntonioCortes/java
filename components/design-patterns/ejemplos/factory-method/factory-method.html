@@ -1,0 +1,82 @@
+<h1 class="title">Patrón Factory Method</h1>
+
+<p>El patrón <strong>Factory Method</strong> es un patrón de diseño creacional que proporciona una interfaz para crear objetos en una superclase, mientras permite a las subclases alterar el tipo de objetos que se crearán.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Definir una interfaz para crear un objeto, pero dejar que las subclases decidan qué clase instanciar. Permite que una clase delegue la instanciación a subclases.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Un sistema de <strong>Notificaciones</strong>. Imagina una aplicación que necesita enviar notificaciones, pero el tipo de notificación (Email, SMS, Push) puede variar y podrían añadirse nuevos tipos en el futuro. Usando Factory Method, podemos desacoplar la lógica de creación de notificaciones de la lógica de negocio principal.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Interfaz de producto
+interface Notification {
+    void notifyUser();
+}
+
+// Productos concretos
+class EmailNotification implements Notification {
+    @Override
+    public void notifyUser() {
+        System.out.println("Enviando notificación por Email...");
+    }
+}
+
+class SMSNotification implements Notification {
+    @Override
+    public void notifyUser() {
+        System.out.println("Enviando notificación por SMS...");
+    }
+}
+
+// Clase Factory
+class NotificationFactory {
+    public Notification createNotification(String channel) {
+        if (channel == null || channel.isEmpty())
+            return null;
+        switch (channel) {
+            case "SMS":
+                return new SMSNotification();
+            case "EMAIL":
+                return new EmailNotification();
+            default:
+                throw new IllegalArgumentException("Canal desconocido " + channel);
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Estructura Factory Method</span>
+
+<br>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        NotificationFactory factory = new NotificationFactory();
+
+        // Crear una notificación de Email
+        Notification notification = factory.createNotification("EMAIL");
+        notification.notifyUser();
+
+        // Crear una notificación de SMS
+        Notification notification2 = factory.createNotification("SMS");
+        notification2.notifyUser();
+    }
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-plaintext">
+Output:
+Enviando notificación por Email...
+Enviando notificación por SMS...
+</code></pre>
+</div>

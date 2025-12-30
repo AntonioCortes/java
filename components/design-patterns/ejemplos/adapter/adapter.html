@@ -1,0 +1,103 @@
+<h1 class="title">Patrón Adapter</h1>
+
+<p>El patrón <strong>Adapter</strong> es un patrón estructural que permite que objetos con interfaces incompatibles colaboren entre sí. Actúa como un "enchufe" adaptador entre dos objetos.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Convertir la interfaz de una clase en otra interfaz que esperan los clientes. Permite que clases trabajen juntas que de otra forma no podrían debido a interfaces incompatibles.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Lectura de tarjetas de memoria. Supón que tienes un portátil que solo lee tarjetas SD (Target), pero tú tienes una tarjeta MicroSD (Adaptee). Necesitas un adaptador que tenga forma de SD pero interna y externamente conecte con la MicroSD.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Target: Lo que el cliente espera usar
+interface MediaPlayer {
+    void play(String audioType, String fileName);
+}
+
+// Adaptee: Una interfaz diferente pero útil
+class AdvancedMediaPlayer {
+    public void playVlc(String fileName) {
+        System.out.println("Playing vlc file: " + fileName);
+    }
+    public void playMp4(String fileName) {
+        System.out.println("Playing mp4 file: " + fileName);
+    }
+}
+
+// Adapter: Implementa Target y usa Adaptee
+class MediaAdapter implements MediaPlayer {
+    AdvancedMediaPlayer advancedMusicPlayer;
+
+    public MediaAdapter(String audioType) {
+        if (audioType.equalsIgnoreCase("vlc")) {
+            advancedMusicPlayer = new AdvancedMediaPlayer();
+        } else if (audioType.equalsIgnoreCase("mp4")) {
+            advancedMusicPlayer = new AdvancedMediaPlayer();
+        }
+    }
+
+    @Override
+    public void play(String audioType, String fileName) {
+        if (audioType.equalsIgnoreCase("vlc")) {
+            advancedMusicPlayer.playVlc(fileName);
+        } else if (audioType.equalsIgnoreCase("mp4")) {
+            advancedMusicPlayer.playMp4(fileName);
+        }
+    }
+}
+
+// Cliente que usa el Adapter
+class AudioPlayer implements MediaPlayer {
+    MediaAdapter mediaAdapter;
+
+    @Override
+    public void play(String audioType, String fileName) {
+        // Soporte nativo para mp3
+        if (audioType.equalsIgnoreCase("mp3")) {
+            System.out.println("Playing mp3 file: " + fileName);
+        }
+        // MediaAdapter provee soporte para otros formatos
+        else if (audioType.equalsIgnoreCase("vlc") || audioType.equalsIgnoreCase("mp4")) {
+            mediaAdapter = new MediaAdapter(audioType);
+            mediaAdapter.play(audioType, fileName);
+        }
+        else {
+            System.out.println("Formato no soportado: " + audioType);
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Estructura Adapter</span>
+
+<br>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        AudioPlayer audioPlayer = new AudioPlayer();
+
+        audioPlayer.play("mp3", "cancion.mp3");
+        audioPlayer.play("mp4", "video.mp4");
+        audioPlayer.play("vlc", "pelicula.vlc");
+        audioPlayer.play("avi", "video.avi");
+    }
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-plaintext">
+Output:
+Playing mp3 file: cancion.mp3
+Playing mp4 file: video.mp4
+Playing vlc file: pelicula.vlc
+Formato no soportado: avi
+</code></pre>
+</div>

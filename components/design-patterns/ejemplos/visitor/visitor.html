@@ -1,0 +1,40 @@
+<h1 class="title">Patrón Visitor</h1>
+
+<p>El patrón <strong>Visitor</strong> es un patrón de comportamiento que permite separar algoritmos de los objetos sobre los que operan.</p>
+
+<h2 class="subtitle">Propósito</h2>
+<p>Representar una operación a realizar sobre los elementos de una estructura de objetos. Permite definir nuevas operaciones sin cambiar las clases de los elementos.</p>
+
+<h2 class="subtitle">Caso de Uso Real</h2>
+<p>Exportar un documento complejo (con párrafos, tablas, imágenes) a XML, JSON o PDF. El Visitor es el 'Exportador' que visita cada nodo.</p>
+
+<h2 class="subtitle">Implementación</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+interface ComputerPart {
+    void accept(ComputerPartVisitor computerPartVisitor);
+}
+
+class Keyboard implements ComputerPart {
+    public void accept(ComputerPartVisitor computerPartVisitor) {
+        computerPartVisitor.visit(this);
+    }
+}
+
+interface ComputerPartVisitor {
+    void visit(Keyboard keyboard);
+    void visit(Monitor monitor);
+}
+
+class ComputerPartDisplayVisitor implements ComputerPartVisitor {
+    public void visit(Keyboard keyboard) {
+        System.out.println("Displaying Keyboard.");
+    }
+    public void visit(Monitor monitor) {
+        System.out.println("Displaying Monitor.");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de Visitor</span>
