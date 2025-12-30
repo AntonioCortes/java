@@ -1,4 +1,4 @@
-import { createComponent } from "../../../../js/component-generator.js";
+import { createComponent } from "https://antoniocortes.github.io/base-webpage/js/component-generator.js";
 
 const tagName = 'component-librerias-lombok-getter-setter';
 const htmlFilename = 'getter-setter.html';

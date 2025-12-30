@@ -319,9 +319,7 @@ components
        - `JS`: En este archivo se creará el WebComponent a nivel de javascript y se establecerá cual será el `nombre de etiqueta del componente`.
 
          >[!Important]
-         > - Se debe copiar siempre este código y sustituir lo siguientes elementos:
-         >
-         >   - La ruta relativa del import del `component-generator` se sustituirá por la ruta correspondiente dependiendo de donde estemos creando el nuevo componente.   
+         > - Se debe copiar siempre este código y sustituir lo siguientes elementos:  
          >
          >   - El valor de `tagName` se sustituirá por el nombre de etiqueta que se le quiera dar al webcomponent (nombre inventado pero que empiece por la palabra component)   
          >
@@ -329,7 +327,7 @@ components
          
 
          ```javascript
-         import { createComponent } from "../../../js/component-generator.js";
+         import { createComponent } from "https://antoniocortes.github.io/base-webpage/js/component-generator.js";
 
          const tagName = 'component-bootstrap-origin';
          const htmlFilename = 'origen.html';
@@ -349,128 +347,128 @@ components
            
    4. Añadir un enlace del componente recién creado al sidebar
 
-    Para añadir un enlace del nuevo contenido (componente) creado al sidebar se debe modificar el archivo `/components/nueva-vista/common/assets/sidebar.json`.
+      Para añadir un enlace del nuevo contenido (componente) creado al sidebar se debe modificar el archivo `/components/nueva-vista/common/assets/sidebar.json`.
 
-    Anatomía del sidebar:
+      Anatomía del sidebar:
 
-    - `Rojo`: Zona de los enlaces a contenidos de la página
-    
-    - `verde`: Zona de enlaces a páginas de documentación externas 
-
-    ![Sidebar anatomy](img/sidebar-anatomy.png)
-
-    Anatomía del `sidebar.json`:
-
-    El `sidebar.json` debe tener dos objetos que contentrán listas, los objetos se llamarán `pageContent` y `links`:
-
-    - `pageContent`: Aquí se definirán los enlaces a la propia página mediante `objetos JSON` que tendrán dos propiedades, que se llamarán `text` y `content`.
-  
-      - `text`: El texto que aparecerá en el sidebar.
+      - `Rojo`: Zona de los enlaces a contenidos de la página
       
-      - `content`: El nombre de etiqueta que se le ha dado al `WebComponent` en el paso anterior.
+      - `verde`: Zona de enlaces a páginas de documentación externas 
 
-      ```json
-      {
-        "text": "texto que aparecerá en el sidebar",
-        "content": "nombre-etiqueta-webcomponent"
-      }
-      ``` 
+      ![Sidebar anatomy](img/sidebar-anatomy.png)
 
-    - `links`: Aquí se definirán los enlaces a páginas externas de documentación mediante `objetos JSON` que tendrán dos propiedades, que se llamarán `text` y `content`.
+      Anatomía del `sidebar.json`:
 
+      El `sidebar.json` debe tener dos objetos que contentrán listas, los objetos se llamarán `pageContent` y `links`:
+
+      - `pageContent`: Aquí se definirán los enlaces a la propia página mediante `objetos JSON` que tendrán dos propiedades, que se llamarán `text` y `content`.
+    
         - `text`: El texto que aparecerá en el sidebar.
-
-        - `content`: Dirección web de la página de documentación.
+        
+        - `content`: El nombre de etiqueta que se le ha dado al `WebComponent` en el paso anterior.
 
         ```json
         {
           "text": "texto que aparecerá en el sidebar",
-          "content": "https://dirección-pagina-documentación"
+          "content": "nombre-etiqueta-webcomponent"
         }
         ``` 
-  
-    Ejemplo `sidebar.json`:
 
-    ```json
-    {
-        "pageContent" : [
-          {
-            "text": "texto que aparecerá en el sidebar",
-            "content": "nombre-etiqueta-webcomponent"
-          }
-        ],
-        "links" : [
+      - `links`: Aquí se definirán los enlaces a páginas externas de documentación mediante `objetos JSON` que tendrán dos propiedades, que se llamarán `text` y `content`.
+
+          - `text`: El texto que aparecerá en el sidebar.
+
+          - `content`: Dirección web de la página de documentación.
+
+          ```json
           {
             "text": "texto que aparecerá en el sidebar",
             "content": "https://dirección-pagina-documentación"
           }
-        ]
-    }
-    ```
+          ``` 
+    
+        Ejemplo `sidebar.json`:
 
-    >[!Note]
-    >Siguiendo con el ejemplo de la nueva vista de `bootstrap` y el contenido sobre el origen de bootstrap llamado `origen` cuya definición del `WebComponent` se encuentra en el archivo `origen.js`, para añadir un enlace a ese `componente` en el `sidebar` habría que modificar el archivo `components/bootstrap/common/assets/sidebar.json`.
+        ```json
+        {
+            "pageContent" : [
+              {
+                "text": "texto que aparecerá en el sidebar",
+                "content": "nombre-etiqueta-webcomponent"
+              }
+            ],
+            "links" : [
+              {
+                "text": "texto que aparecerá en el sidebar",
+                "content": "https://dirección-pagina-documentación"
+              }
+            ]
+        }
+        ```
 
-    ```json
-    {
-        "pageContent" : [
-            {
-                "text": "Origen de Bootstrap",
-                "content": "component-bootstrap-origin"
-            }
-        ],
-        "links" : [
-            {
-                "text" : "Página oficial de Bootstrap",
-                "href" : "https://getbootstrap.com/"
-            }
-        ]
-    }
-    ```
+        >[!Note]
+        >Siguiendo con el ejemplo de la nueva vista de `bootstrap` y el contenido sobre el origen de bootstrap llamado `origen` cuya definición del `WebComponent` se encuentra en el archivo `origen.js`, para añadir un enlace a ese `componente` en el `sidebar` habría que modificar el archivo `components/bootstrap/common/assets/sidebar.json`.
 
-    ![Bootstrap content origin](img/component-boostrap-origin.png)
+        ```json
+        {
+            "pageContent" : [
+                {
+                    "text": "Origen de Bootstrap",
+                    "content": "component-bootstrap-origin"
+                }
+            ],
+            "links" : [
+                {
+                    "text" : "Página oficial de Bootstrap",
+                    "href" : "https://getbootstrap.com/"
+                }
+            ]
+        }
+        ```
 
-    >[!Tip]
-    >Si en el `sidebar` se quiere hacer un submenú desplegable como en el siguiente ejemplo:   
-    >   
-    >![Sidebar submenu](img/sidebar-submenu.png)
-    >
-    >Dentro de la propiedad `content` del objeto `JSON` correspondiente, en lugar del `nombre de etiqueta` de un `WebComponent` se debe poner una lista dentro de la cual se definirán los enlaces.   
-    >Esto se puede hacer recursivamente para hacer submenús dentro de submenús.
+        ![Bootstrap content origin](img/component-boostrap-origin.png)
 
-    ```json
-    {
-      "pageContent" : [
-          {
-              "text": "Origen de Bootstrap",
-              "content": "component-bootstrap-origin"
-          },
-          {
-              "text": "Submenu 1",
-              "content": [
-                  {
-                      "text": "Submenu anidado",
-                      "content":  [
-                          {
-                              "text": "De nuevo origen de Bootstrap",
-                              "content": "component-bootstrap-origin"
-                          }
-                      ]
-                  }
-              ]
-          }
-      ],
-      "links" : [
-          {
-              "text" : "Página oficial de Bootstrap",
-              "href" : "https://getbootstrap.com/"
-          }
-      ]
-    }
-    ```
-    Resultado:
+        >[!Tip]
+        >Si en el `sidebar` se quiere hacer un submenú desplegable como en el siguiente ejemplo:   
+        >   
+        >![Sidebar submenu](img/sidebar-submenu.png)
+        >
+        >Dentro de la propiedad `content` del objeto `JSON` correspondiente, en lugar del `nombre de etiqueta` de un `WebComponent` se debe poner una lista dentro de la cual se definirán los enlaces.   
+        >Esto se puede hacer recursivamente para hacer submenús dentro de submenús.
 
-    ![Bootstrap sidebar with submenu](img/bootstrap-sidebar-with-submenu.png)
+        ```json
+        {
+          "pageContent" : [
+              {
+                  "text": "Origen de Bootstrap",
+                  "content": "component-bootstrap-origin"
+              },
+              {
+                  "text": "Submenu 1",
+                  "content": [
+                      {
+                          "text": "Submenu anidado",
+                          "content":  [
+                              {
+                                  "text": "De nuevo origen de Bootstrap",
+                                  "content": "component-bootstrap-origin"
+                              }
+                          ]
+                      }
+                  ]
+              }
+          ],
+          "links" : [
+              {
+                  "text" : "Página oficial de Bootstrap",
+                  "href" : "https://getbootstrap.com/"
+              }
+          ]
+        }
+        ```
+        Resultado:
+
+        ![Bootstrap sidebar with submenu](img/bootstrap-sidebar-with-submenu.png)
 
 
 ### Resumen creación contenido
@@ -508,14 +506,12 @@ components
            >[!Important]
            > - Se debe copiar siempre este código y sustituir lo siguientes elementos:
            >
-           >   - La ruta relativa del import del `component-generator` se sustituirá por la ruta correspondiente dependiendo de donde estemos creando el nuevo componente.   
-           >
            >   - El valor de `tagName` se sustituirá por el nombre de etiqueta que se le quiera dar al webcomponent (nombre inventado pero que empiece por la palabra component)   
            >
            >   - El valor de `htmlFileName` se sustituirá por el nombre del html que corresponda a dicho componente. 
 
            ```javascript
-           import { createComponent } from "../../../js/component-generator.js";
+           import { createComponent } from "https://antoniocortes.github.io/base-webpage/js/component-generator.js";
 
            const tagName = 'component-nuevo-contenido';
            const htmlFilename = 'nuevo-contenido.html';
