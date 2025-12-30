@@ -6,11 +6,11 @@
             "content": [
                 {
                     "text": "CheatSheet",
-                    "content": "component-designPatterns-cheatsheet"
+                    "content": "component-design-patterns-cheatsheet"
                 },
                 {
                     "text": "Explicación Detallada",
-                    "content": "component-designPatterns-explicacion-detallada"
+                    "content": "component-design-patterns-explicacion-detallada"
                 }
             ]
         }
