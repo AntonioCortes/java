@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Definir el esqueleto de un algoritmo, delegando algunos pasos a las subclases.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Construcción de casas (Cimientos -> Paredes -> Techo), donde Paredes y Techo varían (Madera vs Ladrillo). Compilación de código (Parse -> Compile -> Link).</p>
+<h2 class="subtitle">Caso de Uso Real: Procesamiento de Datos (Data Mining)</h2>
+<p><strong>Contexto:</strong> Tienes una herramienta que analiza documentos corporativos. El proceso siempre es: 1. Abrir archivo -> 2. Extraer datos -> 3. Analizar datos -> 4. Generar reporte -> 5. Cerrar archivo.</p>
+
+<p><strong>El Problema:</strong> Los pasos 3 y 4 son idénticos para todos los formatos. Pero el paso 1 y 2 varían si es un PDF, un CSV o un XML. Si copias y pegas el código del algoritmo general en cada clase, tienes duplicación.</p>
+
+<p><strong>La Solución (Template Method):</strong> Creas una clase base abstracta <code>DataMiner</code> que define el método <code>mine()</code> (el esqueleto).
+<br>Este método llama a pasos abstractos <code>openFile()</code>, <code>extractData()</code>. Las subclases (<code>PdfMiner</code>, <code>CsvMiner</code>) solo implementan esos detalles específicos. El algoritmo general reside en un único lugar (la clase padre).</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Principio de Hollywood:</strong> 
+        <p>"No nos llames, nosotros te llamaremos". La clase padre (clase de alto nivel) controla el flujo de ejecución y llama a las subclases (implementaciones de bajo nivel) solo cuando es necesario. Esto es una forma de <strong>Inversión de Control</strong>.</p>
+    </li>
+    <li>
+        <strong>Reutilización de Código:</strong> 
+        <p>Los pasos comunes (<code>analizarDatos</code>, <code>generarReporte</code>) se implementan una sola vez en la clase padre. Solo los pasos que varían se delegan.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

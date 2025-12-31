@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Abstraer la implementación de los servicios de negocio y manejar excepciones (reintentos, caché).</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un cliente web que llama a un EJB remoto. El Business Delegate maneja la búsqueda JNDI y la llamada RMI.</p>
+<h2 class="subtitle">Caso de Uso Real: Cliente Web accediendo a EJB Remotos</h2>
+<p><strong>Contexto:</strong> Tienes una capa de presentación (JSF, JSP o Servlet) que necesita llamar a servicios de negocio (EJB) que pueden estar en el mismo servidor o en un servidor remoto.</p>
+
+<p><strong>El Problema:</strong> Buscar un EJB (vía JNDI) es complejo y propenso a excepciones de red. Si pones código de infraestructura (<code>InitialContext.lookup()</code>) en tus controladores web, acoplas la presentación a la implementación específica de los servicios y dificultas el testing.</p>
+
+<p><strong>La Solución (Business Delegate):</strong> Creas una clase Java simple (POJO) en la capa de presentación que actúa como representante del servicio de negocio.
+<br>El controlador web llama a este Delegado. El Delegado se encarga de buscar el servicio, hacer reintentos si falla, y convertir las excepciones de infraestructura remotas (<code>RemoteException</code>) en excepciones de negocio amigables.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Ocultación de Complejidad:</strong> 
+        <p>El patrón encapsula los detalles de acceso a servicios (Lookup, RMI, SOAP, REST). El cliente solo ve un método de negocio limpio (<code>delegate.doTask()</code>).</p>
+    </li>
+    <li>
+        <strong>Caché de Referencias:</strong> 
+        <p>El Business Delegate puede trabajar junto con un <em>Service Locator</em> para cachear las referencias a los servicios, mejorando el rendimiento al evitar lookups JNDI repetitivos.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

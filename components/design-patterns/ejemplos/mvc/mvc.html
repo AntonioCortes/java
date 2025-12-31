@@ -5,8 +5,28 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Separación de preocupaciones.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Spring MVC, Struts, JSF.</p>
+<h2 class="subtitle">Caso de Uso Real: Arquitectura Web Moderna (Spring MVC)</h2>
+<p><strong>Contexto:</strong> Estás construyendo una tienda online. Tienes datos del producto (Modelo), páginas HTML para mostrarlos (Vista) y lógica para procesar el carrito de compra (Controlador).</p>
+
+<p><strong>El Problema:</strong> Si mezclas código JDBC en tus JSPs (Vista), o generas HTML concatenando Strings dentro de tus Servlets (Controlador), creas un "código espagueti" que es imposible de testear y mantener. Un cambio en el diseño visual rompería la lógica de negocio.</p>
+
+<p><strong>La Solución (MVC):</strong> Separas estrictamente las responsabilidades:
+<br>1. <strong>Modelo (POJOs):</strong> Representa los datos y reglas de negocio. No sabe nada de HTML ni HTTP.
+<br>2. <strong>Vista (JSP/Thymeleaf/Angular):</strong> Solo se encarga de renderizar. No ejecuta lógica.
+<br>3. <strong>Controlador (Servlet/Spring Controller):</strong> Recibe la entrada del usuario, interactúa con el modelo y selecciona la vista adecuada.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Desacoplamiento:</strong> 
+        <p>Permite que diseñadores web trabajen en la Vista mientras desarrolladores backend trabajan en el Modelo y Controlador en paralelo sin pisarse.</p>
+    </li>
+    <li>
+        <strong>Múltiples Vistas:</strong> 
+        <p>El mismo Modelo (ej. lista de productos) puede ser reutilizado por múltiples Vistas (una página HTML, un PDF, un Excel, una respuesta JSON) sin cambiar una sola línea de lógica.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Separar la lógica de acceso a datos de la lógica de negocio.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Clase `UserDAO` con métodos `findById`, `save`, `delete` que contienen SQL o llamadas JPA.</p>
+<h2 class="subtitle">Caso de Uso Real: Abstracción de Base de Datos (SQL vs NoSQL)</h2>
+<p><strong>Contexto:</strong> Tu aplicación usa MySQL. Mañana, tu jefe decide migrar a Oracle, o peor, a MongoDB. Tienes sentencias SQL esparcidas por todos tus Servlets y servicios de negocio.</p>
+
+<p><strong>El Problema:</strong> Migrar implicaría reescribir toda la aplicación. Además, mezclar SQL con lógica de negocio hace que el código sea sucio y difícil de testear (no puedes hacer unit testing sin una DB real levantada).</p>
+
+<p><strong>La Solución (DAO):</strong> Creas una interfaz <code>UserDAO</code> con métodos agnósticos a la base de datos (<code>save</code>, <code>findById</code>).
+<br>La implementación concreta (<code>UserDaoJdbc</code>, <code>UserDaoHibernate</code>) contiene el SQL o JPA específico. El resto de la aplicación solo habla con la interfaz. Para migrar de DB, solo cambias la implementación del DAO inyectada, sin tocar el negocio.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Separación de Intereses (SoC):</strong> 
+        <p>La lógica de persistencia (cómo guardar) se separa totalmente de la lógica de dominio (qué guardar). Esto permite que expertos en SQL optimicen las queries sin riesgo de romper reglas de negocio.</p>
+    </li>
+    <li>
+        <strong>Facilidad de Testing:</strong> 
+        <p>Puedes crear un <code>MockUserDAO</code> que guarde los usuarios en un <code>HashMap</code> en memoria. Esto permite testear la capa de servicio unitariamente a velocidad del rayo, sin depender de una base de datos externa.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

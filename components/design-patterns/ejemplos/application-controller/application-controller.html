@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Gestionar el flujo de la aplicación y la selección de vistas de forma reutilizable.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un motor de flujos (Spring Web Flow) que decide qué pantalla mostrar después de completar un paso en un asistente.</p>
+<h2 class="subtitle">Caso de Uso Real: Flujos de Navegación Complejos (Wizards)</h2>
+<p><strong>Contexto:</strong> Tienes un proceso de Checkout en 5 pasos: Carrito -> Dirección -> Envío -> Pago -> Confirmación. El orden depende de condiciones (si es digital no hay envío, si paga con PayPal el flujo cambia).</p>
+
+<p><strong>El Problema:</strong> Si pones la lógica de "a dónde ir después" en cada Vista o Controlador (<code>if (step1_done) return "step2"</code>), dispersas el flujo por toda la aplicación. Cambiar el orden de los pasos se vuelve una pesadilla.</p>
+
+<p><strong>La Solución (Application Controller):</strong> Centralizas la lógica de navegación en un único componente.
+<br>El Front Controller delega en el Application Controller la pregunta "¿Cuál es la siguiente vista?". Este componente actúa como una máquina de estados que conoce todo el mapa de navegación.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Centralización del Flujo:</strong> 
+        <p>Todo el grafo de navegación está en un solo sitio (frecuentemente configurado en XML o Java Config). Esto permite visualizar y modificar el flujo de usuario globalmente.</p>
+    </li>
+    <li>
+        <strong>Reutilización de Acciones:</strong> 
+        <p>El Application Controller puede decidir reutilizar acciones existentes pero cambiar la vista destino dependiendo del contexto (ej. login exitoso vs login fallido redirigen a sitios distintos).</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

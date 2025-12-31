@@ -5,8 +5,14 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Definir una dependencia uno-a-muchos entre objetos para que cuando un objeto cambie de estado, todos sus dependientes sean notificados y actualizados automáticamnte.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un sistema de <strong>Suscripción a Canales</strong> (como YouTube). Cuando un canal (Subject) sube un nuevo video, todos los suscriptores (Observers) deben recibir una notificación. El canal no necesita saber quiénes son los suscriptores concretamente, solo sabe que debe notificar a una lista de interesados.</p>
+<h2 class="subtitle">Caso de Uso Real: Suscripción a Canales de YouTube</h2>
+<p><strong>Contexto:</strong> Tienes creadores de contenido (YouTubers) y millones de usuarios (Suscriptores). Un usuario quiere saber al instante cuándo su creador favorito sube un video.</p>
+
+<p><strong>El Problema:</strong> Sin el patrón Observer, la única forma de saber si hay contenido nuevo sería que cada usuario entrara al canal constantemente a comprobar (Polling).
+<br>Imagina a 1 millón de usuarios refrescando la página cada segundo para ver si hay video nuevo. Esto saturaría el servidor y desperdiciaría recursos. Además, el Creador tendría que tener un código hardcodeado para avisar a cada usuario específico, lo cual es inmanejable.</p>
+
+<p><strong>La Solución (Observer):</strong> Invertimos el control. En lugar de que el usuario pregunte, el canal <strong>notifica</strong>.
+<br>Los usuarios se "suscriben" (se añaden a una lista). Cuando el canal sube un video, recorre esa lista y avisa a todos. El canal no conoce a los usuarios, solo sabe que tiene una lista de "cosas que quieren ser avisadas". Esto es mucho más eficiente y escalable.</p>
 
 <h2 class="subtitle">Implementación</h2>
 
@@ -77,6 +83,19 @@ class Subscriber implements Observer {
 <span class="center-horizontal caption">Esquema Observer: Youtube Channel y Subscribers</span>
 
 <br>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Interfaces <code>Observer</code> y <code>Subject</code>:</strong> 
+        <p>Permiten que el <code>Subject</code> (YoutubeChannel) no conozca los detalles de sus observadores. Solo sabe que implementan la interfaz <code>Observer</code> y tienen un método <code>update</code>. Esto es un ejemplo de <strong>Inversión de Dependencias</strong>.</p>
+    </li>
+    <li>
+        <strong>Gestión de Suscripciones:</strong> 
+        <p>La lista interna <code>List&lt;Observer&gt;</code> permite una relación uno-a-muchos dinámica. Los objetos pueden suscribirse y desuscribirse en tiempo de ejecución sin afectar al funcionamiento interno del sujeto.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Ejemplo de Uso</h2>
 

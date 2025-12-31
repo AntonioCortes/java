@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Evitar lógica duplicada en múltiples vistas y centralizar el control de navegación.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>DispatcherServlet en Spring MVC. Todas las peticiones pasan por él y él decide qué controlador invocar.</p>
+<h2 class="subtitle">Caso de Uso Real: Spring MVC DispatcherServlet</h2>
+<p><strong>Contexto:</strong> Una aplicación web tiene cientos de URLs (<code>/login</code>, <code>/products</code>, <code>/checkout</code>). Cada una requiere inicializar recursos comunes, gestionar la internacionalización (i18n) y manejar errores globales.</p>
+
+<p><strong>El Problema:</strong> Si usas un Servlet distinto para cada URL, tendrás que duplicar la lógica de inicialización en cada uno. Y si quieres cambiar cómo se manejan los errores, tendrás que cambiar cientos de clases.</p>
+
+<p><strong>La Solución (Front Controller):</strong> Usas un único Servlet maestro (<code>DispatcherServlet</code>) que recibe TODAS las peticiones.
+<br>Este controlador central analiza la URL y decide a qué "Controlador" (clase POJO) o vista delegar el trabajo. Esto centraliza el enrutamiento, la seguridad y el manejo de errores en un solo punto.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Centralización:</strong> 
+        <p>El Front Controller fuerza a que todas las peticiones pasen por un embudo común. Esto es crucial para frameworks de seguridad y monitorización, ya que garantiza que no hay "puertas traseras" (servlets olvidados que no pasan validaciones).</p>
+    </li>
+    <li>
+        <strong>Separación de Navegación y Lógica:</strong> 
+        <p>El controlador decide <em>qué</em> vista mostrar a continuación basándose en el resultado de la lógica de negocio, desacoplando la ejecución de la acción de la renderización de la respuesta.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

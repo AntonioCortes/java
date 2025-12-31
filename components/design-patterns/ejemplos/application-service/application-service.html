@@ -5,8 +5,27 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Encapsular lógica de aplicación cross-cutting o de orquestación.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Servicios de dominio en arquitectura DDD que orquestan repositorios.</p>
+<h2 class="subtitle">Caso de Uso Real: Registro de Usuarios (Orquestación)</h2>
+<p><strong>Contexto:</strong> Registrar un usuario implica crear la entidad Usuario, encriptar la contraseña, guardar en DB y enviar un email de bienvenida.</p>
+
+<p><strong>El Problema:</strong> La entidad <code>User</code> no debería saber enviar emails (rompería SRP). El repositorio <code>UserRepository</code> no sabe de encriptación.</p>
+
+<p><strong>La Solución (Application Service):</strong> Un servicio de capa de aplicación (<code>UserRegistrationService</code>) actúa como director de orquesta.
+<br>1. Recibe el DTO. 2. Llama al Encriptador. 3. Crea el objeto User. 4. Llama al Repository. 5. Llama al EmailService.
+<br>No contiene lógica de negocio compleja (eso va en las entidades), solo coordina el flujo de la operación.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Capa de Servicios vs Dominio:</strong> 
+        <p>Es vital distinguir entre Domain Service (lógica pura de negocio) y Application Service (infraestructura, flujos, DTOs). El Application Service es la puerta de entrada para la UI o API REST.</p>
+    </li>
+    <li>
+        <strong>Independencia de la UI:</strong> 
+        <p>Este servicio puede ser invocado igual desde un Controlador Web, una tarea programada (Batch) o una línea de comandos, ya que no depende de objetos <code>HttpServletRequest</code>.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

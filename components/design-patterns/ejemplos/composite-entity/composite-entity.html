@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Gestionar la persistencia de un grafo de objetos como una unidad.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un objeto JPA 'Pedido' que contiene una lista de 'LineasDePedido'. Al guardar el Pedido, se guardan las líneas.</p>
+<h2 class="subtitle">Caso de Uso Real: Persistencia de Grafos de Objetos (JPA)</h2>
+<p><strong>Contexto:</strong> Tienes un objeto 'Pedido' que contiene una lista de 'Líneas de Pedido' y una 'Dirección de Envío'. Estos objetos están intrínsecamente ligados: una línea de pedido no tiene sentido sin su pedido padre.</p>
+
+<p><strong>El Problema:</strong> Si tienes que guardar manualmente el Pedido, luego iterar por las líneas y guardarlas una a una, el código de persistencia se vuelve repetitivo y propenso a errores transaccionales (guardar el pedido pero fallar en las líneas).</p>
+
+<p><strong>La Solución (Composite Entity):</strong> Tratas el grafo de objetos como una única entidad lógica. El objeto padre (Pedido) es responsable de gestionar el ciclo de vida de sus hijos.
+<br>En JPA, esto se consigue con <code>CascadeType.ALL</code> y <code>orphanRemoval=true</code>. Al guardar el padre, el framework persiste automáticamente toda la estructura dependiente.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Grano Grueso (Coarse-Grained):</strong> 
+        <p>A diferencia de tener muchos objetos de grano fino independientes, la Entidad Compuesta expone el grafo como un solo objeto. Esto reduce el tráfico de red (en sistemas remotos) y simplifica la API de persistencia.</p>
+    </li>
+    <li>
+        <strong>Gestión de Ciclo de Vida:</strong> 
+        <p>Los objetos dependientes no tienen identidad fuera del padre. Si borras el Pedido, todas sus líneas deben borrarse. El Composite Entity encapsula esta regla de integridad.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

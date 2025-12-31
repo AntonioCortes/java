@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Proveer a la vista de todos los datos necesarios en un solo objeto optimizado.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un 'DashboardDTO' que contiene datos de usuario, últimas órdenes y mensajes, recogidos de 3 servicios diferentes.</p>
+<h2 class="subtitle">Caso de Uso Real: Generación de Dashboards o Portadas</h2>
+<p><strong>Contexto:</strong> La pantalla de "Inicio" de tu aplicación bancaria debe mostrar: 1. Saldo actual, 2. Últimos 5 movimientos, 3. Mensajes no leídos del banco, 4. Ofertas personalizadas.</p>
+
+<p><strong>El Problema:</strong> Estos datos residen en 4 microservicios o sistemas distintos (Core Bancario, Movimientos, CRM, Marketing). Si el Frontend hace 4 llamadas, la pantalla tardará en cargar ("Efecto Spinner Múltiple").</p>
+
+<p><strong>La Solución (Transfer Object Assembler):</strong> Creas un componente ensamblador en el servidor.
+<br>El Assembler llama a los 4 servicios (posiblemente en paralelo), recoge los resultados y rellena un único objeto grande <code>HomeDashboardDTO</code>. El cliente recibe todo lo necesario para pintar la pantalla de una vez.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Agregación de Datos:</strong> 
+        <p>Resuelve el problema de la granularidad de los servicios. Convierte múltiples objetos de dominio o DTOs pequeños en un DTO compuesto diseñado específicamente para una Vista concreta.</p>
+    </li>
+    <li>
+        <strong>Reducción de Latencia (Chattiness):</strong> 
+        <p>Crucial para clientes móviles con conexiones inestables. Un solo request grande es mucho más fiable y rápido que 4 requests pequeños secuenciales.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

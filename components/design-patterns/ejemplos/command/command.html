@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Desacoplar el objeto que invoca la operación del objeto que sabe cómo realizarla.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un control remoto universal (Invoker) y dispositivos inteligentes (Receiver). El control remoto no sabe qué hace cada botón, solo sabe que ejecuta un comando. Esto permite reasignar botones o hacer macros.</p>
+<h2 class="subtitle">Caso de Uso Real: Editor de Texto (Undo/Redo)</h2>
+<p><strong>Contexto:</strong> En un editor como Word, el usuario puede escribir, borrar, pegar texto, poner negrita, etc. Y espera poder pulsar <code>Ctrl+Z</code> para deshacer la última acción.</p>
+
+<p><strong>El Problema:</strong> Si la interfaz gráfica llama directamente a la lógica de negocio (<code>document.copy()</code>), no guardamos un historial de qué operación se hizo, por lo que no podemos deshacerla.</p>
+
+<p><strong>La Solución (Command):</strong> Encapsulamos cada operación como un objeto (<code>CopyCommand</code>, <code>PasteCommand</code>).
+<br>Estos objetos tienen método <code>execute()</code> y <code>undo()</code>. Cuando el usuario pulsa un botón, se crea el comando, se ejecuta y se guarda en una pila "Historial". Al pulsar Deshacer, simplemente sacamos el último comando de la pila y llamamos a <code>undo()</code>.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Desacoplamiento Invocador-Receptor:</strong> 
+        <p>El <code>RemoteControl</code> (Invocador) no sabe que está encendiendo una luz. Solo sabe que tiene un objeto <code>Command</code> y que debe llamar a <code>execute()</code>. Esto permite reutilizar el mismo botón para encender luces, abrir puertas o lanzar misiles.</p>
+    </li>
+    <li>
+        <strong>Comandos como Objetos de Primera Clase:</strong> 
+        <p>Al convertir una acción en un objeto, podemos manipularla (guardarla en listas, encolarla, pasarla por red). Esto es la base para Job Queues y Sistemas de Transacciones.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

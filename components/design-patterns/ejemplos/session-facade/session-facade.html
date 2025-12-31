@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Reducir el número de llamadas remotas y transacciones distribuidas.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un EJB de tipo Session Bean que coordina varios Entity Beans para completar una operación de 'Comprar Carrito'.</p>
+<h2 class="subtitle">Caso de Uso Real: Pasarela de Compras (Checkout)</h2>
+<p><strong>Contexto:</strong> Completar un pedido implica: 1. Comprobar stock (Inventario), 2. Procesar pago (Banco), 3. Guardar pedido (DB), 4. Enviar email (Notificaciones).</p>
+
+<p><strong>El Problema:</strong> Si el cliente (Frontend o Controlador Web) llama a estos 4 servicios por separado, la latencia de red se multiplica por 4. Y peor, si el pago falla después de reservar stock, ¿quién deshace la reserva? ¿El cliente?</p>
+
+<p><strong>La Solución (Session Facade):</strong> Creas una fachada de servicio (<code>OrderFacade</code> o <code>CheckoutService</code>) que expone un único método: <code>placeOrder()</code>.
+<br>Esta fachada coordina las llamadas a los componentes internos en una sola transacción local. El cliente hace una sola llamada remota y recibe un OK o Error atómico.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Frontera Transaccional:</strong> 
+        <p>El Session Facade suele marcar el inicio y fin de la transacción. Si algo falla dentro del método fachada, se hace Rollback de todos los cambios (stock, pago, DB).</p>
+    </li>
+    <li>
+        <strong>Seguridad:</strong> 
+        <p>Actúa como un escudo. Los clientes externos solo ven los métodos expuestos por la fachada, no pueden acceder directamente a los componentes internos sensibles.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

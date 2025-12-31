@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Desacoplar el emisor de una solicitud de sus receptores, permitiendo que múltiples objetos tengan la oportunidad de manejarla.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Manejo de eventos en UI (click propagation), Filtros de seguridad en Servidores Web (Authentication -> Logging -> Compression).</p>
+<h2 class="subtitle">Caso de Uso Real: Middleware en Servidores Web o Soporte Técnico</h2>
+<p><strong>Contexto:</strong> En un servidor web (como Express.js o Spring Security), una petición HTTP entrante debe pasar por varios filtros: Autenticación, Logging, Compresión GZIP, y finalmente llegar al Controlador.</p>
+
+<p><strong>El Problema:</strong> Si pones toda la lógica en una sola clase gigante (<code>if (auth) { if (log) { ... } }</code>), el código se vuelve inmanejable y difícil de extender. Añadir un nuevo filtro implica modificar la clase principal.</p>
+
+<p><strong>La Solución (Chain of Responsibility):</strong> Cada filtro es un objeto independiente (Handler). Conectas estos objetos formando una cadena.
+<br>La petición entra por el primer eslabón. Si un eslabón puede procesarla o necesita hacer algo previo, lo hace y luego pasa la petición al <em>siguiente</em> eslabón de la cadena, terminando cuando alguien la procesa por completo o la cadena termina.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Desacoplamiento Emisor-Receptores:</strong> 
+        <p>El cliente que envía la petición solo conoce al primer manejador de la cadena. No sabe quién la terminará procesando ni cuántos pasos o filtros hay en medio.</p>
+    </li>
+    <li>
+        <strong>Flexibilidad Dinámica:</strong> 
+        <p>Puedes configurar y reordenar la cadena en tiempo de ejecución. Por ejemplo, desactivar el LoggingHandler sin recompilar el código, simplemente cambiando cómo se enlazan los objetos.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

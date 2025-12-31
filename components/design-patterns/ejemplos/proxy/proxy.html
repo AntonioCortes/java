@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Controlar el acceso a un objeto. Puede ser para carga perezosa (Virtual Proxy), control de acceso (Protection Proxy), ejecución remota (Remote Proxy) o logging.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Carga de imágenes pesadas. No queremos cargar una imagen de 100MB en memoria hasta que sea estrictamente necesario mostrarla. El Proxy se crea rápido y carga la imagen real solo cuando se llama a `display()`.</p>
+<h2 class="subtitle">Caso de Uso Real: Carga Diferida (Lazy Loading) de Imágenes</h2>
+<p><strong>Contexto:</strong> Tienes una lista de productos con imágenes de alta resolución (10MB cada una). El usuario hace scroll rápido por la lista.</p>
+
+<p><strong>El Problema:</strong> Si cargas todas las imágenes reales al arrancar la aplicación o al crear el objeto del producto, la aplicación tardará minutos en iniciar y consumirá toda la memoria, incluso para imágenes que el usuario quizá nunca llegue a ver (porque no hizo scroll hasta abajo).</p>
+
+<p><strong>La Solución (Virtual Proxy):</strong> En lugar de la imagen real, pones un Proxy (un objeto ligero que ocupa poco).
+<br>Cuando la interfaz gráfica llama a <code>display()</code> en el Proxy porque el usuario ha hecho scroll y la imagen debe verse, EN ESE MOMENTO el Proxy carga la imagen real del disco y delega la llamada. Mientras tanto, puede mostrar un placeholder.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Misma Interfaz:</strong> 
+        <p>El Proxy debe implementar <strong>la misma interfaz</strong> que el objeto real (<code>Image</code>). Esto permite que el cliente trate al proxy y al objeto real de forma indistinta (Polimorfismo). El cliente no sabe (ni le importa) si la imagen está cargada o no.</p>
+    </li>
+    <li>
+        <strong>Control de Ciclo de Vida:</strong> 
+        <p>El Proxy es responsable de crear y destruir el objeto real (<code>RealImage</code>). Esto le da el control para implementar optimizaciones como Lazy Loading o Caché.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

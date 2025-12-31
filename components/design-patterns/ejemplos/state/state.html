@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Permitir a un objeto cambiar su comportamiento cuando cambia su estado interno.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Documento (Borrador -> Moderación -> Publicado). Reproductor (Playing, Paused, Stopped).</p>
+<h2 class="subtitle">Caso de Uso Real: Ciclo de Vida de Pedidos o Reproductor Multimedia</h2>
+<p><strong>Contexto:</strong> Un pedido en Amazon pasa por estados: "Nuevo" -> "Pagado" -> "Enviado" -> "Entregado". O un Reproductor de Vídeo (Play, Pause, Stop).</p>
+
+<p><strong>El Problema:</strong> Si gestionas esto con variables booleanas (<code>isPaid</code>, <code>isShipped</code>) y sentencias <code>if-else</code> o <code>switch</code> gigantes en cada método (<code>cancelarPedido()</code>), el código se vuelve monstruoso y muy propenso a bugs. Si el pedido está "Enviado", no puedes cancelarlo, pero si está "Pagado" sí.</p>
+
+<p><strong>La Solución (State):</strong> Cada estado se convierte en una clase propia (<code>EstadoNuevo</code>, <code>EstadoEnviado</code>).
+<br>El objeto Contexto (el Pedido) delega el comportamiento al objeto de estado actual. Si llamas a <code>cancelar()</code>, el Pedido le dice a su estado actual "Cancélate". Si es <code>EstadoEnviado</code>, dirá "No puedo"; si es <code>EstadoNuevo</code>, dirá "Ok, hecho".</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Eliminación de Condicionales:</strong> 
+        <p>Reemplazamos máquinas de estado complejas basadas en <code>switch</code> por polimorfismo. Añadir un nuevo estado implica simplemente añadir una nueva clase, no tocar la lógica existente de los otros estados.</p>
+    </li>
+    <li>
+        <strong>Cambio de Comportamiento en Runtime:</strong> 
+        <p>Parece que el objeto cambia de clase en tiempo de ejecución. Al cambiar el atributo <code>state</code>, el objeto responde de forma totalmente distinta a los mismos métodos.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

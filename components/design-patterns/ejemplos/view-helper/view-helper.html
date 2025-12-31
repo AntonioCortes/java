@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Mantener las vistas limpias y sin código Java complejo (scriptlets).</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>JSP Custom Tags o Beans auxiliares que formatean fechas o calculan totales para ser mostrados.</p>
+<h2 class="subtitle">Caso de Uso Real: Formateadores y Custom Tags (JSP/Thymeleaf)</h2>
+<p><strong>Contexto:</strong> Necesitas mostrar una lista de precios. En la base de datos están como <code>double</code> (1234.5), pero en la web deben verse como "$1,234.50" (formato moneda USA) o "1.234,50 €" (España).</p>
+
+<p><strong>El Problema:</strong> Poner lógica Java compleja en el JSP (<code><% DecimalFormat df = ... %></code>) es una mala práctica (Scriptlets). Dificulta la lectura y el mantenimiento por parte de diseñadores.</p>
+
+<p><strong>La Solución (View Helper):</strong> Creas clases auxiliares (Helpers) o Tags personalizados (<code><fmt:formatNumber></code>).
+<br>La vista invoca estos helpers de forma declarativa. El Helper encapsula la lógica de presentación (formateo, seguridad de UI, truncado de texto).</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Limpieza de Templates:</strong> 
+        <p>El objetivo es que el archivo de vista parezca lo más HTML posible. Cuanto menos código Java (o lógica de programación) haya en la plantilla, mejor.</p>
+    </li>
+    <li>
+        <strong>Reutilización de Lógica de Presentación:</strong> 
+        <p>Si tienes un Helper para renderizar "Estrellas de valoración" basado en un número, puedes usarlo en la ficha de producto, en el listado y en los comentarios sin duplicar el HTML/CSS/JS asociado.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

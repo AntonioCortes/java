@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Proveer una forma secuencial de acceder a los elementos de un objeto agregado sin exponer su representación interna.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>`java.util.Iterator`. Recorrer listas, sets, mapas de forma uniforme.</p>
+<h2 class="subtitle">Caso de Uso Real: Playlist de Música (Spotify) o Recorrido de Grafos</h2>
+<p><strong>Contexto:</strong> Tienes una colección de canciones. Puedes querer reproducirlas en orden, en aleatorio (shuffle), o por género. O en una red social, quieres recorrer el grafo de amigos "en anchura" o "en profundidad".</p>
+
+<p><strong>El Problema:</strong> Si mezclas la lógica de recorrido (for loops complejos) con la lógica de almacenamiento (Array, Lista Enlazada), acabas con código duplicado y rígido. Si cambias de Array a Lista, se rompen todos los bucles <code>for (int i=0;...)</code>.</p>
+
+<p><strong>La Solución (Iterator):</strong> Extraes la lógica de recorrido a una clase separada (Iterador).
+<br>El cliente pide un iterador a la colección (<code>playlist.createIterator("shuffle")</code>) y usa una interfaz simple: <code>while(it.hasNext()) { play(it.next()) }</code>. No le importa si por debajo hay un Array o un Grafo complejo.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Principio de Responsabilidad Única:</strong> 
+        <p>La colección se encarga de almacenar los datos eficientemente. El iterador se encarga de recorrerlos. Puedes tener múltiples iteradores recorriendo la misma colección simultáneamente (uno imprimiendo, otro calculando estadísticas) sin que interfieran entre sí.</p>
+    </li>
+    <li>
+        <strong>Interfaz Unificada:</strong> 
+        <p>Permite usar el mismo código cliente para recorrer cualquier estructura de datos (List, Set, Tree, Map), siempre que implementen la interfaz <code>Iterable</code>.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Interoperabilidad entre sistemas heterogéneos.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un API Gateway que expone servicios internos como REST APIs.</p>
+<h2 class="subtitle">Caso de Uso Real: Exposición de Sistemas Legacy como REST API</h2>
+<p><strong>Contexto:</strong> Tienes un sistema central (Mainframe o ERP) muy antiguo que funciona con archivos planos o protocolos propietarios (Corba, RMI). Quieres que tu nueva App Móvil acceda a estos datos.</p>
+
+<p><strong>El Problema:</strong> Tu App Móvil no puede hablar Corba. Y no quieres exponer la complejidad y fragilidad del sistema legado directamente al mundo exterior.</p>
+
+<p><strong>La Solución (Web Service Broker):</strong> Creas un intermediario (Broker) que expone una interfaz REST estándar (JSON/HTTP).
+<br>Cuando llega una petición REST, el Broker la traduce al protocolo antiguo, llama al sistema legado, recibe la respuesta extraña, la convierte a JSON limpio y la devuelve al móvil. Actúa como un traductor universal y Gatekeeper.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Desacoplamiento Tecnológico:</strong> 
+        <p>Los consumidores del servicio (Frontend, Móvil) no saben ni les importa si detrás hay un Mainframe COBOL, una base de datos Oracle o un microservicio en Go. Solo ven una API HTTP estándar.</p>
+    </li>
+    <li>
+        <strong>Unificación de Acceso:</strong> 
+        <p>Centraliza seguridad, monitorización y limitación de tasa (Rate Limiting) para múltiples servicios heterogéneos en un solo punto de entrada.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

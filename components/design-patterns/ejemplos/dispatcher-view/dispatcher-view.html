@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Separar la selección de la vista del procesamiento de la respuesta.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Servlets que terminan con RequestDispatcher.forward().</p>
+<h2 class="subtitle">Caso de Uso Real: Renderizado Condicional Simple</h2>
+<p><strong>Contexto:</strong> Un usuario rellena un formulario. Si hay errores, vuelves a mostrar el formulario con mensajes. Si todo va bien, muestras una página de "Éxito".</p>
+
+<p><strong>El Problema:</strong> La vista (JSP) no debería decidir si mostrar éxito o error, eso es lógica de control. Pero el Controlador tampoco debería contener código HTML.</p>
+
+<p><strong>La Solución (Dispatcher View):</strong> El Controlador ejecuta una validación simple y decide qué vista es la siguiente.
+<br>Luego "Despacha" (Forward) la petición a la vista elegida. La vista recibe el control y simplemente renderiza los datos que el controlador le ha preparado. La lógica de negocio previa es mínima.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Controlador como Semáforo:</strong> 
+        <p>El componente Dispatcher no hace trabajo pesado. Su función principal es enrutar. Es parecido al Front Controller pero más enfocado en la selección de la vista final para una respuesta específica.</p>
+    </li>
+    <li>
+        <strong>Diferencia con Service to Worker:</strong> 
+        <p>En el Dispatcher View, la lógica de negocio es trivial o inexistente antes de llamar a la vista. En Service to Worker, hay mucha lógica y procesamiento de datos antes de decidir la vista.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

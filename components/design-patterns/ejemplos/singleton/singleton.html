@@ -5,12 +5,30 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Asegurar que una clase solo tenga una instancia y proporcionar un punto de acceso global a ella.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un caso de uso común es un <strong>Administrador de Configuración</strong> o un <strong>Pool de Conexiones a Base de Datos</strong>. En una aplicación, generalmente queremos una sola configuración centralizada o un solo pool de conexiones para evitar inconsistencias y ahorrar recursos.</p>
+<h2 class="subtitle">Caso de Uso Real: Pool de Conexiones a Base de Datos</h2>
+<p><strong>Contexto:</strong> En una aplicación empresarial, abrir y cerrar conexiones a la base de datos es una operación muy costosa en términos de tiempo y recursos. Además, la base de datos tiene un límite máximo de conexiones simultáneas.</p>
+
+<p><strong>El Problema:</strong> Si cada vez que un usuario hace una petición creamos una nueva conexión (<code>new Connection()</code>), podemos saturar rápidamente el servidor de base de datos y tumbar la aplicación. Además, gestionar múltiples instancias de configuración dispersas puede llevar a inconsistencias.</p>
+
+<p><strong>La Solución (Singleton):</strong> Creamos una única instancia encargada de gestionar las conexiones (un Pool).
+<br>Cualquier parte de la aplicación que necesite acceder a la base de datos se lo pide a este objeto global. Al haber una sola instancia, podemos controlar centralizadamente cuántas conexiones se abren y reutilizarlas, optimizando los recursos.</p>
 
 <h2 class="subtitle">Implementación (Thread Safe)</h2>
 
 <p>A continuación se muestra una implementación segura para hilos usando "Double-Checked Locking".</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Constructor Privado:</strong> 
+        <p>Al hacer el constructor <code>private</code>, impedimos que otras clases usen el operador <code>new</code>. Esto garantiza que nadie pueda crear instancias extra por error.</p>
+    </li>
+    <li>
+        <strong>Método Estático <code>getInstance()</code>:</strong> 
+        <p>Es el único punto de acceso global. Al ser <code>static</code>, pertenece a la clase y no a una instancia, permitiendo acceder a la instancia única sin necesidad de tener una referencia previa.</p>
+    </li>
+</ul>
 
 <div class="center-horizontal">
 <pre><code class="language-java">

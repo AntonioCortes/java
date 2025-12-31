@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Crear familias de objetos relacionados o dependientes sin especificar sus clases concretas.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Interfaz Gráfica (UI) multiplataforma. Una fábrica crea botones y menús estilo Windows, otra estilo Mac, pero el cliente usa la interfaz genérica.</p>
+<h2 class="subtitle">Caso de Uso Real: Interfaz Gráfica Multiplataforma (UI Toolkit)</h2>
+<p><strong>Contexto:</strong> Estás desarrollando una aplicación de escritorio que debe funcionar en Windows, MacOS y Linux. Cada sistema operativo tiene su propio estilo visual y comportamiento para los botones, menús y scrollbars.</p>
+
+<p><strong>El Problema:</strong> Si el código de tu aplicación está lleno de <code>if (OS == "Windows") { new WindowsButton() }</code>, se vuelve imposible de mantener. Además, corres el riesgo de mezclar estilos (un botón de Windows en una ventana de Mac), lo que daría una experiencia de usuario terrible.</p>
+
+<p><strong>La Solución (Abstract Factory):</strong> Defines una "Fábrica" abstracta que declara métodos de creación para cada componente (<code>createButton</code>, <code>createMenu</code>).
+<br>Luego, creas fábricas concretas para cada SO (<code>WindowsFactory</code>, <code>MacFactory</code>). Al arrancar, la aplicación elige la fábrica correcta y a partir de ahí solo usa esa fábrica. Esto garantiza que todos los componentes creados pertenezcan a la misma familia visual.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Familias de Objetos:</strong> 
+        <p>El patrón asegura la consistencia entre productos. <code>WinFactory</code> solo crea <code>WinButton</code> y <code>WinCheckbox</code>. El sistema de tipos impide que mezcles un <code>WinButton</code> con un <code>MacCheckbox</code> si usas la fábrica correctamente.</p>
+    </li>
+    <li>
+        <strong>Desacoplamiento:</strong> 
+        <p>El código cliente (la clase <code>Application</code>) solo conoce las interfaces (<code>GUIFactory</code>, <code>Button</code>), no las clases concretas. Esto facilita añadir soporte para Linux en el futuro sin tocar el código de la aplicación.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

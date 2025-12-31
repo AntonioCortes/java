@@ -5,8 +5,27 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Separar la construcción de un objeto complejo de su representación, de modo que el mismo proceso de construcción pueda crear diferentes representaciones. Es especialmente útil cuando un objeto tiene muchos parámetros, algunos obligatorios y otros opcionales (evitando el "Telescoping Constructor Anti-pattern").</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Construcción de una <strong>Pizza</strong> o un <strong>Request HTTP</strong>. Una pizza puede tener masa fina o gruesa, con o sin queso, con o sin pepperoni, etc. Un constructor normal con todos los parámetros sería ilegible.</p>
+<h2 class="subtitle">Caso de Uso Real: Construcción de Consultas SQL (Query Builder)</h2>
+<p><strong>Contexto:</strong> Necesitas generar sentencias SQL dinámicamente. Una consulta puede tener un <code>SELECT</code>, varios <code>WHERE</code> (opcionales), <code>ORDER BY</code>, <code>LIMIT</code>, etc.</p>
+
+<p><strong>El Problema:</strong> Crear una clase <code>SQLQuery</code> con un constructor gigante <code>new SQLQuery("users", ["id", "name"], "age > 18", null, "name ASC", 10)</code> es terrible (Anti-patrón Telescoping Constructor). Es ilegible y propenso a errores si confundes el orden de los parámetros nulos.</p>
+
+<p><strong>La Solución (Builder):</strong> Usas un objeto Builder que te permite encadenar métodos de forma legible: 
+<br><code>query.select("users").where("age > 18").orderBy("name").build()</code>.
+<br>El Builder va acumulando el estado paso a paso y solo al final construye el objeto complejo, garantizando que sea válido.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Separación Construcción/Representación:</strong> 
+        <p>La clase <code>Pizza</code> (Producto) es un POJO simple. <code>PizzaBuilder</code> contiene la lógica de cómo se asignan los valores y valida la consistencia. Esto permite tener múltiples builders (ej. <code>VeganPizzaBuilder</code>) para la misma clase <code>Pizza</code>.</p>
+    </li>
+    <li>
+        <strong>Fluent Interface:</strong> 
+        <p>Los métodos del Builder retornan <code>this</code> (ej. <code>public PizzaBuilder withDough(...) { ... return this; }</code>). Esto permite encadenar llamadas (<code>.withDough().withSauce()</code>), haciendo el código del cliente mucho más expresivo y fácil de leer.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

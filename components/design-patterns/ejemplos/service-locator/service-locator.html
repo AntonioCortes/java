@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Evitar la redundancia de código de búsqueda JNDI y mejorar performance con caching.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Búsqueda de DataSources en un servidor de aplicaciones.</p>
+<h2 class="subtitle">Caso de Uso Real: Búsqueda de Recursos JNDI en Servidores de Aplicaciones</h2>
+<p><strong>Contexto:</strong> En aplicaciones empresariales antiguas (EJB 2.x, Datasources), obtener una referencia a un servicio requería un proceso de "Lookup" JNDI costoso y verboso: <code>new InitialContext().lookup("java:comp/env/jdbc/MyDS")</code>.</p>
+
+<p><strong>El Problema:</strong> Hacer este lookup cada vez que necesitas el servicio mata el rendimiento (es una operación de red o inter-proceso lenta). Además, llena el código de Strings mágicos difíciles de mantener.</p>
+
+<p><strong>La Solución (Service Locator):</strong> Un objeto singleton que encapsula el lookup.
+<br>La primera vez que pides un servicio, lo busca en el JNDI y lo guarda en una caché interna (HashMap). Las siguientes veces, lo devuelve directamente de la memoria, mejorando drásticamente el rendimiento.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Caché de Recursos:</strong> 
+        <p>La clave del patrón es el rendimiento. Almacenar referencias costosas de obtener para su reutilización inmediata. Hoy en día, la Inyección de Dependencias (Spring, CDI) ha reemplazado en gran medida a este patrón, haciendo el caché de forma transparente.</p>
+    </li>
+    <li>
+        <strong>Abstracción del Registro:</strong> 
+        <p>El cliente no necesita saber si el servicio viene de JNDI, de un archivo de configuración o de un mock de pruebas. Solo pide el servicio por un nombre lógico.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

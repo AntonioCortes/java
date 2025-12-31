@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Reutilización de componentes de interfaz y layouts consistentes (Tiles, SiteMesh).</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Un layout maestro donde el Header y Footer son fijos y el cuerpo cambia dinámicamente según la página solicitada.</p>
+<h2 class="subtitle">Caso de Uso Real: Plantillas Maestras (Tiles / SiteMesh / Thymeleaf Layouts)</h2>
+<p><strong>Contexto:</strong> Todas las páginas de tu web corporativa tienen el mismo Header, el mismo Footer y la misma Barra Lateral. Solo cambia el contenido central.</p>
+
+<p><strong>El Problema:</strong> Si copias y pegas el código del Header y Footer en cada una de las 200 páginas JSP, cuando quieras cambiar el logo tendrás un problema enorme. Los <code>includes</code> simples ayudan, pero escalar se vuelve difícil.</p>
+
+<p><strong>La Solución (Composite View):</strong> Creas una "Vista Compuesta" o Plantilla Maestra.
+<br>Esta plantilla define la estructura global y define "huecos" (slots) donde se inyectarán las sub-vistas concretas. El framework se encarga de ensamblar las piezas en tiempo de ejecución para generar la página final.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Composición Atómica:</strong> 
+        <p>Permite tratar partes de la página (como un Widget del Tiempo o un Carrito de Compra lateral) como componentes independientes reutilizables en múltiples vistas.</p>
+    </li>
+    <li>
+        <strong>Consistencia Visual:</strong> 
+        <p>Garantiza que todas las páginas sigan la misma estructura sin esfuerzo manual por parte del desarrollador, centralizando el diseño en un solo archivo de layout.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

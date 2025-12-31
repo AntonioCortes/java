@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Proveer una interfaz unificada y sencilla para un subsistema complejo.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Librería de compresión de video. Una clase 'VideoConverter' oculta la complejidad de Codecs, Bitrates, AudioMixers, etc.</p>
+<h2 class="subtitle">Caso de Uso Real: Sistema de Cine en Casa (Smart Home)</h2>
+<p><strong>Contexto:</strong> Tienes un sistema de entretenimiento complejo: Proyector, Amplificador, Reproductor DVD, Luces Inteligentes, Pantalla Motorizada. Ver una película implica 10 pasos: bajar pantalla, encender proyector, poner input HDMI, encender ampli, ajustar volumen, apagar luces, reproducir DVD.</p>
+
+<p><strong>El Problema:</strong> El cliente tiene que interactuar con demasiadas clases y conocer el orden exacto de los métodos. Es propenso a errores y difícil de usar.</p>
+
+<p><strong>La Solución (Facade):</strong> Creas una clase <code>HomeTheaterFacade</code> con un método simple <code>watchMovie()</code>.
+<br>Esta clase se encarga internamente de orquestar todas las llamadas a los subsistemas en el orden correcto. El cliente solo presiona un botón (llama a un método).</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Interfaz Unificada:</strong> 
+        <p>El Facade no añade funcionalidad nueva, solo expone una interfaz más simple para una funcionalidad existente. Actúa como un punto de entrada único.</p>
+    </li>
+    <li>
+        <strong>Desacoplamiento débil:</strong> 
+        <p>El Facade reduce el acoplamiento entre el cliente y el subsistema complejo, pero <strong>no impide</strong> que el cliente acceda a las clases de bajo nivel si realmente necesita un control fino. A diferencia de un Proxy o Adapter, el Facade suele crear una nueva interfaz más conveniente, no adaptar una existente.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

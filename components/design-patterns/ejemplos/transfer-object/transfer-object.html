@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Reducir el número de llamadas remotas transportando múltiples datos a la vez.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Enviar datos de un usuario (nombre, email, roles) a la UI en un solo objeto JSON/Java.</p>
+<h2 class="subtitle">Caso de Uso Real: API REST o Comunicación entre Microservicios</h2>
+<p><strong>Contexto:</strong> Un frontend en Angular necesita mostrar el perfil de usuario. En tu base de datos, la información del usuario está dispersa en 3 tablas: <code>Users</code>, <code>Addresses</code>, <code>Roles</code>.</p>
+
+<p><strong>El Problema:</strong> Si el frontend hace 3 llamadas REST (una para user, otra para address, otra para roles), la latencia de red hará que la carga se sienta lenta (Chattiness). Además, no quieres exponer tus entidades de base de datos JPA con contraseñas hash directamente al JSON.</p>
+
+<p><strong>La Solución (Transfer Object):</strong> El servidor hace las consultas locales rápidas, ensambla todos los datos necesarios en un único objeto POJO simple (<code>UserProfileDTO</code>) y lo envía en una sola respuesta.
+<br>El DTO actúa como un contenedor de datos optimizado para la transferencia por red.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Reducción de Latencia:</strong> 
+        <p>El objetivo principal es reducir el número de llamadas remotas. Es mejor traer un objeto grande de una vez que hacer 10 viajes pequeños a través de la red.</p>
+    </li>
+    <li>
+        <strong>Desacoplamiento del Dominio:</strong> 
+        <p>El DTO desacopla la estructura interna de tu base de datos (Entidades) de la estructura que expones al exterior (API Contract). Puedes cambiar tu modelo de datos sin romper el frontend, siempre que mantengas el DTO igual (o uses mappers).</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

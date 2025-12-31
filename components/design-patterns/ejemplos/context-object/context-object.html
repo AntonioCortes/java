@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Evitar pasar parámetros de protocolo (Request, Response) a través de capas de negocio.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>SecurityContextHolder de Spring Security que guarda el usuario autenticado actual accesible desde cualquier punto.</p>
+<h2 class="subtitle">Caso de Uso Real: Propagación de Usuario Logueado (SecurityContext)</h2>
+<p><strong>Contexto:</strong> En una aplicación web, necesitas saber quién es el usuario actual en capas profundas del negocio (ej. para auditoría en el DAO: "Usuario X modificó registro Y").</p>
+
+<p><strong>El Problema:</strong> Pasar el objeto <code>User</code> o <code>HttpServletRequest</code> como parámetro a TODOS los cientos de métodos de tu aplicación (<code>metodo(param1, user)</code>) ensucia el código y acopla tu lógica de negocio a la capa web.</p>
+
+<p><strong>La Solución (Context Object):</strong> Creas un objeto Contexto que vive en el hilo actual (ThreadLocal) o está asociado a la petición.
+<br>El filtro de seguridad lo rellena al principio de la petición. Cualquier clase, en cualquier capa, puede llamar a <code>SecurityContext.getCurrentUser()</code> sin necesidad de recibirlo explícitamente.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Limpieza de API:</strong> 
+        <p>Las firmas de los métodos se mantienen limpias, centradas solo en sus datos de negocio. La información contextual (seguridad, transacción, idioma) viaja por un canal paralelo invisible llamado "Contexto".</p>
+    </li>
+    <li>
+        <strong>ThreadLocal:</strong> 
+        <p>En entornos multi-hilo como Servidores Web, se suele usar <code>ThreadLocal</code> para asegurar que el contexto de una petición no se mezcle con el de otra petición concurrente.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

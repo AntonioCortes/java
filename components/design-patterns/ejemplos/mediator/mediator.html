@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Definir un objeto que encapsule cómo interactúan un conjunto de objetos.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Torre de Control de Aeropuerto (aviones no hablan entre sí, hablan con la torre). Chat Room (usuarios no envían P2P a todos, envían al servidor).</p>
+<h2 class="subtitle">Caso de Uso Real: Torre de Control Áereo o Chat Room</h2>
+<p><strong>Contexto:</strong> Centenares de aviones volando cerca de un aeropuerto. Si cada avión tuviera que hablar con todos los demás para no chocar (A con B, A con C, B con C...), tendríamos un caos de comunicaciones (complejidad N*N).</p>
+
+<p><strong>El Problema:</strong> Demasiadas dependencias directas entre componentes hacen que el sistema sea imposible de mantener y testear. Cada avión necesitaría conocer a todos los demás.</p>
+
+<p><strong>La Solución (Mediator):</strong> Los aviones (Componentes) solo se comunican con la Torre de Control (Mediador).
+<br>Si un avión quiere aterrizar, se lo dice a la Torre. La Torre comprueba si la pista está libre y avisa a los otros aviones si es necesario. Las dependencias se reducen drásticamente (de N*N a N).</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Centralización del Control:</strong> 
+        <p>El Mediador encapsula la lógica de interacción compleja. Los componentes individuales (<code>User</code>, <code>Aircraft</code>) se vuelven más simples y reutilizables porque no dependen de otros componentes concretos, solo del mediador.</p>
+    </li>
+    <li>
+        <strong>Mediator vs Observer:</strong> 
+        <p>En Observer, la comunicación es unidireccional (Subject -> Observers). En Mediator, suele ser multidireccional y el mediador contiene lógica de negocio para coordinar, no solo notificar.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Procesamiento previo y posterior de peticiones (autenticación, logging, encoding) de forma centralizada.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Filtros de Servlets en Java EE. Validar si un usuario está logueado antes de acceder a un recurso.</p>
+<h2 class="subtitle">Caso de Uso Real: Middleware de Servlets (Autenticación y GZIP)</h2>
+<p><strong>Contexto:</strong> En una aplicación web Java EE, necesitas que todas las peticiones estén autenticadas, que se loguee su tiempo de ejecución, y que la respuesta se comprima en GZIP si el cliente lo soporta.</p>
+
+<p><strong>El Problema:</strong> Repetir este código en cada uno de los 50 Servlets de tu aplicación viola el principio DRY (Don't Repeat Yourself). Además, el orden importa (no puedes comprimir antes de autenticar).</p>
+
+<p><strong>La Solución (Intercepting Filter):</strong> Creas una cadena de filtros (FilterChain). La petición pasa por <code>AuthFilter</code>, luego <code>LogFilter</code>, luego <code>CompressionFilter</code>, y finalmente llega al recurso destino.
+<br>Esto permite añadir o quitar filtros de forma declarativa (en <code>web.xml</code> o por anotaciones) sin tocar el código de los servlets.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Procesamiento Pre y Post:</strong> 
+        <p>Los filtros pueden actuar antes de que la petición llegue al destino (pre-processing) y después de que el destino haya generado la respuesta (post-processing). Esto es ideal para modificar cabeceras, codificación o comprimir el body de la respuesta.</p>
+    </li>
+    <li>
+        <strong>Cadena de Responsabilidad Estandarizada:</strong> 
+        <p>Es una especialización del patrón <em>Chain of Responsibility</em> adaptada al contexto web. El objeto <code>FilterChain</code> gestiona la invocación secuencial de los filtros.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

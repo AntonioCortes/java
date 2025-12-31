@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Modelar conceptos del negocio.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Entidad 'Factura' que sabe calcular sus propios impuestos.</p>
+<h2 class="subtitle">Caso de Uso Real: Lógica de Dominio Rica (DDD)</h2>
+<p><strong>Contexto:</strong> En una aplicación bancaria, una cuenta tiene saldo, historial de movimientos y reglas de descubierto. Estas reglas no deben estar en el Controlador ni en la interfaz de usuario.</p>
+
+<p><strong>El Problema:</strong> El "Modelo Anémico" (anti-patrón) ocurre cuando tus clases de negocio son solo Getters y Setters, y la lógica está dispersa en Servicios proceduras gigantes. Esto rompe la encapsulación y la orientación a objetos.</p>
+
+<p><strong>La Solución (Business Object):</strong> El objeto de negocio no solo transporta datos, también contiene la lógica asociada a esos datos (Comportamiento).
+<br>Por ejemplo, la clase <code>Account</code> tiene el método <code>debit(amount)</code> que lanza una excepción si no hay saldo suficiente. La regla de negocio viaja con los datos.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Cohesión Alta:</strong> 
+        <p>Al juntar datos y comportamiento, el código es más fácil de entender. Si quieres saber cómo se calcula el interés de una cuenta, vas a la clase <code>Account</code>, no a una clase <code>InterestCalculatorServiceHelper</code> perdida.</p>
+    </li>
+    <li>
+        <strong>Validación de Invariantes:</strong> 
+        <p>Un Business Object es responsable de mantenerse en un estado válido siempre. No deberías poder crear una Factura sin Cliente ni Líneas.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

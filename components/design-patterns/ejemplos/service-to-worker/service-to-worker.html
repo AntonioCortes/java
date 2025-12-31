@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Realizar operaciones complejas antes de renderizar la vista.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Acciones de Struts 1 o Controllers complejos que preparan el modelo completo.</p>
+<h2 class="subtitle">Caso de Uso Real: Dashboards Complejos y CMS</h2>
+<p><strong>Contexto:</strong> Estás generando la página de inicio de un portal de noticias personalizado. Necesitas autenticar al usuario, recuperar sus preferencias, buscar las noticias de sus categorías favoritas, obtener el clima de su ciudad y cargar anuncios relevantes.</p>
+
+<p><strong>El Problema:</strong> No puedes delegar esto a la vista (sería lentísimo y sucio). Tampoco es un simple "despacho" condicional. Hay mucho trabajo de "fontanería" de datos que hacer antes de siquiera pensar en HTML.</p>
+
+<p><strong>La Solución (Service to Worker):</strong> El Controlador (Worker) orquesta llamadas a múltiples servicios de negocio y DAOs para construir un Modelo de datos completo y rico.
+<br>Solo cuando todo el trabajo pesado ha terminado y los datos están listos en el DTO/Modelo, se pasa el control a la vista para que pinte.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Separación Estricta:</strong> 
+        <p>Es la evolución robusta de MVC. El Controlador hace TODO el trabajo sucio. La Vista es completamente "tonta" (Passive View), solo recibe datos listos para consumir.</p>
+    </li>
+    <li>
+        <strong>Performance:</strong> 
+        <p>Permite optimizar las llamadas a datos en el backend antes de empezar a enviar ni un solo byte de respuesta al cliente (Buffer de respuesta).</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Optimizar la iteración y visualización de grandes listas de datos.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Paginación en una tabla de búsqueda con miles de registros.</p>
+<h2 class="subtitle">Caso de Uso Real: Paginación de Resultados de Búsqueda</h2>
+<p><strong>Contexto:</strong> Un usuario busca "Zapatos" y la base de datos devuelve 50.000 resultados. Solo puedes mostrar 20 por página.</p>
+
+<p><strong>El Problema:</strong> Recuperar 50.000 objetos de la DB cada vez que el usuario pasa de página es ineficiente y tumbará el servidor. O peor, traer todos a la capa de presentación y paginar allí consume toda la memoria.</p>
+
+<p><strong>La Solución (Value List Handler):</strong> Usas un manejador (Handler) que gestiona la lista de resultados.
+<br>El Handler puede ejecutar la query una vez y cachear solo los IDs, recuperando los objetos completos solo para la página actual (Lazy Loading a nivel de lista). O puede mantener un cursor de base de datos abierto (aunque esto es arriesgado en web) o gestionar offsets SQL de forma trasparente.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Iterador Remoto Inteligente:</strong> 
+        <p>Actúa como un iterador avanzado que vive en el servidor (Session Scope). El cliente le pide "dame la siguiente página" y el Handler se encarga de la lógica compleja de obtener ese subconjunto de datos de la forma más eficiente posible.</p>
+    </li>
+    <li>
+        <strong>Caché de Resultados:</strong> 
+        <p>Evita re-ejecutar queries costosas si el usuario navega adelante y atrás en los resultados. Sin embargo, hay que tener cuidado con el consumo de memoria en la sesión HTTP.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

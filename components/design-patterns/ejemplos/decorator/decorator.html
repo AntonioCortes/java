@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Añadir responsabilidades a un objeto de forma dinámica. Provee una alternativa flexible a la herencia para extender la funcionalidad.</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Java I/O Streams (`new BufferedReader(new FileReader(...))`) o un sistema de precios de café donde quieres añadir ingredientes (Leche, Azúcar, Chocolate) a un café base, combinándolos de cualquier forma.</p>
+<h2 class="subtitle">Caso de Uso Real: Sistema de Cafetería (Personalización de Bebidas)</h2>
+<p><strong>Contexto:</strong> Una cafetería vende cafés con múltiples combinaciones de ingredienes: Leche, Azúcar, Chocolate, Vainilla, Canela, Nata, etc.</p>
+
+<p><strong>El Problema:</strong> Usar herencia (<code>CafeConLeche</code>, <code>CafeConLecheYChocolate</code>, <code>CafeSoloConAzucar</code>...) crea una explosión combinatoria de clases imposible de mantener. Añadir un nuevo ingrediente implicaría crear docenas de nuevas clases combinadas.</p>
+
+<p><strong>La Solución (Decorator):</strong> Empiezas con un objeto base (<code>SimpleCoffee</code>). Los ingredientes extra son "Envoltorios" (Decoradores).
+<br>Para crear un Café con Leche y Azúcar, envuelves el café: <code>new Sugar(new Milk(new SimpleCoffee()))</code>. Cada envoltorio añade su precio y su descripción a lo que devuelve el objeto envuelto. Es infinitamente flexible.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Herencia y Composición simultánea:</strong> 
+        <p>El decorador <em>es un</em> Café (implements <code>Coffee</code>) y <em>tiene un</em> Café (composition). Esto es clave: "Es un Café" para que pueda ser pasado a otros decoradores, y "Tiene un Café" para poder delegar y añadir comportamiento. Esto cumple el principio de <strong>Abierto/Cerrado</strong>.</p>
+    </li>
+    <li>
+        <strong>Transparencia:</strong> 
+        <p>El cliente no sabe si está tratando con un café simple o uno con 10 ingredientes, ya que todos implementan la interfaz común.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 

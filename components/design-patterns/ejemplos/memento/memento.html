@@ -5,8 +5,26 @@
 <h2 class="subtitle">Propósito</h2>
 <p>Capturar y externalizar el estado interno de un objeto para que pueda ser restaurado posteriormente (Undo/Redo).</p>
 
-<h2 class="subtitle">Caso de Uso Real</h2>
-<p>Editores de texto (Ctrl+Z), Guardado de estado de juegos.</p>
+<h2 class="subtitle">Caso de Uso Real: Guardado de Partida (Videojuegos) o Ctrl+Z (Editor)</h2>
+<p><strong>Contexto:</strong> Estás jugando a un RPG y vas a luchar contra un jefe. Quieres "Guardar Partida" por si mueres. El estado del juego incluye la posición del jugador, vida, inventario, enemigos vivos, etc.</p>
+
+<p><strong>El Problema:</strong> Para guardar el estado, un objeto externo (el `GameSaver`) necesitaría acceder a todos los campos privados de los objetos del juego (Player, World). Esto violaría el principio de encapsulamiento (hacer todo público es mala idea).</p>
+
+<p><strong>La Solución (Memento):</strong> El objeto del juego (Originator) es el único capaz de crear una instantánea válida de sí mismo (Memento).
+<br>El Memento es una caja negra para el exterior; solo el Originator puede leerlo. El `GameSaver` (Caretaker) simplemente guarda la caja negra sin saber qué hay dentro. Cuando quieres cargar partida, le devuelves la caja al Originator y él se restaura.</p>
+
+<h2 class="subtitle">Análisis de la Implementación</h2>
+
+<ul>
+    <li>
+        <strong>Encapsulamiento Preservado:</strong> 
+        <p>El patrón permite guardar el estado completo (incluyendo privados) sin exponer la estructura interna del objeto al resto del mundo. El Memento suele ser una clase interna o tener una interfaz estrecha para el Caretaker y una ancha para el Originator.</p>
+    </li>
+    <li>
+        <strong>Coste de Recursos:</strong> 
+        <p>Si el estado es muy grande, crear Mementos constantemente (ej. en cada pulsación de tecla) puede consumir mucha RAM. En esos casos se pueden usar Mementos incrementales (guardar solo diferencias).</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Implementación</h2>
 
