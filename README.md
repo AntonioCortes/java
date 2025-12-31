@@ -77,20 +77,6 @@ La página se compone de los siguientes elementos:
 |   |  ...
 |   ...
 |
-+--css
-|  |
-|  +--colors.css
-|  |
-|  +--contents.css
-|  |
-|  +--general-style.css
-|  |
-|  +--navbar.css
-|  |
-|  +--sidebar.css
-|  |
-|  +--styles.css
-|
 +--img (imágenes para README)
 |  |
 |  +--imagen-1
@@ -99,15 +85,7 @@ La página se compone de los siguientes elementos:
 |
 +--js
 |  |
-|  +--componenet-generator.js (utilidad para generar componentes)
-|  |
 |  +--components-imports.js (Archivo para importar los componentes generados)
-|  |
-|  +--main-js (js para el comportamiento general de la página como la gestión de componentes)
-|  |
-|  +--sidebar.js (js para la gestión del sidebar)
-|
-+--vendor (librerías usadas en la página como bootstrap, jquery o highlight)
 |
 +--index.html (html principal de la página, no se debe modificar)
 |
