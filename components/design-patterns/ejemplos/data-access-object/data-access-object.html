@@ -10,8 +10,8 @@
 
 <p><strong>El Problema:</strong> Migrar implicaría reescribir toda la aplicación. Además, mezclar SQL con lógica de negocio hace que el código sea sucio y difícil de testear (no puedes hacer unit testing sin una DB real levantada).</p>
 
-<p><strong>La Solución (DAO):</strong> Creas una interfaz <code>UserDAO</code> con métodos agnósticos a la base de datos (<code>save</code>, <code>findById</code>).
-<br>La implementación concreta (<code>UserDaoJdbc</code>, <code>UserDaoHibernate</code>) contiene el SQL o JPA específico. El resto de la aplicación solo habla con la interfaz. Para migrar de DB, solo cambias la implementación del DAO inyectada, sin tocar el negocio.</p>
+<p><strong>La Solución (DAO):</strong> Creas una interfaz <code class="language-java">UserDAO</code> con métodos agnósticos a la base de datos (<code class="language-java">save</code>, <code class="language-java">findById</code>).
+<br>La implementación concreta (<code class="language-java">UserDaoJdbc</code>, <code class="language-java">UserDaoHibernate</code>) contiene el SQL o JPA específico. El resto de la aplicación solo habla con la interfaz. Para migrar de DB, solo cambias la implementación del DAO inyectada, sin tocar el negocio.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
@@ -22,7 +22,7 @@
     </li>
     <li>
         <strong>Facilidad de Testing:</strong> 
-        <p>Puedes crear un <code>MockUserDAO</code> que guarde los usuarios en un <code>HashMap</code> en memoria. Esto permite testear la capa de servicio unitariamente a velocidad del rayo, sin depender de una base de datos externa.</p>
+        <p>Puedes crear un <code class="language-java">MockUserDAO</code> que guarde los usuarios en un <code class="language-java">HashMap</code> en memoria. Esto permite testear la capa de servicio unitariamente a velocidad del rayo, sin depender de una base de datos externa.</p>
     </li>
 </ul>
 

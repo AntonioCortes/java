@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Builder</h1>
 
 <p>El patrón <strong>Builder</strong> es un patrón creacional que permite construir objetos complejos paso a paso. Permite producir diferentes tipos y representaciones de un objeto empleando el mismo código de construcción.</p>
@@ -6,12 +11,12 @@
 <p>Separar la construcción de un objeto complejo de su representación, de modo que el mismo proceso de construcción pueda crear diferentes representaciones. Es especialmente útil cuando un objeto tiene muchos parámetros, algunos obligatorios y otros opcionales (evitando el "Telescoping Constructor Anti-pattern").</p>
 
 <h2 class="subtitle">Caso de Uso Real: Construcción de Consultas SQL (Query Builder)</h2>
-<p><strong>Contexto:</strong> Necesitas generar sentencias SQL dinámicamente. Una consulta puede tener un <code>SELECT</code>, varios <code>WHERE</code> (opcionales), <code>ORDER BY</code>, <code>LIMIT</code>, etc.</p>
+<p><strong>Contexto:</strong> Necesitas generar sentencias SQL dinámicamente. Una consulta puede tener un <code class="language-java">SELECT</code>, varios <code class="language-java">WHERE</code> (opcionales), <code class="language-java">ORDER BY</code>, <code class="language-java">LIMIT</code>, etc.</p>
 
-<p><strong>El Problema:</strong> Crear una clase <code>SQLQuery</code> con un constructor gigante <code>new SQLQuery("users", ["id", "name"], "age > 18", null, "name ASC", 10)</code> es terrible (Anti-patrón Telescoping Constructor). Es ilegible y propenso a errores si confundes el orden de los parámetros nulos.</p>
+<p><strong>El Problema:</strong> Crear una clase <code class="language-java">SQLQuery</code> con un constructor gigante <code class="language-java">new SQLQuery("users", ["id", "name"], "age > 18", null, "name ASC", 10)</code> es terrible (Anti-patrón Telescoping Constructor). Es ilegible y propenso a errores si confundes el orden de los parámetros nulos.</p>
 
 <p><strong>La Solución (Builder):</strong> Usas un objeto Builder que te permite encadenar métodos de forma legible: 
-<br><code>query.select("users").where("age > 18").orderBy("name").build()</code>.
+<br><code class="language-java">query.select("users").where("age > 18").orderBy("name").build()</code>.
 <br>El Builder va acumulando el estado paso a paso y solo al final construye el objeto complejo, garantizando que sea válido.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
@@ -19,11 +24,11 @@
 <ul>
     <li>
         <strong>Separación Construcción/Representación:</strong> 
-        <p>La clase <code>Pizza</code> (Producto) es un POJO simple. <code>PizzaBuilder</code> contiene la lógica de cómo se asignan los valores y valida la consistencia. Esto permite tener múltiples builders (ej. <code>VeganPizzaBuilder</code>) para la misma clase <code>Pizza</code>.</p>
+        <p>La clase <code class="language-java">Pizza</code> (Producto) es un POJO simple. <code class="language-java">PizzaBuilder</code> contiene la lógica de cómo se asignan los valores y valida la consistencia. Esto permite tener múltiples builders (ej. <code class="language-java">VeganPizzaBuilder</code>) para la misma clase <code class="language-java">Pizza</code>.</p>
     </li>
     <li>
         <strong>Fluent Interface:</strong> 
-        <p>Los métodos del Builder retornan <code>this</code> (ej. <code>public PizzaBuilder withDough(...) { ... return this; }</code>). Esto permite encadenar llamadas (<code>.withDough().withSauce()</code>), haciendo el código del cliente mucho más expresivo y fácil de leer.</p>
+        <p>Los métodos del Builder retornan <code class="language-java">this</code> (ej. <code class="language-java">public PizzaBuilder withDough(...) { ... return this; }</code>). Esto permite encadenar llamadas (<code class="language-java">.withDough().withSauce()</code>), haciendo el código del cliente mucho más expresivo y fácil de leer.</p>
     </li>
 </ul>
 
@@ -105,7 +110,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 Pizza [dough=Fina, sauce=Tomate, topping=Pepperoni]
 Pizza [dough=Gruesa, sauce=null, topping=null]

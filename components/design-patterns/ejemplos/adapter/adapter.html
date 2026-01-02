@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Adapter</h1>
 
 <p>El patrón <strong>Adapter</strong> es un patrón estructural que permite que objetos con interfaces incompatibles colaboren entre sí. Actúa como un "enchufe" adaptador entre dos objetos.</p>
@@ -10,7 +15,7 @@
 
 <p><strong>El Problema:</strong> No puedes cambiar la librería (es de terceros) y reescribir todo tu core para usar JSON rompería otras integraciones XML existentes. Tienes dos interfaces incompatibles.</p>
 
-<p><strong>La Solución (Adapter):</strong> Creas una clase intermedia (<code>XmlToJsonAdapter</code>) que implementa la interfaz que tu aplicación espera (o la de la librería, dependiendo de la dirección). 
+<p><strong>La Solución (Adapter):</strong> Creas una clase intermedia (<code class="language-java">XmlToJsonAdapter</code>) que implementa la interfaz que tu aplicación espera (o la de la librería, dependiendo de la dirección). 
 <br>Cuando llamas al adaptador, este convierte internamente los datos XML a JSON y se los pasa a la librería de análisis, devolviendo el resultado en el formato esperado. El código cliente no se entera de la transformación.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
@@ -18,7 +23,7 @@
 <ul>
     <li>
         <strong>Composición (Object Adapter):</strong> 
-        <p>El adaptador <em>contiene</em> una instancia del objeto a adaptar (<code>AdvancedMediaPlayer</code>). Esto es preferible a la herencia porque permite adaptar objetos de cualquier subclase de <code>AdvancedMediaPlayer</code> dinámicamente.</p>
+        <p>El adaptador <em>contiene</em> una instancia del objeto a adaptar (<code class="language-java">AdvancedMediaPlayer</code>). Esto es preferible a la herencia porque permite adaptar objetos de cualquier subclase de <code class="language-java">AdvancedMediaPlayer</code> dinámicamente.</p>
     </li>
     <li>
         <strong>Principio de Responsabilidad Única:</strong> 
@@ -111,7 +116,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 Playing mp3 file: cancion.mp3
 Playing mp4 file: video.mp4

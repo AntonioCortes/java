@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Context Object</h1>
 
 <p>El patrón <strong>Context Object</strong> es un patrón de la arquitectura Java EE que se usa para pasar información de contexto entre componentes sin ensuciar las firmas de los métodos.</p>
@@ -8,10 +13,10 @@
 <h2 class="subtitle">Caso de Uso Real: Propagación de Usuario Logueado (SecurityContext)</h2>
 <p><strong>Contexto:</strong> En una aplicación web, necesitas saber quién es el usuario actual en capas profundas del negocio (ej. para auditoría en el DAO: "Usuario X modificó registro Y").</p>
 
-<p><strong>El Problema:</strong> Pasar el objeto <code>User</code> o <code>HttpServletRequest</code> como parámetro a TODOS los cientos de métodos de tu aplicación (<code>metodo(param1, user)</code>) ensucia el código y acopla tu lógica de negocio a la capa web.</p>
+<p><strong>El Problema:</strong> Pasar el objeto <code class="language-java">User</code> o <code class="language-java">HttpServletRequest</code> como parámetro a TODOS los cientos de métodos de tu aplicación (<code class="language-java">metodo(param1, user)</code>) ensucia el código y acopla tu lógica de negocio a la capa web.</p>
 
 <p><strong>La Solución (Context Object):</strong> Creas un objeto Contexto que vive en el hilo actual (ThreadLocal) o está asociado a la petición.
-<br>El filtro de seguridad lo rellena al principio de la petición. Cualquier clase, en cualquier capa, puede llamar a <code>SecurityContext.getCurrentUser()</code> sin necesidad de recibirlo explícitamente.</p>
+<br>El filtro de seguridad lo rellena al principio de la petición. Cualquier clase, en cualquier capa, puede llamar a <code class="language-java">SecurityContext.getCurrentUser()</code> sin necesidad de recibirlo explícitamente.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
@@ -22,7 +27,7 @@
     </li>
     <li>
         <strong>ThreadLocal:</strong> 
-        <p>En entornos multi-hilo como Servidores Web, se suele usar <code>ThreadLocal</code> para asegurar que el contexto de una petición no se mezcle con el de otra petición concurrente.</p>
+        <p>En entornos multi-hilo como Servidores Web, se suele usar <code class="language-java">ThreadLocal</code> para asegurar que el contexto de una petición no se mezcle con el de otra petición concurrente.</p>
     </li>
 </ul>
 

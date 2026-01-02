@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Iterator</h1>
 
 <p>El patrón <strong>Iterator</strong> es un patrón de comportamiento que permite recorrer elementos de una colección sin exponer su representación subyacente (lista, pila, árbol, etc.).</p>
@@ -8,10 +13,10 @@
 <h2 class="subtitle">Caso de Uso Real: Playlist de Música (Spotify) o Recorrido de Grafos</h2>
 <p><strong>Contexto:</strong> Tienes una colección de canciones. Puedes querer reproducirlas en orden, en aleatorio (shuffle), o por género. O en una red social, quieres recorrer el grafo de amigos "en anchura" o "en profundidad".</p>
 
-<p><strong>El Problema:</strong> Si mezclas la lógica de recorrido (for loops complejos) con la lógica de almacenamiento (Array, Lista Enlazada), acabas con código duplicado y rígido. Si cambias de Array a Lista, se rompen todos los bucles <code>for (int i=0;...)</code>.</p>
+<p><strong>El Problema:</strong> Si mezclas la lógica de recorrido (for loops complejos) con la lógica de almacenamiento (Array, Lista Enlazada), acabas con código duplicado y rígido. Si cambias de Array a Lista, se rompen todos los bucles <code class="language-java">for (int i=0;...)</code>.</p>
 
 <p><strong>La Solución (Iterator):</strong> Extraes la lógica de recorrido a una clase separada (Iterador).
-<br>El cliente pide un iterador a la colección (<code>playlist.createIterator("shuffle")</code>) y usa una interfaz simple: <code>while(it.hasNext()) { play(it.next()) }</code>. No le importa si por debajo hay un Array o un Grafo complejo.</p>
+<br>El cliente pide un iterador a la colección (<code class="language-java">playlist.createIterator("shuffle")</code>) y usa una interfaz simple: <code class="language-java">while(it.hasNext()) { play(it.next()) }</code>. No le importa si por debajo hay un Array o un Grafo complejo.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
@@ -22,7 +27,7 @@
     </li>
     <li>
         <strong>Interfaz Unificada:</strong> 
-        <p>Permite usar el mismo código cliente para recorrer cualquier estructura de datos (List, Set, Tree, Map), siempre que implementen la interfaz <code>Iterable</code>.</p>
+        <p>Permite usar el mismo código cliente para recorrer cualquier estructura de datos (List, Set, Tree, Map), siempre que implementen la interfaz <code class="language-java">Iterable</code>.</p>
     </li>
 </ul>
 

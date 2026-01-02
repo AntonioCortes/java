@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Visitor</h1>
 
 <p>El patrón <strong>Visitor</strong> es un patrón de comportamiento que permite separar algoritmos de los objetos sobre los que operan.</p>
@@ -8,18 +13,18 @@
 <h2 class="subtitle">Caso de Uso Real: Exportación de Documentos o Cálculo de Impuestos</h2>
 <p><strong>Contexto:</strong> Tienes un grafo de objetos heterogéneos que forman un documento (Párrafos, Tablas, Imágenes, Enlaces). Quieres poder exportar este documento a XML, luego a JSON, y luego a PDF.</p>
 
-<p><strong>El Problema:</strong> Si añades un método <code>exportToXml()</code> a la clase <code>Paragraph</code>, <code>Table</code>, etc., estás ensuciando tus clases de dominio con lógica de exportación. Y cuando quieras exportar a JSON, tendrás que volver a modificar todas esas clases.</p>
+<p><strong>El Problema:</strong> Si añades un método <code class="language-java">exportToXml()</code> a la clase <code class="language-java">Paragraph</code>, <code class="language-java">Table</code>, etc., estás ensuciando tus clases de dominio con lógica de exportación. Y cuando quieras exportar a JSON, tendrás que volver a modificar todas esas clases.</p>
 
-<p><strong>La Solución (Visitor):</strong> Creas una interfaz externa <code>Visitor</code> con métodos <code>visit(Paragraph)</code>, <code>visit(Table)</code>.
-<br>Las clases del documento solo tienen un método: <code>accept(Visitor v) { v.visit(this); }</code>.
-<br>Ahora, para crear un exportador XML, creas una clase nueva <code>XmlExportVisitor</code>. Para PDF, <code>PdfExportVisitor</code>. Añades funcionalidad sobre la estructura de objetos sin tocar sus clases.</p>
+<p><strong>La Solución (Visitor):</strong> Creas una interfaz externa <code class="language-java">Visitor</code> con métodos <code class="language-java">visit(Paragraph)</code>, <code class="language-java">visit(Table)</code>.
+<br>Las clases del documento solo tienen un método: <code class="language-java">accept(Visitor v) { v.visit(this); }</code>.
+<br>Ahora, para crear un exportador XML, creas una clase nueva <code class="language-java">XmlExportVisitor</code>. Para PDF, <code class="language-java">PdfExportVisitor</code>. Añades funcionalidad sobre la estructura de objetos sin tocar sus clases.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
 <ul>
     <li>
         <strong>Double Dispatch:</strong> 
-        <p>El truco está en la llamada <code>v.visit(this)</code>. Aquí se determina qué método ejecutar basándose en dos tipos: el tipo del Visitor (XML o JSON) y el tipo del Elemento (Párrafo o Tabla). Esto permite comportamientos polimórficos dobles.</p>
+        <p>El truco está en la llamada <code class="language-java">v.visit(this)</code>. Aquí se determina qué método ejecutar basándose en dos tipos: el tipo del Visitor (XML o JSON) y el tipo del Elemento (Párrafo o Tabla). Esto permite comportamientos polimórficos dobles.</p>
     </li>
     <li>
         <strong>Separación de Algoritmo y Estructura:</strong> 

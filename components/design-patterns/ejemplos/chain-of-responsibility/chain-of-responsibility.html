@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Chain of Responsibility</h1>
 
 <p>El patrón <strong>Chain of Responsibility</strong> es un patrón de comportamiento que permite pasar solicitudes a lo largo de una cadena de manejadores. Al recibir una solicitud, cada manejador decide si la procesa o si la pasa al siguiente manejador de la cadena.</p>
@@ -8,7 +13,7 @@
 <h2 class="subtitle">Caso de Uso Real: Middleware en Servidores Web o Soporte Técnico</h2>
 <p><strong>Contexto:</strong> En un servidor web (como Express.js o Spring Security), una petición HTTP entrante debe pasar por varios filtros: Autenticación, Logging, Compresión GZIP, y finalmente llegar al Controlador.</p>
 
-<p><strong>El Problema:</strong> Si pones toda la lógica en una sola clase gigante (<code>if (auth) { if (log) { ... } }</code>), el código se vuelve inmanejable y difícil de extender. Añadir un nuevo filtro implica modificar la clase principal.</p>
+<p><strong>El Problema:</strong> Si pones toda la lógica en una sola clase gigante (<code class="language-java">if (auth) { if (log) { ... } }</code>), el código se vuelve inmanejable y difícil de extender. Añadir un nuevo filtro implica modificar la clase principal.</p>
 
 <p><strong>La Solución (Chain of Responsibility):</strong> Cada filtro es un objeto independiente (Handler). Conectas estos objetos formando una cadena.
 <br>La petición entra por el primer eslabón. Si un eslabón puede procesarla o necesita hacer algo previo, lo hace y luego pasa la petición al <em>siguiente</em> eslabón de la cadena, terminando cuando alguien la procesa por completo o la cadena termina.</p>

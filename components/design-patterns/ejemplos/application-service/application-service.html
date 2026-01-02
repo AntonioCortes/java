@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Application Service</h1>
 
 <p>El patrón <strong>Application Service</strong> es un patrón de la arquitectura Java EE que similar al Session Facade pero más enfocado en lógica de aplicación reutilizable y agnóstica de la interfaz.</p>
@@ -8,9 +13,9 @@
 <h2 class="subtitle">Caso de Uso Real: Registro de Usuarios (Orquestación)</h2>
 <p><strong>Contexto:</strong> Registrar un usuario implica crear la entidad Usuario, encriptar la contraseña, guardar en DB y enviar un email de bienvenida.</p>
 
-<p><strong>El Problema:</strong> La entidad <code>User</code> no debería saber enviar emails (rompería SRP). El repositorio <code>UserRepository</code> no sabe de encriptación.</p>
+<p><strong>El Problema:</strong> La entidad <code class="language-java">User</code> no debería saber enviar emails (rompería SRP). El repositorio <code class="language-java">UserRepository</code> no sabe de encriptación.</p>
 
-<p><strong>La Solución (Application Service):</strong> Un servicio de capa de aplicación (<code>UserRegistrationService</code>) actúa como director de orquesta.
+<p><strong>La Solución (Application Service):</strong> Un servicio de capa de aplicación (<code class="language-java">UserRegistrationService</code>) actúa como director de orquesta.
 <br>1. Recibe el DTO. 2. Llama al Encriptador. 3. Crea el objeto User. 4. Llama al Repository. 5. Llama al EmailService.
 <br>No contiene lógica de negocio compleja (eso va en las entidades), solo coordina el flujo de la operación.</p>
 
@@ -23,7 +28,7 @@
     </li>
     <li>
         <strong>Independencia de la UI:</strong> 
-        <p>Este servicio puede ser invocado igual desde un Controlador Web, una tarea programada (Batch) o una línea de comandos, ya que no depende de objetos <code>HttpServletRequest</code>.</p>
+        <p>Este servicio puede ser invocado igual desde un Controlador Web, una tarea programada (Batch) o una línea de comandos, ya que no depende de objetos <code class="language-java">HttpServletRequest</code>.</p>
     </li>
 </ul>
 

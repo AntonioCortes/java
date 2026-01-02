@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Abstract Factory</h1>
 
 <p>El patrón <strong>Abstract Factory</strong> es un patrón creacional que permite producir familias de objetos relacionados sin especificar sus clases concretas.</p>
@@ -8,21 +13,21 @@
 <h2 class="subtitle">Caso de Uso Real: Interfaz Gráfica Multiplataforma (UI Toolkit)</h2>
 <p><strong>Contexto:</strong> Estás desarrollando una aplicación de escritorio que debe funcionar en Windows, MacOS y Linux. Cada sistema operativo tiene su propio estilo visual y comportamiento para los botones, menús y scrollbars.</p>
 
-<p><strong>El Problema:</strong> Si el código de tu aplicación está lleno de <code>if (OS == "Windows") { new WindowsButton() }</code>, se vuelve imposible de mantener. Además, corres el riesgo de mezclar estilos (un botón de Windows en una ventana de Mac), lo que daría una experiencia de usuario terrible.</p>
+<p><strong>El Problema:</strong> Si el código de tu aplicación está lleno de <code class="language-java">if (OS == "Windows") { new WindowsButton() }</code>, se vuelve imposible de mantener. Además, corres el riesgo de mezclar estilos (un botón de Windows en una ventana de Mac), lo que daría una experiencia de usuario terrible.</p>
 
-<p><strong>La Solución (Abstract Factory):</strong> Defines una "Fábrica" abstracta que declara métodos de creación para cada componente (<code>createButton</code>, <code>createMenu</code>).
-<br>Luego, creas fábricas concretas para cada SO (<code>WindowsFactory</code>, <code>MacFactory</code>). Al arrancar, la aplicación elige la fábrica correcta y a partir de ahí solo usa esa fábrica. Esto garantiza que todos los componentes creados pertenezcan a la misma familia visual.</p>
+<p><strong>La Solución (Abstract Factory):</strong> Defines una "Fábrica" abstracta que declara métodos de creación para cada componente (<code class="language-java">createButton</code>, <code class="language-java">createMenu</code>).
+<br>Luego, creas fábricas concretas para cada SO (<code class="language-java">WindowsFactory</code>, <code class="language-java">MacFactory</code>). Al arrancar, la aplicación elige la fábrica correcta y a partir de ahí solo usa esa fábrica. Esto garantiza que todos los componentes creados pertenezcan a la misma familia visual.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
 <ul>
     <li>
         <strong>Familias de Objetos:</strong> 
-        <p>El patrón asegura la consistencia entre productos. <code>WinFactory</code> solo crea <code>WinButton</code> y <code>WinCheckbox</code>. El sistema de tipos impide que mezcles un <code>WinButton</code> con un <code>MacCheckbox</code> si usas la fábrica correctamente.</p>
+        <p>El patrón asegura la consistencia entre productos. <code class="language-java">WinFactory</code> solo crea <code class="language-java">WinButton</code> y <code class="language-java">WinCheckbox</code>. El sistema de tipos impide que mezcles un <code class="language-java">WinButton</code> con un <code class="language-java">MacCheckbox</code> si usas la fábrica correctamente.</p>
     </li>
     <li>
         <strong>Desacoplamiento:</strong> 
-        <p>El código cliente (la clase <code>Application</code>) solo conoce las interfaces (<code>GUIFactory</code>, <code>Button</code>), no las clases concretas. Esto facilita añadir soporte para Linux en el futuro sin tocar el código de la aplicación.</p>
+        <p>El código cliente (la clase <code class="language-java">Application</code>) solo conoce las interfaces (<code class="language-java">GUIFactory</code>, <code class="language-java">Button</code>), no las clases concretas. Esto facilita añadir soporte para Linux en el futuro sin tocar el código de la aplicación.</p>
     </li>
 </ul>
 

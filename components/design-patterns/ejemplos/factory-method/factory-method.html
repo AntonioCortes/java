@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Factory Method</h1>
 
 <p>El patrón <strong>Factory Method</strong> es un patrón de diseño creacional que proporciona una interfaz para crear objetos en una superclase, mientras permite a las subclases alterar el tipo de objetos que se crearán.</p>
@@ -8,11 +13,11 @@
 <h2 class="subtitle">Caso de Uso Real: Sistema de Notificaciones Multi-canal</h2>
 <p><strong>Contexto:</strong> Una aplicación moderna necesita enviar alertas a los usuarios por múltiples vías: Email, SMS, Notificaciones Push, Slack, etc. El sistema no sabe de antemano qué tipo de notificación se enviará hasta que ocurre el evento.</p>
 
-<p><strong>El Problema:</strong> Una mala implementación tendría un código lleno de <code>new EmailNotification()</code> o <code>new SMSNotification()</code> esparcido por toda la aplicación.
+<p><strong>El Problema:</strong> Una mala implementación tendría un código lleno de <code class="language-java">new EmailNotification()</code> o <code class="language-java">new SMSNotification()</code> esparcido por toda la aplicación.
 <br>Si mañana decides cambiar el proveedor de SMS o añadir soporte para WhatsApp, tendrías que buscar y reemplazar ese código en decenas de archivos. El código cliente estaría fuertemente <strong>acoplado</strong> a las clases concretas de notificación.</p>
 
-<p><strong>La Solución (Factory Method):</strong> En lugar de usar el operador <code>new</code> directamente en la lógica de negocio, delegas esa responsabilidad a un método especial (la "Fábrica").
-<br>Tu código principal solo dice "Fábrica, dame una Notificación para este usuario" y recibe un objeto que cumple la interfaz <code>Notification</code>. No le importa si es un SMS o un Email. Esto centraliza la creación en un solo punto, facilitando el mantenimiento y la evolución del sistema.</p>
+<p><strong>La Solución (Factory Method):</strong> En lugar de usar el operador <code class="language-java">new</code> directamente en la lógica de negocio, delegas esa responsabilidad a un método especial (la "Fábrica").
+<br>Tu código principal solo dice "Fábrica, dame una Notificación para este usuario" y recibe un objeto que cumple la interfaz <code class="language-java">Notification</code>. No le importa si es un SMS o un Email. Esto centraliza la creación en un solo punto, facilitando el mantenimiento y la evolución del sistema.</p>
 
 <h2 class="subtitle">Implementación</h2>
 
@@ -63,12 +68,12 @@ class NotificationFactory {
 
 <ul>
     <li>
-        <strong>Interfaz <code>Notification</code>:</strong> 
-        <p>Define un comportamiento común para todos los productos. El cliente (<code>Main</code>) interactúa con esta interfaz, desconociendo las clases concretas (<code>EmailNotification</code>, <code>SMSNotification</code>), lo que reduce el acoplamiento.</p>
+        <strong>Interfaz <code class="language-java">Notification</code>:</strong> 
+        <p>Define un comportamiento común para todos los productos. El cliente (<code class="language-java">Main</code>) interactúa con esta interfaz, desconociendo las clases concretas (<code class="language-java">EmailNotification</code>, <code class="language-java">SMSNotification</code>), lo que reduce el acoplamiento.</p>
     </li>
     <li>
-        <strong>Clase Factory <code>NotificationFactory</code>:</strong> 
-        <p>Centraliza la lógica de creación (uso de <code>new</code>). Si mañana añadimos <code>PushNotification</code>, solo modificamos la Factory, no todo el código cliente. Esto cumple con el <strong>Principio de Responsabilidad Única</strong> al separar la creación del uso.</p>
+        <strong>Clase Factory <code class="language-java">NotificationFactory</code>:</strong> 
+        <p>Centraliza la lógica de creación (uso de <code class="language-java">new</code>). Si mañana añadimos <code class="language-java">PushNotification</code>, solo modificamos la Factory, no todo el código cliente. Esto cumple con el <strong>Principio de Responsabilidad Única</strong> al separar la creación del uso.</p>
     </li>
 </ul>
 
@@ -93,7 +98,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 Enviando notificación por Email...
 Enviando notificación por SMS...

@@ -1,23 +1,28 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Strategy</h1>
 
 <p>El patrón <strong>Strategy</strong> es un patrón de comportamiento que permite definir una familia de algoritmos, encapsular cada uno de ellos y hacerlos intercambiables. Permite que el algoritmo varíe independientemente de los clientes que lo usan.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Permitir seleccionar un algoritmo en tiempo de ejecución. Evita grandes sentencias <code>switch</code> o <code>if-else</code>.</p>
+<p>Permitir seleccionar un algoritmo en tiempo de ejecución. Evita grandes sentencias <code class="language-java">switch</code> o <code class="language-java">if-else</code>.</p>
 
 <h2 class="subtitle">Caso de Uso Real: Procesamiento de Pagos en E-commerce</h2>
 <p><strong>Contexto:</strong> Imagina una tienda online que acepta múltiples formas de pago: Tarjeta de Crédito, PayPal, Bitcoin, etc. Todos estos métodos tienen el mismo objetivo (pagar) pero la lógica interna para conectarse con el banco o la API es completamente diferente.</p>
 
-<p><strong>El Problema:</strong> Sin el patrón Strategy, la clase encargada del pago (<code>Checkout</code>) tendría un método monstruoso lleno de sentencias <code>if (type == "PAYPAL") { ... } else if (type == "CARD") { ... }</code>. 
+<p><strong>El Problema:</strong> Sin el patrón Strategy, la clase encargada del pago (<code class="language-java">Checkout</code>) tendría un método monstruoso lleno de sentencias <code class="language-java">if (type == "PAYPAL") { ... } else if (type == "CARD") { ... }</code>. 
 <br>Esto tiene graves consecuencias:
 <ul>
-    <li>Viola el <strong>Principio Open/Closed</strong>: Cada vez que quieras añadir un nuevo método de pago (ej. Apple Pay), tienes que modificar y recompilar la clase <code>Checkout</code>, arriesgándote a romper el funcionamiento de los pagos existentes.</li>
-    <li>La clase <code>Checkout</code> se vuelve enorme y difícil de mantener.</li>
+    <li>Viola el <strong>Principio Open/Closed</strong>: Cada vez que quieras añadir un nuevo método de pago (ej. Apple Pay), tienes que modificar y recompilar la clase <code class="language-java">Checkout</code>, arriesgándote a romper el funcionamiento de los pagos existentes.</li>
+    <li>La clase <code class="language-java">Checkout</code> se vuelve enorme y difícil de mantener.</li>
 </ul></p>
 
-<p><strong>La Solución (Strategy):</strong> El patrón sugiere sacar toda esa lógica de los <code>if-else</code> y encapsular cada algoritmo de pago en su propia clase independiente.
+<p><strong>La Solución (Strategy):</strong> El patrón sugiere sacar toda esa lógica de los <code class="language-java">if-else</code> y encapsular cada algoritmo de pago en su propia clase independiente.
 <br>
-El <code>Checkout</code> ya no conoce los detalles, solo sabe que tiene un objeto que sabe "pagar" (implementa <code>PaymentStrategy</code>). Para añadir Apple Pay, solo creas una nueva clase, sin tocar ni una línea del código de <code>Checkout</code>.</p>
+El <code class="language-java">Checkout</code> ya no conoce los detalles, solo sabe que tiene un objeto que sabe "pagar" (implementa <code class="language-java">PaymentStrategy</code>). Para añadir Apple Pay, solo creas una nueva clase, sin tocar ni una línea del código de <code class="language-java">Checkout</code>.</p>
 
 <h2 class="subtitle">Implementación</h2>
 
@@ -81,12 +86,12 @@ class ShoppingCart {
 
 <ul>
     <li>
-        <strong>Interfaz <code>PaymentStrategy</code>:</strong> 
-        <p>Se utiliza una <strong>interfaz</strong> en lugar de una clase concreta para desacoplar el contexto (<code>ShoppingCart</code>) de las implementaciones específicas de pago. Esto define un contrato que todas las estrategias deben cumplir, permitiendo el <strong>Polimorfismo</strong>.</p>
+        <strong>Interfaz <code class="language-java">PaymentStrategy</code>:</strong> 
+        <p>Se utiliza una <strong>interfaz</strong> en lugar de una clase concreta para desacoplar el contexto (<code class="language-java">ShoppingCart</code>) de las implementaciones específicas de pago. Esto define un contrato que todas las estrategias deben cumplir, permitiendo el <strong>Polimorfismo</strong>.</p>
     </li>
     <li>
         <strong>Composición sobre Herencia:</strong> 
-        <p><code>ShoppingCart</code> tiene una referencia (composición) a <code>PaymentStrategy</code> en lugar de heredar de una clase de pago. Esto permite cambiar el comportamiento en tiempo de ejecución (<code>setPaymentStrategy</code>), algo que la herencia no permite dinámicamente.</p>
+        <p><code class="language-java">ShoppingCart</code> tiene una referencia (composición) a <code class="language-java">PaymentStrategy</code> en lugar de heredar de una clase de pago. Esto permite cambiar el comportamiento en tiempo de ejecución (<code class="language-java">setPaymentStrategy</code>), algo que la herencia no permite dinámicamente.</p>
     </li>
 </ul>
 
@@ -111,7 +116,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 Pagado 100 usando PayPal: user@example.com
 Pagado 200 usando Tarjeta de Crédito: 1234-5678-9012-3456

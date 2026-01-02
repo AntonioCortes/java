@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Facade</h1>
 
 <p>El patrón <strong>Facade</strong> es un patrón estructural que proporciona una interfaz simplificada a una biblioteca, un framework o cualquier otro grupo complejo de clases.</p>
@@ -10,7 +15,7 @@
 
 <p><strong>El Problema:</strong> El cliente tiene que interactuar con demasiadas clases y conocer el orden exacto de los métodos. Es propenso a errores y difícil de usar.</p>
 
-<p><strong>La Solución (Facade):</strong> Creas una clase <code>HomeTheaterFacade</code> con un método simple <code>watchMovie()</code>.
+<p><strong>La Solución (Facade):</strong> Creas una clase <code class="language-java">HomeTheaterFacade</code> con un método simple <code class="language-java">watchMovie()</code>.
 <br>Esta clase se encarga internamente de orquestar todas las llamadas a los subsistemas en el orden correcto. El cliente solo presiona un botón (llama a un método).</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>

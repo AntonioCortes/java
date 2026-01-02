@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Template Method</h1>
 
 <p>El patrón <strong>Template Method</strong> es un patrón de comportamiento que define el esqueleto de un algoritmo en la superclase pero permite que las subclases sobrescriban pasos específicos del algoritmo sin cambiar su estructura.</p>
@@ -10,8 +15,8 @@
 
 <p><strong>El Problema:</strong> Los pasos 3 y 4 son idénticos para todos los formatos. Pero el paso 1 y 2 varían si es un PDF, un CSV o un XML. Si copias y pegas el código del algoritmo general en cada clase, tienes duplicación.</p>
 
-<p><strong>La Solución (Template Method):</strong> Creas una clase base abstracta <code>DataMiner</code> que define el método <code>mine()</code> (el esqueleto).
-<br>Este método llama a pasos abstractos <code>openFile()</code>, <code>extractData()</code>. Las subclases (<code>PdfMiner</code>, <code>CsvMiner</code>) solo implementan esos detalles específicos. El algoritmo general reside en un único lugar (la clase padre).</p>
+<p><strong>La Solución (Template Method):</strong> Creas una clase base abstracta <code class="language-java">DataMiner</code> que define el método <code class="language-java">mine()</code> (el esqueleto).
+<br>Este método llama a pasos abstractos <code class="language-java">openFile()</code>, <code class="language-java">extractData()</code>. Las subclases (<code class="language-java">PdfMiner</code>, <code class="language-java">CsvMiner</code>) solo implementan esos detalles específicos. El algoritmo general reside en un único lugar (la clase padre).</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
@@ -22,7 +27,7 @@
     </li>
     <li>
         <strong>Reutilización de Código:</strong> 
-        <p>Los pasos comunes (<code>analizarDatos</code>, <code>generarReporte</code>) se implementan una sola vez en la clase padre. Solo los pasos que varían se delegan.</p>
+        <p>Los pasos comunes (<code class="language-java">analizarDatos</code>, <code class="language-java">generarReporte</code>) se implementan una sola vez en la clase padre. Solo los pasos que varían se delegan.</p>
     </li>
 </ul>
 

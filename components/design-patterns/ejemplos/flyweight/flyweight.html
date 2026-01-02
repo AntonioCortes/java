@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Flyweight</h1>
 
 <p>El patrón <strong>Flyweight</strong> es un patrón estructural que permite mantener más objetos dentro de la cantidad disponible de memoria RAM compartiendo las partes comunes del estado entre varios objetos.</p>
@@ -8,11 +13,11 @@
 <h2 class="subtitle">Caso de Uso Real: Renderizado de Bosques en Videojuegos</h2>
 <p><strong>Contexto:</strong> En un juego de mundo abierto necesitas dibujar 1.000.000 de árboles. Cada árbol tiene una malla 3D compleja (polígonos), texturas de hojas y corteza que ocupan mucha memoria.</p>
 
-<p><strong>El Problema:</strong> Si creas 1 millón de objetos <code>Tree</code> y cada uno carga su propia copia de la textura y el modelo 3D, te quedarás sin memoria RAM/VRAM inmediatamente (Crash).</p>
+<p><strong>El Problema:</strong> Si creas 1 millón de objetos <code class="language-java">Tree</code> y cada uno carga su propia copia de la textura y el modelo 3D, te quedarás sin memoria RAM/VRAM inmediatamente (Crash).</p>
 
 <p><strong>La Solución (Flyweight):</strong> Separas el estado.
-<br>1. <strong>Estado Instrínseco (Pesado):</strong> Modelo 3D, Textura, Color. Esto se guarda en un objeto <code>TreeType</code> y <strong>se comparte</strong>. Solo necesitas 3 o 4 instancias de esto en total (Pino, Roble, Abedul).
-<br>2. <strong>Estado Extrínseco (Ligero):</strong> Coordenadas X, Y, Z. Esto se pasa al método <code>draw()</code> o se guarda en objetos muy ligeros.
+<br>1. <strong>Estado Instrínseco (Pesado):</strong> Modelo 3D, Textura, Color. Esto se guarda en un objeto <code class="language-java">TreeType</code> y <strong>se comparte</strong>. Solo necesitas 3 o 4 instancias de esto en total (Pino, Roble, Abedul).
+<br>2. <strong>Estado Extrínseco (Ligero):</strong> Coordenadas X, Y, Z. Esto se pasa al método <code class="language-java">draw()</code> o se guarda en objetos muy ligeros.
 <br>Ahora tienes 1 millón de coordenadas (poco peso) referenciando a solo 3 objetos pesados.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
@@ -20,7 +25,7 @@
 <ul>
     <li>
         <strong>Inmutabilidad:</strong> 
-        <p>Los objetos Flyweight (<code>TreeType</code>) deben ser inmutables. Como son compartidos por múltiples contextos simultáneamente, no pueden tener campos que cambien (como coordenadas), ya que afectarían a todos los árboles a la vez.</p>
+        <p>Los objetos Flyweight (<code class="language-java">TreeType</code>) deben ser inmutables. Como son compartidos por múltiples contextos simultáneamente, no pueden tener campos que cambien (como coordenadas), ya que afectarían a todos los árboles a la vez.</p>
     </li>
     <li>
         <strong>Factoría de Flyweights:</strong> 

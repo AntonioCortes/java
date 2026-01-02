@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Prototype</h1>
 
 <p>El patrón <strong>Prototype</strong> es un patrón creacional que permite copiar objetos existentes sin que el código dependa de sus clases.</p>
@@ -8,21 +13,21 @@
 <h2 class="subtitle">Caso de Uso Real: Generación de Enemigos en Videojuegos</h2>
 <p><strong>Contexto:</strong> En un juego de estrategia tienes miles de unidades (soldados, orcos) en pantalla. Crear cada unidad desde cero (cargar modelos 3D, texturas, sonidos, stats iniciales) consume mucha CPU y memoria.</p>
 
-<p><strong>El Problema:</strong> Si usas <code>new Orc()</code> y cargas todos los recursos cada vez, el juego se ralentizará. Además, si tienes un "Orco Jefe" configurado con stats especiales y quieres copiarlo, tendrías que copiar manualmente propiedad por propiedad, lo cual acopla tu código a la clase <code>Orc</code>.</p>
+<p><strong>El Problema:</strong> Si usas <code class="language-java">new Orc()</code> y cargas todos los recursos cada vez, el juego se ralentizará. Además, si tienes un "Orco Jefe" configurado con stats especiales y quieres copiarlo, tendrías que copiar manualmente propiedad por propiedad, lo cual acopla tu código a la clase <code class="language-java">Orc</code>.</p>
 
-<p><strong>La Solución (Prototype):</strong> Creas una instancia "maestra" (Prototipo) del Orco con todo cargado en memoria. Cuando necesitas un nuevo enemigo, simplemente pides al prototipo que se clone a sí mismo (<code>orcMaster.clone()</code>).
+<p><strong>La Solución (Prototype):</strong> Creas una instancia "maestra" (Prototipo) del Orco con todo cargado en memoria. Cuando necesitas un nuevo enemigo, simplemente pides al prototipo que se clone a sí mismo (<code class="language-java">orcMaster.clone()</code>).
 <br>Clonar un objeto en memoria es mucho más rápido que crearlo e inicializarlo desde cero (especialmente si implica I/O). Además, puedes clonar objetos complejos sin conocer sus clases concretas.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
 <ul>
     <li>
-        <strong>Interfaz <code>Cloneable</code> (o método abstracto <code>clone</code>):</strong> 
-        <p>Declara una interfaz común para la clonación. El cliente (<code>Main</code>) trabaja con la clase abstracta <code>Shape</code> y llama a <code>clone()</code> sin saber si está clonando un <code>Circle</code> o un <code>Rectangle</code>. Esto es polimorfismo aplicado a la creación.</p>
+        <strong>Interfaz <code class="language-java">Cloneable</code> (o método abstracto <code class="language-java">clone</code>):</strong> 
+        <p>Declara una interfaz común para la clonación. El cliente (<code class="language-java">Main</code>) trabaja con la clase abstracta <code class="language-java">Shape</code> y llama a <code class="language-java">clone()</code> sin saber si está clonando un <code class="language-java">Circle</code> o un <code class="language-java">Rectangle</code>. Esto es polimorfismo aplicado a la creación.</p>
     </li>
     <li>
         <strong>Constructor de Copia:</strong> 
-        <p>Dentro del método <code>clone()</code>, se suele llamar a un constructor privado que acepta un objeto del mismo tipo (<code>public Circle(Circle target)</code>). Esto permite copiar los valores de los campos privados de la instancia original a la nueva instancia de forma segura.</p>
+        <p>Dentro del método <code class="language-java">clone()</code>, se suele llamar a un constructor privado que acepta un objeto del mismo tipo (<code class="language-java">public Circle(Circle target)</code>). Esto permite copiar los valores de los campos privados de la instancia original a la nueva instancia de forma segura.</p>
     </li>
 </ul>
 

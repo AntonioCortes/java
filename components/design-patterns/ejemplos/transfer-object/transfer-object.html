@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Transfer Object (DTO)</h1>
 
 <p>El patrón <strong>Transfer Object (DTO)</strong> es un patrón de la arquitectura Java EE que transporta datos desde la capa de negocio a la de presentación en una sola llamada.</p>
@@ -6,11 +11,11 @@
 <p>Reducir el número de llamadas remotas transportando múltiples datos a la vez.</p>
 
 <h2 class="subtitle">Caso de Uso Real: API REST o Comunicación entre Microservicios</h2>
-<p><strong>Contexto:</strong> Un frontend en Angular necesita mostrar el perfil de usuario. En tu base de datos, la información del usuario está dispersa en 3 tablas: <code>Users</code>, <code>Addresses</code>, <code>Roles</code>.</p>
+<p><strong>Contexto:</strong> Un frontend en Angular necesita mostrar el perfil de usuario. En tu base de datos, la información del usuario está dispersa en 3 tablas: <code class="language-java">Users</code>, <code class="language-java">Addresses</code>, <code class="language-java">Roles</code>.</p>
 
 <p><strong>El Problema:</strong> Si el frontend hace 3 llamadas REST (una para user, otra para address, otra para roles), la latencia de red hará que la carga se sienta lenta (Chattiness). Además, no quieres exponer tus entidades de base de datos JPA con contraseñas hash directamente al JSON.</p>
 
-<p><strong>La Solución (Transfer Object):</strong> El servidor hace las consultas locales rápidas, ensambla todos los datos necesarios en un único objeto POJO simple (<code>UserProfileDTO</code>) y lo envía en una sola respuesta.
+<p><strong>La Solución (Transfer Object):</strong> El servidor hace las consultas locales rápidas, ensambla todos los datos necesarios en un único objeto POJO simple (<code class="language-java">UserProfileDTO</code>) y lo envía en una sola respuesta.
 <br>El DTO actúa como un contenedor de datos optimizado para la transferencia por red.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>

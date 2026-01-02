@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Composite Entity</h1>
 
 <p>El patrón <strong>Composite Entity</strong> es un patrón de la arquitectura Java EE que un objeto de grano grueso que gestiona sus propios objetos dependientes.</p>
@@ -11,7 +16,7 @@
 <p><strong>El Problema:</strong> Si tienes que guardar manualmente el Pedido, luego iterar por las líneas y guardarlas una a una, el código de persistencia se vuelve repetitivo y propenso a errores transaccionales (guardar el pedido pero fallar en las líneas).</p>
 
 <p><strong>La Solución (Composite Entity):</strong> Tratas el grafo de objetos como una única entidad lógica. El objeto padre (Pedido) es responsable de gestionar el ciclo de vida de sus hijos.
-<br>En JPA, esto se consigue con <code>CascadeType.ALL</code> y <code>orphanRemoval=true</code>. Al guardar el padre, el framework persiste automáticamente toda la estructura dependiente.</p>
+<br>En JPA, esto se consigue con <code class="language-java">CascadeType.ALL</code> y <code class="language-java">orphanRemoval=true</code>. Al guardar el padre, el framework persiste automáticamente toda la estructura dependiente.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 

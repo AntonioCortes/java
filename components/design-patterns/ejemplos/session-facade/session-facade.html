@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Session Facade</h1>
 
 <p>El patrón <strong>Session Facade</strong> es un patrón de la arquitectura Java EE que proporciona una interfaz de grano grueso para disminuir el tráfico de red entre el cliente y los objetos de negocio.</p>
@@ -10,7 +15,7 @@
 
 <p><strong>El Problema:</strong> Si el cliente (Frontend o Controlador Web) llama a estos 4 servicios por separado, la latencia de red se multiplica por 4. Y peor, si el pago falla después de reservar stock, ¿quién deshace la reserva? ¿El cliente?</p>
 
-<p><strong>La Solución (Session Facade):</strong> Creas una fachada de servicio (<code>OrderFacade</code> o <code>CheckoutService</code>) que expone un único método: <code>placeOrder()</code>.
+<p><strong>La Solución (Session Facade):</strong> Creas una fachada de servicio (<code class="language-java">OrderFacade</code> o <code class="language-java">CheckoutService</code>) que expone un único método: <code class="language-java">placeOrder()</code>.
 <br>Esta fachada coordina las llamadas a los componentes internos en una sola transacción local. El cliente hace una sola llamada remota y recibe un OK o Error atómico.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>

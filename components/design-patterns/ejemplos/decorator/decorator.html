@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Decorator</h1>
 
 <p>El patrón <strong>Decorator</strong> es un patrón estructural que permite añadir funcionalidades a objetos colocando estos objetos dentro de objetos encapsuladores especiales que contienen estas funcionalidades.</p>
@@ -8,17 +13,17 @@
 <h2 class="subtitle">Caso de Uso Real: Sistema de Cafetería (Personalización de Bebidas)</h2>
 <p><strong>Contexto:</strong> Una cafetería vende cafés con múltiples combinaciones de ingredienes: Leche, Azúcar, Chocolate, Vainilla, Canela, Nata, etc.</p>
 
-<p><strong>El Problema:</strong> Usar herencia (<code>CafeConLeche</code>, <code>CafeConLecheYChocolate</code>, <code>CafeSoloConAzucar</code>...) crea una explosión combinatoria de clases imposible de mantener. Añadir un nuevo ingrediente implicaría crear docenas de nuevas clases combinadas.</p>
+<p><strong>El Problema:</strong> Usar herencia (<code class="language-java">CafeConLeche</code>, <code class="language-java">CafeConLecheYChocolate</code>, <code class="language-java">CafeSoloConAzucar</code>...) crea una explosión combinatoria de clases imposible de mantener. Añadir un nuevo ingrediente implicaría crear docenas de nuevas clases combinadas.</p>
 
-<p><strong>La Solución (Decorator):</strong> Empiezas con un objeto base (<code>SimpleCoffee</code>). Los ingredientes extra son "Envoltorios" (Decoradores).
-<br>Para crear un Café con Leche y Azúcar, envuelves el café: <code>new Sugar(new Milk(new SimpleCoffee()))</code>. Cada envoltorio añade su precio y su descripción a lo que devuelve el objeto envuelto. Es infinitamente flexible.</p>
+<p><strong>La Solución (Decorator):</strong> Empiezas con un objeto base (<code class="language-java">SimpleCoffee</code>). Los ingredientes extra son "Envoltorios" (Decoradores).
+<br>Para crear un Café con Leche y Azúcar, envuelves el café: <code class="language-java">new Sugar(new Milk(new SimpleCoffee()))</code>. Cada envoltorio añade su precio y su descripción a lo que devuelve el objeto envuelto. Es infinitamente flexible.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
 <ul>
     <li>
         <strong>Herencia y Composición simultánea:</strong> 
-        <p>El decorador <em>es un</em> Café (implements <code>Coffee</code>) y <em>tiene un</em> Café (composition). Esto es clave: "Es un Café" para que pueda ser pasado a otros decoradores, y "Tiene un Café" para poder delegar y añadir comportamiento. Esto cumple el principio de <strong>Abierto/Cerrado</strong>.</p>
+        <p>El decorador <em>es un</em> Café (implements <code class="language-java">Coffee</code>) y <em>tiene un</em> Café (composition). Esto es clave: "Es un Café" para que pueda ser pasado a otros decoradores, y "Tiene un Café" para poder delegar y añadir comportamiento. Esto cumple el principio de <strong>Abierto/Cerrado</strong>.</p>
     </li>
     <li>
         <strong>Transparencia:</strong> 
@@ -123,7 +128,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 Café Simple $1.0
 Café Simple, con Leche $1.5

@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Proxy</h1>
 
 <p>El patrón <strong>Proxy</strong> es un patrón estructural que proporciona un sustituto o marcador de posición para otro objeto. Un proxy controla el acceso al objeto original, permitiendo hacer algo antes o después de que la solicitud llegue al objeto original.</p>
@@ -11,18 +16,18 @@
 <p><strong>El Problema:</strong> Si cargas todas las imágenes reales al arrancar la aplicación o al crear el objeto del producto, la aplicación tardará minutos en iniciar y consumirá toda la memoria, incluso para imágenes que el usuario quizá nunca llegue a ver (porque no hizo scroll hasta abajo).</p>
 
 <p><strong>La Solución (Virtual Proxy):</strong> En lugar de la imagen real, pones un Proxy (un objeto ligero que ocupa poco).
-<br>Cuando la interfaz gráfica llama a <code>display()</code> en el Proxy porque el usuario ha hecho scroll y la imagen debe verse, EN ESE MOMENTO el Proxy carga la imagen real del disco y delega la llamada. Mientras tanto, puede mostrar un placeholder.</p>
+<br>Cuando la interfaz gráfica llama a <code class="language-java">display()</code> en el Proxy porque el usuario ha hecho scroll y la imagen debe verse, EN ESE MOMENTO el Proxy carga la imagen real del disco y delega la llamada. Mientras tanto, puede mostrar un placeholder.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
 <ul>
     <li>
         <strong>Misma Interfaz:</strong> 
-        <p>El Proxy debe implementar <strong>la misma interfaz</strong> que el objeto real (<code>Image</code>). Esto permite que el cliente trate al proxy y al objeto real de forma indistinta (Polimorfismo). El cliente no sabe (ni le importa) si la imagen está cargada o no.</p>
+        <p>El Proxy debe implementar <strong>la misma interfaz</strong> que el objeto real (<code class="language-java">Image</code>). Esto permite que el cliente trate al proxy y al objeto real de forma indistinta (Polimorfismo). El cliente no sabe (ni le importa) si la imagen está cargada o no.</p>
     </li>
     <li>
         <strong>Control de Ciclo de Vida:</strong> 
-        <p>El Proxy es responsable de crear y destruir el objeto real (<code>RealImage</code>). Esto le da el control para implementar optimizaciones como Lazy Loading o Caché.</p>
+        <p>El Proxy es responsable de crear y destruir el objeto real (<code class="language-java">RealImage</code>). Esto le da el control para implementar optimizaciones como Lazy Loading o Caché.</p>
     </li>
 </ul>
 
@@ -96,7 +101,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 Proxy creado. Imagen no cargada.
 Cargando imagen pesada: foto_alta_resolucion.jpg

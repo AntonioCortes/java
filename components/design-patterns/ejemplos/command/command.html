@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Command</h1>
 
 <p>El patrón <strong>Command</strong> es un patrón de comportamiento que convierte una solicitud en un objeto independiente que contiene toda la información sobre la solicitud. Esta transformación permite parametrizar métodos con diferentes solicitudes, retrasar o poner en cola la ejecución de una solicitud y soportar operaciones que no se pueden deshacer.</p>
@@ -6,19 +11,19 @@
 <p>Desacoplar el objeto que invoca la operación del objeto que sabe cómo realizarla.</p>
 
 <h2 class="subtitle">Caso de Uso Real: Editor de Texto (Undo/Redo)</h2>
-<p><strong>Contexto:</strong> En un editor como Word, el usuario puede escribir, borrar, pegar texto, poner negrita, etc. Y espera poder pulsar <code>Ctrl+Z</code> para deshacer la última acción.</p>
+<p><strong>Contexto:</strong> En un editor como Word, el usuario puede escribir, borrar, pegar texto, poner negrita, etc. Y espera poder pulsar <code class="language-java">Ctrl+Z</code> para deshacer la última acción.</p>
 
-<p><strong>El Problema:</strong> Si la interfaz gráfica llama directamente a la lógica de negocio (<code>document.copy()</code>), no guardamos un historial de qué operación se hizo, por lo que no podemos deshacerla.</p>
+<p><strong>El Problema:</strong> Si la interfaz gráfica llama directamente a la lógica de negocio (<code class="language-java">document.copy()</code>), no guardamos un historial de qué operación se hizo, por lo que no podemos deshacerla.</p>
 
-<p><strong>La Solución (Command):</strong> Encapsulamos cada operación como un objeto (<code>CopyCommand</code>, <code>PasteCommand</code>).
-<br>Estos objetos tienen método <code>execute()</code> y <code>undo()</code>. Cuando el usuario pulsa un botón, se crea el comando, se ejecuta y se guarda en una pila "Historial". Al pulsar Deshacer, simplemente sacamos el último comando de la pila y llamamos a <code>undo()</code>.</p>
+<p><strong>La Solución (Command):</strong> Encapsulamos cada operación como un objeto (<code class="language-java">CopyCommand</code>, <code class="language-java">PasteCommand</code>).
+<br>Estos objetos tienen método <code class="language-java">execute()</code> y <code class="language-java">undo()</code>. Cuando el usuario pulsa un botón, se crea el comando, se ejecuta y se guarda en una pila "Historial". Al pulsar Deshacer, simplemente sacamos el último comando de la pila y llamamos a <code class="language-java">undo()</code>.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
 <ul>
     <li>
         <strong>Desacoplamiento Invocador-Receptor:</strong> 
-        <p>El <code>RemoteControl</code> (Invocador) no sabe que está encendiendo una luz. Solo sabe que tiene un objeto <code>Command</code> y que debe llamar a <code>execute()</code>. Esto permite reutilizar el mismo botón para encender luces, abrir puertas o lanzar misiles.</p>
+        <p>El <code class="language-java">RemoteControl</code> (Invocador) no sabe que está encendiendo una luz. Solo sabe que tiene un objeto <code class="language-java">Command</code> y que debe llamar a <code class="language-java">execute()</code>. Esto permite reutilizar el mismo botón para encender luces, abrir puertas o lanzar misiles.</p>
     </li>
     <li>
         <strong>Comandos como Objetos de Primera Clase:</strong> 
@@ -115,7 +120,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 Luz encendida
 Luz apagada

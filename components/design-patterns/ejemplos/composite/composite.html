@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Composite</h1>
 
 <p>El patrón <strong>Composite</strong> es un patrón estructural que permite componer objetos en estructuras de árbol y trabajar con esas estructuras como si fueran objetos individuales.</p>
@@ -8,21 +13,21 @@
 <h2 class="subtitle">Caso de Uso Real: Sistema de Menús o Gráficos Vectoriales</h2>
 <p><strong>Contexto:</strong> En un editor gráfico (como Illustrator), puedes agrupar varias figuras (Círculo, Cuadrado) para formar un "Logo". A su vez, puedes agrupar varios Logos para formar una "Presentación".</p>
 
-<p><strong>El Problema:</strong> Quieres poder mover, redimensionar o pintar tanto una figura simple como un grupo complejo de la misma manera. Sin Composite, tendrías que chequear el tipo de objeto: <code>if (obj est Grupo) { for each hijo... } else { obj.pintar() }</code>. Esto hace el código complejo y frágil.</p>
+<p><strong>El Problema:</strong> Quieres poder mover, redimensionar o pintar tanto una figura simple como un grupo complejo de la misma manera. Sin Composite, tendrías que chequear el tipo de objeto: <code class="language-java">if (obj est Grupo) { for each hijo... } else { obj.pintar() }</code>. Esto hace el código complejo y frágil.</p>
 
-<p><strong>La Solución (Composite):</strong> Haces que tanto el Grupo (Composite) como la Figura (Hoja) implementen la misma interfaz (ej. <code>Grafico</code>).
-<br>El método <code>pintar()</code> del Grupo simplemente recorre sus hijos y llama a <code>pintar()</code> en ellos. El cliente trata a todos los objetos por igual, sin importar si es una línea simple o un dibujo complejo de mil capas.</p>
+<p><strong>La Solución (Composite):</strong> Haces que tanto el Grupo (Composite) como la Figura (Hoja) implementen la misma interfaz (ej. <code class="language-java">Grafico</code>).
+<br>El método <code class="language-java">pintar()</code> del Grupo simplemente recorre sus hijos y llama a <code class="language-java">pintar()</code> en ellos. El cliente trata a todos los objetos por igual, sin importar si es una línea simple o un dibujo complejo de mil capas.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
 <ul>
     <li>
         <strong>Transparencia:</strong> 
-        <p>El cliente trabaja con la interfaz <code>FileSystemComponent</code>. No necesita saber si está ante un archivo o un directorio. Esto simplifica enormemente el código del cliente (eliminando condiciones <code>instanceof</code>).</p>
+        <p>El cliente trabaja con la interfaz <code class="language-java">FileSystemComponent</code>. No necesita saber si está ante un archivo o un directorio. Esto simplifica enormemente el código del cliente (eliminando condiciones <code class="language-java">instanceof</code>).</p>
     </li>
     <li>
         <strong>Recursividad:</strong> 
-        <p>La estructura de árbol se recorre naturalmente gracias al polimorfismo. Al llamar a <code>showDetails()</code> en la raíz, la llamada se propaga en cascada por toda la jerarquía sin necesidad de algoritmos de iteración complejos externos.</p>
+        <p>La estructura de árbol se recorre naturalmente gracias al polimorfismo. Al llamar a <code class="language-java">showDetails()</code> en la raíz, la llamada se propaga en cascada por toda la jerarquía sin necesidad de algoritmos de iteración complejos externos.</p>
     </li>
 </ul>
 

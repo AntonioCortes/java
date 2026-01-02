@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Business Delegate</h1>
 
 <p>El patrón <strong>Business Delegate</strong> es un patrón de la arquitectura Java EE que oculta la complejidad de buscar y ejecutar servicios de negocio remotos o locales (EJB).</p>
@@ -8,17 +13,17 @@
 <h2 class="subtitle">Caso de Uso Real: Cliente Web accediendo a EJB Remotos</h2>
 <p><strong>Contexto:</strong> Tienes una capa de presentación (JSF, JSP o Servlet) que necesita llamar a servicios de negocio (EJB) que pueden estar en el mismo servidor o en un servidor remoto.</p>
 
-<p><strong>El Problema:</strong> Buscar un EJB (vía JNDI) es complejo y propenso a excepciones de red. Si pones código de infraestructura (<code>InitialContext.lookup()</code>) en tus controladores web, acoplas la presentación a la implementación específica de los servicios y dificultas el testing.</p>
+<p><strong>El Problema:</strong> Buscar un EJB (vía JNDI) es complejo y propenso a excepciones de red. Si pones código de infraestructura (<code class="language-java">InitialContext.lookup()</code>) en tus controladores web, acoplas la presentación a la implementación específica de los servicios y dificultas el testing.</p>
 
 <p><strong>La Solución (Business Delegate):</strong> Creas una clase Java simple (POJO) en la capa de presentación que actúa como representante del servicio de negocio.
-<br>El controlador web llama a este Delegado. El Delegado se encarga de buscar el servicio, hacer reintentos si falla, y convertir las excepciones de infraestructura remotas (<code>RemoteException</code>) en excepciones de negocio amigables.</p>
+<br>El controlador web llama a este Delegado. El Delegado se encarga de buscar el servicio, hacer reintentos si falla, y convertir las excepciones de infraestructura remotas (<code class="language-java">RemoteException</code>) en excepciones de negocio amigables.</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>
 
 <ul>
     <li>
         <strong>Ocultación de Complejidad:</strong> 
-        <p>El patrón encapsula los detalles de acceso a servicios (Lookup, RMI, SOAP, REST). El cliente solo ve un método de negocio limpio (<code>delegate.doTask()</code>).</p>
+        <p>El patrón encapsula los detalles de acceso a servicios (Lookup, RMI, SOAP, REST). El cliente solo ve un método de negocio limpio (<code class="language-java">delegate.doTask()</code>).</p>
     </li>
     <li>
         <strong>Caché de Referencias:</strong> 

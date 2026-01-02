@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón View Helper</h1>
 
 <p>El patrón <strong>View Helper</strong> es un patrón de la arquitectura Java EE que encapsula lógica de negocio o de acceso a datos que no debería estar directamente en la vista (JSP/HTML).</p>
@@ -6,11 +11,11 @@
 <p>Mantener las vistas limpias y sin código Java complejo (scriptlets).</p>
 
 <h2 class="subtitle">Caso de Uso Real: Formateadores y Custom Tags (JSP/Thymeleaf)</h2>
-<p><strong>Contexto:</strong> Necesitas mostrar una lista de precios. En la base de datos están como <code>double</code> (1234.5), pero en la web deben verse como "$1,234.50" (formato moneda USA) o "1.234,50 €" (España).</p>
+<p><strong>Contexto:</strong> Necesitas mostrar una lista de precios. En la base de datos están como <code class="language-java">double</code> (1234.5), pero en la web deben verse como "$1,234.50" (formato moneda USA) o "1.234,50 €" (España).</p>
 
-<p><strong>El Problema:</strong> Poner lógica Java compleja en el JSP (<code><% DecimalFormat df = ... %></code>) es una mala práctica (Scriptlets). Dificulta la lectura y el mantenimiento por parte de diseñadores.</p>
+<p><strong>El Problema:</strong> Poner lógica Java compleja en el JSP (<code class="language-java"><% DecimalFormat df = ... %></code>) es una mala práctica (Scriptlets). Dificulta la lectura y el mantenimiento por parte de diseñadores.</p>
 
-<p><strong>La Solución (View Helper):</strong> Creas clases auxiliares (Helpers) o Tags personalizados (<code><fmt:formatNumber></code>).
+<p><strong>La Solución (View Helper):</strong> Creas clases auxiliares (Helpers) o Tags personalizados (<code class="language-java"><fmt:formatNumber></code>).
 <br>La vista invoca estos helpers de forma declarativa. El Helper encapsula la lógica de presentación (formateo, seguridad de UI, truncado de texto).</p>
 
 <h2 class="subtitle">Análisis de la Implementación</h2>

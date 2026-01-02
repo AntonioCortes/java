@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Application Controller</h1>
 
 <p>El patrón <strong>Application Controller</strong> es un patrón de la arquitectura Java EE que una extensión del Front Controller que maneja el flujo de navegación complejo.</p>
@@ -8,7 +13,7 @@
 <h2 class="subtitle">Caso de Uso Real: Flujos de Navegación Complejos (Wizards)</h2>
 <p><strong>Contexto:</strong> Tienes un proceso de Checkout en 5 pasos: Carrito -> Dirección -> Envío -> Pago -> Confirmación. El orden depende de condiciones (si es digital no hay envío, si paga con PayPal el flujo cambia).</p>
 
-<p><strong>El Problema:</strong> Si pones la lógica de "a dónde ir después" en cada Vista o Controlador (<code>if (step1_done) return "step2"</code>), dispersas el flujo por toda la aplicación. Cambiar el orden de los pasos se vuelve una pesadilla.</p>
+<p><strong>El Problema:</strong> Si pones la lógica de "a dónde ir después" en cada Vista o Controlador (<code class="language-java">if (step1_done) return "step2"</code>), dispersas el flujo por toda la aplicación. Cambiar el orden de los pasos se vuelve una pesadilla.</p>
 
 <p><strong>La Solución (Application Controller):</strong> Centralizas la lógica de navegación en un único componente.
 <br>El Front Controller delega en el Application Controller la pregunta "¿Cuál es la siguiente vista?". Este componente actúa como una máquina de estados que conoce todo el mapa de navegación.</p>

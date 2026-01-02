@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Composite View</h1>
 
 <p>El patrón <strong>Composite View</strong> es un patrón de la arquitectura Java EE que permite construir una página completa ensamblando header, footer, menú y contenido, gestionados independientemente.</p>
@@ -8,7 +13,7 @@
 <h2 class="subtitle">Caso de Uso Real: Plantillas Maestras (Tiles / SiteMesh / Thymeleaf Layouts)</h2>
 <p><strong>Contexto:</strong> Todas las páginas de tu web corporativa tienen el mismo Header, el mismo Footer y la misma Barra Lateral. Solo cambia el contenido central.</p>
 
-<p><strong>El Problema:</strong> Si copias y pegas el código del Header y Footer en cada una de las 200 páginas JSP, cuando quieras cambiar el logo tendrás un problema enorme. Los <code>includes</code> simples ayudan, pero escalar se vuelve difícil.</p>
+<p><strong>El Problema:</strong> Si copias y pegas el código del Header y Footer en cada una de las 200 páginas JSP, cuando quieras cambiar el logo tendrás un problema enorme. Los <code class="language-java">includes</code> simples ayudan, pero escalar se vuelve difícil.</p>
 
 <p><strong>La Solución (Composite View):</strong> Creas una "Vista Compuesta" o Plantilla Maestra.
 <br>Esta plantilla define la estructura global y define "huecos" (slots) donde se inyectarán las sub-vistas concretas. El framework se encarga de ensamblar las piezas en tiempo de ejecución para generar la página final.</p>

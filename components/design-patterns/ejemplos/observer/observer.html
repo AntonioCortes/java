@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Observer</h1>
 
 <p>El patrón <strong>Observer</strong> es un patrón de diseño de comportamiento que permite definir un mecanismo de suscripción para notificar a varios objetos sobre cualquier evento que le suceda al objeto que están observando.</p>
@@ -88,12 +93,12 @@ class Subscriber implements Observer {
 
 <ul>
     <li>
-        <strong>Interfaces <code>Observer</code> y <code>Subject</code>:</strong> 
-        <p>Permiten que el <code>Subject</code> (YoutubeChannel) no conozca los detalles de sus observadores. Solo sabe que implementan la interfaz <code>Observer</code> y tienen un método <code>update</code>. Esto es un ejemplo de <strong>Inversión de Dependencias</strong>.</p>
+        <strong>Interfaces <code class="language-java">Observer</code> y <code class="language-java">Subject</code>:</strong> 
+        <p>Permiten que el <code class="language-java">Subject</code> (YoutubeChannel) no conozca los detalles de sus observadores. Solo sabe que implementan la interfaz <code class="language-java">Observer</code> y tienen un método <code class="language-java">update</code>. Esto es un ejemplo de <strong>Inversión de Dependencias</strong>.</p>
     </li>
     <li>
         <strong>Gestión de Suscripciones:</strong> 
-        <p>La lista interna <code>List&lt;Observer&gt;</code> permite una relación uno-a-muchos dinámica. Los objetos pueden suscribirse y desuscribirse en tiempo de ejecución sin afectar al funcionamiento interno del sujeto.</p>
+        <p>La lista interna <code class="language-java">List&lt;Observer&gt;</code> permite una relación uno-a-muchos dinámica. Los objetos pueden suscribirse y desuscribirse en tiempo de ejecución sin afectar al funcionamiento interno del sujeto.</p>
     </li>
 </ul>
 
@@ -123,7 +128,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 CodeChannel ha subido un nuevo video: Patrón Observer en Java
 Hola Alice, ¡hay un nuevo video: Patrón Observer en Java!

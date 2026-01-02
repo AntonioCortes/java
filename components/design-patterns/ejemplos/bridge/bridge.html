@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Bridge</h1>
 
 <p>El patrón <strong>Bridge</strong> es un patrón estructural que divide una clase grande o un conjunto de clases estrechamente relacionadas en dos jerarquías separadas (abstracción e implementación) que pueden desarrollarse independientemente.</p>
@@ -8,7 +13,7 @@
 <h2 class="subtitle">Caso de Uso Real: Mando a Distancia Universal</h2>
 <p><strong>Contexto:</strong> Quieres crear un sistema para controlar dispositivos (TV, Radio, Proyector) con distintos mandos a distancia. Cada dispositivo tiene sus propios comandos internos y cada mando puede tener funciones extra (Mute, Voz).</p>
 
-<p><strong>El Problema:</strong> Si usas herencia simple, acabarías con una explosión de clases: <code>SonyTVRemote</code>, <code>SonyRadioRemote</code>, <code>SamsungTVRemote</code>, etc. Si añades un nuevo tipo de mando o una nueva marca de TV, el número de clases crece exponencialmente (Producto cartesiano Abstracciones x Implementaciones).</p>
+<p><strong>El Problema:</strong> Si usas herencia simple, acabarías con una explosión de clases: <code class="language-java">SonyTVRemote</code>, <code class="language-java">SonyRadioRemote</code>, <code class="language-java">SamsungTVRemote</code>, etc. Si añades un nuevo tipo de mando o una nueva marca de TV, el número de clases crece exponencialmente (Producto cartesiano Abstracciones x Implementaciones).</p>
 
 <p><strong>La Solución (Bridge):</strong> Separas las jerarquías en dos: 
 <br>1. <strong>Abstracción (Mando):</strong> Define las operaciones de alto nivel (encender, apagar).
@@ -20,11 +25,11 @@
 <ul>
     <li>
         <strong>Desacoplamiento Abstracción-Implementación:</strong> 
-        <p>A diferencia de la herencia, donde la implementación está atada a la abstracción en tiempo de compilación, el Bridge permite cambiar la implementación en tiempo de ejecución (asignando un nuevo <code>Device</code> al <code>RemoteControl</code>). Esto favorece la composición sobre la herencia.</p>
+        <p>A diferencia de la herencia, donde la implementación está atada a la abstracción en tiempo de compilación, el Bridge permite cambiar la implementación en tiempo de ejecución (asignando un nuevo <code class="language-java">Device</code> al <code class="language-java">RemoteControl</code>). Esto favorece la composición sobre la herencia.</p>
     </li>
     <li>
         <strong>Extensibilidad Independiente:</strong> 
-        <p>Puedes añadir nuevos mandos (ej. <code>VoiceControlRemote</code>) sin tocar las clases de dispositivos, y nuevos dispositivos (ej. <code>SmartLight</code>) sin tocar los mandos.</p>
+        <p>Puedes añadir nuevos mandos (ej. <code class="language-java">VoiceControlRemote</code>) sin tocar las clases de dispositivos, y nuevos dispositivos (ej. <code class="language-java">SmartLight</code>) sin tocar los mandos.</p>
     </li>
 </ul>
 

@@ -1,3 +1,8 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Singleton</h1>
 
 <p>El patrón <strong>Singleton</strong> es un patrón de diseño creacional que garantiza que una clase tenga una única instancia y proporciona un punto de acceso global a ella.</p>
@@ -8,7 +13,7 @@
 <h2 class="subtitle">Caso de Uso Real: Pool de Conexiones a Base de Datos</h2>
 <p><strong>Contexto:</strong> En una aplicación empresarial, abrir y cerrar conexiones a la base de datos es una operación muy costosa en términos de tiempo y recursos. Además, la base de datos tiene un límite máximo de conexiones simultáneas.</p>
 
-<p><strong>El Problema:</strong> Si cada vez que un usuario hace una petición creamos una nueva conexión (<code>new Connection()</code>), podemos saturar rápidamente el servidor de base de datos y tumbar la aplicación. Además, gestionar múltiples instancias de configuración dispersas puede llevar a inconsistencias.</p>
+<p><strong>El Problema:</strong> Si cada vez que un usuario hace una petición creamos una nueva conexión (<code class="language-java">new Connection()</code>), podemos saturar rápidamente el servidor de base de datos y tumbar la aplicación. Además, gestionar múltiples instancias de configuración dispersas puede llevar a inconsistencias.</p>
 
 <p><strong>La Solución (Singleton):</strong> Creamos una única instancia encargada de gestionar las conexiones (un Pool).
 <br>Cualquier parte de la aplicación que necesite acceder a la base de datos se lo pide a este objeto global. Al haber una sola instancia, podemos controlar centralizadamente cuántas conexiones se abren y reutilizarlas, optimizando los recursos.</p>
@@ -22,11 +27,11 @@
 <ul>
     <li>
         <strong>Constructor Privado:</strong> 
-        <p>Al hacer el constructor <code>private</code>, impedimos que otras clases usen el operador <code>new</code>. Esto garantiza que nadie pueda crear instancias extra por error.</p>
+        <p>Al hacer el constructor <code class="language-java">private</code>, impedimos que otras clases usen el operador <code class="language-java">new</code>. Esto garantiza que nadie pueda crear instancias extra por error.</p>
     </li>
     <li>
-        <strong>Método Estático <code>getInstance()</code>:</strong> 
-        <p>Es el único punto de acceso global. Al ser <code>static</code>, pertenece a la clase y no a una instancia, permitiendo acceder a la instancia única sin necesidad de tener una referencia previa.</p>
+        <strong>Método Estático <code class="language-java">getInstance()</code>:</strong> 
+        <p>Es el único punto de acceso global. Al ser <code class="language-java">static</code>, pertenece a la clase y no a una instancia, permitiendo acceder a la instancia única sin necesidad de tener una referencia previa.</p>
     </li>
 </ul>
 
@@ -94,7 +99,7 @@ public class Main {
 </div>
 
 <div class="center-horizontal">
-<pre><code class="language-plaintext">
+<pre><code class="language-java">
 Output:
 Conexión a base de datos iniciada.
 Ejecutando query: SELECT * FROM users
