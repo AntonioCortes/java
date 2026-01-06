@@ -52,7 +52,7 @@
                         },
                         {
                             "text": "Controlador REST",
-                            "content": "component-springboot-capas-principales-controladores-controladorRest"
+                            "content": "component-springboot-capas-principales-controladores-controlador-rest"
                         }
                     ]
                 },
