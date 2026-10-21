@@ -5,44 +5,148 @@
 </style>
 <h1 class="title">Patrón Web Service Broker</h1>
 
-<p>El patrón <strong>Web Service Broker</strong> es un patrón de la arquitectura Java EE que brinda un punto de acceso a uno o más servicios utilizando estándares web (SOAP/REST).</p>
+<p>El patrón <strong>Web Service Broker</strong> (Intermediario de Servicios Web) es un patrón de integración de Java EE que actúa como una <strong>puerta de enlace pública estándar (REST/JSON o SOAP/XML)</strong> para exponer y coordinar uno o varios sistemas internos heterogéneos (como microservicios internos o sistemas bancarios antiguos <em>legacy</em>).</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en un <strong>Intérprete Diplomático en la ONU</strong> o la ventanilla única de un Ayuntamiento. Un ciudadano extranjero llega a la ventanilla hablando en inglés (una petición estándar <code class="language-java">HTTP/JSON</code> desde una App móvil). El funcionario de la ventanilla (<code class="language-java">Web Service Broker</code>) traduce esa solicitud al formato interno antiguo de cada departamento del edificio, coordina las firmas necesarias y le devuelve al ciudadano un certificado limpio en su propio idioma.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Interoperabilidad entre sistemas heterogéneos.</p>
+<p>Permitir que aplicaciones externas modernas (Apps móviles iOS/Android, SPAs en Angular/React o empresas asociadas) se comuniquen mediante protocolos web estándar (HTTP + JSON) con sistemas internos que usan protocolos propietarios, tramas de texto fijo o arquitecturas heterogéneas.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Exposición de Sistemas Legacy como REST API</h2>
-<p><strong>Contexto:</strong> Tienes un sistema central (Mainframe o ERP) muy antiguo que funciona con archivos planos o protocolos propietarios (Corba, RMI). Quieres que tu nueva App Móvil acceda a estos datos.</p>
+<h2 class="subtitle">Caso de Uso Real: Exposición de un Mainframe Bancario COBOL y un Microservicio como API REST</h2>
+<p><strong>Contexto:</strong> La nueva App móvil de un banco necesita hacer transferencias enviando un JSON limpio. Sin embargo, dentro del banco primero hay que validar el riesgo en un microservicio moderno (<code class="language-java">MicroservicioAntifraude</code>) y luego ejecutar el movimiento contable en un Mainframe central de los años 80 (<code class="language-java">SistemaCobolAntiguo</code>) que solo entiende tramas de texto fijo separadas por tuberías (<code class="language-java">|</code>).</p>
 
-<p><strong>El Problema:</strong> Tu App Móvil no puede hablar Corba. Y no quieres exponer la complejidad y fragilidad del sistema legado directamente al mundo exterior.</p>
+<p><strong>El Problema (Sin Web Service Broker):</strong> Una App móvil no puede conectarse directamente por sockets propietarios a un Mainframe COBOL, y además sería gravísimo exponer el Mainframe directamente a Internet.</p>
 
-<p><strong>La Solución (Web Service Broker):</strong> Creas un intermediario (Broker) que expone una interfaz REST estándar (JSON/HTTP).
-<br>Cuando llega una petición REST, el Broker la traduce al protocolo antiguo, llama al sistema legado, recibe la respuesta extraña, la convierte a JSON limpio y la devuelve al móvil. Actúa como un traductor universal y Gatekeeper.</p>
+<p><strong>La Solución (Con Web Service Broker):</strong> Creamos <code class="language-java">BrokerServiciosBancarios</code>. Expone al exterior un endpoint REST/JSON limpio, valida la operación contra <code class="language-java">MicroservicioAntifraude</code>, traduce los datos a la trama fija que exige <code class="language-java">SistemaCobolAntiguo</code> y transforma el código de respuesta en un JSON estándar.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Integración de Sistemas y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Desacoplamiento Tecnológico:</strong> 
-        <p>Los consumidores del servicio (Frontend, Móvil) no saben ni les importa si detrás hay un Mainframe COBOL, una base de datos Oracle o un microservicio en Go. Solo ven una API HTTP estándar.</p>
-    </li>
-    <li>
-        <strong>Unificación de Acceso:</strong> 
-        <p>Centraliza seguridad, monitorización y limitación de tasa (Rate Limiting) para múltiples servicios heterogéneos en un solo punto de entrada.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/web-service-broker/assets/img/web-service-broker-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Web Service Broker integrando una App móvil con un microservicio y un Mainframe legacy</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Componente en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">External Client</th>
+            <td><code class="language-java">Main</code> (App Móvil / Cliente Web)</td>
+            <td>Consume el servicio utilizando estándares web abiertos (HTTP/JSON) sin saber qué tecnologías hay detrás.</td>
+        </tr>
+        <tr>
+            <th scope="row">Mediador / Broker Web (Clase Normal)</th>
+            <td><code class="language-java">BrokerServiciosBancarios</code></td>
+            <td>Expone el endpoint web, orquesta las llamadas a los sistemas internos, traduce protocolos y devuelve JSON.</td>
+        </tr>
+        <tr>
+            <th scope="row">Internal / Legacy Systems</th>
+            <td><code class="language-java">MicroservicioAntifraude</code>, <code class="language-java">SistemaCobolAntiguo</code></td>
+            <td>Sistemas internos con sus propios protocolos y formatos que permanecen ocultos y protegidos tras el Broker.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Web Service Broker</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@Path("/users")
-public class UserResource {
-    @GET
-    @Produces("application/json")
-    public List<UserDTO> getUsers() {
-        return userService.findAll();
+// 1. Sistema Interno A: Microservicio moderno de control de fraude
+class MicroservicioAntifraude {
+    public boolean isTransactionSafe(double amount) {
+        System.out.println("   🛡️ [MicroservicioAntifraude] Analizando riesgo para importe: " + amount + " EUR -> APROBADO");
+        return amount &lt;= 10000.0;
+    }
+}
+
+// 2. Sistema Interno B: Mainframe Bancario Legacy (solo entiende tramas planas de texto)
+class SistemaCobolAntiguo {
+    public String ejecutarTramaFija(String cobolFrame) {
+        System.out.println("   🖥️ [SistemaCobolAntiguo] Procesando trama propietaria: [" + cobolFrame + "]");
+        return "COD_00_OK_AUTH_8841";
+    }
+}
+
+// 3. Web Service Broker: Expone interfaz REST/JSON estándar al exterior y coordina por dentro
+class BrokerServiciosBancarios {
+    private MicroservicioAntifraude fraudService = new MicroservicioAntifraude();
+    private SistemaCobolAntiguo mainframe = new SistemaCobolAntiguo();
+
+    // En Spring Boot sería un @PostMapping(produces = "application/json")
+    public String transferMoneyRestEndpoint(String originAccount, String destAccount, double amount) {
+        System.out.println("🌐 [WebServiceBroker] Recibida petición HTTP POST /api/transfer en formato JSON.");
+
+        // Paso 1: Verificar en el microservicio de fraude
+        if (!fraudService.isTransactionSafe(amount)) {
+            return "{ \"status\": \"REJECTED\", \"reason\": \"Importe supera límite antifraude\" }";
+        }
+
+        // Paso 2: Traducir los datos al protocolo antiguo del Mainframe COBOL
+        String cobolFrame = "TX|" + originAccount + "|" + destAccount + "|" + amount;
+        String mainframeCode = mainframe.ejecutarTramaFija(cobolFrame);
+
+        // Paso 3: Traducir la respuesta cruda del Mainframe a un JSON estándar para el móvil
+        return "{ \"status\": \"SUCCESS\", \"mainframeRef\": \"" + mainframeCode + "\", \"amount\": " + amount + " }";
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Web Service Broker</span>
+<span class="center-horizontal caption">Implementación completa del patrón Web Service Broker</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Combina Facade + Adapter en la frontera de red:</strong>
+        <p>Si te fijas bien, el <code class="language-java">Web Service Broker</code> hace dos cosas a la vez: actúa como una <strong>Fachada</strong> (coordina el microservicio de fraude y el mainframe) y como un <strong>Adaptador</strong> (traduce de JSON a trama COBOL y viceversa).</p>
+    </li>
+    <li>
+        <strong>2. Evolución sin romper las Apps móviles:</strong>
+        <p>Cuando el banco jubile por fin el Mainframe COBOL y lo sustituya por un microservicio moderno en Java, solo cambiará el interior de <code class="language-java">BrokerServiciosBancarios</code>. Los millones de usuarios con la App instalada en su móvil no tendrán ni que actualizar la aplicación.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        BrokerServiciosBancarios broker = new BrokerServiciosBancarios();
+
+        System.out.println("--- App Móvil solicita transferencia de 250.00 EUR ---");
+        String jsonResponse = broker.transferMoneyRestEndpoint("ES11-0001", "ES99-0002", 250.00);
+
+        System.out.println("\n📱 [App Móvil] Respuesta JSON estándar recibida:");
+        System.out.println("   " + jsonResponse);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Consumo transparente de sistemas heterogéneos a través del Web Service Broker</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- App Móvil solicita transferencia de 250.00 EUR ---
+🌐 [WebServiceBroker] Recibida petición HTTP POST /api/transfer en formato JSON.
+   🛡️ [MicroservicioAntifraude] Analizando riesgo para importe: 250.0 EUR -> APROBADO
+   🖥️ [SistemaCobolAntiguo] Procesando trama propietaria: [TX|ES11-0001|ES99-0002|250.0]
+
+📱 [App Móvil] Respuesta JSON estándar recibida:
+   { "status": "SUCCESS", "mainframeRef": "COD_00_OK_AUTH_8841", "amount": 250.0 }
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Siempre que necesites exponer capacidades de sistemas internos heterogéneos, ERPs o sistemas legados hacia clientes externos mediante una API web estándar y segura (patrón base de los <em>API Gateways</em> e integradores empresariales).</li>
+    <li><strong>Cuándo evitarlo:</strong> Para comunicación puramente interna entre dos clases que viven dentro del mismo monolito.</li>
+</ul>

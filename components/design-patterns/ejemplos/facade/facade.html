@@ -5,47 +5,206 @@
 </style>
 <h1 class="title">Patrón Facade</h1>
 
-<p>El patrón <strong>Facade</strong> es un patrón estructural que proporciona una interfaz simplificada a una biblioteca, un framework o cualquier otro grupo complejo de clases.</p>
+<p>El patrón <strong>Facade</strong> (Fachada) es un patrón estructural que proporciona una <strong>interfaz única y simplificada</strong> frente a un subsistema complejo formado por muchas clases, bibliotecas o frameworks.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en cuando haces un pedido por teléfono o en la web de una tienda: tú hablas únicamente con el <strong>Servicio de Atención al Cliente</strong> (la Fachada). No tienes que llamar tú mismo por separado al almacén para verificar stock, luego a la pasarela bancaria para cobrar, luego a contabilidad para emitir la factura y finalmente a la empresa de reparto. Atención al Cliente recibe tu única llamada y coordina todos esos departamentos internos por ti.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Proveer una interfaz unificada y sencilla para un subsistema complejo.</p>
+<p>Ocultar la complejidad de un subsistema detrás de una clase de alto nivel fácil de usar, reduciendo el acoplamiento entre el código cliente y las decenas de clases internas del subsistema.</p>
 
 <h2 class="subtitle">Caso de Uso Real: Sistema de Cine en Casa (Smart Home)</h2>
-<p><strong>Contexto:</strong> Tienes un sistema de entretenimiento complejo: Proyector, Amplificador, Reproductor DVD, Luces Inteligentes, Pantalla Motorizada. Ver una película implica 10 pasos: bajar pantalla, encender proyector, poner input HDMI, encender ampli, ajustar volumen, apagar luces, reproducir DVD.</p>
+<p><strong>Contexto:</strong> Tienes un salón inteligente con múltiples dispositivos independientes: luces regulables (<code class="language-java">LucesSala</code>), proyector (<code class="language-java">Proyector</code>), amplificador de sonido (<code class="language-java">Amplificador</code>) y reproductor de streaming (<code class="language-java">ReproductorStreaming</code>).</p>
 
-<p><strong>El Problema:</strong> El cliente tiene que interactuar con demasiadas clases y conocer el orden exacto de los métodos. Es propenso a errores y difícil de usar.</p>
+<p><strong>El Problema (Sin Facade):</strong> Para ver una película, el cliente tiene que instanciar las 4 clases y recordar llamar a 7 métodos en el orden exacto: atenuar las luces al 10%, encender el proyector, poner modo panorámico, encender el amplificador, ajustar el volumen, encender el reproductor y darle a reproducir. Y al terminar la película, repetir todo a la inversa.</p>
 
-<p><strong>La Solución (Facade):</strong> Creas una clase <code class="language-java">HomeTheaterFacade</code> con un método simple <code class="language-java">watchMovie()</code>.
-<br>Esta clase se encarga internamente de orquestar todas las llamadas a los subsistemas en el orden correcto. El cliente solo presiona un botón (llama a un método).</p>
+<p><strong>La Solución (Con Facade):</strong> Creamos la clase <code class="language-java">FachadaCineEnCasa</code> con dos métodos sencillos: <code class="language-java">verPelicula(titulo)</code> y <code class="language-java">terminarPelicula()</code>. La fachada se encarga de orquestar internamente todos los aparatos en el orden correcto.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Interfaz Unificada:</strong> 
-        <p>El Facade no añade funcionalidad nueva, solo expone una interfaz más simple para una funcionalidad existente. Actúa como un punto de entrada único.</p>
-    </li>
-    <li>
-        <strong>Desacoplamiento débil:</strong> 
-        <p>El Facade reduce el acoplamiento entre el cliente y el subsistema complejo, pero <strong>no impide</strong> que el cliente acceda a las clases de bajo nivel si realmente necesita un control fino. A diferencia de un Proxy o Adapter, el Facade suele crear una nueva interfaz más conveniente, no adaptar una existente.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/facade/assets/img/facade-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Facade simplificando el acceso al subsistema de Cine en Casa</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Facade (Fachada)</th>
+            <td><code class="language-java">FachadaCineEnCasa</code></td>
+            <td>Conoce qué clases del subsistema son responsables de cada paso y ofrece métodos simples (<code class="language-java">verPelicula</code>, <code class="language-java">terminarPelicula</code>) al cliente.</td>
+        </tr>
+        <tr>
+            <th scope="row">Clases del Subsistema</th>
+            <td><code class="language-java">LucesSala</code>, <code class="language-java">Proyector</code>, <code class="language-java">Amplificador</code>, <code class="language-java">ReproductorStreaming</code></td>
+            <td>Realizan el trabajo real de cada aparato. No conocen la existencia de la fachada.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cliente</th>
+            <td><code class="language-java">Main</code></td>
+            <td>Se comunica únicamente con <code class="language-java">FachadaCineEnCasa</code> en lugar de acoplarse a los 4 aparatos.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Facade</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class VideoConverter {
-    public File convert(String fileName, String format) {
-        VideoFile file = new VideoFile(fileName);
-        Codec sourceCodec = CodecFactory.extract(file);
-        Codec destinationCodec = new MPEG4CompressionCodec();
-        VideoFile buffer = BitrateReader.read(file, sourceCodec);
-        VideoFile result = BitrateReader.convert(buffer, destinationCodec);
-        return new File(result);
+// 1. Clases del Subsistema Complejo
+class LucesSala {
+    public void atenuar(int level) {
+        System.out.println("[Luces] Atenuando iluminación de la sala al " + level + "%");
+    }
+    public void encender() {
+        System.out.println("[Luces] Encendiendo luces al 100%");
     }
 }
-// El cliente solo llama a VideoConverter.convert(...)
+
+class Proyector {
+    public void encender() {
+        System.out.println("[Proyector] Encendiendo lámpara láser...");
+    }
+    public void modoPantallaAncha() {
+        System.out.println("[Proyector] Configurando formato panorámico 16:9");
+    }
+    public void apagar() {
+        System.out.println("[Proyector] Apagando proyector.");
+    }
+}
+
+class Amplificador {
+    public void encender() {
+        System.out.println("[Amplificador] Encendiendo sonido envolvente Dolby Atmos");
+    }
+    public void setVolumen(int level) {
+        System.out.println("[Amplificador] Ajustando volumen al nivel " + level);
+    }
+    public void apagar() {
+        System.out.println("[Amplificador] Apagando amplificador.");
+    }
+}
+
+class ReproductorStreaming {
+    public void encender() {
+        System.out.println("[Reproductor] Conectando al servidor de streaming...");
+    }
+    public void reproducir(String movie) {
+        System.out.println("[Reproductor] ▶ Reproduciendo película: \"" + movie + "\"");
+    }
+    public void stop() {
+        System.out.println("[Reproductor] ⏹ Deteniendo reproducción.");
+    }
+}
+
+// 2. Clase Facade: ofrece una interfaz simple y unificada
+class FachadaCineEnCasa {
+    private LucesSala lights;
+    private Proyector projector;
+    private Amplificador amp;
+    private ReproductorStreaming player;
+
+    public FachadaCineEnCasa(LucesSala lights, Proyector projector,
+                             Amplificador amp, ReproductorStreaming player) {
+        this.lights = lights;
+        this.projector = projector;
+        this.amp = amp;
+        this.player = player;
+    }
+
+    // Un único método orquesta los 7 pasos necesarios
+    public void verPelicula(String movie) {
+        System.out.println("&gt;&gt; Preparando el cine en casa para ver una película...");
+        lights.atenuar(10);
+        projector.encender();
+        projector.modoPantallaAncha();
+        amp.encender();
+        amp.setVolumen(25);
+        player.encender();
+        player.reproducir(movie);
+    }
+
+    public void terminarPelicula() {
+        System.out.println("&gt;&gt; Apagando el cine en casa...");
+        player.stop();
+        amp.apagar();
+        projector.apagar();
+        lights.encender();
+    }
+}
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Facade</span>
+<span class="center-horizontal caption">Implementación completa del patrón Facade</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Simplificación sin ocultar capacidades avanzadas:</strong>
+        <p><code class="language-java">FachadaCineEnCasa</code> resuelve el caso de uso habitual del 95% de los usuarios con una sola llamada (<code class="language-java">verPelicula</code>), pero no bloquea el acceso directo a <code class="language-java">Amplificador</code> si algún usuario avanzado necesita ajustar el ecualizador manualmente.</p>
+    </li>
+    <li>
+        <strong>2. Diferencia con Adapter:</strong>
+        <p><strong>Adapter</strong> envuelve normalmente <em>un</em> objeto para cambiar su interfaz por otra ya existente. <strong>Facade</strong> envuelve <em>todo un grupo de objetos</em> para ofrecer una interfaz nueva y mucho más sencilla.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        // Inicializamos los componentes y la fachada
+        FachadaCineEnCasa homeTheater = new FachadaCineEnCasa(
+                new LucesSala(),
+                new Proyector(),
+                new Amplificador(),
+                new ReproductorStreaming()
+        );
+
+        // El cliente solo hace UNA llamada para encender todo el sistema
+        homeTheater.verPelicula("Interstellar");
+
+        System.out.println();
+
+        // Y UNA llamada para apagarlo todo ordenadamente
+        homeTheater.terminarPelicula();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Uso limpio y directo desde el cliente</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+&gt;&gt; Preparando el cine en casa para ver una película...
+[Luces] Atenuando iluminación de la sala al 10%
+[Proyector] Encendiendo lámpara láser...
+[Proyector] Configurando formato panorámico 16:9
+[Amplificador] Encendiendo sonido envolvente Dolby Atmos
+[Amplificador] Ajustando volumen al nivel 25
+[Reproductor] Conectando al servidor de streaming...
+[Reproductor] ▶ Reproduciendo película: "Interstellar"
+
+&gt;&gt; Apagando el cine en casa...
+[Reproductor] ⏹ Deteniendo reproducción.
+[Amplificador] Apagando amplificador.
+[Proyector] Apagando proyector.
+[Luces] Encendiendo luces al 100%
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando quieras ofrecer una puerta de entrada sencilla a un subsistema complejo o dividir una aplicación grande en capas que solo se comuniquen a través de fachadas bien definidas.</li>
+    <li><strong>Cuándo evitarlo:</strong> Evita que la fachada se convierta en una "Clase Dios" (<em>God Object</em>) que absorba toda la lógica de negocio en vez de limitarse a coordinar a las clases del subsistema.</li>
+</ul>

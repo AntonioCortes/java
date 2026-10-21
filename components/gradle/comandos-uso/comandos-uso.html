@@ -1,0 +1,146 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Guía Práctica de Comandos y Uso de Gradle desde Cero</h1>
+
+<p>En esta sección tienes un tutorial práctico paso a paso para usar Gradle desde el primer minuto y una <strong>tabla chuleta (Cheatsheet)</strong> con todos los comandos de consola que necesitarás en tu día a día.</p>
+
+<h2 class="subtitle">1. Cómo Crear un Proyecto Gradle Nuevo desde Cero</h2>
+<p>Tienes dos formas principales de empezar un proyecto con Gradle:</p>
+
+<ul>
+    <li>
+        <strong>Opción A — Desde interfaz gráfica o web (La más habitual):</strong>
+        <p>Si vas a crear un proyecto Java normal, abre <strong>IntelliJ IDEA</strong> &rarr; <em>New Project</em> &rarr; selecciona <strong>Build System: Gradle</strong>. Si vas a crear un microservicio con <strong>Spring Boot</strong>, entra en <a href="https://start.spring.io" target="_blank">start.spring.io</a>, elige <strong>Project: Gradle - Groovy</strong>, añade tus dependencias y pulsa <em>Generate</em>. En ambos casos el proyecto ya vendrá con la estructura de carpetas y el <code class="language-bash">gradlew</code> listos para usar.</p>
+    </li>
+    <li>
+        <strong>Opción B — Desde la terminal con <code class="language-bash">gradle init</code>:</strong>
+        <p>Si tienes Gradle instalado en tu sistema y quieres inicializar un proyecto desde una carpeta vacía por consola, ejecuta el asistente interactivo:</p>
+    </li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+$ mkdir mi-aplicacion && cd mi-aplicacion
+$ gradle init
+
+Select type of build to generate:
+  1: Application
+  2: Library
+Enter selection (default: Application) [1..2] 1
+
+Select implementation language:
+  1: Java
+  2: Kotlin
+Enter selection (default: Java) [1..2] 1
+</code></pre>
+</div>
+<span class="center-horizontal caption">Creación de un proyecto nuevo mediante el asistente interactivo gradle init</span>
+
+<h2 class="subtitle">2. El Flujo de Trabajo Diario en 4 Comandos</h2>
+<p>Una vez estás dentro de la carpeta de cualquier proyecto Gradle, recuerda usar siempre <code class="language-bash">./gradlew</code> (en Linux/Mac) o <code class="language-bash">.\gradlew.bat</code> (en Windows):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# 1. Descargar dependencias, compilar todo el código, pasar los tests y crear el .jar
+./gradlew build
+
+# 2. Compilar rápido y crear el .jar SALTÁNDOSE los tests (muy útil cuando tienes prisa)
+./gradlew build -x test
+
+# 3. Arrancar la aplicación en local (si usas el plugin 'application' o 'spring-boot')
+./gradlew run        # Para aplicaciones Java normales
+./gradlew bootRun    # Para aplicaciones Spring Boot
+
+# 4. Borrar la carpeta build/ y recompilar todo limpio desde cero
+./gradlew clean build
+</code></pre>
+</div>
+<span class="center-horizontal caption">Los 4 comandos esenciales que usarás el 95% del tiempo</span>
+
+<h2 class="subtitle">3. Chuleta Completa de Comandos de Gradle (Cheatsheet)</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Comando en Terminal</th>
+            <th scope="col">¿Para qué sirve exactamente?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew tasks</code></th>
+            <td>Muestra la lista de todas las tareas disponibles en tu proyecto (las de Java, las de Spring Boot y las tuyas propias).</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew build</code></th>
+            <td>Compila el código fuente, ejecuta todos los tests y empaqueta el archivo <code class="language-bash">.jar</code> o <code class="language-bash">.war</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew clean</code></th>
+            <td>Elimina la carpeta <code class="language-bash">build/</code> para limpiar cualquier archivo compilado anterior.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew assemble</code></th>
+            <td>Compila y genera el archivo <code class="language-bash">.jar</code> pero <strong>sin ejecutar los tests</strong>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew test</code></th>
+            <td>Ejecuta todas las pruebas unitarias y crea el reporte en <code class="language-bash">build/reports/tests/test/index.html</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew test --tests "MiClaseTest"</code></th>
+            <td>Ejecuta <strong>únicamente</strong> la clase o método de test que le indiques (ahorra muchísimo tiempo en proyectos grandes).</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew dependencies</code></th>
+            <td>Dibuja en la consola el <strong>árbol completo de librerías</strong> (incluyendo qué sub-librerías trae cada una y cómo se han resuelto los conflictos de versión).</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew build -x test</code></th>
+            <td>La opción <code class="language-bash">-x &lt;tarea&gt;</code> excluye (salta) la tarea indicada durante esa ejecución.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew build --refresh-dependencies</code></th>
+            <td>Fuerza a Gradle a comprobar de nuevo en internet las librerías ignorando la caché local.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew build --info</code> / <code class="language-bash">--stacktrace</code></th>
+            <td>Muestra logs detallados o la traza completa del error cuando algo falla al compilar.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew build --scan</code></th>
+            <td>Genera un enlace web interactivo gratuito (<em>Build Scan</em>) con estadísticas visuales de cuánto ha tardado cada tarea y cada librería.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">./gradlew --stop</code></th>
+            <td>Detiene el proceso en segundo plano (<em>Gradle Daemon</em>) si quieres liberar memoria RAM en tu ordenador.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comandos imprescindibles de Gradle para el trabajo diario</span>
+
+<h2 class="subtitle">4. Preguntas Frecuentes cuando Empiezas con Gradle</h2>
+<ul>
+    <li>
+        <strong>"Acabo de añadir una librería en <code class="language-bash">build.gradle</code>, pero mi editor (IntelliJ / Eclipse) sigue marcando el <code class="language-java">import</code> en rojo. ¿Qué hago?"</strong>
+        <p>En IntelliJ IDEA, cuando modificas el archivo <code class="language-bash">build.gradle</code>, aparece un pequeño icono flotante de un elefante con dos flechas en la esquina superior derecha del editor (<em>Load Gradle Changes</em> o atajo <code class="language-bash">Ctrl + Shift + O</code>). Púlsalo para que el IDE descargue la librería recién añadida y actualice el autocompletado.</p>
+    </li>
+    <li>
+        <strong>"¿Cómo paso variables dinámicas a mi archivo <code class="language-bash">application.yml</code> durante la compilación?"</strong>
+        <p>Puedes configurar la tarea <code class="language-groovy">processResources</code> para que reemplace variables automáticamente dentro de tus archivos de configuración:</p>
+    </li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+processResources {
+    filesMatching('application.yml') {
+        expand(project.properties)
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Expansión automática de propiedades de Gradle dentro de application.yml</span>

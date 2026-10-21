@@ -1,0 +1,149 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Estructura de un Proyecto Gradle y el Gradle Wrapper</h1>
+
+<p>Cuando creas o descargas un proyecto que usa Gradle, verás una serie de carpetas y archivos en la raíz del proyecto. Entender qué hace cada uno te quitará el miedo a tocar la configuración desde el primer día.</p>
+
+<img class="center-horizontal" src="components/gradle/estructura/assets/img/gradle-estructura-diagram.png">
+<span class="center-horizontal caption">Figura 1: Mapa de carpetas y archivos de un proyecto estándar en Gradle y flujo del Wrapper</span>
+
+<h2 class="subtitle">Árbol de Carpetas y Archivos Explicado Paso a Paso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+mi-proyecto-java/
+├── .gradle/                         # Caché interna temporal de Gradle (NO se sube a Git)
+├── build/                           # Todo lo que Gradle genera al compilar (NO se sube a Git)
+│   ├── classes/                     # Tus archivos .class ya compilados
+│   ├── libs/                        # Aquí aparece tu archivo .jar o .war final
+│   └── reports/                     # Informes web HTML de tus tests y cobertura
+├── gradle/
+│   └── wrapper/
+│       ├── gradle-wrapper.jar       # Pequeño programa que descarga Gradle automáticamente
+│       └── gradle-wrapper.properties# Indica qué versión exacta de Gradle usa el proyecto
+├── src/
+│   ├── main/
+│   │   ├── java/                    # AQUÍ escribes el código Java de tu aplicación
+│   │   └── resources/               # Archivos de configuración (application.yml, SQL, imágenes)
+│   └── test/
+│       ├── java/                    # AQUÍ escribes tus tests unitarios (JUnit, Mockito)
+│       └── resources/               # Configuración exclusiva para las pruebas
+├── build.gradle                     # EL ARCHIVO PRINCIPAL: plugins, librerías y tareas
+├── settings.gradle                  # Define el nombre del proyecto y sus submódulos
+├── gradle.properties                # (Opcional) Variables globales y memoria de Gradle
+├── gradlew                          # Script para ejecutar Gradle en Linux y macOS
+└── gradlew.bat                      # Script para ejecutar Gradle en Windows
+</code></pre>
+</div>
+<span class="center-horizontal caption">Estructura estándar de directorios de un proyecto Java con Gradle</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Archivo / Carpeta</th>
+            <th scope="col">¿Se sube a Git?</th>
+            <th scope="col">Explicación para Principiantes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><code class="language-bash">src/main/java</code></th>
+            <td>Sí (Obligatorio)</td>
+            <td>Contiene todos los paquetes y clases <code class="language-bash">.java</code> reales de tu programa.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">src/main/resources</code></th>
+            <td>Sí (Obligatorio)</td>
+            <td>Todo lo que pongas aquí (como <code class="language-bash">application.properties</code> o plantillas HTML) se copiará automáticamente dentro de la raíz de tu archivo <code class="language-bash">.jar</code> final.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">src/test/java</code></th>
+            <td>Sí (Obligatorio)</td>
+            <td>Contiene las clases de prueba. Gradle las usa cuando ejecutas <code class="language-bash">./gradlew test</code>, pero <strong>nunca</strong> las mete dentro del <code class="language-bash">.jar</code> de producción para no ensuciar tu aplicación.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">build/</code></th>
+            <td><strong>NO</strong> (Añadir a <code class="language-bash">.gitignore</code>)</td>
+            <td>Es el equivalente a la carpeta <code class="language-bash">target/</code> de Maven. Aquí deposita Gradle el resultado de compilar y empaquetar. Si ejecutas <code class="language-bash">./gradlew clean</code>, esta carpeta se borra por completo.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">build.gradle</code></th>
+            <td>Sí (Obligatorio)</td>
+            <td>Es la "receta" de tu proyecto (equivalente al <code class="language-bash">pom.xml</code> de Maven). Aquí añades tus librerías, plugins y versión de Java.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">settings.gradle</code></th>
+            <td>Sí (Obligatorio)</td>
+            <td>Define el nombre raíz del proyecto (<code class="language-groovy">rootProject.name</code>) y, si tu proyecto está dividido en varios submódulos, enumera qué carpetas forman parte de él.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">gradlew</code> / <code class="language-bash">gradlew.bat</code></th>
+            <td>Sí (Muy recomendado)</td>
+            <td>Son los scripts del <strong>Gradle Wrapper</strong>. Permiten que cualquier persona compile el proyecto sin tener que instalar Gradle previamente en su ordenador.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Resumen de los elementos de un proyecto Gradle</span>
+
+<h2 class="subtitle">¿Qué es el Gradle Wrapper (<code class="language-bash">./gradlew</code>) y por qué es tan importante?</h2>
+<p>Una de las primeras dudas de cualquier principiante es: <em>"¿Por qué en todos los tutoriales ejecutan <code class="language-bash">./gradlew build</code> con una <strong>w</strong> al final en vez de escribir <code class="language-bash">gradle build</code>?"</em></p>
+
+<p>La <strong>w</strong> significa <strong>Wrapper</strong> (Envoltorio), y es una de las mejores invenciones de Gradle:</p>
+<ul>
+    <li><strong>El problema sin Wrapper:</strong> Imagina que creas un proyecto usando Gradle 8.10. Seis meses después, un compañero descarga tu proyecto pero él tiene instalado en su Windows el antiguo Gradle 6.5. Al intentar compilar, todo falla con errores extraños porque las versiones son incompatibles.</li>
+    <li><strong>La solución con el Wrapper (<code class="language-bash">./gradlew</code>):</strong> Dentro de la carpeta <code class="language-bash">gradle/wrapper/gradle-wrapper.properties</code> queda grabada la dirección exacta de la versión de Gradle con la que nació el proyecto:</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-properties">
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.10.2-bin.zip
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+</code></pre>
+</div>
+<span class="center-horizontal caption">Contenido del archivo gradle/wrapper/gradle-wrapper.properties</span>
+
+<p>Cuando tu compañero descarga el repositorio y escribe en su terminal:</p>
+<ul>
+    <li>En <strong>Linux o macOS:</strong> <code class="language-bash">./gradlew build</code></li>
+    <li>En <strong>Windows (CMD o PowerShell):</strong> <code class="language-bash">.\gradlew.bat build</code></li>
+</ul>
+<p>El script comprueba si en su ordenador ya está descargado Gradle 8.10.2. Si no lo tiene, <strong>lo descarga él solo en segundo plano</strong> dentro de la carpeta <code class="language-bash">~/.gradle/wrapper/dists</code> y compila el proyecto usando exactamente esa versión. ¡Nadie del equipo tiene que instalar Gradle manualmente nunca más!</p>
+
+<h2 class="subtitle">Groovy DSL (<code class="language-bash">build.gradle</code>) vs Kotlin DSL (<code class="language-bash">build.gradle.kts</code>)</h2>
+<p>Cuando crees un proyecto nuevo (por ejemplo, en <a href="https://start.spring.io" target="_blank">Spring Initializr</a> o en IntelliJ IDEA), te preguntará qué lenguaje quieres usar para los archivos de Gradle:</p>
+<ul>
+    <li><strong>Groovy (<code class="language-bash">build.gradle</code>):</strong> Es el formato clásico y el que encontrarás en el 80% de los proyectos de empresa y respuestas de StackOverflow. Permite omitir paréntesis y usar comillas simples <code class="language-groovy">'...'</code> o dobles <code class="language-groovy">"..."</code>.</li>
+    <li><strong>Kotlin (<code class="language-bash">build.gradle.kts</code>):</strong> Es el formato más reciente con tipado estático. Ofrece mejor autocompletado en IntelliJ IDEA, pero exige usar siempre paréntesis <code class="language-kotlin">implementation("...")</code> y comillas dobles.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// 1. Sintaxis en Groovy DSL (Archivo: build.gradle)
+plugins {
+    id 'java'
+}
+dependencies {
+    implementation 'com.google.guava:guava:33.0.0-jre'
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo en Groovy DSL (build.gradle)</span>
+
+<div class="center-horizontal">
+<pre><code class="language-kotlin">
+// 2. Sintaxis equivalente en Kotlin DSL (Archivo: build.gradle.kts)
+plugins {
+    id("java")
+}
+dependencies {
+    implementation("com.google.guava:guava:33.0.0-jre")
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo equivalente en Kotlin DSL (build.gradle.kts)</span>

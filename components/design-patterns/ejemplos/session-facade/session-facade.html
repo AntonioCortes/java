@@ -5,48 +5,145 @@
 </style>
 <h1 class="title">Patrón Session Facade</h1>
 
-<p>El patrón <strong>Session Facade</strong> es un patrón de la arquitectura Java EE que proporciona una interfaz de grano grueso para disminuir el tráfico de red entre el cliente y los objetos de negocio.</p>
+<p>El patrón <strong>Session Facade</strong> (Fachada de Sesión) es un patrón de la capa de negocio de Java EE que proporciona un <strong>único servicio de grano grueso y transaccional</strong> frente a múltiples objetos o servicios internos de negocio, evitando que el cliente tenga que hacer muchas llamadas remotas individuales.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en una <strong>transferencia bancaria entre dos cuentas</strong>. Desde la app de tu móvil tú solo pulsas un botón: "Transferir 100€" (una única llamada al <code class="language-java">Session Facade</code>). Dentro del banco, esa fachada abre una transacción segura, resta 100€ de tu cuenta, suma 100€ a la cuenta destino y registra el apunte contable. Si el último paso falla, la fachada deshace (<em>rollback</em>) todos los pasos anteriores automáticamente.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Reducir el número de llamadas remotas y transacciones distribuidas.</p>
+<p>Resolver dos grandes problemas de las aplicaciones distribuidas: 1) reducir el tráfico de red (hacer <strong>1 llamada remota</strong> en lugar de 4 llamadas pequeñas), y 2) agrupar todas las operaciones internas dentro de una <strong>única transacción atómica</strong> (todo o nada).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Pasarela de Compras (Checkout)</h2>
-<p><strong>Contexto:</strong> Completar un pedido implica: 1. Comprobar stock (Inventario), 2. Procesar pago (Banco), 3. Guardar pedido (DB), 4. Enviar email (Notificaciones).</p>
+<h2 class="subtitle">Caso de Uso Real: Formalización de un Pedido en una Sola Transacción</h2>
+<p><strong>Contexto:</strong> Completar un pedido (<code class="language-java">realizarPedido</code>) requiere coordinar tres componentes internos: reservar el artículo en <code class="language-java">ServicioInventario</code>, cobrar el importe en <code class="language-java">ServicioPagos</code> y programar el envío en <code class="language-java">ServicioEnvios</code>.</p>
 
-<p><strong>El Problema:</strong> Si el cliente (Frontend o Controlador Web) llama a estos 4 servicios por separado, la latencia de red se multiplica por 4. Y peor, si el pago falla después de reservar stock, ¿quién deshace la reserva? ¿El cliente?</p>
+<p><strong>El Problema (Sin Session Facade):</strong> Si la aplicación móvil llama por red primero a Inventario, luego a Pagos y luego a Envíos por separado, además de tardar el triple por la latencia de red, si la llamada a Envíos falla el cliente ya habrá pagado y el stock quedará bloqueado sin forma fácil de deshacerlo desde el móvil.</p>
 
-<p><strong>La Solución (Session Facade):</strong> Creas una fachada de servicio (<code class="language-java">OrderFacade</code> o <code class="language-java">CheckoutService</code>) que expone un único método: <code class="language-java">placeOrder()</code>.
-<br>Esta fachada coordina las llamadas a los componentes internos en una sola transacción local. El cliente hace una sola llamada remota y recibe un OK o Error atómico.</p>
+<p><strong>La Solución (Con Session Facade):</strong> Exponemos <code class="language-java">FachadaSesionPedido.realizarPedido()</code>. El cliente hace una sola llamada remota y la fachada ejecuta las tres operaciones dentro de una misma frontera transaccional en el servidor.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Arquitectura y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Frontera Transaccional:</strong> 
-        <p>El Session Facade suele marcar el inicio y fin de la transacción. Si algo falla dentro del método fachada, se hace Rollback de todos los cambios (stock, pago, DB).</p>
-    </li>
-    <li>
-        <strong>Seguridad:</strong> 
-        <p>Actúa como un escudo. Los clientes externos solo ven los métodos expuestos por la fachada, no pueden acceder directamente a los componentes internos sensibles.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/session-facade/assets/img/session-facade-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Session Facade unificando llamadas remotas y transaccionalidad</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Client (Cliente Remoto)</th>
+            <td><code class="language-java">Main</code> (App / Controlador)</td>
+            <td>Realiza una única petición de alto nivel (<code class="language-java">realizarPedido</code>) a la fachada.</td>
+        </tr>
+        <tr>
+            <th scope="row">Fachada de Sesión (Clase Normal)</th>
+            <td><code class="language-java">FachadaSesionPedido</code></td>
+            <td>Abre la transacción, coordina localmente a todos los servicios de negocio e invoca commit o rollback.</td>
+        </tr>
+        <tr>
+            <th scope="row">Business Objects / Services</th>
+            <td><code class="language-java">ServicioInventario</code>, <code class="language-java">ServicioPagos</code>, <code class="language-java">ServicioEnvios</code></td>
+            <td>Componentes internos de grano fino que realizan cada tarea específica dentro de la transacción de la fachada.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Session Facade</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@Stateless
-public class OrderFacade {
-    @EJB private InventoryService inventory;
-    @EJB private PaymentService payment;
-    @EJB private ShippingService shipping;
+// 1. Componentes internos de negocio (Grano Fino)
+class ServicioInventario {
+    public void reserveItem(String item) {
+        System.out.println("   1️⃣ [Inventario] Stock reservado para: " + item);
+    }
+}
 
-    public void placeOrder(Order order) {
-        inventory.reserve(order.getItems());
-        payment.charge(order.getTotal());
-        shipping.schedule(order);
+class ServicioPagos {
+    public void chargeCustomer(double amount) {
+        System.out.println("   2️⃣ [Pagos] Cargo realizado por importe de: " + amount + " EUR");
+    }
+}
+
+class ServicioEnvios {
+    public void scheduleDelivery(String item) {
+        System.out.println("   3️⃣ [Envíos] Orden de transporte generada para: " + item);
+    }
+}
+
+// 2. Session Facade: Interfaz de grano grueso y frontera transaccional
+class FachadaSesionPedido {
+    private ServicioInventario inventory = new ServicioInventario();
+    private ServicioPagos payment = new ServicioPagos();
+    private ServicioEnvios shipping = new ServicioEnvios();
+
+    // En EJB sería @Stateless y en Spring sería @Service + @Transactional
+    public void realizarPedido(String item, double amount) {
+        System.out.println("🔒 [SessionFacade] &gt;&gt; INICIANDO TRANSACCIÓN ATÓMICA EN SERVIDOR &lt;&lt;");
+        try {
+            inventory.reserveItem(item);
+            payment.chargeCustomer(amount);
+            shipping.scheduleDelivery(item);
+            System.out.println("✅ [SessionFacade] &gt;&gt; COMMIT: Pedido completado con éxito en 1 sola llamada &lt;&lt;");
+        } catch (Exception e) {
+            System.out.println("❌ [SessionFacade] &gt;&gt; ROLLBACK: Deshaciendo cambios por error &lt;&lt;");
+        }
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Session Facade</span>
+<span class="center-horizontal caption">Implementación completa del patrón Session Facade</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Qué significa "Grano Grueso" (<em>Coarse-Grained</em>) vs "Grano Fino" (<em>Fine-Grained</em>)?</strong>
+        <p>Llamar por red a 5 métodos pequeñitos (<code class="language-java">checkStock()</code>, <code class="language-java">decrementStock()</code>, <code class="language-java">validateCard()</code>, <code class="language-java">chargeCard()</code>, <code class="language-java">createShipment()</code>) es una API de <em>grano fino</em> (lenta en red). Agrupar todo en un único método remoto <code class="language-java">realizarPedido()</code> es una API de <em>grano grueso</em>.</p>
+    </li>
+    <li>
+        <strong>2. Relación con <code class="language-java">@Transactional</code> de Spring:</strong>
+        <p>En aplicaciones empresariales modernas con Spring Boot, una clase <code class="language-java">@Service</code> cuyo método público está anotado con <code class="language-java">@Transactional</code> y coordina varios repositorios/componentes cumple exactamente el rol de un <strong>Session Facade</strong>.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        FachadaSesionPedido orderFacade = new FachadaSesionPedido();
+
+        // El cliente remoto solo hace UNA llamada para ejecutar toda la operación
+        System.out.println("--- Cliente solicita formalizar compra ---");
+        orderFacade.realizarPedido("Auriculares Bluetooth Pro", 199.95);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">El cliente realiza una única invocación remota a la fachada de sesión</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Cliente solicita formalizar compra ---
+🔒 [SessionFacade] &gt;&gt; INICIANDO TRANSACCIÓN ATÓMICA EN SERVIDOR &lt;&lt;
+   1️⃣ [Inventario] Stock reservado para: Auriculares Bluetooth Pro
+   2️⃣ [Pagos] Cargo realizado por importe de: 199.95 EUR
+   3️⃣ [Envíos] Orden de transporte generada para: Auriculares Bluetooth Pro
+✅ [SessionFacade] &gt;&gt; COMMIT: Pedido completado con éxito en 1 sola llamada &lt;&lt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Siempre que una operación de negocio involucre modificar varias tablas o subsistemas que deban confirmarse o deshacerse juntos bajo una misma transacción.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si la operación es una consulta simple de un único dato sin lógica transaccional ni coordinación de múltiples componentes.</li>
+</ul>

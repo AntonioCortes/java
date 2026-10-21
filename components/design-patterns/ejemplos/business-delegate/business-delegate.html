@@ -5,50 +5,178 @@
 </style>
 <h1 class="title">Patrón Business Delegate</h1>
 
-<p>El patrón <strong>Business Delegate</strong> es un patrón de la arquitectura Java EE que oculta la complejidad de buscar y ejecutar servicios de negocio remotos o locales (EJB).</p>
+<p>El patrón <strong>Business Delegate</strong> (Delegado de Negocio) es un patrón de la arquitectura Java EE que coloca una clase intermediaria local en la capa de presentación para <strong>ocultar toda la complejidad de localizar y comunicarse con servicios de negocio remotos</strong> (como microservicios, EJBs o servicios SOAP/REST).</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en un <strong>Agente de Viajes o un Abogado Representante</strong>. Si quieres reservar un viaje internacional complejo, tú no llamas personalmente en inglés a la aerolínea, luego en francés al hotel y luego a la aseguradora gestionando los errores de línea telefónica: tú hablas en tu idioma con tu <strong>Agente local (el <code class="language-java">DelegadoNegocio</code>)</strong> y él se encarga de localizar a cada proveedor remoto, reintentar la llamada si comunica y darte una respuesta limpia.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Abstraer la implementación de los servicios de negocio y manejar excepciones (reintentos, caché).</p>
+<p>Desacoplar la capa de presentación (controladores web/vistas) de los detalles de red, protocolos de comunicación, búsqueda de servicios (<em>Service Lookup</em>) y excepciones de infraestructura remota.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Cliente Web accediendo a EJB Remotos</h2>
-<p><strong>Contexto:</strong> Tienes una capa de presentación (JSF, JSP o Servlet) que necesita llamar a servicios de negocio (EJB) que pueden estar en el mismo servidor o en un servidor remoto.</p>
+<h2 class="subtitle">Caso de Uso Real: Cliente Web invocando Microservicios de Envío y Facturación</h2>
+<p><strong>Contexto:</strong> Tu capa de presentación (<code class="language-java">ClientePresentacion</code>) necesita ejecutar operaciones tanto en el servicio remoto de Envíos (<code class="language-java">MicroservicioEnvios</code>) como en el de Facturación (<code class="language-java">MicroservicioFacturacion</code>).</p>
 
-<p><strong>El Problema:</strong> Buscar un EJB (vía JNDI) es complejo y propenso a excepciones de red. Si pones código de infraestructura (<code class="language-java">InitialContext.lookup()</code>) en tus controladores web, acoplas la presentación a la implementación específica de los servicios y dificultas el testing.</p>
+<p><strong>El Problema (Sin Business Delegate):</strong> Si la pantalla o controlador web tiene que buscar direcciones de red, configurar clientes HTTP/RMI y capturar <code class="language-java">RemoteException</code> directamente, cualquier cambio en la ubicación de los microservicios obligará a modificar la capa de presentación.</p>
 
-<p><strong>La Solución (Business Delegate):</strong> Creas una clase Java simple (POJO) en la capa de presentación que actúa como representante del servicio de negocio.
-<br>El controlador web llama a este Delegado. El Delegado se encarga de buscar el servicio, hacer reintentos si falla, y convertir las excepciones de infraestructura remotas (<code class="language-java">RemoteException</code>) en excepciones de negocio amigables.</p>
+<p><strong>La Solución (Con Business Delegate):</strong> <code class="language-java">ClientePresentacion</code> solo habla con la clase local <code class="language-java">DelegadoNegocio</code>. Internamente, <code class="language-java">DelegadoNegocio</code> pide al <code class="language-java">LocalizadorServicios</code> la referencia del servicio remoto adecuado y ejecuta <code class="language-java">procesar()</code>.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Ocultación de Complejidad:</strong> 
-        <p>El patrón encapsula los detalles de acceso a servicios (Lookup, RMI, SOAP, REST). El cliente solo ve un método de negocio limpio (<code class="language-java">delegate.doTask()</code>).</p>
-    </li>
-    <li>
-        <strong>Caché de Referencias:</strong> 
-        <p>El Business Delegate puede trabajar junto con un <em>Service Locator</em> para cachear las referencias a los servicios, mejorando el rendimiento al evitar lookups JNDI repetitivos.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/business-delegate/assets/img/business-delegate-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Business Delegate aislando al cliente de los servicios remotos</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Cliente (Clase Normal — Presentación)</th>
+            <td><code class="language-java">ClientePresentacion</code></td>
+            <td>Capa de interfaz que solicita ejecutar una tarea de negocio sin saber dónde ni cómo está desplegado el servicio.</td>
+        </tr>
+        <tr>
+            <th scope="row">Delegado de Negocio (Clase Normal)</th>
+            <td><code class="language-java">DelegadoNegocio</code></td>
+            <td>Representante local que oculta el <em>lookup</em>, gestiona posibles reintentos/errores de red e invoca al servicio real.</td>
+        </tr>
+        <tr>
+            <th scope="row">Localizador de Servicios (Clase Normal)</th>
+            <td><code class="language-java">LocalizadorServicios</code></td>
+            <td>Encargado de localizar la instancia del servicio remoto solicitado (<code class="language-java">SHIPPING</code> o <code class="language-java">BILLING</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Servicio de Negocio (Interfaz y Microservicios)</th>
+            <td><code class="language-java">ServicioNegocio</code>, <code class="language-java">MicroservicioEnvios</code>, <code class="language-java">MicroservicioFacturacion</code></td>
+            <td>Servicios de negocio remotos (EJBs o microservicios) que ejecutan la lógica empresarial real.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Business Delegate</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class BusinessDelegate {
-    private BusinessService businessService;
-    private ServiceLocator serviceLocator = new ServiceLocator();
+// 1. Interfaz común de los Servicios de Negocio Remotos
+interface ServicioNegocio {
+    void procesar();
+}
+
+// 2. Servicios de Negocio Concretos (Simulación de Microservicios / EJBs remotos)
+class MicroservicioEnvios implements ServicioNegocio {
+    @Override
+    public void procesar() {
+        System.out.println("🚚 [Microservicio Remoto Envíos] Generando etiqueta logística y orden de reparto.");
+    }
+}
+
+class MicroservicioFacturacion implements ServicioNegocio {
+    @Override
+    public void procesar() {
+        System.out.println("🧾 [Microservicio Remoto Facturación] Emitiendo factura electrónica firmada.");
+    }
+}
+
+// 3. Buscador de Servicios (Lookup Service)
+class LocalizadorServicios {
+    public ServicioNegocio obtenerServicio(String serviceType) {
+        if (serviceType.equalsIgnoreCase("SHIPPING")) {
+            return new MicroservicioEnvios();
+        } else {
+            return new MicroservicioFacturacion();
+        }
+    }
+}
+
+// 4. Business Delegate: Intermediario local que usa la capa de presentación
+class DelegadoNegocio {
+    private LocalizadorServicios locator = new LocalizadorServicios();
+    private ServicioNegocio businessService;
     private String serviceType;
-    
-    public void setServiceType(String serviceType) {
+
+    public void setTipoServicio(String serviceType) {
         this.serviceType = serviceType;
     }
-    
-    public void doTask() {
-        businessService = serviceLocator.getService(serviceType);
-        businessService.doProcessing();
+
+    public void ejecutarTarea() {
+        System.out.println("&gt;&gt; [DelegadoNegocio] Localizando e invocando servicio remoto: " + serviceType);
+        businessService = locator.obtenerServicio(serviceType);
+        businessService.procesar();
+    }
+}
+
+// 5. Cliente de la Capa de Presentación
+class ClientePresentacion {
+    private DelegadoNegocio businessDelegate;
+
+    public ClientePresentacion(DelegadoNegocio businessDelegate) {
+        this.businessDelegate = businessDelegate;
+    }
+
+    public void realizarTrabajo() {
+        businessDelegate.ejecutarTarea();
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Business Delegate</span>
+<span class="center-horizontal caption">Implementación completa del patrón Business Delegate</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Equivalente moderno en Spring Cloud (OpenFeign):</strong>
+        <p>En arquitecturas modernas de microservicios con Spring Boot, un cliente declarativo como <strong>Spring Cloud OpenFeign</strong> (<code class="language-java">@FeignClient</code>) actúa como un <em>Business Delegate</em>: tu código llama a un método Java normal y el delegado oculta el descubrimiento en Eureka, la llamada HTTP y la traducción de errores.</p>
+    </li>
+    <li>
+        <strong>2. Traducción de Excepciones:</strong>
+        <p>Si el servidor remoto se cae y lanza una excepción técnica de red (<code class="language-java">SocketTimeoutException</code>), el <code class="language-java">DelegadoNegocio</code> la captura y la convierte en una excepción de negocio comprensible para la interfaz.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        DelegadoNegocio delegate = new DelegadoNegocio();
+        ClientePresentacion client = new ClientePresentacion(delegate);
+
+        // 1. La capa de presentación solicita ejecutar Facturación
+        delegate.setTipoServicio("BILLING");
+        client.realizarTrabajo();
+
+        System.out.println();
+
+        // 2. La capa de presentación solicita ejecutar Envíos
+        delegate.setTipoServicio("SHIPPING");
+        client.realizarTrabajo();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">La capa de presentación interactúa únicamente con el DelegadoNegocio</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+&gt;&gt; [DelegadoNegocio] Localizando e invocando servicio remoto: BILLING
+🧾 [Microservicio Remoto Facturación] Emitiendo factura electrónica firmada.
+
+&gt;&gt; [DelegadoNegocio] Localizando e invocando servicio remoto: SHIPPING
+🚚 [Microservicio Remoto Envíos] Generando etiqueta logística y orden de reparto.
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando la capa de presentación o un microservicio cliente deba comunicarse con servicios remotos cuya ubicación, protocolo o disponibilidad pueda variar.</li>
+    <li><strong>Cuándo evitarlo:</strong> En aplicaciones monolíticas sencillas donde los servicios son simples clases locales en memoria inyectadas directamente con <code class="language-java">@Autowired</code>.</li>
+</ul>

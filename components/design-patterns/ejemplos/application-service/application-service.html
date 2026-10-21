@@ -5,45 +5,150 @@
 </style>
 <h1 class="title">Patrón Application Service</h1>
 
-<p>El patrón <strong>Application Service</strong> es un patrón de la arquitectura Java EE que similar al Session Facade pero más enfocado en lógica de aplicación reutilizable y agnóstica de la interfaz.</p>
+<p>El patrón <strong>Application Service</strong> (Servicio de Aplicación) es un patrón de la capa de negocio de Java EE (y pieza central de <em>Domain-Driven Design</em> y Arquitectura Hexagonal) que <strong>orquesta los pasos de un caso de uso de la aplicación</strong>, manteniéndose 100% independiente de si quien lo llama es una API REST, una pantalla web o una tarea automática.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en un <strong>Director de Orquesta</strong> (<code class="language-java">ApplicationService</code>). El director no toca el violín ni el piano por sí mismo (esos son los objetos de dominio y los componentes de infraestructura), pero tiene la partitura completa de la obra y va indicando en qué orden exacto entra cada músico para que la pieza suene coordinada.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Encapsular lógica de aplicación cross-cutting o de orquestación.</p>
+<p>Coordinar objetos de dominio (<code class="language-java">Business Objects</code>), repositorios de datos y servicios de infraestructura (como encriptación o envío de emails) para completar un caso de uso, pudiendo ser reutilizado desde cualquier canal de entrada.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Registro de Usuarios (Orquestación)</h2>
-<p><strong>Contexto:</strong> Registrar un usuario implica crear la entidad Usuario, encriptar la contraseña, guardar en DB y enviar un email de bienvenida.</p>
+<h2 class="subtitle">Caso de Uso Real: Caso de Uso "Registrar Nuevo Usuario"</h2>
+<p><strong>Contexto:</strong> Dar de alta a un usuario en tu plataforma requiere: 1) encriptar su contraseña, 2) crear la entidad <code class="language-java">User</code>, 3) guardarla en <code class="language-java">RepositorioUsuarios</code> y 4) enviarle un correo de bienvenida con <code class="language-java">ServicioEmail</code>. Además, los usuarios pueden registrarse tanto desde la Web (<code class="language-java">UserRestController</code>) como mediante una importación masiva nocturna (<code class="language-java">BatchImportJob</code>).</p>
 
-<p><strong>El Problema:</strong> La entidad <code class="language-java">User</code> no debería saber enviar emails (rompería SRP). El repositorio <code class="language-java">UserRepository</code> no sabe de encriptación.</p>
+<p><strong>El Problema (Sin Application Service):</strong> Si metes esos 4 pasos dentro del controlador REST, cuando tengas que programar el proceso nocturno de importación por lotes tendrás que copiar y pegar toda la lógica.</p>
 
-<p><strong>La Solución (Application Service):</strong> Un servicio de capa de aplicación (<code class="language-java">UserRegistrationService</code>) actúa como director de orquesta.
-<br>1. Recibe el DTO. 2. Llama al Encriptador. 3. Crea el objeto User. 4. Llama al Repository. 5. Llama al EmailService.
-<br>No contiene lógica de negocio compleja (eso va en las entidades), solo coordina el flujo de la operación.</p>
+<p><strong>La Solución (Con Application Service):</strong> Creamos <code class="language-java">ServicioAplicacionUsuario.registrarUsuario(...)</code>. Tanto el controlador REST como el proceso por lotes llaman a este mismo servicio de aplicación.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Arquitectura y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Capa de Servicios vs Dominio:</strong> 
-        <p>Es vital distinguir entre Domain Service (lógica pura de negocio) y Application Service (infraestructura, flujos, DTOs). El Application Service es la puerta de entrada para la UI o API REST.</p>
-    </li>
-    <li>
-        <strong>Independencia de la UI:</strong> 
-        <p>Este servicio puede ser invocado igual desde un Controlador Web, una tarea programada (Batch) o una línea de comandos, ya que no depende de objetos <code class="language-java">HttpServletRequest</code>.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/application-service/assets/img/application-service-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Application Service reutilizado desde REST y Batch para orquestar el alta</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Servicio de Aplicación (Clase Normal)</th>
+            <td><code class="language-java">ServicioAplicacionUsuario</code></td>
+            <td>Coordina el flujo completo del caso de uso de registro sin contener código HTTP ni SQL.</td>
+        </tr>
+        <tr>
+            <th scope="row">Domain / Infrastructure</th>
+            <td><code class="language-java">EncriptadorContrasena</code>, <code class="language-java">RepositorioUsuarios</code>, <code class="language-java">ServicioEmail</code></td>
+            <td>Componentes especializados que realizan cada tarea técnica concreta bajo las órdenes del Application Service.</td>
+        </tr>
+        <tr>
+            <th scope="row">Clientes de Entrada</th>
+            <td><code class="language-java">Main</code> (simulando Controlador REST y Batch Job)</td>
+            <td>Adaptadores de entrada que recogen los datos del exterior e invocan al <code class="language-java">ServicioAplicacionUsuario</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Application Service</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class UserApplicationService {
-    public void registerUser(UserDTO dto) {
-        // Transacción, validación, conversión
-        User user = new User(dto.getName());
-        repository.save(user);
-        emailService.sendWelcome(user);
+// 1.Componentes especializados de dominio e infraestructura
+class EncriptadorContrasena {
+    public String hashPassword(String rawPassword) {
+        return "BCRYPT_HASH(" + rawPassword + ")";
+    }
+}
+
+class RepositorioUsuarios {
+    public void save(String username, String email, String passwordHash) {
+        System.out.println("   💾 [RepositorioUsuarios] Usuario guardado en BD: " + username + " | Hash: " + passwordHash);
+    }
+}
+
+class WelcomeServicioEmail {
+    public void enviarBienvenidaEmail(String email) {
+        System.out.println("   ✉️ [WelcomeServicioEmail] Correo de bienvenida enviado a: " + email);
+    }
+}
+
+// 2. Application Service: Director de orquesta del caso de uso
+class ServicioAplicacionUsuario {
+    private EncriptadorContrasena encryptor = new EncriptadorContrasena();
+    private RepositorioUsuarios repository = new RepositorioUsuarios();
+    private WelcomeServicioEmail emailService = new WelcomeServicioEmail();
+
+    public void registrarUsuario(String username, String email, String rawPassword) {
+        System.out.println("⚙️ [ServicioAplicacionUsuario] Ejecutando caso de uso: Registrar Usuario '" + username + "'");
+
+        // Paso 1: Encriptar contraseña
+        String hashed = encryptor.hashPassword(rawPassword);
+
+        // Paso 2: Persistir en base de datos
+        repository.save(username, email, hashed);
+
+        // Paso 3: Enviar notificación de bienvenida
+        emailService.enviarBienvenidaEmail(email);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Application Service</span>
+<span class="center-horizontal caption">Implementación completa del patrón Application Service</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Independencia total de la Interfaz de Usuario:</strong>
+        <p><code class="language-java">ServicioAplicacionUsuario</code> no devuelve páginas HTML ni códigos de estado HTTP 200/404. Recibe datos de negocio y ejecuta el flujo del caso de uso, por lo que sirve igual para una API REST, una interfaz gráfica de escritorio, un consumidor de RabbitMQ/Kafka o un test unitario.</p>
+    </li>
+    <li>
+        <strong>2. Orquestación vs Lógica de Dominio:</strong>
+        <p>Un buen <code class="language-java">Application Service</code> es delgado: coordina el orden de los pasos ("encripta $\rightarrow$ guarda $\rightarrow$ envía email"), delegando los cálculos de negocio puros en las entidades o <em>Business Objects</em>.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        ServicioAplicacionUsuario appService = new ServicioAplicacionUsuario();
+
+        System.out.println("--- Canal 1: Registro desde el Formulario Web (REST Controller) ---");
+        appService.registrarUsuario("elena_web", "elena@correo.com", "Secreto123");
+
+        System.out.println("\n--- Canal 2: Alta desde Proceso Nocturno de Importación (Batch Job) ---");
+        appService.registrarUsuario("marco_batch", "marco@empresa.com", "TempPass99");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Reutilización del mismo Application Service desde dos canales de entrada distintos</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Canal 1: Registro desde el Formulario Web (REST Controller) ---
+⚙️ [ServicioAplicacionUsuario] Ejecutando caso de uso: Registrar Usuario 'elena_web'
+   💾 [RepositorioUsuarios] Usuario guardado en BD: elena_web | Hash: BCRYPT_HASH(Secreto123)
+   ✉️ [WelcomeServicioEmail] Correo de bienvenida enviado a: elena@correo.com
+
+--- Canal 2: Alta desde Proceso Nocturno de Importación (Batch Job) ---
+⚙️ [ServicioAplicacionUsuario] Ejecutando caso de uso: Registrar Usuario 'marco_batch'
+   💾 [RepositorioUsuarios] Usuario guardado en BD: marco_batch | Hash: BCRYPT_HASH(TempPass99)
+   ✉️ [WelcomeServicioEmail] Correo de bienvenida enviado a: marco@empresa.com
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> En la capa de servicios (<code class="language-java">@Service</code>) de cualquier aplicación empresarial para representar cada caso de uso del sistema.</li>
+    <li><strong>Cuándo evitarlo:</strong> Evita meter toda la matemática y reglas de validación de las entidades dentro del Application Service dejando a las entidades vacías (anti-patrón conocido como <em>Modelo de Dominio Anémico</em>).</li>
+</ul>

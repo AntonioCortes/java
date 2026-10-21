@@ -5,105 +5,149 @@
 </style>
 <h1 class="title">Patrón Decorator</h1>
 
-<p>El patrón <strong>Decorator</strong> es un patrón estructural que permite añadir funcionalidades a objetos colocando estos objetos dentro de objetos encapsuladores especiales que contienen estas funcionalidades.</p>
+<p>El patrón <strong>Decorator</strong> (Decorador) es un patrón estructural que permite añadir funcionalidades o responsabilidades extra a un objeto de forma dinámica en tiempo de ejecución, colocándolo dentro de objetos "envoltorio" especiales sin modificar la clase original.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en <strong>vestirse cuando hace frío</strong> o en las <strong>muñecas rusas (Matrioshkas)</strong>. Tú eres el objeto base (<code class="language-java">CafeSimple</code>). Si tienes frío, te pones un jersey encima (primer decorador). Si además llueve, te pones un chubasquero encima del jersey (segundo decorador). Sigues siendo una persona, pero cada capa que te envuelve te añade una propiedad nueva (abrigo, impermeabilidad) y puedes quitártelas o combinarlas al vuelo.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Añadir responsabilidades a un objeto de forma dinámica. Provee una alternativa flexible a la herencia para extender la funcionalidad.</p>
+<p>Ofrecer una alternativa flexible a la herencia para ampliar la funcionalidad de un objeto, evitando crear decenas de subclases para cada posible combinación de características.</p>
 
 <h2 class="subtitle">Caso de Uso Real: Sistema de Cafetería (Personalización de Bebidas)</h2>
-<p><strong>Contexto:</strong> Una cafetería vende cafés con múltiples combinaciones de ingredienes: Leche, Azúcar, Chocolate, Vainilla, Canela, Nata, etc.</p>
+<p><strong>Contexto:</strong> Una cafetería vende café simple y permite añadir suplementos combinables: Leche (+0.50€), Azúcar (+0.20€), Chocolate, Nata, etc.</p>
 
-<p><strong>El Problema:</strong> Usar herencia (<code class="language-java">CafeConLeche</code>, <code class="language-java">CafeConLecheYChocolate</code>, <code class="language-java">CafeSoloConAzucar</code>...) crea una explosión combinatoria de clases imposible de mantener. Añadir un nuevo ingrediente implicaría crear docenas de nuevas clases combinadas.</p>
+<p><strong>El Problema (Con Herencia clásica):</strong> Si intentas crear una subclase por cada combinación posible (<code class="language-java">CafeConLeche</code>, <code class="language-java">CafeConAzucar</code>, <code class="language-java">CafeConLecheYAzucar</code>, <code class="language-java">CafeConDobleLecheYChocolate</code>...), tendrás una explosión combinatoria inmanejable.</p>
 
-<p><strong>La Solución (Decorator):</strong> Empiezas con un objeto base (<code class="language-java">SimpleCoffee</code>). Los ingredientes extra son "Envoltorios" (Decoradores).
-<br>Para crear un Café con Leche y Azúcar, envuelves el café: <code class="language-java">new Sugar(new Milk(new SimpleCoffee()))</code>. Cada envoltorio añade su precio y su descripción a lo que devuelve el objeto envuelto. Es infinitamente flexible.</p>
+<p><strong>La Solución (Con Decorator):</strong> Tanto el café base (<code class="language-java">CafeSimple</code>) como los envoltorios de ingredientes (<code class="language-java">DecoradorLeche</code>, <code class="language-java">DecoradorAzucar</code>) implementan la misma interfaz <code class="language-java">Cafe</code>. Cada decorador guarda dentro un objeto <code class="language-java">Cafe</code>, le pide su precio/descripción y le suma el suyo propio: <code class="language-java">new DecoradorAzucar(new DecoradorLeche(new CafeSimple()))</code>.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Herencia y Composición simultánea:</strong> 
-        <p>El decorador <em>es un</em> Café (implements <code class="language-java">Coffee</code>) y <em>tiene un</em> Café (composition). Esto es clave: "Es un Café" para que pueda ser pasado a otros decoradores, y "Tiene un Café" para poder delegar y añadir comportamiento. Esto cumple el principio de <strong>Abierto/Cerrado</strong>.</p>
-    </li>
-    <li>
-        <strong>Transparencia:</strong> 
-        <p>El cliente no sabe si está tratando con un café simple o uno con 10 ingredientes, ya que todos implementan la interfaz común.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/decorator/assets/img/decorator-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Decorator (DecoradorCafe ES un Coffee y TIENE un Coffee)</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Component (Interfaz)</th>
+            <td><code class="language-java">Cafe</code></td>
+            <td>Define las operaciones comunes (<code class="language-java">obtenerDescripcion()</code> y <code class="language-java">obtenerCosto()</code>) para el objeto base y sus envoltorios.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Component</th>
+            <td><code class="language-java">CafeSimple</code></td>
+            <td>El objeto base sobre el que se irán añadiendo capas de decoración.</td>
+        </tr>
+        <tr>
+            <th scope="row">Base Decorator</th>
+            <td><code class="language-java">DecoradorCafe</code></td>
+            <td>Clase abstracta que implementa <code class="language-java">Cafe</code> y guarda una referencia <code class="language-java">protected Coffee cafeEnvuelto</code> al objeto envuelto.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Decorators</th>
+            <td><code class="language-java">DecoradorLeche</code>, <code class="language-java">DecoradorAzucar</code></td>
+            <td>Llaman al objeto envuelto (<code class="language-java">super.obtenerCosto()</code>) y le suman su coste y descripción adicional.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Decorator</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Componente
-interface Coffee {
-    String getDescription();
-    double getCost();
+// 1. Interfaz Componente
+interface Cafe {
+    String obtenerDescripcion();
+    double obtenerCosto();
 }
 
-// Componente Concreto
-class SimpleCoffee implements Coffee {
+// 2. Componente Concreto: el objeto base sin extras
+class CafeSimple implements Cafe {
     @Override
-    public String getDescription() {
+    public String obtenerDescripcion() {
         return "Café Simple";
     }
+
     @Override
-    public double getCost() {
+    public double obtenerCosto() {
         return 1.0;
     }
 }
 
-// Decorador Base
-abstract class CoffeeDecorator implements Coffee {
-    protected Coffee decoratedCoffee;
+// 3. Decorador Base: implementa Coffee y además TIENE un Coffee dentro
+abstract class DecoradorCafe implements Cafe {
+    protected Cafe cafeEnvuelto;
 
-    public CoffeeDecorator(Coffee coffee) {
-        this.decoratedCoffee = coffee;
+    public DecoradorCafe(Cafe cafe) {
+        this.cafeEnvuelto = cafe;
     }
 
     @Override
-    public String getDescription() {
-        return decoratedCoffee.getDescription();
+    public String obtenerDescripcion() {
+        return cafeEnvuelto.obtenerDescripcion();
     }
+
     @Override
-    public double getCost() {
-        return decoratedCoffee.getCost();
+    public double obtenerCosto() {
+        return cafeEnvuelto.obtenerCosto();
     }
 }
 
-// Decoradores Concretos
-class MilkDecorator extends CoffeeDecorator {
-    public MilkDecorator(Coffee coffee) {
-        super(coffee);
+// 4. Decoradores Concretos: añaden comportamiento antes o después de delegar
+class DecoradorLeche extends DecoradorCafe {
+    public DecoradorLeche(Cafe cafe) {
+        super(cafe);
     }
+
     @Override
-    public String getDescription() {
-        return super.getDescription() + ", con Leche";
+    public String obtenerDescripcion() {
+        return super.obtenerDescripcion() + ", con Leche";
     }
+
     @Override
-    public double getCost() {
-        return super.getCost() + 0.5;
+    public double obtenerCosto() {
+        return super.obtenerCosto() + 0.5;
     }
 }
 
-class SugarDecorator extends CoffeeDecorator {
-    public SugarDecorator(Coffee coffee) {
-        super(coffee);
+class DecoradorAzucar extends DecoradorCafe {
+    public DecoradorAzucar(Cafe cafe) {
+        super(cafe);
     }
+
     @Override
-    public String getDescription() {
-        return super.getDescription() + ", con Azúcar";
+    public String obtenerDescripcion() {
+        return super.obtenerDescripcion() + ", con Azúcar";
     }
+
     @Override
-    public double getCost() {
-        return super.getCost() + 0.2;
+    public double obtenerCosto() {
+        return super.obtenerCosto() + 0.2;
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Estructura Decorator</span>
+<span class="center-horizontal caption">Implementación completa del patrón Decorator</span>
 
-<br>
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. El secreto del patrón: "Es un" y "Tiene un" a la vez:</strong>
+        <p><code class="language-java">DecoradorCafe</code> <strong>implementa <code class="language-java">Cafe</code></strong> (para que puedas seguir envolviéndolo dentro de otro decorador más) y a la vez <strong>tiene un atributo <code class="language-java">Cafe</code></strong> (para saber a quién tiene envuelto por dentro y pedirle su precio base).</p>
+    </li>
+    <li>
+        <strong>2. Cómo se calcula el precio en cadena:</strong>
+        <p>Cuando llamas a <code class="language-java">obtenerCosto()</code> en la capa exterior (<code class="language-java">DecoradorAzucar</code>), este pide el precio a <code class="language-java">DecoradorLeche</code>, que a su vez se lo pide a <code class="language-java">CafeSimple</code> (1.0€). Al volver hacia afuera se suma: <code class="language-java">1.0 + 0.5 + 0.2 = 1.7€</code>.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Ejemplo de Uso</h2>
 
@@ -111,27 +155,35 @@ class SugarDecorator extends CoffeeDecorator {
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        // Café simple
-        Coffee myCoffee = new SimpleCoffee();
-        System.out.println(myCoffee.getDescription() + " $" + myCoffee.getCost());
+        // 1. Empezamos con un café simple
+        Coffee myCoffee = new CafeSimple();
+        System.out.println(myCoffee.obtenerDescripcion() + " -&gt; " + myCoffee.obtenerCosto() + "€");
 
-        // Café con leche
-        myCoffee = new MilkDecorator(myCoffee);
-        System.out.println(myCoffee.getDescription() + " $" + myCoffee.getCost());
+        // 2. Lo envolvemos dinámicamente con Leche
+        myCoffee = new DecoradorLeche(myCoffee);
+        System.out.println(myCoffee.obtenerDescripcion() + " -&gt; " + myCoffee.obtenerCosto() + "€");
 
-        // Café con leche y azúcar
-        myCoffee = new SugarDecorator(myCoffee);
-        System.out.println(myCoffee.getDescription() + " $" + myCoffee.getCost());
+        // 3. Lo volvemos a envolver con Azúcar
+        myCoffee = new DecoradorAzucar(myCoffee);
+        System.out.println(myCoffee.obtenerDescripcion() + " -&gt; " + myCoffee.obtenerCosto() + "€");
     }
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">Envolviendo un objeto con múltiples decoradores en tiempo de ejecución</span>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-Output:
-Café Simple $1.0
-Café Simple, con Leche $1.5
-Café Simple, con Leche, con Azúcar $1.7
+Salida por consola:
+Café Simple -&gt; 1.0€
+Café Simple, con Leche -&gt; 1.5€
+Café Simple, con Leche, con Azúcar -&gt; 1.7€
 </code></pre>
 </div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando necesitas añadir o combinar comportamientos opcionales en tiempo de ejecución (como los flujos de entrada/salida de Java: <code class="language-java">new BufferedReader(new FileReader("datos.txt"))</code>, o añadir compresión y cifrado a un flujo de datos).</li>
+    <li><strong>Cuándo evitarlo:</strong> Si el orden en que se envuelven los decoradores es crítico y propenso a errores por parte del cliente, o si solo necesitas añadir un método fijo a una clase.</li>
+</ul>

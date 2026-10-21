@@ -5,45 +5,156 @@
 </style>
 <h1 class="title">Patrón Value List Handler</h1>
 
-<p>El patrón <strong>Value List Handler</strong> es un patrón de la arquitectura Java EE que se usa para manejar listas grandes de resultados (paginación).</p>
+<p>El patrón <strong>Value List Handler</strong> (Manejador de Lista de Valores) es un patrón de la arquitectura Java EE diseñado para gestionar eficientemente <strong>consultas que devuelven listas muy grandes de resultados</strong>, ofreciendo al cliente mecanismos de paginación (avanzar y retroceder por bloques o <em>chunks</em>) sin saturar la red ni el navegador.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en los <strong>resultados de búsqueda de Google</strong>. Cuando buscas la palabra "Java", Google encuentra 500 millones de páginas web, pero no descarga los 500 millones de resultados de golpe en tu navegador (porque colapsaría tu ordenador). En su lugar, el servidor te entrega solo los <strong>primeros 10 resultados (Página 1)</strong> y mantiene un puntero para entregarte los siguientes 10 cuando pulses el botón "Siguiente".</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Optimizar la iteración y visualización de grandes listas de datos.</p>
+<p>Evitar enviar miles de objetos por la red en una sola respuesta, permitiendo al cliente pedir únicamente el subconjunto o página de datos (<code class="language-java">chunk</code>) que cabe actualmente en su pantalla.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Paginación de Resultados de Búsqueda</h2>
-<p><strong>Contexto:</strong> Un usuario busca "Zapatos" y la base de datos devuelve 50.000 resultados. Solo puedes mostrar 20 por página.</p>
+<h2 class="subtitle">Caso de Uso Real: Paginación de un Catálogo de Productos</h2>
+<p><strong>Contexto:</strong> Un usuario busca productos en una tienda y hay una lista grande de resultados, pero en la pantalla del móvil solo caben 3 productos por página.</p>
 
-<p><strong>El Problema:</strong> Recuperar 50.000 objetos de la DB cada vez que el usuario pasa de página es ineficiente y tumbará el servidor. O peor, traer todos a la capa de presentación y paginar allí consume toda la memoria.</p>
+<p><strong>El Problema (Sin Value List Handler):</strong> Si el servidor envía toda la lista completa al cliente cada vez, el consumo de ancho de banda y memoria se dispara innecesariamente.</p>
 
-<p><strong>La Solución (Value List Handler):</strong> Usas un manejador (Handler) que gestiona la lista de resultados.
-<br>El Handler puede ejecutar la query una vez y cachear solo los IDs, recuperando los objetos completos solo para la página actual (Lazy Loading a nivel de lista). O puede mantener un cursor de base de datos abierto (aunque esto es arriesgado en web) o gestionar offsets SQL de forma trasparente.</p>
+<p><strong>La Solución (Con Value List Handler):</strong> La clase <code class="language-java">ManejadorListaProductos</code> mantiene la referencia a la búsqueda y un cursor (<code class="language-java">indiceActual</code>). El cliente pide bloques pequeños llamando a <code class="language-java">obtenerSiguientePagina(3)</code> para avanzar de página o <code class="language-java">obtenerPaginaAnterior(3)</code> para retroceder.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Iterador Remoto Inteligente:</strong> 
-        <p>Actúa como un iterador avanzado que vive en el servidor (Session Scope). El cliente le pide "dame la siguiente página" y el Handler se encarga de la lógica compleja de obtener ese subconjunto de datos de la forma más eficiente posible.</p>
-    </li>
-    <li>
-        <strong>Caché de Resultados:</strong> 
-        <p>Evita re-ejecutar queries costosas si el usuario navega adelante y atrás en los resultados. Sin embargo, hay que tener cuidado con el consumo de memoria en la sesión HTTP.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/value-list-handler/assets/img/value-list-handler-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Value List Handler entregando páginas de datos bajo demanda</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Manejador de Lista Paginada (Clase Normal)</th>
+            <td><code class="language-java">ManejadorListaProductos</code></td>
+            <td>Controla la posición actual del cursor (<code class="language-java">indiceActual</code>) y extrae sub-listas del tamaño solicitado (<code class="language-java">obtenerSiguientePagina</code>, <code class="language-java">obtenerPaginaAnterior</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Data Source (DAO)</th>
+            <td><code class="language-java">ProductoDAO</code></td>
+            <td>Ejecuta la consulta a la fuente de datos para alimentar al manejador.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cliente Paginado</th>
+            <td><code class="language-java">Main</code> (Interfaz de Catálogo)</td>
+            <td>Solicita página tras página de tamaño fijo a medida que el usuario pulsa "Siguiente" o "Anterior".</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Value List Handler</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class ProductListHandler {
-    private List<Product> list;
-    private ListIterator iterator;
-    
-    public List<Product> getNextChunk(int chunkSize) {
-        // Retorna los siguientes N elementos
-        return list.subList(current, current + chunkSize);
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+// 1. DAO que recupera los resultados de la búsqueda
+class ProductoDAO {
+    public List&lt;String&gt; executeSearch() {
+        return Arrays.asList(
+                "1. Portátil Pro 15\"", "2. Ratón Óptico", "3. Teclado Mecánico",
+                "4. Monitor 4K 27\"",   "5. Webcam FullHD", "6. Micrófono USB",
+                "7. Silla Ergonómica",  "8. Disco SSD 2TB"
+        );
+    }
+}
+
+// 2. Value List Handler: Gestiona la paginación por bloques (Chunks)
+class ManejadorListaProductos {
+    private List&lt;String&gt; fullList;
+    private int indiceActual = 0;
+
+    public ManejadorListaProductos(ProductoDAO dao) {
+        this.fullList = dao.executeSearch();
+    }
+
+    // Devuelve los siguientes N elementos y avanza el cursor
+    public List&lt;String&gt; obtenerSiguientePagina(int pageSize) {
+        if (indiceActual &gt;= fullList.size()) {
+            return Collections.emptyList();
+        }
+        int endIndex = Math.min(indiceActual + pageSize, fullList.size());
+        List&lt;String&gt; chunk = fullList.subList(indiceActual, endIndex);
+        indiceActual = endIndex;
+        return chunk;
+    }
+
+    // Retrocede a la página anterior
+    public List&lt;String&gt; obtenerPaginaAnterior(int pageSize) {
+        indiceActual = Math.max(0, indiceActual - (pageSize * 2));
+        return obtenerSiguientePagina(pageSize);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Value List Handler</span>
+<span class="center-horizontal caption">Implementación completa del patrón Value List Handler</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Su evolución moderna en Spring Data JPA (<code class="language-java">Page&lt;T&gt;</code> y <code class="language-java">Pageable</code>):</strong>
+        <p>En aplicaciones modernas con Spring Boot, cuando usas <code class="language-java">PageRequest.of(pageNumber, pageSize)</code> y tu repositorio devuelve un objeto <code class="language-java">Page&lt;Product&gt;</code>, estás utilizando la evolución moderna del patrón <strong>Value List Handler</strong> apoyada directamente en <code class="language-java">LIMIT</code> y <code class="language-java">OFFSET</code> de SQL.</p>
+    </li>
+    <li>
+        <strong>2. Control del tamaño de página:</strong>
+        <p>El uso de <code class="language-java">Math.min(indiceActual + pageSize, fullList.size())</code> garantiza que en la última página (cuando quedan 2 productos en lugar de 3) no se produzca un error <code class="language-java">IndexOutOfBoundsException</code>.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        ManejadorListaProductos listHandler = new ManejadorListaProductos(new ProductoDAO());
+        int pageSize = 3; // Mostrar de 3 en 3 productos por pantalla
+
+        System.out.println("📄 [Página 1] Siguientes 3 productos:");
+        System.out.println("   " + listHandler.obtenerSiguientePagina(pageSize));
+
+        System.out.println("\n📄 [Página 2] Usuario pulsa 'Siguiente':");
+        System.out.println("   " + listHandler.obtenerSiguientePagina(pageSize));
+
+        System.out.println("\n📄 [Página 3] Usuario pulsa 'Siguiente' (últimos 2 elementos):");
+        System.out.println("   " + listHandler.obtenerSiguientePagina(pageSize));
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Navegación paginada de 3 en 3 elementos</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+📄 [Página 1] Siguientes 3 productos:
+   [1. Portátil Pro 15", 2. Ratón Óptico, 3. Teclado Mecánico]
+
+📄 [Página 2] Usuario pulsa 'Siguiente':
+   [4. Monitor 4K 27", 5. Webcam FullHD, 6. Micrófono USB]
+
+📄 [Página 3] Usuario pulsa 'Siguiente' (últimos 2 elementos):
+   [7. Silla Ergonómica, 8. Disco SSD 2TB]
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> En cualquier buscador, listado de facturas, historial de movimientos bancarios o catálogo que pueda devolver más de unas pocas decenas de registros.</li>
+    <li><strong>Cuándo evitarlo:</strong> En listas desplegables cortas y fijas (como los 7 días de la semana o los meses del año) donde caben todos los elementos sin paginar.</li>
+</ul>

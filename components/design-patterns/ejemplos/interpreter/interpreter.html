@@ -5,55 +5,178 @@
 </style>
 <h1 class="title">Patrón Interpreter</h1>
 
-<p>El patrón <strong>Interpreter</strong> es un patrón de comportamiento que dado un lenguaje, define una representación de su gramática junto con un intérprete que usa la representación para interpretar sentencias del lenguaje.</p>
+<p>El patrón <strong>Interpreter</strong> (Intérprete) es un patrón de comportamiento que define una representación en clases para la <strong>gramática de un lenguaje sencillo</strong>, permitiendo evaluar o interpretar expresiones escritas en ese lenguaje.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en leer una <strong>partitura musical</strong> o evaluar un filtro de búsqueda como <code class="language-java">("Java" Y "Spring")</code>. Cada símbolo básico (una palabra clave o una nota musical) es una expresión terminal, y los conectores (<code class="language-java">Y</code>, <code class="language-java">O</code>) combinan dos expresiones para producir un resultado final verdadero o falso.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Evaluar sentencias en un lenguaje simple definido por una gramática.</p>
+<p>Representar cada regla gramatical (palabras clave, operadores <code class="language-java">AND</code>, <code class="language-java">OR</code>, sumas, restas) como una clase que implementa un método común <code class="language-java">interpretar(contexto)</code>, formando un árbol de expresiones (Árbol de Sintaxis Abstracta o AST).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Intérprete de Expresiones Matemáticas o SQL</h2>
-<p><strong>Contexto:</strong> Estás construyendo una calculadora que debe aceptar fórmulas complejas como Cadenas de Texto: <code class="language-java">"5 + (10 - 2)"</code> y evaluarlas.</p>
+<h2 class="subtitle">Caso de Uso Real: Motor de Reglas de Filtrado de Currículums (RRHH)</h2>
+<p><strong>Contexto:</strong> Un portal de empleo necesita evaluar automáticamente si la descripción de un candidato cumple ciertas reglas lógicas configurables, como por ejemplo: <em>"Conoce Java O C#"</em> o <em>"Es Senior Y sabe SQL"</em>.</p>
 
-<p><strong>El Problema:</strong> Parsear y evaluar esto con un montón de <code class="language-java">if/else</code> o bucles anidados es extremadamente complejo y frágil ante cambios en la gramática.</p>
+<p><strong>El Problema (Sin Interpreter):</strong> Si intentas programar todas las combinaciones posibles de búsqueda con métodos fijos, cada vez que RRHH quiera una regla nueva tendrás que programar un método nuevo.</p>
 
-<p><strong>La Solución (Interpreter):</strong> Defines una gramática para el lenguaje. Cada regla de la gramática (Número, Suma, Resta) se convierte en una Clase.
-<br>La sentencia se parsea en un árbol de objetos (Árbol de Sintaxis Abstracta). Para evaluar la expresión, simplemente llamas a <code class="language-java">interpret()</code> en la raíz del árbol, y la llamada se propaga recursivamente bajando por los nodos.</p>
+<p><strong>La Solución (Con Interpreter):</strong> Creamos <code class="language-java">ExpresionTerminal</code> (comprueba si una palabra aparece en el texto), <code class="language-java">ExpresionO</code> (evalúa <code class="language-java">expr1 || expr2</code>) y <code class="language-java">ExpresionY</code> (evalúa <code class="language-java">expr1 &amp;&amp; expr2</code>). Combinando objetos de estas 3 clases podemos construir cualquier regla lógica imaginable.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Representación de Gramáticas:</strong> 
-        <p>El patrón mapea reglas gramaticales a clases. <code class="language-java">TerminalExpression</code> son los nodos hoja (números, variables), y <code class="language-java">OrExpression</code> (o Sum, Minus) son nodos compuestos que combinan otras expresiones.</p>
-    </li>
-    <li>
-        <strong>Extensibilidad:</strong> 
-        <p>Es fácil añadir nuevos operadores (ej. Multiplicación) simplemente creando una nueva clase <code class="language-java">Expression</code>, sin cambiar el código de las expresiones existentes. Sin embargo, si la gramática es muy compleja, el árbol de clases se vuelve inmanejable (en ese caso es mejor usar parsers generados como ANTLR).</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/interpreter/assets/img/interpreter-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Interpreter componiendo expresiones terminales y compuestas</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Abstract Expression</th>
+            <td><code class="language-java">Expresion</code></td>
+            <td>Declara el método <code class="language-java">interpretar(String context)</code> que todos los nodos del árbol gramatical deben implementar.</td>
+        </tr>
+        <tr>
+            <th scope="row">Terminal Expression</th>
+            <td><code class="language-java">ExpresionTerminal</code></td>
+            <td>Nodo hoja de la gramática: comprueba directamente si su palabra clave está contenida en el texto de entrada.</td>
+        </tr>
+        <tr>
+            <th scope="row">Non-Terminal Expressions</th>
+            <td><code class="language-java">ExpresionO</code>, <code class="language-java">ExpresionY</code></td>
+            <td>Nodos compuestos que combinan dos sub-expresiones (<code class="language-java">expr1</code> y <code class="language-java">expr2</code>) aplicando lógica booleana <code class="language-java">OR</code> o <code class="language-java">AND</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Interpreter</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-interface Expression {
-    boolean interpret(String context);
+// 1. Interfaz Expresión Abstracta
+interface Expresion {
+    boolean interpretar(String context);
 }
 
-class TerminalExpression implements Expression {
-    private String data;
-    public TerminalExpression(String data) { this.data = data; }
-    public boolean interpret(String context) {
-        return context.contains(data);
+// 2. Expresión Terminal (Hoja): busca una palabra clave en el texto
+class ExpresionTerminal implements Expresion {
+    private String palabraClave;
+
+    public ExpresionTerminal(String palabraClave) {
+        this.palabraClave = palabraClave;
+    }
+
+    @Override
+    public boolean interpretar(String context) {
+        return context.contains(palabraClave);
     }
 }
 
-class OrExpression implements Expression {
-    private Expression expr1, expr2;
-    public OrExpression(Expression expr1, Expression expr2) { ... }
-    public boolean interpret(String context) {
-        return expr1.interpret(context) || expr2.interpret(context);
+// 3. Expresión No-Terminal OR: devuelve true si cualquiera de las dos se cumple
+class ExpresionO implements Expresion {
+    private Expresion expr1;
+    private Expresion expr2;
+
+    public ExpresionO(Expresion expr1, Expresion expr2) {
+        this.expr1 = expr1;
+        this.expr2 = expr2;
+    }
+
+    @Override
+    public boolean interpretar(String context) {
+        return expr1.interpretar(context) || expr2.interpretar(context);
+    }
+}
+
+// 4. Expresión No-Terminal AND: devuelve true solo si ambas se cumplen
+class ExpresionY implements Expresion {
+    private Expresion expr1;
+    private Expresion expr2;
+
+    public ExpresionY(Expresion expr1, Expresion expr2) {
+        this.expr1 = expr1;
+        this.expr2 = expr2;
+    }
+
+    @Override
+    public boolean interpretar(String context) {
+        return expr1.interpretar(context) &amp;&amp; expr2.interpretar(context);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Interpreter</span>
+<span class="center-horizontal caption">Implementación completa del patrón Interpreter</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Relación con el patrón Composite:</strong>
+        <p>Si observas el diagrama, la estructura es un árbol idéntico al patrón <em>Composite</em>: <code class="language-java">ExpresionTerminal</code> son las hojas y <code class="language-java">ExpresionY</code>/<code class="language-java">ExpresionO</code> son los nodos compuestos. La diferencia es que el propósito aquí es evaluar reglas de un lenguaje.</p>
+    </li>
+    <li>
+        <strong>2. Evaluación recursiva:</strong>
+        <p>Al llamar a <code class="language-java">regla.interpretar("Candidato con Java y SQL")</code> en la raíz del árbol, cada nodo evalúa a sus hijos hasta llegar a las palabras individuales y combina los booleanos de vuelta hacia arriba.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    // Regla 1: El candidato debe saber "Java" O "Python"
+    public static Expresion buildDeveloperRule() {
+        Expresion java = new ExpresionTerminal("Java");
+        Expresion python = new ExpresionTerminal("Python");
+        return new ExpresionO(java, python);
+    }
+
+    // Regla 2: El candidato debe saber "Java" Y "Spring"
+    public static Expresion buildSpringSpecialistRule() {
+        Expresion java = new ExpresionTerminal("Java");
+        Expresion spring = new ExpresionTerminal("Spring");
+        return new ExpresionY(java, spring);
+    }
+
+    public static void main(String[] args) {
+        Expresion isDeveloper = buildDeveloperRule();
+        Expresion isSpringSpecialist = buildSpringSpecialistRule();
+
+        String cv1 = "Ingeniero con experiencia en Python y Docker";
+        String cv2 = "Desarrollador Backend experto en Java y Spring Boot";
+
+        System.out.println("CV 1: \"" + cv1 + "\"");
+        System.out.println("  ¿Cumple regla Desarrollador (Java OR Python)?: " + isDeveloper.interpretar(cv1));
+        System.out.println("  ¿Cumple regla Especialista (Java AND Spring)?: " + isSpringSpecialist.interpretar(cv1));
+
+        System.out.println("\nCV 2: \"" + cv2 + "\"");
+        System.out.println("  ¿Cumple regla Especialista (Java AND Spring)?: " + isSpringSpecialist.interpretar(cv2));
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Construcción y evaluación de reglas lógicas sobre textos de entrada</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+CV 1: "Ingeniero con experiencia en Python y Docker"
+  ¿Cumple regla Desarrollador (Java OR Python)?: true
+  ¿Cumple regla Especialista (Java AND Spring)?: false
+
+CV 2: "Desarrollador Backend experto en Java y Spring Boot"
+  ¿Cumple regla Especialista (Java AND Spring)?: true
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Para evaluar reglas de negocio sencillas, filtros de búsqueda, expresiones matemáticas básicas o motores de promociones.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si la gramática tiene decenas de reglas complejas (como un lenguaje de programación completo o SQL avanzado), ya que el número de clases crecería demasiado; en esos casos se utilizan generadores de parsers como ANTLR.</li>
+</ul>

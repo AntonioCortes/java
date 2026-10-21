@@ -5,41 +5,166 @@
 </style>
 <h1 class="title">Patrón Transfer Object (DTO)</h1>
 
-<p>El patrón <strong>Transfer Object (DTO)</strong> es un patrón de la arquitectura Java EE que transporta datos desde la capa de negocio a la de presentación en una sola llamada.</p>
+<p>El patrón <strong>Transfer Object</strong>, universalmente conocido como <strong>DTO (Data Transfer Object)</strong>, es un patrón de la arquitectura Java EE que consiste en empaquetar únicamente los datos que necesita el cliente dentro de un objeto simple y serializable para <strong>enviarlos a través de la red en una sola llamada</strong>, sin exponer las entidades internas de la base de datos.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en pedir <strong>comida a domicilio</strong>. El restaurante no te manda por correo primero el pan, en otro viaje la carne, en otro viaje las patatas, ni tampoco te envía su libro de recetas secreto ni la sartén de hierro de la cocina (la Entidad JPA interna). El restaurante mete solo los alimentos que has pedido dentro de una <strong>caja de cartón para llevar (el <code class="language-java">DTO</code>)</strong> y el repartidor te la entrega en un único viaje.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Reducir el número de llamadas remotas transportando múltiples datos a la vez.</p>
+<p>Cumplir dos objetivos críticos en aplicaciones web y microservicios:
+<br>1. <strong>Seguridad y Desacoplamiento:</strong> Evitar exponer al exterior campos sensibles de la base de datos (como <code class="language-java">hashContrasena</code> o el salario interno) que existen en la entidad <code class="language-java">@Entity</code>.
+<br>2. <strong>Rendimiento de Red:</strong> Agrupar todos los atributos necesarios en un solo viaje HTTP/JSON.</p>
 
-<h2 class="subtitle">Caso de Uso Real: API REST o Comunicación entre Microservicios</h2>
-<p><strong>Contexto:</strong> Un frontend en Angular necesita mostrar el perfil de usuario. En tu base de datos, la información del usuario está dispersa en 3 tablas: <code class="language-java">Users</code>, <code class="language-java">Addresses</code>, <code class="language-java">Roles</code>.</p>
+<h2 class="subtitle">Caso de Uso Real: Respuesta de Perfil de Usuario en una API REST</h2>
+<p><strong>Contexto:</strong> En tu base de datos tienes la tabla de usuarios mapeada en la clase <code class="language-java">EntidadUsuario</code>, que contiene <code class="language-java">id</code>, <code class="language-java">nombreUsuario</code>, <code class="language-java">email</code>, <code class="language-java">hashContrasena</code> y <code class="language-java">salarioInterno</code>. El navegador web necesita mostrar el perfil público del usuario.</p>
 
-<p><strong>El Problema:</strong> Si el frontend hace 3 llamadas REST (una para user, otra para address, otra para roles), la latencia de red hará que la carga se sienta lenta (Chattiness). Además, no quieres exponer tus entidades de base de datos JPA con contraseñas hash directamente al JSON.</p>
+<p><strong>El Problema (Sin DTO):</strong> Si devuelves el objeto <code class="language-java">EntidadUsuario</code> directamente en el controlador REST, se convertirá entero a JSON y cualquier persona que abra las herramientas de desarrollador del navegador (F12) verá el hash de la contraseña y el salario privado del empleado.</p>
 
-<p><strong>La Solución (Transfer Object):</strong> El servidor hace las consultas locales rápidas, ensambla todos los datos necesarios en un único objeto POJO simple (<code class="language-java">UserProfileDTO</code>) y lo envía en una sola respuesta.
-<br>El DTO actúa como un contenedor de datos optimizado para la transferencia por red.</p>
+<p><strong>La Solución (Con DTO):</strong> Creamos la clase <code class="language-java">UsuarioDTO</code> que solo contiene <code class="language-java">nombreUsuario</code> y <code class="language-java">email</code>. El servicio copia únicamente esos dos campos seguros desde <code class="language-java">EntidadUsuario</code> hacia <code class="language-java">UsuarioDTO</code> y envía el DTO al cliente.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Reducción de Latencia:</strong> 
-        <p>El objetivo principal es reducir el número de llamadas remotas. Es mejor traer un objeto grande de una vez que hacer 10 viajes pequeños a través de la red.</p>
-    </li>
-    <li>
-        <strong>Desacoplamiento del Dominio:</strong> 
-        <p>El DTO desacopla la estructura interna de tu base de datos (Entidades) de la estructura que expones al exterior (API Contract). Puedes cambiar tu modelo de datos sin romper el frontend, siempre que mantengas el DTO igual (o uses mappers).</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/transfer-object/assets/img/transfer-object-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Transfer Object (DTO) protegiendo la entidad interna y optimizando el transporte</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Domain Entity (Interna)</th>
+            <td><code class="language-java">EntidadUsuario</code></td>
+            <td>Refleja la tabla completa de la base de datos, incluyendo campos confidenciales (<code class="language-java">hashContrasena</code>, <code class="language-java">salarioInterno</code>). Nunca sale del servidor.</td>
+        </tr>
+        <tr>
+            <th scope="row">Objeto de Transferencia / DTO (Clase Normal)</th>
+            <td><code class="language-java">UsuarioDTO</code></td>
+            <td>Objeto plano y ligero que contiene únicamente los campos públicos que deben viajar por la red hacia el cliente.</td>
+        </tr>
+        <tr>
+            <th scope="row">Servicio de Negocio (Interfaz y Microservicios)</th>
+            <td><code class="language-java">ServicioUsuarios</code></td>
+            <td>Recupera la <code class="language-java">EntidadUsuario</code> de la base de datos y construye el <code class="language-java">UsuarioDTO</code> limpio para el exterior.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Transfer Object (DTO)</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class UserDTO implements Serializable {
-    public String username;
-    public String email;
-    // Getters, Setters, Constructor
+import java.io.Serializable;
+
+// 1. Entidad Interna de Base de Datos (Contiene datos sensibles que NO deben salir al exterior)
+class EntidadUsuario {
+    private Long id;
+    private String nombreUsuario;
+    private String email;
+    private String hashContrasena;   // 🔒 Dato confidencial
+    private double salarioInterno; // 🔒 Dato confidencial
+
+    public EntidadUsuario(Long id, String nombreUsuario, String email, String hashContrasena, double salarioInterno) {
+        this.id = id;
+        this.nombreUsuario = nombreUsuario;
+        this.email = email;
+        this.hashContrasena = hashContrasena;
+        this.salarioInterno = salarioInterno;
+    }
+
+    public String getUsername() { return nombreUsuario; }
+    public String getEmail() { return email; }
+}
+
+// 2. Transfer Object (DTO): Objeto plano diseñado específicamente para viajar al cliente
+class UsuarioDTO implements Serializable {
+    private String nombreUsuario;
+    private String email;
+
+    public UsuarioDTO(String nombreUsuario, String email) {
+        this.nombreUsuario = nombreUsuario;
+        this.email = email;
+    }
+
+    public String getUsername() { return nombreUsuario; }
+    public String getEmail() { return email; }
+
+    @Override
+    public String toString() {
+        return "UsuarioDTO JSON { \"nombreUsuario\": \"" + nombreUsuario + "\", \"email\": \"" + email + "\" }";
+    }
+}
+
+// 3. Servicio de Backend que transforma la Entidad en DTO antes de enviarla por red
+class ServicioUsuarios {
+    public UsuarioDTO obtenerPerfil(Long userId) {
+        // Simulamos la lectura completa desde la Base de Datos
+        EntidadUsuario entityFromDb = new EntidadUsuario(
+                userId, "carlos_dev", "carlos@empresa.es", "$2a$10$xyzSecretHash", 48000.0
+        );
+
+        System.out.println("🔒 [ServicioUsuarios] Entidad leída de BD (ocultando hashContrasena y salario).");
+        System.out.println("📦 [ServicioUsuarios] Empaquetando solo datos públicos en UsuarioDTO...");
+
+        // Mapeamos a DTO
+        return new UsuarioDTO(entityFromDb.getUsername(), entityFromDb.getEmail());
+    }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Transfer Object (DTO)</span>
+<span class="center-horizontal caption">Implementación completa del patrón Transfer Object (DTO)</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Desacoplamiento entre la Base de Datos y el Frontend:</strong>
+        <p>Si mañana renombras una columna en tu tabla SQL o divides <code class="language-java">EntidadUsuario</code> en dos tablas, la aplicación móvil y el frontend web no se romperán porque tú sigues devolviéndoles el mismo <code class="language-java">UsuarioDTO</code>.</p>
+    </li>
+    <li>
+        <strong>2. En Java moderno (Java 16+):</strong>
+        <p>Hoy en día los DTOs inmutables suelen declararse en una sola línea usando <code class="language-java">record UsuarioDTO(String nombreUsuario, String email) {}</code>.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        ServicioUsuarios backendService = new ServicioUsuarios();
+
+        // El cliente solicita el perfil en una única llamada y recibe el DTO limpio
+        UsuarioDTO responseDto = backendService.obtenerPerfil(10L);
+
+        System.out.println("\n🌐 [Cliente Frontend] Respuesta recibida en 1 llamada de red:");
+        System.out.println("   " + responseDto);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">El cliente recibe únicamente los campos seguros empaquetados en el DTO</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+🔒 [ServicioUsuarios] Entidad leída de BD (ocultando hashContrasena y salario).
+📦 [ServicioUsuarios] Empaquetando solo datos públicos en UsuarioDTO...
+
+🌐 [Cliente Frontend] Respuesta recibida en 1 llamada de red:
+   UsuarioDTO JSON { "nombreUsuario": "carlos_dev", "email": "carlos@empresa.es" }
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Siempre en las entradas (<code class="language-java">@RequestBody</code>) y salidas (<code class="language-java">ResponseEntity</code>) de tus controladores REST o en la comunicación entre microservicios.</li>
+    <li><strong>Cuándo evitarlo:</strong> No hace falta convertir a DTO para pasar datos entre dos métodos privados internos dentro de la misma clase de negocio.</li>
+</ul>

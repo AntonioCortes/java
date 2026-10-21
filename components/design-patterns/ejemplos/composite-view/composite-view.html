@@ -5,44 +5,177 @@
 </style>
 <h1 class="title">Patrón Composite View</h1>
 
-<p>El patrón <strong>Composite View</strong> es un patrón de la arquitectura Java EE que permite construir una página completa ensamblando header, footer, menú y contenido, gestionados independientemente.</p>
+<p>El patrón <strong>Composite View</strong> (Vista Compuesta) es un patrón de la capa de presentación de Java EE que permite construir una página completa <strong>ensamblando múltiples sub-vistas o fragmentos independientes</strong> (cabecera, menú lateral, pie de página y contenido central dinámico).</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en la <strong>portada de un periódico o el marco de esta misma aplicación web</strong>. La cabecera con el logotipo del periódico, la columna lateral de secciones y el pie de página legal son piezas fijas que se reutilizan todos los días; lo único que se sustituye en el hueco central es la noticia principal del día. En lugar de rediseñar el periódico entero desde cero para cada página, usas una <strong>Plantilla Maestra (Layout)</strong> con huecos donde encajan los módulos.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Reutilización de componentes de interfaz y layouts consistentes (Tiles, SiteMesh).</p>
+<p>Evitar copiar y pegar el código HTML de la barra de navegación (<code class="language-java">Header</code>), barra lateral (<code class="language-java">Sidebar</code>) y pie de página (<code class="language-java">Footer</code>) en decenas de pantallas distintas, garantizando una apariencia uniforme y fácil de mantener.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Plantillas Maestras (Tiles / SiteMesh / Thymeleaf Layouts)</h2>
-<p><strong>Contexto:</strong> Todas las páginas de tu web corporativa tienen el mismo Header, el mismo Footer y la misma Barra Lateral. Solo cambia el contenido central.</p>
+<h2 class="subtitle">Caso de Uso Real: Plantillas Maestras en Aplicaciones Web (Thymeleaf Layouts / WebComponents)</h2>
+<p><strong>Contexto:</strong> Tu portal tiene 100 páginas distintas, pero todas comparten el mismo <code class="language-java">SubVistaCabecera</code>, el mismo <code class="language-java">SubVistaLateral</code> y el mismo <code class="language-java">SubVistaPiePagina</code>.</p>
 
-<p><strong>El Problema:</strong> Si copias y pegas el código del Header y Footer en cada una de las 200 páginas JSP, cuando quieras cambiar el logo tendrás un problema enorme. Los <code class="language-java">includes</code> simples ayudan, pero escalar se vuelve difícil.</p>
+<p><strong>El Problema (Sin Composite View):</strong> Si duplicas el HTML de la cabecera en las 100 páginas y mañana hay que añadir un nuevo enlace al menú superior, tendrás que editar 100 archivos manualmente.</p>
 
-<p><strong>La Solución (Composite View):</strong> Creas una "Vista Compuesta" o Plantilla Maestra.
-<br>Esta plantilla define la estructura global y define "huecos" (slots) donde se inyectarán las sub-vistas concretas. El framework se encarga de ensamblar las piezas en tiempo de ejecución para generar la página final.</p>
+<p><strong>La Solución (Con Composite View):</strong> Creas un motor de plantilla maestra (<code class="language-java">MotorPlantillaCompuesta</code>) que ensambla automáticamente las sub-vistas fijas (<code class="language-java">Header</code>, <code class="language-java">Sidebar</code>, <code class="language-java">Footer</code>) e inyecta en la zona central únicamente la sub-vista dinámica (<code class="language-java">SubVistaCuerpoDinamico</code>) que corresponda a cada sección.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Arquitectura Visual y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Composición Atómica:</strong> 
-        <p>Permite tratar partes de la página (como un Widget del Tiempo o un Carrito de Compra lateral) como componentes independientes reutilizables en múltiples vistas.</p>
-    </li>
-    <li>
-        <strong>Consistencia Visual:</strong> 
-        <p>Garantiza que todas las páginas sigan la misma estructura sin esfuerzo manual por parte del desarrollador, centralizando el diseño en un solo archivo de layout.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/composite-view/assets/img/composite-view-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Composite View ensamblando sub-vistas reutilizables y contenido central</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">SubVista (Componente Visual)</th>
+            <td><code class="language-java">SubVista</code></td>
+            <td>Interfaz común para cualquier fragmento o módulo visual que pueda renderizarse (<code class="language-java">renderizar()</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Sub-Vistas Fijas</th>
+            <td><code class="language-java">SubVistaCabecera</code>, <code class="language-java">SubVistaLateral</code>, <code class="language-java">SubVistaPiePagina</code></td>
+            <td>Fragmentos reutilizables comunes a todas las pantallas de la aplicación.</td>
+        </tr>
+        <tr>
+            <th scope="row">Sub-Vista Dinámica</th>
+            <td><code class="language-java">SubVistaCuerpoDinamico</code></td>
+            <td>El contenido específico que cambia al navegar de una sección a otra.</td>
+        </tr>
+        <tr>
+            <th scope="row">Composite View (Layout)</th>
+            <td><code class="language-java">MotorPlantillaCompuesta</code></td>
+            <td>Plantilla maestra que coordina y ensambla todas las sub-vistas para formar la página completa.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Composite View</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-<!-- Layout Template -->
-<html>
-<body>
-    <div id="header"><include page="header.jsp"/></div>
-    <div id="body"><include page="{dynamicBody}"/></div>
-    <div id="footer"><include page="footer.jsp"/></div>
-</body>
-</html>
+// 1. Interfaz común para cualquier fragmento de vista (Sub-Vista)
+interface SubVista {
+    void renderizar();
+}
+
+// 2. Sub-Vistas Fijas Reutilizables
+class SubVistaCabecera implements SubVista {
+    @Override
+    public void renderizar() {
+        System.out.println("[HEADER]  === 🧭 Barra de Navegación Superior Corporativa ===");
+    }
+}
+
+class SubVistaLateral implements SubVista {
+    @Override
+    public void renderizar() {
+        System.out.println("[SIDEBAR] |-- Menú Lateral: [Inicio] [Catálogo] [Mi Cuenta]");
+    }
+}
+
+class SubVistaPiePagina implements SubVista {
+    @Override
+    public void renderizar() {
+        System.out.println("[FOOTER]  === © 2026 Mi Empresa - Todos los derechos reservados ===");
+    }
+}
+
+// 3. Sub-Vista Dinámica (Cambia según la página solicitada)
+class SubVistaCuerpoDinamico implements SubVista {
+    private String pageTitle;
+    private String bodyContent;
+
+    public SubVistaCuerpoDinamico(String pageTitle, String bodyContent) {
+        this.pageTitle = pageTitle;
+        this.bodyContent = bodyContent;
+    }
+
+    @Override
+    public void renderizar() {
+        System.out.println("[BODY]    &gt;&gt; SECCIÓN: " + pageTitle + " -&gt; " + bodyContent);
+    }
+}
+
+// 4. Composite View: Plantilla Maestra que ensambla todas las piezas
+class MotorPlantillaCompuesta {
+    private SubVista header = new SubVistaCabecera();
+    private SubVista sidebar = new SubVistaLateral();
+    private SubVista footer = new SubVistaPiePagina();
+
+    public void renderFullPage(SubVista dynamicBody) {
+        header.renderizar();
+        sidebar.renderizar();
+        dynamicBody.renderizar(); // Inyecta el contenido específico en el hueco central
+        footer.renderizar();
+    }
+}
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Composite View</span>
+<span class="center-horizontal caption">Implementación del patrón Composite View ensamblando fragmentos</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¡Esta misma web donde estás leyendo esto usa Composite View!</strong>
+        <p>Como explica el <code class="language-java">README.md</code> de este proyecto, la barra superior (<code class="language-java">navbar.html</code>) y la barra lateral (<code class="language-java">sidebar.html</code>) son fragmentos independientes, y solo se recarga el componente central (<code class="language-java">#content</code>) cuando pulsas un enlace.</p>
+    </li>
+    <li>
+        <strong>2. Aplicación del patrón Composite de GoF a la Interfaz:</strong>
+        <p>Es la adaptación directa del patrón estructural <em>Composite</em> al mundo de las plantillas web (como Apache Tiles, Thymeleaf Layout Dialect, o los componentes de Angular/React/WebComponents).</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        MotorPlantillaCompuesta masterLayout = new MotorPlantillaCompuesta();
+
+        System.out.println("--- Renderizando Página 1: Catálogo de Productos ---");
+        SubVista catalogoBody = new SubVistaCuerpoDinamico("Catálogo", "Mostrando 25 ofertas disponibles.");
+        masterLayout.renderFullPage(catalogoBody);
+
+        System.out.println("\n--- Renderizando Página 2: Perfil de Usuario ---");
+        SubVista perfilBody = new SubVistaCuerpoDinamico("Mi Perfil", "Datos personales de Antonio.");
+        masterLayout.renderFullPage(perfilBody);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Reutilización de la plantilla maestra cambiando únicamente el cuerpo central</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Renderizando Página 1: Catálogo de Productos ---
+[HEADER]  === 🧭 Barra de Navegación Superior Corporativa ===
+[SIDEBAR] |-- Menú Lateral: [Inicio] [Catálogo] [Mi Cuenta]
+[BODY]    &gt;&gt; SECCIÓN: Catálogo -&gt; Mostrando 25 ofertas disponibles.
+[FOOTER]  === © 2026 Mi Empresa - Todos los derechos reservados ===
+
+--- Renderizando Página 2: Perfil de Usuario ---
+[HEADER]  === 🧭 Barra de Navegación Superior Corporativa ===
+[SIDEBAR] |-- Menú Lateral: [Inicio] [Catálogo] [Mi Cuenta]
+[BODY]    &gt;&gt; SECCIÓN: Mi Perfil -&gt; Datos personales de Antonio.
+[FOOTER]  === © 2026 Mi Empresa - Todos los derechos reservados ===
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> En cualquier aplicación web con múltiples pantallas que compartan cabecera, menú lateral o pie de página.</li>
+    <li><strong>Cuándo evitarlo:</strong> En una <em>landing page</em> de una sola pantalla sencilla sin fragmentos reutilizables.</li>
+</ul>

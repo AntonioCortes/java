@@ -5,45 +5,176 @@
 </style>
 <h1 class="title">Patrón Composite Entity</h1>
 
-<p>El patrón <strong>Composite Entity</strong> es un patrón de la arquitectura Java EE que un objeto de grano grueso que gestiona sus propios objetos dependientes.</p>
+<p>El patrón <strong>Composite Entity</strong> (Entidad Compuesta) es un patrón de persistencia de Java EE (y precursor directo del concepto de <em>Aggregate Root</em> en JPA/Hibernate y DDD) que modela un <strong>grafo de objetos estrechamente relacionados como una única entidad padre de grano grueso</strong>, gestionando automáticamente el ciclo de vida en base de datos de todos sus objetos hijos dependientes.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en un <strong>Libro y sus Capítulos/Páginas</strong>. Una página suelta no se vende ni se cataloga por separado en una biblioteca: existe únicamente como parte del Libro al que pertenece. Cuando la biblioteca registra o da de baja el Libro (la <strong>Entidad Raíz</strong>), automáticamente quedan registrados o dados de baja todos sus capítulos y páginas internas (los <strong>Objetos Dependientes</strong>).</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Gestionar la persistencia de un grafo de objetos como una unidad.</p>
+<p>Simplificar la persistencia de estructuras maestro-detalle: en lugar de obligar al programador a hacer <code class="language-java">save()</code> o <code class="language-java">delete()</code> manualmente sobre la tabla padre y luego sobre cada una de las tablas hijas, se persiste únicamente la entidad raíz (<code class="language-java">EntidadPedido</code>) y sus hijos se guardan o borran en cascada.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Persistencia de Grafos de Objetos (JPA)</h2>
-<p><strong>Contexto:</strong> Tienes un objeto 'Pedido' que contiene una lista de 'Líneas de Pedido' y una 'Dirección de Envío'. Estos objetos están intrínsecamente ligados: una línea de pedido no tiene sentido sin su pedido padre.</p>
+<h2 class="subtitle">Caso de Uso Real: Persistencia en Cascada de un Pedido con Dirección y Líneas (JPA)</h2>
+<p><strong>Contexto:</strong> Un pedido (<code class="language-java">EntidadPedido</code>) está compuesto por una dirección de entrega (<code class="language-java">DireccionEnvio</code>) y varias líneas de pedido (<code class="language-java">LineaPedido</code>). Ninguna línea de pedido ni dirección tiene sentido en la base de datos si el pedido padre no existe.</p>
 
-<p><strong>El Problema:</strong> Si tienes que guardar manualmente el Pedido, luego iterar por las líneas y guardarlas una a una, el código de persistencia se vuelve repetitivo y propenso a errores transaccionales (guardar el pedido pero fallar en las líneas).</p>
+<p><strong>El Problema (Sin Composite Entity):</strong> Si tratas cada tabla como una entidad independiente desconectada, al guardar o borrar un pedido tienes que acordarte de insertar o borrar manualmente todas sus líneas y su dirección; un descuido dejará registros huérfanos o errores de clave foránea.</p>
 
-<p><strong>La Solución (Composite Entity):</strong> Tratas el grafo de objetos como una única entidad lógica. El objeto padre (Pedido) es responsable de gestionar el ciclo de vida de sus hijos.
-<br>En JPA, esto se consigue con <code class="language-java">CascadeType.ALL</code> y <code class="language-java">orphanRemoval=true</code>. Al guardar el padre, el framework persiste automáticamente toda la estructura dependiente.</p>
+<p><strong>La Solución (Con Composite Entity):</strong> <code class="language-java">EntidadPedido</code> actúa como el objeto de grano grueso (<em>Coarse-Grained Object</em>) que encapsula a <code class="language-java">DireccionEnvio</code> y <code class="language-java">List&lt;LineaPedido&gt;</code>. Al pedir al repositorio guardar <code class="language-java">EntidadPedido</code>, todo el árbol se persiste en cascada como una unidad atómica.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Grano Grueso (Coarse-Grained):</strong> 
-        <p>A diferencia de tener muchos objetos de grano fino independientes, la Entidad Compuesta expone el grafo como un solo objeto. Esto reduce el tráfico de red (en sistemas remotos) y simplifica la API de persistencia.</p>
-    </li>
-    <li>
-        <strong>Gestión de Ciclo de Vida:</strong> 
-        <p>Los objetos dependientes no tienen identidad fuera del padre. Si borras el Pedido, todas sus líneas deben borrarse. El Composite Entity encapsula esta regla de integridad.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/composite-entity/assets/img/composite-entity-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Composite Entity gestionando sus objetos dependientes en cascada</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Coarse-Grained Object (Raíz)</th>
+            <td><code class="language-java">EntidadPedido</code></td>
+            <td>Entidad principal con identidad propia (<code class="language-java">id</code>) que controla el ciclo de vida de todos sus objetos hijos.</td>
+        </tr>
+        <tr>
+            <th scope="row">Dependent Objects (Hijos)</th>
+            <td><code class="language-java">DireccionEnvio</code>, <code class="language-java">LineaPedido</code></td>
+            <td>Objetos cuyo ciclo de vida depende al 100% del padre: nacen, se actualizan y se eliminan junto con <code class="language-java">EntidadPedido</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Persistence Manager</th>
+            <td><code class="language-java">EntidadPedidoManager</code></td>
+            <td>Recibe únicamente la entidad raíz <code class="language-java">EntidadPedido</code> y persiste en cascada todo su grafo de objetos dependientes.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Composite Entity</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@Entity
-class Order {
-    @Id private Long id;
-    
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<LineItem> items;
-    
-    // Al persistir Order, JPA persiste items automáticamente
+import java.util.ArrayList;
+import java.util.List;
+
+// 1. Objeto Dependiente 1: Dirección de Envío
+class DireccionEnvio {
+    private String street;
+    private String city;
+
+    public DireccionEnvio(String street, String city) {
+        this.street = street;
+        this.city = city;
+    }
+
+    @Override
+    public String toString() { return street + " (" + city + ")"; }
+}
+
+// 2. Objeto Dependiente 2: Línea de Pedido
+class LineaPedido {
+    private String product;
+    private double price;
+
+    public LineaPedido(String product, double price) {
+        this.product = product;
+        this.price = price;
+    }
+
+    @Override
+    public String toString() { return product + " [" + price + " EUR]"; }
+}
+
+// 3. Coarse-Grained Object (Entidad Compuesta Raíz): En JPA lleva @OneToMany(cascade = CascadeType.ALL)
+class EntidadPedido {
+    private Long id;
+    private String customerName;
+    private DireccionEnvio address;
+    private List&lt;LineaPedido&gt; lines = new ArrayList&lt;&gt;();
+
+    public EntidadPedido(Long id, String customerName) {
+        this.id = id;
+        this.customerName = customerName;
+    }
+
+    public void setDireccion(String street, String city) {
+        this.address = new DireccionEnvio(street, city);
+    }
+
+    public void agregarLinea(String product, double price) {
+        this.lines.add(new LineaPedido(product, price));
+    }
+
+    public Long getId() { return id; }
+    public String getCustomerName() { return customerName; }
+    public DireccionEnvio getAddress() { return address; }
+    public List&lt;LineaPedido&gt; getLines() { return lines; }
+}
+
+// 4. Gestor de Persistencia (Simulación de EntityManager / JpaRepository con Cascada)
+class EntidadPedidoManager {
+    public void saveCompositeEntity(EntidadPedido order) {
+        System.out.println("💾 [JPA Cascade] Guardando Entidad Raíz EntidadPedido ID=" + order.getId() + " (" + order.getCustomerName() + ")");
+        System.out.println("   ↳ [Cascade INSERT] Guardando DireccionEnvio dependiente: " + order.getAddress());
+        for (LineaPedido line : order.getLines()) {
+            System.out.println("   ↳ [Cascade INSERT] Guardando LineaPedido dependiente: " + line);
+        }
+    }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Composite Entity</span>
+<span class="center-horizontal caption">Implementación completa del patrón Composite Entity</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Equivalencia directa en Hibernate / Spring Data JPA:</strong>
+        <p>Cada vez que en una entidad JPA escribes <code class="language-java">@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)</code> sobre una lista de líneas de factura o de pedido, estás aplicando el patrón <strong>Composite Entity</strong>.</p>
+    </li>
+    <li>
+        <strong>2. Un solo repositorio para todo el grupo:</strong>
+        <p>Gracias a este patrón, no necesitas crear un <code class="language-java">LineaPedidoRepository</code> ni un <code class="language-java">DireccionEnvioRepository</code>: todo se guarda y se lee a través del repositorio del padre (<code class="language-java">OrderRepository</code>).</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        // 1. Construimos la Entidad Compuesta y sus objetos dependientes a través de la raíz
+        EntidadPedido pedido = new EntidadPedido(501L, "María Fernández");
+        pedido.setDireccion("Calle Mayor 14", "Madrid");
+        pedido.agregarLinea("Ratón Inalámbrico", 29.90);
+        pedido.agregarLinea("Alfombrilla XL", 15.00);
+
+        // 2. Persistimos ÚNICAMENTE la raíz y todo el grafo se guarda en cascada
+        EntidadPedidoManager entityManager = new EntidadPedidoManager();
+        entityManager.saveCompositeEntity(pedido);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Una sola llamada persiste la entidad padre junto con todos sus hijos</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+💾 [JPA Cascade] Guardando Entidad Raíz EntidadPedido ID=501 (María Fernández)
+   ↳ [Cascade INSERT] Guardando DireccionEnvio dependiente: Calle Mayor 14 (Madrid)
+   ↳ [Cascade INSERT] Guardando LineaPedido dependiente: Ratón Inalámbrico [29.9 EUR]
+   ↳ [Cascade INSERT] Guardando LineaPedido dependiente: Alfombrilla XL [15.0 EUR]
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> En relaciones padre-hijo de composición fuerte donde los hijos no tienen vida propia fuera del padre (Pedido y Líneas de Pedido, Factura y Conceptos, Cuestionario y Preguntas).</li>
+    <li><strong>Cuándo evitarlo:</strong> Nunca pongas <code class="language-java">CascadeType.ALL</code> hacia entidades maestras compartidas por muchos registros (por ejemplo, de <code class="language-java">Order</code> hacia <code class="language-java">Product</code> o <code class="language-java">Customer</code>), porque al borrar un pedido ¡borrarías también al cliente o al producto del catálogo!</li>
+</ul>

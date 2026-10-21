@@ -5,58 +5,154 @@
 </style>
 <h1 class="title">Patrón Iterator</h1>
 
-<p>El patrón <strong>Iterator</strong> es un patrón de comportamiento que permite recorrer elementos de una colección sin exponer su representación subyacente (lista, pila, árbol, etc.).</p>
+<p>El patrón <strong>Iterator</strong> (Iterador) es un patrón de comportamiento que permite recorrer todos los elementos de una colección de forma secuencial (uno tras otro) <strong>sin exponer cómo están almacenados por dentro</strong> (ya sea un array, una lista enlazada, un árbol o un grafo).</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en el botón <strong>"Siguiente canción" (⏭) de Spotify</strong> o el botón "Canal +" de tu televisor. Cuando pulsas "Siguiente", no necesitas saber en qué posición de memoria ni en qué estructura de base de datos está guardada la lista de reproducción: el reproductor lleva la cuenta de por qué canción vas (<code class="language-java">index</code>), sabe si queda alguna más (<code class="language-java">tieneSiguiente()</code>) y te entrega la siguiente (<code class="language-java">siguiente()</code>).</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Proveer una forma secuencial de acceder a los elementos de un objeto agregado sin exponer su representación interna.</p>
+<p>Extraer la responsabilidad de recorrer una estructura de datos hacia un objeto dedicado llamado <code class="language-java">Iterador</code>, permitiendo recorrer cualquier colección con un bucle uniforme <code class="language-java">while (it.tieneSiguiente())</code> sin acoplar el cliente a la estructura interna de la colección.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Playlist de Música (Spotify) o Recorrido de Grafos</h2>
-<p><strong>Contexto:</strong> Tienes una colección de canciones. Puedes querer reproducirlas en orden, en aleatorio (shuffle), o por género. O en una red social, quieres recorrer el grafo de amigos "en anchura" o "en profundidad".</p>
+<h2 class="subtitle">Caso de Uso Real: Recorrido Uniforme de un Repositorio de Datos</h2>
+<p><strong>Contexto:</strong> Tienes una clase <code class="language-java">RepositorioNombres</code> que almacena internamente los nombres de los empleados en un array privado <code class="language-java">String[]</code>.</p>
 
-<p><strong>El Problema:</strong> Si mezclas la lógica de recorrido (for loops complejos) con la lógica de almacenamiento (Array, Lista Enlazada), acabas con código duplicado y rígido. Si cambias de Array a Lista, se rompen todos los bucles <code class="language-java">for (int i=0;...)</code>.</p>
+<p><strong>El Problema (Sin Iterator):</strong> Si expones el array interno directamente al exterior, el cliente se acopla a que es un array. Si el mes que viene decides cambiar el array interno por un <code class="language-java">TreeSet</code> o una consulta paginada, romperás todos los bucles de tu aplicación.</p>
 
-<p><strong>La Solución (Iterator):</strong> Extraes la lógica de recorrido a una clase separada (Iterador).
-<br>El cliente pide un iterador a la colección (<code class="language-java">playlist.createIterator("shuffle")</code>) y usa una interfaz simple: <code class="language-java">while(it.hasNext()) { play(it.next()) }</code>. No le importa si por debajo hay un Array o un Grafo complejo.</p>
+<p><strong>La Solución (Con Iterator):</strong> <code class="language-java">RepositorioNombres</code> oculta su array privado y ofrece el método <code class="language-java">obtenerIterador()</code>, que devuelve un objeto <code class="language-java">Iterador</code> con dos métodos universales: <code class="language-java">tieneSiguiente()</code> (¿queda algún elemento?) y <code class="language-java">siguiente()</code> (dame el siguiente y avanza una posición).</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Principio de Responsabilidad Única:</strong> 
-        <p>La colección se encarga de almacenar los datos eficientemente. El iterador se encarga de recorrerlos. Puedes tener múltiples iteradores recorriendo la misma colección simultáneamente (uno imprimiendo, otro calculando estadísticas) sin que interfieran entre sí.</p>
-    </li>
-    <li>
-        <strong>Interfaz Unificada:</strong> 
-        <p>Permite usar el mismo código cliente para recorrer cualquier estructura de datos (List, Set, Tree, Map), siempre que implementen la interfaz <code class="language-java">Iterable</code>.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/iterator/assets/img/iterator-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Iterator separando la colección del cursor de recorrido</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Iterator (Interfaz)</th>
+            <td><code class="language-java">Iterador</code></td>
+            <td>Declara los métodos para recorrer elementos: <code class="language-java">tieneSiguiente()</code> y <code class="language-java">siguiente()</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Iterator</th>
+            <td><code class="language-java">IteradorNombres</code></td>
+            <td>Implementa el recorrido guardando la posición actual (<code class="language-java">index</code>) dentro de la colección.</td>
+        </tr>
+        <tr>
+            <th scope="row">Container / Aggregate</th>
+            <td><code class="language-java">Contenedor</code></td>
+            <td>Interfaz que obliga a cualquier colección a proporcionar un iterador mediante <code class="language-java">obtenerIterador()</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Container</th>
+            <td><code class="language-java">RepositorioNombres</code></td>
+            <td>Almacena los datos de forma privada y fabrica instancias de <code class="language-java">IteradorNombres</code> cuando se lo piden.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Iterator</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-interface Iterator<T> {
-    boolean hasNext();
-    T next();
+// 1. Interfaz Iterator: contrato universal de recorrido
+interface Iterador {
+    boolean tieneSiguiente();
+    Object siguiente();
 }
 
-interface Container {
-    Iterator getIterator();
+// 2. Interfaz Container (Colección iterable)
+interface Contenedor {
+    Iterador obtenerIterador();
 }
 
-class NameRepository implements Container {
-    public String names[] = {"Robert", "John"};
-    
-    public Iterator getIterator() {
-        return new NameIterator();
+// 3. Colección Concreta: oculta su estructura interna (array privado)
+class RepositorioNombres implements Contenedor {
+    private String[] names = {"Ana", "Carlos", "Elena", "David"};
+
+    @Override
+    public Iterador obtenerIterador() {
+        return new IteradorNombres();
     }
-    
-    private class NameIterator implements Iterator {
-        int index;
-        public boolean hasNext() { return index < names.length; }
-        public Object next() { return hasNext() ? names[index++] : null; }
+
+    // 4. Iterador Concreto (como clase interna para acceder a 'names' sin exponerlo fuera)
+    private class IteradorNombres implements Iterador {
+        private int index = 0;
+
+        @Override
+        public boolean tieneSiguiente() {
+            return index &lt; names.length;
+        }
+
+        @Override
+        public Object siguiente() {
+            if (this.tieneSiguiente()) {
+                return names[index++];
+            }
+            return null;
+        }
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Iterator</span>
+<span class="center-horizontal caption">Implementación completa del patrón Iterator</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Encapsulación total de la estructura de datos:</strong>
+        <p>El atributo <code class="language-java">private String[] names</code> es privado. La clase <code class="language-java">Main</code> no sabe si dentro de <code class="language-java">RepositorioNombres</code> hay un array, una lista enlazada o un árbol binario; solo usa <code class="language-java">tieneSiguiente()</code> y <code class="language-java">siguiente()</code>.</p>
+    </li>
+    <li>
+        <strong>2. Múltiples recorridos independientes a la vez:</strong>
+        <p>Como el contador <code class="language-java">int index</code> vive dentro de cada objeto <code class="language-java">IteradorNombres</code> y no en el repositorio, puedes pedir dos iteradores al mismo tiempo y cada uno llevará su propia cuenta sin estorbar al otro.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        RepositorioNombres repository = new RepositorioNombres();
+
+        // Pedimos un iterador a la colección
+        Iterator it = repository.obtenerIterador();
+
+        System.out.println("--- Recorriendo el repositorio con Iterator ---");
+        while (it.tieneSiguiente()) {
+            String name = (String) it.siguiente();
+            System.out.println("Empleado encontrado: " + name);
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Recorrido uniforme mediante while(it.tieneSiguiente())</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Recorriendo el repositorio con Iterator ---
+Empleado encontrado: Ana
+Empleado encontrado: Carlos
+Empleado encontrado: Elena
+Empleado encontrado: David
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando diseñes una estructura de datos personalizada (como un grafo, un árbol o un catálogo paginado) y quieras ofrecer una forma estándar de recorrerla sin exponer sus punteros internos. De hecho, el bucle <code class="language-java">for (String s : lista)</code> de Java usa internamente <code class="language-java">java.util.Iterator</code>.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si ya estás usando una colección estándar de Java (<code class="language-java">ArrayList</code>, <code class="language-java">HashSet</code>), usa directamente el <code class="language-java">Iterador</code> que ya trae incluido el JDK en lugar de programar el tuyo propio.</li>
+</ul>

@@ -1,46 +1,189 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">Patrón Data Access Object (DAO)</h1>
 
-<p>El patrón <strong>Data Access Object (DAO)</strong> es un patrón de la arquitectura Java EE que gestiona la conexión con la fuente de datos para obtener y almacenar datos.</p>
+<p>El patrón <strong>Data Access Object (DAO)</strong> es uno de los patrones estructurales y de integración más importantes de Java EE. Su objetivo es <strong>aislar por completo la lógica de negocio de los detalles técnicos de la base de datos</strong> mediante una interfaz intermedia.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en un <strong>Bibliotecario en el mostrador de préstamos</strong>. Cuando tú (la Lógica de Negocio) pides el libro con código <code class="language-java">101</code> (<code class="language-java">buscarPorId(101)</code>), no entras tú mismo al sótano ni necesitas saber si los libros están ordenados en estanterías de madera, en cajas fuertes automatizadas o en formato digital. Tú hablas con el Bibliotecario (la interfaz <code class="language-java">UsuarioDAO</code>), y él sabe cómo ir al almacén concreto a buscarlo o guardarlo.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Separar la lógica de acceso a datos de la lógica de negocio.</p>
+<p>Lograr que tus servicios de negocio no contengan ni una sola línea de SQL, JDBC, JPA ni MongoDB. La capa de negocio solo invoca métodos limpios de una interfaz (<code class="language-java">guardar(user)</code>, <code class="language-java">buscarPorId(id)</code>), permitiendo cambiar de motor de base de datos o usar una base de datos en memoria para tests sin tocar el negocio.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Abstracción de Base de Datos (SQL vs NoSQL)</h2>
-<p><strong>Contexto:</strong> Tu aplicación usa MySQL. Mañana, tu jefe decide migrar a Oracle, o peor, a MongoDB. Tienes sentencias SQL esparcidas por todos tus Servlets y servicios de negocio.</p>
+<h2 class="subtitle">Caso de Uso Real: Cambio Transparente entre Base de Datos SQL y Memoria</h2>
+<p><strong>Contexto:</strong> Tu servicio de usuarios (<code class="language-java">ServicioUsuarios</code>) necesita guardar y consultar usuarios. En producción trabajas contra MySQL (<code class="language-java">UsuarioDAOMySQL</code>), pero en los tests automáticos quieres guardar en un <code class="language-java">HashMap</code> en memoria RAM (<code class="language-java">UsuarioDAOMemoria</code>) para que los tests tarden milisegundos.</p>
 
-<p><strong>El Problema:</strong> Migrar implicaría reescribir toda la aplicación. Además, mezclar SQL con lógica de negocio hace que el código sea sucio y difícil de testear (no puedes hacer unit testing sin una DB real levantada).</p>
+<p><strong>El Problema (Sin DAO):</strong> Si metes sentencias <code class="language-java">SELECT * FROM users</code> directamente dentro de <code class="language-java">ServicioUsuarios</code>, es imposible ejecutar <code class="language-java">ServicioUsuarios</code> sin tener un servidor MySQL real encendido, y migrar mañana a PostgreSQL o MongoDB obligaría a reescribir la lógica de negocio.</p>
 
-<p><strong>La Solución (DAO):</strong> Creas una interfaz <code class="language-java">UserDAO</code> con métodos agnósticos a la base de datos (<code class="language-java">save</code>, <code class="language-java">findById</code>).
-<br>La implementación concreta (<code class="language-java">UserDaoJdbc</code>, <code class="language-java">UserDaoHibernate</code>) contiene el SQL o JPA específico. El resto de la aplicación solo habla con la interfaz. Para migrar de DB, solo cambias la implementación del DAO inyectada, sin tocar el negocio.</p>
+<p><strong>La Solución (Con DAO):</strong> Creamos la interfaz <code class="language-java">UsuarioDAO</code>. <code class="language-java">ServicioUsuarios</code> recibe cualquier implementación de <code class="language-java">UsuarioDAO</code> por su constructor y trabaja siempre igual.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Separación de Intereses (SoC):</strong> 
-        <p>La lógica de persistencia (cómo guardar) se separa totalmente de la lógica de dominio (qué guardar). Esto permite que expertos en SQL optimicen las queries sin riesgo de romper reglas de negocio.</p>
-    </li>
-    <li>
-        <strong>Facilidad de Testing:</strong> 
-        <p>Puedes crear un <code class="language-java">MockUserDAO</code> que guarde los usuarios en un <code class="language-java">HashMap</code> en memoria. Esto permite testear la capa de servicio unitariamente a velocidad del rayo, sin depender de una base de datos externa.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/data-access-object/assets/img/data-access-object-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón DAO desacoplando ServicioUsuarios del motor de persistencia</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Business Service (Cliente)</th>
+            <td><code class="language-java">ServicioUsuarios</code></td>
+            <td>Contiene la lógica de negocio y se comunica exclusivamente con la interfaz <code class="language-java">UsuarioDAO</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">DAO Interface</th>
+            <td><code class="language-java">UsuarioDAO</code></td>
+            <td>Define las operaciones CRUD de persistencia (<code class="language-java">save</code>, <code class="language-java">buscarPorId</code>) sin revelar qué base de datos hay detrás.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete DAOs</th>
+            <td><code class="language-java">UsuarioDAOMySQL</code>, <code class="language-java">UsuarioDAOMemoria</code></td>
+            <td>Implementan el acceso real a cada tecnología de almacenamiento (sentencias SQL vs mapa en memoria).</td>
+        </tr>
+        <tr>
+            <th scope="row">Model / Entity</th>
+            <td><code class="language-java">Usuario</code></td>
+            <td>Objeto que transporta los datos entre el servicio de negocio y el DAO.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Data Access Object (DAO)</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-interface UserDAO {
-    User findById(int id);
-    void save(User user);
+import java.util.HashMap;
+import java.util.Map;
+
+// 1. Modelo de datos (Usuario)
+class Usuario {
+    private int id;
+    private String name;
+
+    public User(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
 }
 
-class UserDAOImpl implements UserDAO {
-    public User findById(int id) {
-        // SELECT * FROM users WHERE id = ?
-        return new User();
+// 2. Interfaz DAO: Contrato de persistencia 100% agnóstico de la tecnología de BD
+interface UsuarioDAO {
+    void guardar(Usuario user);
+    Usuario buscarPorId(int id);
+}
+
+// 3. Implementación Concreta A: Base de Datos Relacional MySQL
+class UsuarioDAOMySQL implements UsuarioDAO {
+    @Override
+    public void guardar(Usuario user) {
+        System.out.println("🐬 [MySQL DAO] Ejecutando SQL: INSERT INTO users VALUES (" + user.getId() + ", '" + user.getName() + "')");
+    }
+
+    @Override
+    public Usuario buscarPorId(int id) {
+        System.out.println("🐬 [MySQL DAO] Ejecutando SQL: SELECT * FROM users WHERE id = " + id);
+        return new Usuario(id, "Usuario_Desde_MySQL");
+    }
+}
+
+// 4. Implementación Concreta B: Base de Datos en Memoria (ideal para Tests Unitarios)
+class UsuarioDAOMemoria implements UsuarioDAO {
+    private Map&lt;Integer, User&gt; memoryDb = new HashMap&lt;&gt;();
+
+    @Override
+    public void guardar(Usuario user) {
+        System.out.println("⚡ [InMemory DAO] Guardando usuario en HashMap en RAM: " + user.getName());
+        memoryDb.put(user.getId(), user);
+    }
+
+    @Override
+    public Usuario buscarPorId(int id) {
+        System.out.println("⚡ [InMemory DAO] Buscando usuario ID=" + id + " en RAM...");
+        return memoryDb.get(id);
+    }
+}
+
+// 5. Servicio de Negocio: ¡No sabe si está usando MySQL o Memoria!
+class ServicioUsuarios {
+    private UsuarioDAO userDao;
+
+    public ServicioUsuarios(UsuarioDAO userDao) {
+        this.userDao = userDao;
+    }
+
+    public void registerAndVerify(int id, String name) {
+        userDao.guardar(new Usuario(id, name));
+        Usuario found = userDao.buscarPorId(id);
+        System.out.println("✅ [ServicioUsuarios] Usuario verificado correctamente: " + found.getName());
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Data Access Object (DAO)</span>
+<span class="center-horizontal caption">Implementación completa del patrón DAO con dos motores intercambiables</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Inversión de Dependencias (La 'D' de SOLID):</strong>
+        <p><code class="language-java">ServicioUsuarios</code> no hace <code class="language-java">new UsuarioDAOMySQL()</code>, sino que recibe la interfaz <code class="language-java">UsuarioDAO</code> por su constructor. Por eso podemos cambiar de MySQL a Memoria sin cambiar ni una línea de <code class="language-java">ServicioUsuarios</code>.</p>
+    </li>
+    <li>
+        <strong>2. Relación con <code class="language-java">@Repository</code> de Spring Data:</strong>
+        <p>En Spring Boot, las interfaces que extienden <code class="language-java">JpaRepository&lt;User, Long&gt;</code> son una evolución directa del patrón DAO donde Spring genera automáticamente la clase <code class="language-java">Impl</code> por ti en tiempo de ejecución.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("--- Escenario 1: Ejecutando ServicioUsuarios en Producción (MySQL) ---");
+        ServicioUsuarios prodService = new ServicioUsuarios(new UsuarioDAOMySQL());
+        prodService.registerAndVerify(1, "Lucía");
+
+        System.out.println("\n--- Escenario 2: Ejecutando el MISMO ServicioUsuarios en Tests (En Memoria) ---");
+        ServicioUsuarios testService = new ServicioUsuarios(new UsuarioDAOMemoria());
+        testService.registerAndVerify(2, "Roberto");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Cambio transparente del motor de base de datos inyectando otro DAO</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Escenario 1: Ejecutando ServicioUsuarios en Producción (MySQL) ---
+🐬 [MySQL DAO] Ejecutando SQL: INSERT INTO users VALUES (1, 'Lucía')
+🐬 [MySQL DAO] Ejecutando SQL: SELECT * FROM users WHERE id = 1
+✅ [ServicioUsuarios] Usuario verificado correctamente: Usuario_Desde_MySQL
+
+--- Escenario 2: Ejecutando el MISMO ServicioUsuarios en Tests (En Memoria) ---
+⚡ [InMemory DAO] Guardando usuario en HashMap en RAM: Roberto
+⚡ [InMemory DAO] Buscando usuario ID=2 en RAM...
+✅ [ServicioUsuarios] Usuario verificado correctamente: Roberto
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> En toda aplicación que acceda a bases de datos, archivos o almacenamiento externo para mantener la lógica de negocio limpia y testeable.</li>
+    <li><strong>Cuándo evitarlo:</strong> Nunca expongas objetos técnicos de la base de datos (como un <code class="language-java">ResultSet</code> de JDBC) en el tipo de retorno de la interfaz <code class="language-java">DAO</code>, ya que romperías la abstracción.</li>
+</ul>

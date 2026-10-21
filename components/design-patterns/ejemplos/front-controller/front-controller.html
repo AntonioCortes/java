@@ -5,57 +5,166 @@
 </style>
 <h1 class="title">Patrón Front Controller</h1>
 
-<p>El patrón <strong>Front Controller</strong> es un patrón de la arquitectura Java EE que centraliza el manejo de peticiones para una aplicación web. Un solo servlet recibe todas las llamadas y despacha a la vista correspondiente.</p>
+<p>El patrón <strong>Front Controller</strong> (Controlador Frontal) es un patrón de la arquitectura Java EE que define un <strong>único punto de entrada centralizado</strong> para recibir todas las peticiones web de una aplicación, encargándose de las tareas comunes y de despachar cada petición al controlador o vista adecuada.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en la <strong>Recepción Central de un gran hospital o un hotel</strong>. Cuando llegas por la puerta principal, no vas abriendo puertas al azar buscando al médico: siempre pasas primero por el mostrador de Recepción (el <code class="language-java">ControladorFrontal</code>). El recepcionista registra tu llegada, verifica tu tarjeta sanitaria y te indica a qué consulta exacta debes dirigirte (<code class="language-java">Despachador</code>).</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Evitar lógica duplicada en múltiples vistas y centralizar el control de navegación.</p>
+<p>Evitar que cada vista o página web tenga que gestionar por su cuenta la seguridad, el rastreo de peticiones y la navegación, centralizando todo ese control en una única puerta de entrada.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Spring MVC DispatcherServlet</h2>
-<p><strong>Contexto:</strong> Una aplicación web tiene cientos de URLs (<code class="language-java">/login</code>, <code class="language-java">/products</code>, <code class="language-java">/checkout</code>). Cada una requiere inicializar recursos comunes, gestionar la internacionalización (i18n) y manejar errores globales.</p>
+<h2 class="subtitle">Caso de Uso Real: El DespachadorServlet de Spring MVC</h2>
+<p><strong>Contexto:</strong> Una aplicación educativa tiene múltiples pantallas (<code class="language-java">VistaInicio</code>, <code class="language-java">VistaEstudiante</code>). Antes de mostrar cualquier pantalla hay que registrar la URL solicitada y comprobar que el usuario está autenticado.</p>
 
-<p><strong>El Problema:</strong> Si usas un Servlet distinto para cada URL, tendrás que duplicar la lógica de inicialización en cada uno. Y si quieres cambiar cómo se manejan los errores, tendrás que cambiar cientos de clases.</p>
+<p><strong>El Problema (Sin Front Controller):</strong> Si el navegador llama directamente a cada vista por separado, es muy fácil olvidar poner el chequeo de seguridad en alguna página nueva, dejando agujeros de seguridad.</p>
 
-<p><strong>La Solución (Front Controller):</strong> Usas un único Servlet maestro (<code class="language-java">DispatcherServlet</code>) que recibe TODAS las peticiones.
-<br>Este controlador central analiza la URL y decide a qué "Controlador" (clase POJO) o vista delegar el trabajo. Esto centraliza el enrutamiento, la seguridad y el manejo de errores en un solo punto.</p>
+<p><strong>La Solución (Con Front Controller):</strong> Todas las peticiones pasan obligatoriamente por <code class="language-java">ControladorFrontal.procesarPeticion(url)</code>. Este método registra la petición, comprueba <code class="language-java">esUsuarioAutenticado()</code> y delega en <code class="language-java">Despachador</code> para mostrar la vista solicitada.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Centralización:</strong> 
-        <p>El Front Controller fuerza a que todas las peticiones pasen por un embudo común. Esto es crucial para frameworks de seguridad y monitorización, ya que garantiza que no hay "puertas traseras" (servlets olvidados que no pasan validaciones).</p>
-    </li>
-    <li>
-        <strong>Separación de Navegación y Lógica:</strong> 
-        <p>El controlador decide <em>qué</em> vista mostrar a continuación basándose en el resultado de la lógica de negocio, desacoplando la ejecución de la acción de la renderización de la respuesta.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/front-controller/assets/img/front-controller-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Front Controller centralizando todas las peticiones entrantes</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Controlador Frontal (Clase Normal)</th>
+            <td><code class="language-java">ControladorFrontal</code></td>
+            <td>Punto de entrada único; centraliza el registro de actividad (<code class="language-java">registrarPeticion</code>) y la verificación de usuario (<code class="language-java">esUsuarioAutenticado</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Despachador (Despachador)</th>
+            <td><code class="language-java">Despachador</code></td>
+            <td>Enrutador interno que selecciona y muestra la vista adecuada según la petición recibida.</td>
+        </tr>
+        <tr>
+            <th scope="row">Views (Vistas)</th>
+            <td><code class="language-java">VistaInicio</code>, <code class="language-java">VistaEstudiante</code></td>
+            <td>Pantallas finales que renderizan la información para el usuario.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Front Controller</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class FrontController {
-    private Dispatcher dispatcher;
-    public FrontController() { dispatcher = new Dispatcher(); }
-    
-    private boolean isAuthenticUser() {
-        System.out.println("User is authenticated successfully.");
-        return true;
+// 1. Vistas destino
+class VistaInicio {
+    public void mostrar() {
+        System.out.println("🏠 [VistaInicio] Renderizando Página Principal del Portal.");
     }
-    
-    public void dispatchRequest(String request) {
-        // log each request
-        trackRequest(request);
-        if(isAuthenticUser()) {
-            dispatcher.dispatch(request);
+}
+
+class VistaEstudiante {
+    public void mostrar() {
+        System.out.println("🎓 [VistaEstudiante] Renderizando Expediente Académico del Estudiante.");
+    }
+}
+
+// 2. Despachador: Enruta hacia la vista correspondiente
+class Despachador {
+    private VistaInicio homeView = new VistaInicio();
+    private VistaEstudiante studentView = new VistaEstudiante();
+
+    public void despachar(String request) {
+        if (request.equalsIgnoreCase("STUDENT")) {
+            studentView.mostrar();
+        } else {
+            homeView.mostrar();
         }
     }
-    
-    private void trackRequest(String request) {
-        System.out.println("Page requested: " + request);
+}
+
+// 3. Front Controller: Único punto de entrada para TODAS las peticiones
+class ControladorFrontal {
+    private Despachador dispatcher;
+
+    public ControladorFrontal() {
+        this.dispatcher = new Despachador();
+    }
+
+    private void registrarPeticion(String request) {
+        System.out.println("📌 [ControladorFrontal] Petición recibida en el punto central: " + request);
+    }
+
+    private boolean esUsuarioAutenticado() {
+        System.out.println("✅ [ControladorFrontal] Usuario autenticado correctamente.");
+        return true;
+    }
+
+    public void procesarPeticion(String request) {
+        // 1. Tareas centralizadas comunes a toda petición
+        registrarPeticion(request);
+
+        // 2. Control de seguridad centralizado antes de despachar
+        if (esUsuarioAutenticado()) {
+            dispatcher.despachar(request);
+        }
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Front Controller</span>
+<span class="center-horizontal caption">Implementación completa del patrón Front Controller</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. El corazón de Spring Boot Web:</strong>
+        <p>Cuando trabajas con Spring Boot y creas clases con <code class="language-java">@RestController</code> o <code class="language-java">@Controller</code>, por delante de todas ellas existe un único Servlet maestro llamado <code class="language-java">DespachadorServlet</code> que implementa exactamente este patrón <strong>Front Controller</strong>.</p>
+    </li>
+    <li>
+        <strong>2. Imposible saltarse los controles:</strong>
+        <p>Al existir una única puerta de entrada (<code class="language-java">procesarPeticion</code>), ninguna vista puede ser invocada sin haber pasado antes por <code class="language-java">registrarPeticion()</code> e <code class="language-java">esUsuarioAutenticado()</code>.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        ControladorFrontal frontController = new ControladorFrontal();
+
+        System.out.println("--- Navegador solicita /home ---");
+        frontController.procesarPeticion("HOME");
+
+        System.out.println("\n--- Navegador solicita /student ---");
+        frontController.procesarPeticion("STUDENT");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Todas las peticiones del cliente entran siempre por el ControladorFrontal</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Navegador solicita /home ---
+📌 [ControladorFrontal] Petición recibida en el punto central: HOME
+✅ [ControladorFrontal] Usuario autenticado correctamente.
+🏠 [VistaInicio] Renderizando Página Principal del Portal.
+
+--- Navegador solicita /student ---
+📌 [ControladorFrontal] Petición recibida en el punto central: STUDENT
+✅ [ControladorFrontal] Usuario autenticado correctamente.
+🎓 [VistaEstudiante] Renderizando Expediente Académico del Estudiante.
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> En cualquier aplicación web o API REST donde quieras centralizar el enrutamiento de URLs, el manejo global de errores y la seguridad (en frameworks modernos como Spring MVC o JSF ya viene integrado de serie).</li>
+    <li><strong>Cuándo evitarlo:</strong> En sitios puramente estáticos de archivos HTML donde no existe lógica de servidor común.</li>
+</ul>

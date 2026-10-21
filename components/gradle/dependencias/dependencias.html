@@ -1,0 +1,133 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Cómo Añadir Librerías y Gestión de Dependencias</h1>
+
+<p>Añadir librerías externas es la tarea más habitual cuando trabajas con Gradle. Sin embargo, no todas las librerías se usan en el mismo momento: algunas las necesitas en todo momento, otras solo para compilar (como <em>Lombok</em>), otras solo al arrancar la base de datos (como el driver de <em>PostgreSQL</em>) y otras exclusivamente para los tests (como <em>JUnit</em> o <em>Mockito</em>).</p>
+
+<img class="center-horizontal" src="components/gradle/dependencias/assets/img/gradle-dependencias-diagram.png">
+<span class="center-horizontal caption">Figura 1: Mapa visual de las configuraciones de dependencias en Gradle y el formato de coordenadas GAV</span>
+
+<h2 class="subtitle">1. ¿Dónde busco una librería y cómo sé qué texto poner?</h2>
+<p>Cualquier librería de Java en el mundo se identifica por tres datos separados por dos puntos (<code class="language-groovy">'grupo:artefacto:versión'</code>), conocidos como coordenadas <strong>GAV</strong> (<em>Group, Artifact, Version</em>):</p>
+<ol>
+    <li>Entra en el buscador <a href="https://mvnrepository.com/" target="_blank">mvnrepository.com</a> o en <a href="https://central.sonatype.com/" target="_blank">Maven Central</a>.</li>
+    <li>Escribe el nombre de la librería que buscas (por ejemplo, <code class="language-bash">Apache Commons Lang</code> o <code class="language-bash">Jackson Databind</code>).</li>
+    <li>Haz clic en la versión que quieras usar y selecciona la pestaña <strong>Gradle (Short)</strong>.</li>
+    <li>Copia esa línea y pégala dentro del bloque <code class="language-groovy">dependencies { ... }</code> de tu archivo <code class="language-bash">build.gradle</code>.</li>
+</ol>
+
+<h2 class="subtitle">2. Todas las Palabras Clave para Añadir Librerías (Explicadas)</h2>
+<p>En la siguiente tabla tienes todas las formas de declarar una dependencia en Gradle, qué significan y cómo equivalen a los antiguos nombres por si ves un proyecto viejo:</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Configuración Actual</th>
+            <th scope="col">Nombre Antiguo (Obsoleto)</th>
+            <th scope="col">¿Cuándo debes usarla?</th>
+            <th scope="col">Ejemplo Típico</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><code class="language-groovy">implementation</code></th>
+            <td><code class="language-groovy">compile</code></td>
+            <td><strong>El 90% de las veces.</strong> Cuando tu código en <code class="language-bash">src/main/java</code> importa clases de esa librería y además la necesita cuando el programa está en marcha.</td>
+            <td>Spring Web, Jackson, Gson, Apache Commons, Hibernate.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">compileOnly</code></th>
+            <td><code class="language-groovy">providedCompile</code></td>
+            <td>Cuando la librería solo hace falta mientras se compila el código, pero <strong>no hace falta meterla en el <code class="language-bash">.jar</code> final</strong> porque ya ha hecho su trabajo al compilar.</td>
+            <td><strong>Lombok</strong> (genera getters/setters al compilar y luego ya no se necesita).</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">annotationProcessor</code></th>
+            <td><em>(Se mezclaba con compile)</em></td>
+            <td>Obligatorio añadirlo junto a <code class="language-groovy">compileOnly</code> cuando una librería lee anotaciones (<code class="language-java">@Data</code>, <code class="language-java">@Mapper</code>) para autogenerar código Java durante la compilación.</td>
+            <td><strong>Lombok</strong> y <strong>MapStruct</strong>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">runtimeOnly</code></th>
+            <td><code class="language-groovy">runtime</code></td>
+            <td>Cuando tu código Java no hace <code class="language-java">import</code> directo de esa librería al compilar (porque usas interfaces estándar como JDBC o SLF4J), pero el programa la necesita al arrancar para conectarse.</td>
+            <td>Drivers de Base de Datos (<strong>PostgreSQL</strong>, <strong>MySQL</strong>).</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">testImplementation</code></th>
+            <td><code class="language-groovy">testCompile</code></td>
+            <td>Librerías que solo usas para escribir y ejecutar tus pruebas en <code class="language-bash">src/test/java</code>. Nunca se empaquetan en el archivo <code class="language-bash">.jar</code> de producción.</td>
+            <td><strong>JUnit 5</strong>, <strong>Mockito</strong>, <strong>RestAssured</strong>, <strong>H2 Database</strong>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">testRuntimeOnly</code></th>
+            <td><code class="language-groovy">testRuntime</code></td>
+            <td>Motor interno necesario para lanzar los tests en ejecución, aunque no lo importes en tus clases de test.</td>
+            <td><code class="language-groovy">junit-platform-launcher</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Guía definitiva de configuraciones de dependencias en Gradle</span>
+
+<h2 class="subtitle">3. Ejemplos Prácticos de los Casos Más Habituales</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    // CASO A: Librería normal que importamos en nuestras clases
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+
+    // CASO B: Configurar Lombok correctamente (necesita las 2 líneas)
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    // CASO C: Driver de Base de Datos PostgreSQL (solo necesario al arrancar la app)
+    runtimeOnly 'org.postgresql:postgresql:42.7.3'
+
+    // CASO D: Librerías exclusivas para nuestros Tests Unitarios
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // CASO E: Añadir un archivo .jar que tienes descargado en una carpeta 'libs/' de tu proyecto
+    implementation files('libs/libreria-antigua-empresa.jar')
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Los 5 casos reales más frecuentes al configurar el bloque dependencies</span>
+
+<h2 class="subtitle">4. ¿Por qué algunas librerías NO llevan número de versión al final? (BOMs)</h2>
+<p>Si miras un proyecto de <strong>Spring Boot</strong>, verás que muchas dependencias se escriben sin número de versión al final, por ejemplo: <code class="language-groovy">implementation 'org.springframework.boot:spring-boot-starter-web'</code>. ¿Cómo sabe Gradle qué versión descargar?</p>
+<p>Porque se utiliza un <strong>BOM</strong> (<em>Bill of Materials</em> o Lista de Materiales). Al aplicar el plugin <code class="language-groovy">io.spring.dependency-management</code> o usar <code class="language-groovy">platform(...)</code>, Gradle descarga un catálogo oficial que ya sabe qué versiones exactas de cientos de librerías son 100% compatibles entre sí:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    // 1. Importamos el catálogo (BOM) oficial de Spring Boot 3.3.4
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.3.4')
+
+    // 2. Ahora podemos pedir cualquier librería de Spring SIN poner la versión
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Uso de platform (BOM) para delegar las versiones compatibles automáticamente</span>
+
+<h2 class="subtitle">5. Cómo Excluir una Sub-Librería que da Conflicto (<code class="language-groovy">exclude</code>)</h2>
+<p>A veces añades una librería (por ejemplo, de Kafka) que internamente trae una librería antigua de logs (<code class="language-bash">slf4j-log4j12</code>) que choca con el sistema de logs de Spring Boot. Para decirle a Gradle <em>"descarga esta librería, pero NO descargues esa sub-librería interna"</em>, abres llaves y usas <code class="language-groovy">exclude</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    implementation('io.confluent:kafka-avro-serializer:7.6.0') {
+        // Excluimos la dependencia transitiva conflictiva por su grupo y nombre (module)
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Exclusión de dependencias transitivas conflictivas con exclude</span>

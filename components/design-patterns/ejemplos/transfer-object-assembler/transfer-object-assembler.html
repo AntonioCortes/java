@@ -5,44 +5,177 @@
 </style>
 <h1 class="title">Patrón Transfer Object Assembler</h1>
 
-<p>El patrón <strong>Transfer Object Assembler</strong> es un patrón de la arquitectura Java EE que se encarga de recolectar datos de varias fuentes y ensamblarlos en un objeto de transferencia completo para la vista.</p>
+<p>El patrón <strong>Transfer Object Assembler</strong> (Ensamblador de DTOs) es un patrón de la arquitectura Java EE y de microservicios que <strong>recolecta datos procedentes de múltiples servicios, microservicios o DAOs distintos y los combina en un único DTO compuesto</strong> hecho a la medida de una pantalla concreta.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en las <strong>cestas de Navidad</strong>. Los productos vienen de fábricas completamente distintas: el jamón viene de Salamanca, el turrón de Alicante y el vino de La Rioja. En lugar de que el comprador tenga que hacer tres pedidos a tres fábricas distintas, una empresa ensambladora (<code class="language-java">Transfer Object Assembler</code>) pide cada producto a su fabricante y los mete todos juntos en una única cesta lista para regalar (<code class="language-java">PanelCompuestoDTO</code>).</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Proveer a la vista de todos los datos necesarios en un solo objeto optimizado.</p>
+<p>Evitar que el cliente (una app móvil o un navegador web) tenga que realizar 3, 4 o 5 llamadas HTTP separadas a distintos microservicios para poder pintar una sola pantalla como un Panel de Control (<em>Dashboard</em>).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Generación de Dashboards o Portadas</h2>
-<p><strong>Contexto:</strong> La pantalla de "Inicio" de tu aplicación bancaria debe mostrar: 1. Saldo actual, 2. Últimos 5 movimientos, 3. Mensajes no leídos del banco, 4. Ofertas personalizadas.</p>
+<h2 class="subtitle">Caso de Uso Real: Construcción del Dashboard Inicial en una Arquitectura de Microservicios</h2>
+<p><strong>Contexto:</strong> Cuando el usuario abre la app de una tienda, la pantalla de inicio necesita mostrar tres cosas a la vez: 1) su nombre completo (que vive en <code class="language-java">MicroservicioUsuarios</code>), 2) sus últimos pedidos (que viven en <code class="language-java">MicroservicioPedidos</code>) y 3) cuántas notificaciones sin leer tiene (que viven en <code class="language-java">MicroservicioNotificaciones</code>).</p>
 
-<p><strong>El Problema:</strong> Estos datos residen en 4 microservicios o sistemas distintos (Core Bancario, Movimientos, CRM, Marketing). Si el Frontend hace 4 llamadas, la pantalla tardará en cargar ("Efecto Spinner Múltiple").</p>
+<p><strong>El Problema (Sin Transfer Object Assembler):</strong> Si el teléfono móvil con cobertura 4G inestable tiene que hacer 3 peticiones REST distintas a 3 microservicios, la pantalla irá apareciendo a trozos llenándose de iconos de carga (<em>spinners</em>).</p>
 
-<p><strong>La Solución (Transfer Object Assembler):</strong> Creas un componente ensamblador en el servidor.
-<br>El Assembler llama a los 4 servicios (posiblemente en paralelo), recoge los resultados y rellena un único objeto grande <code class="language-java">HomeDashboardDTO</code>. El cliente recibe todo lo necesario para pintar la pantalla de una vez.</p>
+<p><strong>La Solución (Con Transfer Object Assembler):</strong> Creamos en el servidor la clase <code class="language-java">EnsambladorPanel</code>. El móvil hace <strong>una única llamada</strong>, el Assembler consulta rápidamente por la red interna de alta velocidad a los 3 microservicios y devuelve un solo objeto <code class="language-java">PanelCompuestoDTO</code> con toda la información unificada.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Microservicios y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Agregación de Datos:</strong> 
-        <p>Resuelve el problema de la granularidad de los servicios. Convierte múltiples objetos de dominio o DTOs pequeños en un DTO compuesto diseñado específicamente para una Vista concreta.</p>
-    </li>
-    <li>
-        <strong>Reducción de Latencia (Chattiness):</strong> 
-        <p>Crucial para clientes móviles con conexiones inestables. Un solo request grande es mucho más fiable y rápido que 4 requests pequeños secuenciales.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/transfer-object-assembler/assets/img/transfer-object-assembler-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Transfer Object Assembler agregando datos de 3 microservicios</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Ensamblador DTO (Clase Normal)</th>
+            <td><code class="language-java">EnsambladorPanel</code></td>
+            <td>Invoca a las distintas fuentes de datos o microservicios y ensambla sus respuestas parciales en un único DTO compuesto.</td>
+        </tr>
+        <tr>
+            <th scope="row">Composite Transfer Object</th>
+            <td><code class="language-java">PanelCompuestoDTO</code></td>
+            <td>El DTO agregado final que contiene todos los datos listos para que la vista o app pinte la pantalla de golpe.</td>
+        </tr>
+        <tr>
+            <th scope="row">Fuentes / Microservicios</th>
+            <td><code class="language-java">MicroservicioUsuarios</code>, <code class="language-java">MicroservicioPedidos</code>, <code class="language-java">MicroservicioNotificaciones</code></td>
+            <td>Servicios independientes donde reside cada dominio de información.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Transfer Object Assembler</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class DashboardAssembler {
-    public DashboardDTO createDashboard(Long userId) {
-        User user = userService.getUser(userId);
-        List<Order> orders = orderService.getRecent(userId);
-        List<Message> msgs = msgService.getUnread(userId);
-        return new DashboardDTO(user, orders, msgs);
+import java.util.Arrays;
+import java.util.List;
+
+// 1. Fuentes de datos independientes (Microservicios / Servicios de Dominio)
+class MicroservicioUsuarios {
+    public String fetchUserName(Long userId) {
+        System.out.println("   🔹 [MicroservicioUsuarios] Obteniendo perfil del usuario ID=" + userId);
+        return "Antonio Cortés";
+    }
+}
+
+class MicroservicioPedidos {
+    public List&lt;String&gt; fetchRecentOrders(Long userId) {
+        System.out.println("   🔹 [MicroservicioPedidos] Obteniendo últimos pedidos del usuario ID=" + userId);
+        return Arrays.asList("Pedido #101 (Teclado)", "Pedido #102 (Monitor)");
+    }
+}
+
+class MicroservicioNotificaciones {
+    public int fetchUnreadCount(Long userId) {
+        System.out.println("   🔹 [MicroservicioNotificaciones] Contando alertas no leídas del usuario ID=" + userId);
+        return 3;
+    }
+}
+
+// 2. DTO Compuesto Final (diseñado a medida de la pantalla de Dashboard)
+class PanelCompuestoDTO {
+    private String userName;
+    private List&lt;String&gt; recentOrders;
+    private int unreadAlerts;
+
+    public PanelCompuestoDTO(String userName, List&lt;String&gt; recentOrders, int unreadAlerts) {
+        this.userName = userName;
+        this.recentOrders = recentOrders;
+        this.unreadAlerts = unreadAlerts;
+    }
+
+    @Override
+    public String toString() {
+        return "PanelCompuestoDTO {\n"
+                + "   usuario: '" + userName + "',\n"
+                + "   ultimosPedidos: " + recentOrders + ",\n"
+                + "   alertasSinLeer: " + unreadAlerts + "\n}";
+    }
+}
+
+// 3. Transfer Object Assembler: Recolecta de los 3 microservicios y ensambla el DTO único
+class EnsambladorPanel {
+    private MicroservicioUsuarios userService = new MicroservicioUsuarios();
+    private MicroservicioPedidos orderService = new MicroservicioPedidos();
+    private MicroservicioNotificaciones notifService = new MicroservicioNotificaciones();
+
+    public PanelCompuestoDTO ensamblarPanel(Long userId) {
+        System.out.println("⚙️ [EnsambladorPanel] Recolectando datos de múltiples microservicios...");
+        String name = userService.fetchUserName(userId);
+        List&lt;String&gt; orders = orderService.fetchRecentOrders(userId);
+        int alerts = notifService.fetchUnreadCount(userId);
+
+        System.out.println("📦 [EnsambladorPanel] Ensamblando respuesta única PanelCompuestoDTO.");
+        return new PanelCompuestoDTO(name, orders, alerts);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Transfer Object Assembler</span>
+<span class="center-horizontal caption">Implementación completa del patrón Transfer Object Assembler</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Su nombre en arquitecturas modernas de Microservicios:</strong>
+        <p>En el mundo actual de microservicios y Cloud, este mismo patrón también se conoce como <strong>Aggregator Microservice</strong> o <strong>BFF (Backend For Frontend)</strong>: un servicio intermedio que agrega las respuestas de varios microservicios para entregárselas ya unificadas a la app móvil.</p>
+    </li>
+    <li>
+        <strong>2. Diferencia entre Transfer Object (DTO) y Transfer Object Assembler:</strong>
+        <p>Un <strong>DTO simple</strong> transporta los datos de una entidad. El <strong>Transfer Object Assembler</strong> es la clase constructora que junta datos de <em>muchas fuentes distintas</em> para fabricar un DTO compuesto.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        EnsambladorPanel assembler = new EnsambladorPanel();
+
+        // El cliente móvil pide el Dashboard completo en 1 sola llamada
+        PanelCompuestoDTO dashboard = assembler.ensamblarPanel(77L);
+
+        System.out.println("\n📱 [App Móvil] Pintando pantalla completa de una sola vez:");
+        System.out.println(dashboard);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">El cliente obtiene toda la información del Dashboard en una sola operación</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+⚙️ [EnsambladorPanel] Recolectando datos de múltiples microservicios...
+   🔹 [MicroservicioUsuarios] Obteniendo perfil del usuario ID=77
+   🔹 [MicroservicioPedidos] Obteniendo últimos pedidos del usuario ID=77
+   🔹 [MicroservicioNotificaciones] Contando alertas no leídas del usuario ID=77
+📦 [EnsambladorPanel] Ensamblando respuesta única PanelCompuestoDTO.
+
+📱 [App Móvil] Pintando pantalla completa de una sola vez:
+PanelCompuestoDTO {
+   usuario: 'Antonio Cortés',
+   ultimosPedidos: [Pedido #101 (Teclado), Pedido #102 (Monitor)],
+   alertasSinLeer: 3
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> En pantallas tipo Dashboard, resúmenes de cuenta o fichas de detalle que necesitan cruzar información procedente de varios microservicios o múltiples tablas sin relación directa.</li>
+    <li><strong>Cuándo evitarlo:</strong> En pantallas CRUD simples que solo consultan una única tabla o servicio.</li>
+</ul>

@@ -5,46 +5,166 @@
 </style>
 <h1 class="title">Patrón View Helper</h1>
 
-<p>El patrón <strong>View Helper</strong> es un patrón de la arquitectura Java EE que encapsula lógica de negocio o de acceso a datos que no debería estar directamente en la vista (JSP/HTML).</p>
+<p>El patrón <strong>View Helper</strong> (Ayudante de Vista) es un patrón de la capa de presentación de Java EE que separa el diseño visual de una plantilla (HTML/JSP/Thymeleaf) de la <strong>lógica de formateo y adaptación de datos para la pantalla</strong>.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en un <strong>presentador de telediario</strong> (la Vista) y su <strong>equipo de redacción y grafismo</strong> (el <code class="language-java">View Helper</code>). El presentador frente a la cámara no se pone a calcular porcentajes con una calculadora ni a traducir nombres extranjeros en directo: el equipo de redacción le entrega en el teleprónter el texto ya formateado, limpio y listo para leer.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Mantener las vistas limpias y sin código Java complejo (scriptlets).</p>
+<p>Mantener las plantillas de interfaz (vistas) limpias de código Java complejo, delegando en clases auxiliares (<code class="language-java">Helper</code>) tareas como dar formato a monedas, fechas, nombres completos o etiquetas visuales.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Formateadores y Custom Tags (JSP/Thymeleaf)</h2>
-<p><strong>Contexto:</strong> Necesitas mostrar una lista de precios. En la base de datos están como <code class="language-java">double</code> (1234.5), pero en la web deben verse como "$1,234.50" (formato moneda USA) o "1.234,50 €" (España).</p>
+<h2 class="subtitle">Caso de Uso Real: Formateo de Datos de Cliente y Divisas en una Ficha Web</h2>
+<p><strong>Contexto:</strong> Tienes un objeto de dominio <code class="language-java">Usuario</code> con nombre (<code class="language-java">"ana"</code>), apellido (<code class="language-java">"garcía"</code>), saldo (<code class="language-java">1250.5</code>) y un booleano <code class="language-java">vip = true</code>. En la web debe mostrarse como <code class="language-java">"GARCÍA, Ana [⭐ CLIENTE VIP]"</code> y <code class="language-java">"1.250,50 €"</code>.</p>
 
-<p><strong>El Problema:</strong> Poner lógica Java compleja en el JSP (<code class="language-java"><% DecimalFormat df = ... %></code>) es una mala práctica (Scriptlets). Dificulta la lectura y el mantenimiento por parte de diseñadores.</p>
+<p><strong>El Problema (Sin View Helper):</strong> Si metes bloques de código Java dentro del archivo HTML/JSP para capitalizar cadenas, redondear decimales y evaluar condicionales, la plantilla se vuelve ilegible tanto para diseñadores web como para programadores.</p>
 
-<p><strong>La Solución (View Helper):</strong> Creas clases auxiliares (Helpers) o Tags personalizados (<code class="language-java"><fmt:formatNumber></code>).
-<br>La vista invoca estos helpers de forma declarativa. El Helper encapsula la lógica de presentación (formateo, seguridad de UI, truncado de texto).</p>
+<p><strong>La Solución (Con View Helper):</strong> Creamos la clase <code class="language-java">AyudanteVistaUsuario</code> con métodos específicos de presentación (<code class="language-java">formatearNombre(user)</code>, <code class="language-java">formatBalance(user)</code>). La vista solo invoca al Helper e imprime el resultado directamente.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Limpieza de Templates:</strong> 
-        <p>El objetivo es que el archivo de vista parezca lo más HTML posible. Cuanto menos código Java (o lógica de programación) haya en la plantilla, mejor.</p>
-    </li>
-    <li>
-        <strong>Reutilización de Lógica de Presentación:</strong> 
-        <p>Si tienes un Helper para renderizar "Estrellas de valoración" basado en un número, puedes usarlo en la ficha de producto, en el listado y en los comentarios sin duplicar el HTML/CSS/JS asociado.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/view-helper/assets/img/view-helper-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón View Helper limpiando la plantilla de lógica de formateo</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">View (Vista)</th>
+            <td><code class="language-java">UserProfileView</code></td>
+            <td>Plantilla encargada únicamente de la estructura visual (HTML), sin cálculos ni transformaciones de cadenas.</td>
+        </tr>
+        <tr>
+            <th scope="row">Ayudante de Vista (Clase Normal)</th>
+            <td><code class="language-java">AyudanteVistaUsuario</code></td>
+            <td>Contiene los métodos que transforman los datos crudos del modelo en textos amigables listos para pintar.</td>
+        </tr>
+        <tr>
+            <th scope="row">Model (Modelo)</th>
+            <td><code class="language-java">Usuario</code></td>
+            <td>Objeto de dominio que guarda los datos puros tal como vienen del negocio o la base de datos.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón View Helper</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Helper
-public class UserViewHelper {
-    public String getFormattedName(User user) {
+import java.util.Locale;
+
+// 1. Modelo de datos puro (sin lógica de presentación HTML)
+class Usuario {
+    private String firstName;
+    private String lastName;
+    private double balance;
+    private boolean vip;
+
+    public User(String firstName, String lastName, double balance, boolean vip) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.balance = balance;
+        this.vip = vip;
+    }
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public double getBalance() { return balance; }
+    public boolean isVip() { return vip; }
+}
+
+// 2. View Helper: encapsula toda la lógica de formateo para la interfaz
+class AyudanteVistaUsuario {
+
+    public String formatearNombre(Usuario user) {
         return user.getLastName().toUpperCase() + ", " + user.getFirstName();
+    }
+
+    public String getVipBadge(Usuario user) {
+        return user.isVip() ? "[⭐ CLIENTE VIP]" : "[Cliente Estándar]";
+    }
+
+    public String getFormattedBalance(Usuario user) {
+        return String.format(Locale.US, "%.2f EUR", user.getBalance());
     }
 }
 
-// En la vista (simulado)
-// <% UserViewHelper helper = new UserViewHelper(); %>
-// <h1>Hola, <%= helper.getFormattedName(currentUser) %></h1>
+// 3. Vista (Simulación de plantilla HTML/Thymeleaf limpia)
+class UsuarioProfileView {
+    private AyudanteVistaUsuario helper = new AyudanteVistaUsuario();
+
+    public void renderHtml(Usuario user) {
+        System.out.println("&lt;div class=\"card-perfil\"&gt;");
+        System.out.println("  &lt;h2&gt;" + helper.formatearNombre(user) + " " + helper.getVipBadge(user) + "&lt;/h2&gt;");
+        System.out.println("  &lt;p&gt;Saldo disponible: &lt;strong&gt;" + helper.getFormattedBalance(user) + "&lt;/strong&gt;&lt;/p&gt;");
+        System.out.println("&lt;/div&gt;");
+    }
+}
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de View Helper</span>
+<span class="center-horizontal caption">Implementación completa del patrón View Helper</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Reutilización en todas las pantallas:</strong>
+        <p>Si muestras el nombre del usuario y su insignia VIP en 10 pantallas distintas (cabecera, perfil, facturas, comentarios), todas llaman al mismo <code class="language-java">AyudanteVistaUsuario</code>. Si mañana cambias el formato de la insignia, solo editas una línea en el Helper.</p>
+    </li>
+    <li>
+        <strong>2. Fácil de probar con tests unitarios:</strong>
+        <p>Probar un archivo JSP o HTML es difícil, pero probar que <code class="language-java">helper.formatearNombre(user)</code> devuelve <code class="language-java">"GARCÍA, Ana"</code> con un test de JUnit tarda un milisegundo.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        Usuario cliente1 = new Usuario("Ana", "García", 1450.5, true);
+        Usuario cliente2 = new Usuario("Pedro", "López", 85.0, false);
+
+        UserProfileView view = new UserProfileView();
+
+        System.out.println("--- Renderizando ficha de Cliente 1 ---");
+        view.renderHtml(cliente1);
+
+        System.out.println("\n--- Renderizando ficha de Cliente 2 ---");
+        view.renderHtml(cliente2);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Renderizado limpio apoyándose en AyudanteVistaUsuario</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Renderizando ficha de Cliente 1 ---
+&lt;div class="card-perfil"&gt;
+  &lt;h2&gt;GARCÍA, Ana [⭐ CLIENTE VIP]&lt;/h2&gt;
+  &lt;p&gt;Saldo disponible: &lt;strong&gt;1450.50 EUR&lt;/strong&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+--- Renderizando ficha de Cliente 2 ---
+&lt;div class="card-perfil"&gt;
+  &lt;h2&gt;LÓPEZ, Pedro [Cliente Estándar]&lt;/h2&gt;
+  &lt;p&gt;Saldo disponible: &lt;strong&gt;85.00 EUR&lt;/strong&gt;&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola mostrando el HTML generado</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Siempre que necesites formatear fechas, monedas, textos o etiquetas condicionales para la vista (en Thymeleaf, por ejemplo, los objetos utilitarios como <code class="language-java">#temporals</code> o <code class="language-java">#numbers</code> son View Helpers integrados).</li>
+    <li><strong>Cuándo evitarlo:</strong> Nunca pongas llamadas a base de datos ni modificaciones de negocio dentro de un View Helper; su única misión es dar formato visual a datos que ya han sido recuperados.</li>
+</ul>

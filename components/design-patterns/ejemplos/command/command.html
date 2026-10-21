@@ -5,95 +5,135 @@
 </style>
 <h1 class="title">Patrón Command</h1>
 
-<p>El patrón <strong>Command</strong> es un patrón de comportamiento que convierte una solicitud en un objeto independiente que contiene toda la información sobre la solicitud. Esta transformación permite parametrizar métodos con diferentes solicitudes, retrasar o poner en cola la ejecución de una solicitud y soportar operaciones que no se pueden deshacer.</p>
+<p>El patrón <strong>Command</strong> (Comando u Orden) es un patrón de comportamiento que convierte una solicitud o acción en un <strong>objeto independiente</strong>. Esto permite pasar acciones como parámetros, ponerlas en una cola de tareas, registrarlas en un historial o deshacerlas (<code class="language-java">Undo</code>).</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en hacer un pedido en un <strong>restaurante</strong>. Tú (el Cliente) le dices lo que quieres al Camarero (el <strong>Invocador</strong>). El camarero escribe tu pedido en una <strong>Comanda de papel</strong> (el objeto <code class="language-java">Comando</code>) y la coloca en la barra de la cocina. Más tarde, el Cocinero (el <strong>Receptor</strong>) lee esa comanda y prepara el plato. El camarero no necesita saber cocinar; solo sabe entregar comandas.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Desacoplar el objeto que invoca la operación del objeto que sabe cómo realizarla.</p>
+<p>Desacoplar por completo el objeto que dispara una acción (como un botón de una interfaz o un mando domótico) del objeto que realmente sabe cómo ejecutarla (una bombilla inteligente, un motor o un documento de texto).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Editor de Texto (Undo/Redo)</h2>
-<p><strong>Contexto:</strong> En un editor como Word, el usuario puede escribir, borrar, pegar texto, poner negrita, etc. Y espera poder pulsar <code class="language-java">Ctrl+Z</code> para deshacer la última acción.</p>
+<h2 class="subtitle">Caso de Uso Real: Mando Programable de Domótica (Smart Home)</h2>
+<p><strong>Contexto:</strong> Tienes un botón inteligente en la pared (<code class="language-java">ControlRemoto</code>) que puede configurarse desde el móvil para encender la luz del salón, apagarla o abrir la puerta del garaje.</p>
 
-<p><strong>El Problema:</strong> Si la interfaz gráfica llama directamente a la lógica de negocio (<code class="language-java">document.copy()</code>), no guardamos un historial de qué operación se hizo, por lo que no podemos deshacerla.</p>
+<p><strong>El Problema (Sin Command):</strong> Si dentro de la clase <code class="language-java">ControlRemoto</code> escribes directamente <code class="language-java">luz.encender()</code>, ese botón queda atado para siempre a encender esa bombilla y no sirve para ninguna otra acción sin reprogramar la clase del mando.</p>
 
-<p><strong>La Solución (Command):</strong> Encapsulamos cada operación como un objeto (<code class="language-java">CopyCommand</code>, <code class="language-java">PasteCommand</code>).
-<br>Estos objetos tienen método <code class="language-java">execute()</code> y <code class="language-java">undo()</code>. Cuando el usuario pulsa un botón, se crea el comando, se ejecuta y se guarda en una pila "Historial". Al pulsar Deshacer, simplemente sacamos el último comando de la pila y llamamos a <code class="language-java">undo()</code>.</p>
+<p><strong>La Solución (Con Command):</strong> Creamos la interfaz <code class="language-java">Comando</code> con un único método <code class="language-java">ejecutar()</code>. El mando (<code class="language-java">ControlRemoto</code>) solo guarda un objeto <code class="language-java">Comando</code> y al pulsar el botón llama a <code class="language-java">command.ejecutar()</code>. Así puedes asignarle un <code class="language-java">ComandoEncenderLuz</code> o un <code class="language-java">ComandoApagarLuz</code> en cualquier momento.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Desacoplamiento Invocador-Receptor:</strong> 
-        <p>El <code class="language-java">RemoteControl</code> (Invocador) no sabe que está encendiendo una luz. Solo sabe que tiene un objeto <code class="language-java">Command</code> y que debe llamar a <code class="language-java">execute()</code>. Esto permite reutilizar el mismo botón para encender luces, abrir puertas o lanzar misiles.</p>
-    </li>
-    <li>
-        <strong>Comandos como Objetos de Primera Clase:</strong> 
-        <p>Al convertir una acción en un objeto, podemos manipularla (guardarla en listas, encolarla, pasarla por red). Esto es la base para Job Queues y Sistemas de Transacciones.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/command/assets/img/command-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Comando desacoplando Invocador (ControlRemoto) y Receptor (Light)</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Comando (Interfaz)</th>
+            <td><code class="language-java">Comando</code></td>
+            <td>Declara el método único <code class="language-java">ejecutar()</code> para ejecutar cualquier orden.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Commands</th>
+            <td><code class="language-java">ComandoEncenderLuz</code>, <code class="language-java">ComandoApagarLuz</code></td>
+            <td>Encapsulan la acción concreta guardando una referencia al receptor (<code class="language-java">Luz</code>) e invocando el método correspondiente (<code class="language-java">luz.encender()</code> / <code class="language-java">luz.apagar()</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Receiver (Receptor)</th>
+            <td><code class="language-java">Luz</code></td>
+            <td>El objeto de hardware o negocio que realmente sabe realizar el trabajo final.</td>
+        </tr>
+        <tr>
+            <th scope="row">Invoker (Invocador)</th>
+            <td><code class="language-java">ControlRemoto</code></td>
+            <td>Almacena un <code class="language-java">Comando</code> y lo dispara cuando el usuario pulsa el botón (<code class="language-java">pulsarBoton()</code>), sin saber qué hace el comando por dentro.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Command</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Comando
-interface Command {
-    void execute();
+// 1. Interfaz Command
+interface Comando {
+    void ejecutar();
 }
 
-// Receptor
-class Light {
-    public void on() {
-        System.out.println("Luz encendida");
+// 2. Receptor (Receiver): quien realiza el trabajo físico o de negocio real
+class Luz {
+    public void encender() {
+        System.out.println("💡 [Luz del Salón] Bombilla ENCENDIDA");
     }
-    public void off() {
-        System.out.println("Luz apagada");
+
+    public void apagar() {
+        System.out.println("🌑 [Luz del Salón] Bombilla APAGADA");
     }
 }
 
-// Comandos Concretos
-class LightOnCommand implements Command {
-    private Light light;
+// 3. Comandos Concretos: empaquetan una acción sobre el Receptor
+class ComandoEncenderLuz implements Comando {
+    private Luz luz;
 
-    public LightOnCommand(Light light) {
-        this.light = light;
+    public ComandoEncenderLuz(Luz luz) {
+        this.luz = luz;
     }
 
     @Override
-    public void execute() {
-        light.on();
+    public void ejecutar() {
+        luz.encender();
     }
 }
 
-class LightOffCommand implements Command {
-    private Light light;
+class ComandoApagarLuz implements Comando {
+    private Luz luz;
 
-    public LightOffCommand(Light light) {
-        this.light = light;
+    public ComandoApagarLuz(Luz luz) {
+        this.luz = luz;
     }
 
     @Override
-    public void execute() {
-        light.off();
+    public void ejecutar() {
+        luz.apagar();
     }
 }
 
-// Invocador
-class RemoteControl {
-    private Command command;
+// 4. Invocador (Invoker): el botón o mando que dispara el comando asignado
+class ControlRemoto {
+    private Comando comando;
 
-    public void setCommand(Command command) {
-        this.command = command;
+    public void setComando(Comando comando) {
+        this.comando = comando;
     }
 
-    public void pressButton() {
-        command.execute();
+    public void pulsarBoton() {
+        System.out.println("&gt;&gt; Usuario pulsa el botón del mando...");
+        comando.ejecutar();
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Estructura Command</span>
+<span class="center-horizontal caption">Implementación completa del patrón Command</span>
 
-<br>
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Por qué no llamar a <code class="language-java">luz.encender()</code> directamente?</strong>
+        <p>Porque si el botón llama a <code class="language-java">luz.encender()</code>, el botón solo sirve para luces. En cambio, como el botón solo llama a <code class="language-java">command.ejecutar()</code>, puedes usar exactamente la misma clase <code class="language-java">ControlRemoto</code> para encender luces, abrir persianas, enviar un correo o deshacer texto en un editor.</p>
+    </li>
+    <li>
+        <strong>2. Historial y Cola de Tareas:</strong>
+        <p>Como cada orden (<code class="language-java">ComandoEncenderLuz</code>) es un objeto normal de Java, puedes meter todas las órdenes ejecutadas en una lista <code class="language-java">List&lt;Command&gt; historial</code> para repetirlas (macros) o deshacerlas.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Ejemplo de Uso</h2>
 
@@ -101,28 +141,43 @@ class RemoteControl {
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        RemoteControl remote = new RemoteControl();
-        Light light = new Light();
+        // Creamos el receptor real (la bombilla) y el invocador (el mando)
+        Luz salonLuz = new Luz();
+        ControlRemoto remote = new ControlRemoto();
 
-        Command lightsOn = new LightOnCommand(light);
-        Command lightsOff = new LightOffCommand(light);
+        // Creamos los objetos Comando vinculados a nuestra bombilla
+        Comando turnOn = new ComandoEncenderLuz(salonLight);
+        Comando turnOff = new ComandoApagarLuz(salonLight);
 
-        // Encender
-        remote.setCommand(lightsOn);
-        remote.pressButton();
+        // Asignamos el comando de encender al botón y lo pulsamos
+        remote.setComando(turnOn);
+        remote.pulsarBoton();
 
-        // Apagar
-        remote.setCommand(lightsOff);
-        remote.pressButton();
+        System.out.println();
+
+        // Reprogramamos el mismo botón con el comando de apagar y lo pulsamos
+        remote.setComando(turnOff);
+        remote.pulsarBoton();
     }
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">Reprogramando el botón del mando dinámicamente con distintos comandos</span>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-Output:
-Luz encendida
-Luz apagada
+Salida por consola:
+&gt;&gt; Usuario pulsa el botón del mando...
+💡 [Luz del Salón] Bombilla ENCENDIDA
+
+&gt;&gt; Usuario pulsa el botón del mando...
+🌑 [Luz del Salón] Bombilla APAGADA
 </code></pre>
 </div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando necesites botones/menús configurables, colas de trabajos en segundo plano (como <code class="language-java">Runnable</code> en Java, que es literalmente un patrón Command) o sistemas con historial de Deshacer/Rehacer (<code class="language-java">Undo/Redo</code>).</li>
+    <li><strong>Cuándo evitarlo:</strong> En llamadas directas entre servicios donde no necesitas encolar, parametrizar ni deshacer la operación.</li>
+</ul>

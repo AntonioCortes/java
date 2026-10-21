@@ -5,59 +5,183 @@
 </style>
 <h1 class="title">Patrón State</h1>
 
-<p>El patrón <strong>State</strong> es un patrón de comportamiento que permite que un objeto altere su comportamiento cuando su estado interno cambia. Parece como si el objeto cambiara su clase.</p>
+<p>El patrón <strong>State</strong> (Estado) es un patrón de comportamiento que permite a un objeto <strong>cambiar su comportamiento automáticamente cuando su estado interno cambia</strong>, hasta el punto de parecer que el objeto ha cambiado de clase.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en el <strong>botón principal de tu teléfono móvil</strong>. Cuando el teléfono está en estado <em>Desbloqueado</em>, pulsar el botón te lleva a la pantalla de inicio. Cuando está en estado <em>Bloqueado</em>, pulsar ese mismo botón solo enciende la pantalla de PIN. Y cuando está en estado <em>Sin Batería</em>, pulsar el botón muestra el icono de enchufar el cargador. El botón es el mismo, pero su comportamiento depende del <strong>Estado actual</strong> del teléfono.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Permitir a un objeto cambiar su comportamiento cuando cambia su estado interno.</p>
+<p>Sustituir grandes bloques condicionales (<code class="language-java">switch (estado)</code> o <code class="language-java">if (estado == PAGADO)</code>) repartidos por toda una clase, extrayendo la lógica de cada estado a su propia clase independiente.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Ciclo de Vida de Pedidos o Reproductor Multimedia</h2>
-<p><strong>Contexto:</strong> Un pedido en Amazon pasa por estados: "Nuevo" -> "Pagado" -> "Enviado" -> "Entregado". O un Reproductor de Vídeo (Play, Pause, Stop).</p>
+<h2 class="subtitle">Caso de Uso Real: Ciclo de Vida de un Pedido de Tienda Online</h2>
+<p><strong>Contexto:</strong> Un pedido (<code class="language-java">ContextoPedido</code>) pasa secuencialmente por tres estados: <strong>1. Pendiente de Pago</strong> (<code class="language-java">EstadoPendientePago</code>) $\rightarrow$ <strong>2. Pagado</strong> (<code class="language-java">EstadoPagado</code>) $\rightarrow$ <strong>3. Enviado</strong> (<code class="language-java">EstadoEnviado</code>).</p>
 
-<p><strong>El Problema:</strong> Si gestionas esto con variables booleanas (<code class="language-java">isPaid</code>, <code class="language-java">isShipped</code>) y sentencias <code class="language-java">if-else</code> o <code class="language-java">switch</code> gigantes en cada método (<code class="language-java">cancelarPedido()</code>), el código se vuelve monstruoso y muy propenso a bugs. Si el pedido está "Enviado", no puedes cancelarlo, pero si está "Pagado" sí.</p>
+<p><strong>El Problema (Sin State):</strong> Si controlas el estado con un <code class="language-java">String</code> o <code class="language-java">boolean</code> y llenas cada método de <code class="language-java">if (state.equals("PENDING")) ... else if (state.equals("PAID")) ...</code>, añadir un nuevo estado ("En Aduanas") obliga a modificar todos los métodos de la clase <code class="language-java">Order</code>.</p>
 
-<p><strong>La Solución (State):</strong> Cada estado se convierte en una clase propia (<code class="language-java">EstadoNuevo</code>, <code class="language-java">EstadoEnviado</code>).
-<br>El objeto Contexto (el Pedido) delega el comportamiento al objeto de estado actual. Si llamas a <code class="language-java">cancelar()</code>, el Pedido le dice a su estado actual "Cancélate". Si es <code class="language-java">EstadoEnviado</code>, dirá "No puedo"; si es <code class="language-java">EstadoNuevo</code>, dirá "Ok, hecho".</p>
+<p><strong>La Solución (Con State):</strong> Creamos la interfaz <code class="language-java">EstadoPedido</code> y una clase por cada estado. El pedido (<code class="language-java">ContextoPedido</code>) guarda una referencia <code class="language-java">estadoActual</code> y delega en ella las acciones y la transición hacia el siguiente estado.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Eliminación de Condicionales:</strong> 
-        <p>Reemplazamos máquinas de estado complejas basadas en <code class="language-java">switch</code> por polimorfismo. Añadir un nuevo estado implica simplemente añadir una nueva clase, no tocar la lógica existente de los otros estados.</p>
-    </li>
-    <li>
-        <strong>Cambio de Comportamiento en Runtime:</strong> 
-        <p>Parece que el objeto cambia de clase en tiempo de ejecución. Al cambiar el atributo <code class="language-java">state</code>, el objeto responde de forma totalmente distinta a los mismos métodos.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/state/assets/img/state-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón State gestionando las transiciones de un pedido</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Context (Contexto)</th>
+            <td><code class="language-java">ContextoPedido</code></td>
+            <td>Mantiene una referencia al objeto de estado actual (<code class="language-java">estadoActual</code>) y delega en él todo el trabajo.</td>
+        </tr>
+        <tr>
+            <th scope="row">State (Interfaz)</th>
+            <td><code class="language-java">EstadoPedido</code></td>
+            <td>Declara los métodos que dependen del estado (<code class="language-java">siguiente(ctx)</code> y <code class="language-java">mostrarEstado()</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete States</th>
+            <td><code class="language-java">EstadoPendientePago</code>, <code class="language-java">EstadoPagado</code>, <code class="language-java">EstadoEnviado</code></td>
+            <td>Implementan el comportamiento propio de ese estado y deciden cuál es el siguiente estado al que debe pasar el pedido.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón State</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-interface State {
-    void doAction(Context context);
+// 1. Interfaz State
+interface EstadoPedido {
+    void siguiente(ContextoPedido context);
+    void mostrarEstado();
 }
 
-class StartState implements State {
-    public void doAction(Context context) {
-        System.out.println("Player is in start state");
-        context.setState(this);
+// 2. Contexto: El Pedido cuyo comportamiento varía según su estado actual
+class ContextoPedido {
+    private EstadoPedido estadoActual;
+
+    public ContextoPedido() {
+        // Todo pedido nace en estado "Pendiente de Pago"
+        this.estadoActual = new EstadoPendientePago();
+    }
+
+    public void setEstado(EstadoPedido state) {
+        this.estadoActual = state;
+    }
+
+    public void avanzarPaso() {
+        estadoActual.siguiente(this);
+    }
+
+    public void mostrarEstado() {
+        estadoActual.mostrarEstado();
     }
 }
 
-class StopState implements State {
-    public void doAction(Context context) {
-        System.out.println("Player is in stop state");
-        context.setState(this);
+// 3. Estados Concretos
+class EstadoPendientePago implements EstadoPedido {
+    @Override
+    public void siguiente(ContextoPedido context) {
+        System.out.println("&gt;&gt; Procesando cobro... Transicionando a estado PAGADO.");
+        context.setEstado(new EstadoPagado());
+    }
+
+    @Override
+    public void mostrarEstado() {
+        System.out.println("🛒 Estado actual: [PENDIENTE DE PAGO] - Esperando confirmación bancaria.");
     }
 }
 
-class Context {
-    private State state;
-    public void setState(State state) { this.state = state; }
-    public State getState() { return state; }
+class EstadoPagado implements EstadoPedido {
+    @Override
+    public void siguiente(ContextoPedido context) {
+        System.out.println("&gt;&gt; Preparando paquete en almacén... Transicionando a estado ENVIADO.");
+        context.setEstado(new EstadoEnviado());
+    }
+
+    @Override
+    public void mostrarEstado() {
+        System.out.println("💳 Estado actual: [PAGADO] - El pedido está listo para salir del almacén.");
+    }
+}
+
+class EstadoEnviado implements EstadoPedido {
+    @Override
+    public void siguiente(ContextoPedido context) {
+        System.out.println("&gt;&gt; Aviso: El pedido ya ha sido enviado, no hay más estados siguientes.");
+    }
+
+    @Override
+    public void mostrarEstado() {
+        System.out.println("🚚 Estado actual: [ENVIADO] - El paquete va en camino al cliente.");
+    }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de State</span>
+<span class="center-horizontal caption">Implementación completa de una máquina de estados con el patrón State</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Cero sentencias <code class="language-java">if</code> o <code class="language-java">switch</code>:</strong>
+        <p>Fíjate en la clase <code class="language-java">ContextoPedido</code>: no tiene ni un solo <code class="language-java">if</code>. Simplemente ejecuta <code class="language-java">estadoActual.mostrarEstado()</code> y <code class="language-java">estadoActual.siguiente(this)</code>.</p>
+    </li>
+    <li>
+        <strong>2. Diferencia entre State y Strategy:</strong>
+        <p>En <strong>Strategy</strong>, el cliente elige desde fuera qué algoritmo quiere usar (ej. pagar con PayPal o Tarjeta) y las estrategias no se conocen entre sí. En <strong>State</strong>, los propios estados transicionan automáticamente de uno a otro (de <code class="language-java">EstadoPendientePago</code> a <code class="language-java">EstadoPagado</code>) siguiendo un ciclo de vida.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        ContextoPedido pedido = new ContextoPedido();
+
+        // Estado 1: recién creado
+        pedido.mostrarEstado();
+
+        // Avanzamos al Estado 2 (Pagado)
+        pedido.avanzarPaso();
+        pedido.mostrarEstado();
+
+        // Avanzamos al Estado 3 (Enviado)
+        pedido.avanzarPaso();
+        pedido.mostrarEstado();
+
+        // Intentamos avanzar más allá del último estado
+        pedido.avanzarPaso();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Evolución del pedido a través de todos sus estados</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+🛒 Estado actual: [PENDIENTE DE PAGO] - Esperando confirmación bancaria.
+&gt;&gt; Procesando cobro... Transicionando a estado PAGADO.
+💳 Estado actual: [PAGADO] - El pedido está listo para salir del almacén.
+&gt;&gt; Preparando paquete en almacén... Transicionando a estado ENVIADO.
+🚚 Estado actual: [ENVIADO] - El paquete va en camino al cliente.
+&gt;&gt; Aviso: El pedido ya ha sido enviado, no hay más estados siguientes.
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando tengas un objeto que se comporte como una máquina de estados finitos (pedidos, trámites administrativos, conexiones TCP, reproductores multimedia) y sus métodos estén llenos de condicionales según el estado actual.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si el objeto solo tiene 2 estados muy simples que rara vez cambian.</li>
+</ul>

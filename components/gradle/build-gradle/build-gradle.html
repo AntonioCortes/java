@@ -1,0 +1,140 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">El Archivo build.gradle, settings.gradle y gradle.properties</h1>
+
+<p>El archivo <code class="language-bash">build.gradle</code> es el cerebro de tu proyecto. Si solo sabías que ahí se ponían las librerías, en esta sección vas a entender <strong>para qué sirve cada uno de sus bloques</strong> y cómo se relaciona con <code class="language-bash">settings.gradle</code> y <code class="language-bash">gradle.properties</code>.</p>
+
+<img class="center-horizontal" src="components/gradle/build-gradle/assets/img/gradle-build-diagram.png">
+<span class="center-horizontal caption">Figura 1: Relación entre settings.gradle, gradle.properties y los 4 bloques principales de build.gradle</span>
+
+<h2 class="subtitle">Un archivo <code class="language-bash">build.gradle</code> Completo y Limpio Explicado por Bloques</h2>
+<p>Veamos primero cómo luce un archivo <code class="language-bash">build.gradle</code> estándar para un proyecto Java moderno y analicemos cada uno de sus 5 bloques numerados:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// BLOQUE 1: Plugins (Qué tipo de proyecto es y qué herramientas activa)
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// BLOQUE 2: Metadatos del Proyecto y Versión de Java
+group = 'com.miempresa.facturacion'
+version = '1.0.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// BLOQUE 3: Repositorios (De qué servidores de internet descargamos las librerías)
+repositories {
+    mavenCentral()
+}
+
+// BLOQUE 4: Dependencias (Qué librerías externas necesita nuestro código)
+dependencies {
+    implementation 'com.google.code.gson:gson:2.11.0'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+// BLOQUE 5: Configuración de Tareas y de la Aplicación
+application {
+    mainClass = 'com.miempresa.facturacion.Main'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Estructura limpia y comentada de un archivo build.gradle estándar</span>
+
+<h2 class="subtitle">Desglose Detallado de Cada Bloque</h2>
+
+<ul>
+    <li>
+        <strong>Bloque 1 — <code class="language-groovy">plugins { ... }</code>:</strong>
+        <p>Por sí solo, Gradle es un motor genérico que no sabe ni siquiera qué es un archivo <code class="language-bash">.java</code>. Al poner <code class="language-groovy">id 'java'</code>, le dices a Gradle: <em>"Este es un proyecto Java: activa la compilación de <code class="language-bash">src/main/java</code>, los tests y la creación de archivos <code class="language-bash">.jar</code>"</em>. Y al añadir <code class="language-groovy">id 'application'</code>, le permites ejecutar tu método <code class="language-java">main</code> directamente con el comando <code class="language-bash">./gradlew run</code>.</p>
+    </li>
+    <li>
+        <strong>Bloque 2 — Metadatos (<code class="language-groovy">group</code>, <code class="language-groovy">version</code> y <code class="language-groovy">java</code>):</strong>
+        <p><code class="language-groovy">group</code> identifica a tu organización o paquete raíz (por ejemplo, <code class="language-groovy">'com.miempresa'</code>) y <code class="language-groovy">version</code> da nombre al archivo generado (por ejemplo, <code class="language-bash">mi-proyecto-1.0.0-SNAPSHOT.jar</code>). El bloque <code class="language-groovy">java { toolchain { ... } }</code> es la forma moderna de indicar qué versión de JDK usar (por ejemplo, Java 17 o Java 21). En proyectos antiguos también verás escrito <code class="language-groovy">sourceCompatibility = '17'</code>.</p>
+    </li>
+    <li>
+        <strong>Bloque 3 — <code class="language-groovy">repositories { ... }</code>:</strong>
+        <p>Cuando pides una librería en el bloque de dependencias, Gradle necesita saber a qué servidor web acudir para descargarla. Existen cuatro opciones principales:</p>
+    </li>
+</ul>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Declaración en <code class="language-groovy">repositories</code></th>
+            <th scope="col">¿De dónde descarga los archivos <code class="language-bash">.jar</code>?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><code class="language-groovy">mavenCentral()</code></th>
+            <td>El repositorio público oficial más grande del mundo Java. Es el que debes poner siempre por defecto.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">google()</code></th>
+            <td>Repositorio oficial de Google (imprescindible si desarrollas para Android).</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">mavenLocal()</code></th>
+            <td>Busca en la carpeta local de Maven de tu propio ordenador (<code class="language-bash">~/.m2/repository</code>). Útil si estás desarrollando dos proyectos a la vez en tu PC.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">maven { url "https://..." }</code></th>
+            <td>Un servidor privado de tu empresa (como Nexus o JFrog Artifactory) donde se alojan las librerías internas de tu compañía.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">flatDir { dirs 'libs' }</code></th>
+            <td>Busca archivos <code class="language-bash">.jar</code> sueltos que hayas copiado manualmente dentro de una carpeta local llamada <code class="language-bash">libs/</code> en tu proyecto.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Tipos de repositorios donde Gradle busca las librerías</span>
+
+<h2 class="subtitle">¿Para qué sirve el archivo <code class="language-bash">settings.gradle</code>?</h2>
+<p>Mientras que <code class="language-bash">build.gradle</code> define <em>cómo</em> se compila el proyecto, <code class="language-bash">settings.gradle</code> define <strong>cómo se llama el proyecto y qué subcarpetas lo componen</strong>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// En un proyecto simple (de un solo módulo), solo tiene esta línea:
+rootProject.name = 'sistema-reservas'
+
+// Si tu proyecto es grande (Multimódulo) y está dividido en 3 subcarpetas, las incluyes aquí:
+include('modulo-dominio')
+include('modulo-base-datos')
+include('modulo-api-rest')
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de archivo settings.gradle para proyectos simples y multimódulo</span>
+
+<h2 class="subtitle">¿Para qué sirve el archivo <code class="language-bash">gradle.properties</code>?</h2>
+<p>Es un archivo opcional de clave=valor muy útil por dos motivos: <strong>acelerar Gradle</strong> y <strong>guardar versiones de librerías en un solo sitio</strong> para no repetirlas en <code class="language-bash">build.gradle</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-properties">
+# 1. Opciones de rendimiento del motor de Gradle
+org.gradle.daemon=true
+org.gradle.parallel=true
+org.gradle.caching=true
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+
+# 2. Variables propias que luego podemos usar en build.gradle con ${lombokVersion}
+lombokVersion=1.18.34
+springBootVersion=3.3.4
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de archivo gradle.properties optimizado</span>

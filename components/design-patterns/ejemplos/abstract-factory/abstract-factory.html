@@ -5,72 +5,214 @@
 </style>
 <h1 class="title">Patrón Abstract Factory</h1>
 
-<p>El patrón <strong>Abstract Factory</strong> es un patrón creacional que permite producir familias de objetos relacionados sin especificar sus clases concretas.</p>
+<p>El patrón <strong>Abstract Factory</strong> (Fábrica Abstracta) es un patrón creacional que permite producir <strong>familias de objetos relacionados entre sí</strong> sin especificar sus clases concretas. Si <em>Factory Method</em> es una fábrica de un único tipo de producto, <em>Abstract Factory</em> es una "fábrica de fábricas" que garantiza que todos los objetos creados combinen entre sí.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Imagina que vas a comprar un conjunto de muebles para tu salón: una <strong>Silla</strong> y una <strong>Mesa de Centro</strong>. Existen distintas familias de estilo: estilo <em>Moderno</em> y estilo <em>Victoriano</em>. No quieres que por error te entreguen una silla moderna minimalista combinada con una mesa victoriana barroca. Al elegir el catálogo de la "Fábrica Moderna", te aseguras de que tanto la silla como la mesa que te entreguen pertenezcan a la misma familia visual.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Crear familias de objetos relacionados o dependientes sin especificar sus clases concretas.</p>
+<p>Proporcionar una interfaz para crear familias de productos relacionados o dependientes, garantizando la compatibilidad entre los productos de una misma familia y ocultando las clases concretas al código cliente.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Interfaz Gráfica Multiplataforma (UI Toolkit)</h2>
-<p><strong>Contexto:</strong> Estás desarrollando una aplicación de escritorio que debe funcionar en Windows, MacOS y Linux. Cada sistema operativo tiene su propio estilo visual y comportamiento para los botones, menús y scrollbars.</p>
+<h2 class="subtitle">Caso de Uso Real: Toolkit de Interfaz Gráfica Multiplataforma (Windows vs Mac)</h2>
+<p><strong>Contexto:</strong> Estás desarrollando una aplicación de escritorio que debe ejecutarse tanto en Windows como en macOS. Tu ventana principal contiene un botón (<code class="language-java">Boton</code>) y una casilla de verificación (<code class="language-java">CasillaVerificacion</code>).</p>
 
-<p><strong>El Problema:</strong> Si el código de tu aplicación está lleno de <code class="language-java">if (OS == "Windows") { new WindowsButton() }</code>, se vuelve imposible de mantener. Además, corres el riesgo de mezclar estilos (un botón de Windows en una ventana de Mac), lo que daría una experiencia de usuario terrible.</p>
+<p><strong>El Problema (Sin Abstract Factory):</strong> Si instancias los controles manualmente con condicionales dispersos por toda la aplicación, es muy fácil cometer el error de mezclar un <code class="language-java">BotonWindows</code> con un <code class="language-java">CasillaMac</code>, provocando una interfaz incoherente y llenando el código de <code class="language-java">if (os.equals("WIN"))</code>.</p>
 
-<p><strong>La Solución (Abstract Factory):</strong> Defines una "Fábrica" abstracta que declara métodos de creación para cada componente (<code class="language-java">createButton</code>, <code class="language-java">createMenu</code>).
-<br>Luego, creas fábricas concretas para cada SO (<code class="language-java">WindowsFactory</code>, <code class="language-java">MacFactory</code>). Al arrancar, la aplicación elige la fábrica correcta y a partir de ahí solo usa esa fábrica. Esto garantiza que todos los componentes creados pertenezcan a la misma familia visual.</p>
+<p><strong>La Solución (Con Abstract Factory):</strong> Defines la interfaz <code class="language-java">FabricaGUI</code> con los métodos <code class="language-java">crearBoton()</code> y <code class="language-java">createCasillaVerificacion()</code>. Al arrancar el programa, compruebas el sistema operativo una sola vez e inyectas <code class="language-java">FabricaWindows</code> o <code class="language-java">FabricaMac</code> en la clase <code class="language-java">Aplicacion</code>. A partir de ese instante, todos los controles creados serán 100% coherentes con ese sistema operativo.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Familias de Objetos:</strong> 
-        <p>El patrón asegura la consistencia entre productos. <code class="language-java">WinFactory</code> solo crea <code class="language-java">WinButton</code> y <code class="language-java">WinCheckbox</code>. El sistema de tipos impide que mezcles un <code class="language-java">WinButton</code> con un <code class="language-java">MacCheckbox</code> si usas la fábrica correctamente.</p>
-    </li>
-    <li>
-        <strong>Desacoplamiento:</strong> 
-        <p>El código cliente (la clase <code class="language-java">Application</code>) solo conoce las interfaces (<code class="language-java">GUIFactory</code>, <code class="language-java">Button</code>), no las clases concretas. Esto facilita añadir soporte para Linux en el futuro sin tocar el código de la aplicación.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/abstract-factory/assets/img/abstract-factory-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Abstract Factory con dos familias de productos (Windows y Mac)</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Fábrica Abstracta</th>
+            <td><code class="language-java">FabricaGUI</code></td>
+            <td>Declara los métodos para crear cada uno de los productos de la familia (<code class="language-java">crearBoton()</code> y <code class="language-java">createCasillaVerificacion()</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Fábricas Concretas</th>
+            <td><code class="language-java">FabricaWindows</code>, <code class="language-java">FabricaMac</code></td>
+            <td>Implementan la creación de una familia específica (solo componentes Windows o solo componentes Mac).</td>
+        </tr>
+        <tr>
+            <th scope="row">Productos Abstractos</th>
+            <td><code class="language-java">Boton</code>, <code class="language-java">CasillaVerificacion</code></td>
+            <td>Interfaces para cada tipo de componente visual.</td>
+        </tr>
+        <tr>
+            <th scope="row">Productos Concretos</th>
+            <td><code class="language-java">BotonWindows</code>, <code class="language-java">BotonMac</code>, <code class="language-java">CasillaWindows</code>, <code class="language-java">CasillaMac</code></td>
+            <td>Implementaciones reales de los botones y casillas para cada sistema operativo.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cliente</th>
+            <td><code class="language-java">Aplicacion</code></td>
+            <td>Recibe cualquier <code class="language-java">FabricaGUI</code> por constructor y construye la ventana sin saber en qué sistema operativo está.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Abstract Factory</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Interfaces
-interface Button { void paint(); }
-interface Checkbox { void paint(); }
-
-// Abstract Factory
-interface GUIFactory {
-    Button createButton();
-    Checkbox createCheckbox();
+// 1. Interfaces de los Productos Abstractos
+interface Boton {
+    void pintar();
 }
 
-// Concrete Factory 1: Win
-class WinFactory implements GUIFactory {
-    public Button createButton() { return new WinButton(); }
-    public Checkbox createCheckbox() { return new WinCheckbox(); }
+interface CasillaVerificacion {
+    void pintar();
 }
 
-// Concrete Factory 2: Mac
-class MacFactory implements GUIFactory {
-    public Button createButton() { return new MacButton(); }
-    public Checkbox createCheckbox() { return new MacCheckbox(); }
+// 2. Familia de Productos Concretos: WINDOWS
+class BotonWindows implements Boton {
+    @Override
+    public void pintar() {
+        System.out.println("Renderizando Botón con estilo clásico de Windows.");
+    }
 }
 
-class Application {
-    private Button button;
-    private Checkbox checkbox;
+class CasillaWindows implements CasillaVerificacion {
+    @Override
+    public void pintar() {
+        System.out.println("Renderizando CasillaVerificacion cuadrado de Windows.");
+    }
+}
 
-    public Application(GUIFactory factory) {
-        button = factory.createButton();
-        checkbox = factory.createCheckbox();
+// 3. Familia de Productos Concretos: MAC
+class BotonMac implements Boton {
+    @Override
+    public void pintar() {
+        System.out.println("Renderizando Botón redondeado estilo macOS.");
+    }
+}
+
+class CasillaMac implements CasillaVerificacion {
+    @Override
+    public void pintar() {
+        System.out.println("Renderizando CasillaVerificacion minimalista estilo macOS.");
+    }
+}
+
+// 4. Interfaz Abstract Factory
+interface FabricaGUI {
+    Button crearBoton();
+    CasillaVerificacion createCasillaVerificacion();
+}
+
+// 5. Fábricas Concretas (una por cada familia)
+class FabricaWindows implements FabricaGUI {
+    @Override
+    public Button crearBoton() {
+        return new BotonWindows();
+    }
+    @Override
+    public CasillaVerificacion createCasillaVerificacion() {
+        return new CasillaWindows();
+    }
+}
+
+class FabricaMac implements FabricaGUI {
+    @Override
+    public Button crearBoton() {
+        return new BotonMac();
+    }
+    @Override
+    public CasillaVerificacion createCasillaVerificacion() {
+        return new CasillaMac();
+    }
+}
+
+// 6. Cliente: trabaja exclusivamente con las interfaces abstractas
+class Aplicacion {
+    private Boton boton;
+    private CasillaVerificacion casilla;
+
+    public Aplicacion(FabricaGUI fabrica) {
+        this.boton = fabrica.crearBoton();
+        this.checkbox = factory.createCasillaVerificacion();
     }
 
-    public void paint() {
-        button.paint();
-        checkbox.paint();
+    public void pintar() {
+        boton.pintar();
+        casilla.pintar();
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Abstract Factory</span>
+<span class="center-horizontal caption">Implementación completa de Abstract Factory</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Garantía de consistencia entre familias:</strong>
+        <p>Observa que <code class="language-java">FabricaWindows</code> solo puede devolver <code class="language-java">BotonWindows</code> y <code class="language-java">CasillaWindows</code>. Es imposible que <code class="language-java">Aplicacion</code> mezcle por accidente un botón de Windows con un checkbox de Mac porque ambos provienen del mismo objeto <code class="language-java">factory</code>.</p>
+    </li>
+    <li>
+        <strong>2. Principio Abierto/Cerrado (OCP) para nuevas familias:</strong>
+        <p>Si mañana queremos dar soporte a <strong>Linux</strong>, solo tenemos que crear <code class="language-java">LinuxButton</code>, <code class="language-java">LinuxCasillaVerificacion</code> y <code class="language-java">LinuxFactory</code>. ¡No hay que tocar ni una sola línea de la clase <code class="language-java">Aplicacion</code>!</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    // Método auxiliar que selecciona la fábrica una única vez al inicio
+    private static Application configureApplication(String osName) {
+        FabricaGUI fabrica;
+        if (osName.equalsIgnoreCase("MAC")) {
+            fabrica = new FabricaMac();
+        } else {
+            fabrica = new FabricaWindows();
+        }
+        return new Aplicacion(fabrica);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("--- Arrancando aplicación en entorno Windows ---");
+        Aplicacion appWin = configureApplication("WIN");
+        appWin.pintar();
+
+        System.out.println("\n--- Arrancando aplicación en entorno macOS ---");
+        Aplicacion appMac = configureApplication("MAC");
+        appMac.pintar();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Selección de la fábrica concreta al inicio de la aplicación</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Arrancando aplicación en entorno Windows ---
+Renderizando Botón con estilo clásico de Windows.
+Renderizando CasillaVerificacion cuadrado de Windows.
+
+--- Arrancando aplicación en entorno macOS ---
+Renderizando Botón redondeado estilo macOS.
+Renderizando CasillaVerificacion minimalista estilo macOS.
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola demostrando la consistencia de cada familia</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando tu sistema deba trabajar con múltiples familias de productos relacionados (temas visuales claro/oscuro, conectores de distintas nubes AWS/Azure/GCP) y quieras asegurar que los objetos de una familia siempre se usen juntos.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si frecuentemente necesitas añadir <em>nuevos tipos de productos</em> a la familia (por ejemplo, añadir <code class="language-java">createSlider()</code>), ya que eso te obligará a modificar la interfaz <code class="language-java">FabricaGUI</code> y todas sus subclases.</li>
+</ul>

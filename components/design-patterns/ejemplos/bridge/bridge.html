@@ -5,68 +5,200 @@
 </style>
 <h1 class="title">Patrón Bridge</h1>
 
-<p>El patrón <strong>Bridge</strong> es un patrón estructural que divide una clase grande o un conjunto de clases estrechamente relacionadas en dos jerarquías separadas (abstracción e implementación) que pueden desarrollarse independientemente.</p>
+<p>El patrón <strong>Bridge</strong> (Puente) es un patrón estructural que divide una clase grande o un conjunto de clases estrechamente ligadas en <strong>dos jerarquías separadas</strong> —<strong>Abstracción</strong> e <strong>Implementación</strong>— conectadas mediante una referencia, para que ambas puedan evolucionar de forma independiente.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en los <strong>mandos a distancia</strong> (Abstracción) y los <strong>aparatos electrónicos</strong> como un Televisor o una Radio (Implementación). Un mismo mando básico o un mando avanzado con botón de silencio (<code class="language-java">mute</code>) puede controlar tanto una TV como una Radio porque ambos dispositivos comparten una interfaz de comunicación por infrarrojos (<code class="language-java">Dispositivo</code>). No necesitas fabricar una clase <code class="language-java">MandoAvanzadoParaRadioSony</code> y otra <code class="language-java">MandoBasicoParaTvLG</code>.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Desacoplar una abstracción de su implementación, de modo que ambas puedan variar independientemente.</p>
+<p>Evitar la explosión combinatoria de subclases cuando un sistema puede crecer en dos dimensiones ortogonales (por ejemplo: tipos de Mandos × tipos de Dispositivos, o tipos de Formas × motores de Renderizado).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Mando a Distancia Universal</h2>
-<p><strong>Contexto:</strong> Quieres crear un sistema para controlar dispositivos (TV, Radio, Proyector) con distintos mandos a distancia. Cada dispositivo tiene sus propios comandos internos y cada mando puede tener funciones extra (Mute, Voz).</p>
+<h2 class="subtitle">Caso de Uso Real: Mandos a Distancia Universales y Dispositivos</h2>
+<p><strong>Contexto:</strong> Tienes 2 tipos de mandos (<code class="language-java">MandoDistancia</code> básico y <code class="language-java">MandoAvanzado</code>) y 2 tipos de dispositivos (<code class="language-java">Televisor</code> y <code class="language-java">Radio</code>).</p>
 
-<p><strong>El Problema:</strong> Si usas herencia simple, acabarías con una explosión de clases: <code class="language-java">SonyTVRemote</code>, <code class="language-java">SonyRadioRemote</code>, <code class="language-java">SamsungTVRemote</code>, etc. Si añades un nuevo tipo de mando o una nueva marca de TV, el número de clases crece exponencialmente (Producto cartesiano Abstracciones x Implementaciones).</p>
+<p><strong>El Problema (Sin Bridge):</strong> Si usas herencia tradicional para combinarlos, necesitas 2 × 2 = 4 clases (<code class="language-java">BasicTvRemote</code>, <code class="language-java">AdvancedTvRemote</code>, <code class="language-java">BasicRadioRemote</code>, <code class="language-java">AdvancedRadioRemote</code>). Si mañana tienes 5 tipos de mandos y 5 dispositivos, ¡tendrás que escribir 25 clases!</p>
 
-<p><strong>La Solución (Bridge):</strong> Separas las jerarquías en dos: 
-<br>1. <strong>Abstracción (Mando):</strong> Define las operaciones de alto nivel (encender, apagar).
-<br>2. <strong>Implementación (Dispositivo):</strong> Define las operaciones de bajo nivel (setVoltage, enableCircuit).
-<br>El mando guarda una referencia al dispositivo. Así, un solo mando genérico puede controlar cualquier dispositivo que implemente la interfaz común.</p>
+<p><strong>La Solución (Con Bridge):</strong> Separas los Mandos en una jerarquía y los Dispositivos en otra. La clase base <code class="language-java">MandoDistancia</code> contiene un atributo <code class="language-java">protected Dispositivo device</code> (ese atributo es literalmente <strong>el Puente</strong>). Así, 5 mandos + 5 dispositivos son solo 10 clases en lugar de 25.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Desacoplamiento Abstracción-Implementación:</strong> 
-        <p>A diferencia de la herencia, donde la implementación está atada a la abstracción en tiempo de compilación, el Bridge permite cambiar la implementación en tiempo de ejecución (asignando un nuevo <code class="language-java">Device</code> al <code class="language-java">RemoteControl</code>). Esto favorece la composición sobre la herencia.</p>
-    </li>
-    <li>
-        <strong>Extensibilidad Independiente:</strong> 
-        <p>Puedes añadir nuevos mandos (ej. <code class="language-java">VoiceControlRemote</code>) sin tocar las clases de dispositivos, y nuevos dispositivos (ej. <code class="language-java">SmartLight</code>) sin tocar los mandos.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/bridge/assets/img/bridge-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Bridge mostrando las dos jerarquías unidas por el puente</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Abstracción</th>
+            <td><code class="language-java">MandoDistancia</code></td>
+            <td>Define las acciones de control de alto nivel y guarda la referencia (<code class="language-java">device</code>) hacia el dispositivo controlado.</td>
+        </tr>
+        <tr>
+            <th scope="row">Abstracción Refinada</th>
+            <td><code class="language-java">MandoAvanzado</code></td>
+            <td>Extiende la abstracción añadiendo operaciones más específicas (como <code class="language-java">silenciar()</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Implementador (Interfaz)</th>
+            <td><code class="language-java">Dispositivo</code></td>
+            <td>Declara las operaciones primitivas comunes a todos los dispositivos (<code class="language-java">enable</code>, <code class="language-java">disable</code>, <code class="language-java">setVolumen</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Implementadores Concretos</th>
+            <td><code class="language-java">Televisor</code>, <code class="language-java">Radio</code></td>
+            <td>Implementan el funcionamiento interno real de cada aparato.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Bridge</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Implementor
-interface Device {
-    void turnOn();
-    void turnOff();
-    void setChannel(int channel);
+// 1. Implementor: Interfaz común para todos los dispositivos físicos
+interface Dispositivo {
+    boolean estaEncendido();
+    void encender();
+    void apagar();
+    int getVolumen();
+    void setVolumen(int percent);
 }
 
-// Abstraction
-class RemoteControl {
-    protected Device device;
-    
-    public RemoteControl(Device device) {
-        this.device = device;
-    }
-    
-    public void togglePower() {
-        // lógica genérica
+// 2. Implementadores Concretos: TV y Radio
+class Televisor implements Dispositivo {
+    private boolean on = false;
+    private int volumen = 30;
+
+    @Override
+    public boolean estaEncendido() { return on; }
+    @Override
+    public void encender() { on = true; System.out.println("[TV] Televisor encendido."); }
+    @Override
+    public void apagar() { on = false; System.out.println("[TV] Televisor apagado."); }
+    @Override
+    public int getVolumen() { return volumen; }
+    @Override
+    public void setVolumen(int percent) {
+        this.volumen = percent;
+        System.out.println("[TV] Volumen ajustado a " + this.volumen + "%");
     }
 }
 
-// Refined Abstraction
-class AdvancedRemoteControl extends RemoteControl {
-    public AdvancedRemoteControl(Device device) {
-        super(device);
+class Radio implements Dispositivo {
+    private boolean on = false;
+    private int volumen = 20;
+
+    @Override
+    public boolean estaEncendido() { return on; }
+    @Override
+    public void encender() { on = true; System.out.println("[Radio] Radio FM encendida."); }
+    @Override
+    public void apagar() { on = false; System.out.println("[Radio] Radio FM apagada."); }
+    @Override
+    public int getVolumen() { return volumen; }
+    @Override
+    public void setVolumen(int percent) {
+        this.volumen = percent;
+        System.out.println("[Radio] Volumen ajustado a " + this.volumen + "%");
     }
-    
-    public void mute() {
-        device.setVolume(0);
+}
+
+// 3. Abstracción: El Mando base que contiene el PUENTE (referencia a Device)
+class MandoDistancia {
+    protected Dispositivo dispositivo;
+
+    public MandoDistancia(Dispositivo dispositivo) {
+        this.dispositivo = dispositivo;
+    }
+
+    public void alternarEncendido() {
+        if (dispositivo.estaEncendido()) {
+            dispositivo.apagar();
+        } else {
+            dispositivo.encender();
+        }
+    }
+
+    public void volumenUp() {
+        dispositivo.setVolumen(dispositivo.getVolumen() + 10);
+    }
+}
+
+// 4. Abstracción Refinada: Mando avanzado con funciones adicionales
+class MandoAvanzado extends MandoDistancia {
+    public MandoAvanzado(Dispositivo dispositivo) {
+        super(dispositivo);
+    }
+
+    public void silenciar() {
+        System.out.println("&gt;&gt; Pulsado botón MUTE en el mando avanzado");
+        dispositivo.setVolumen(0);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Bridge</span>
+<span class="center-horizontal caption">Implementación completa del patrón Bridge</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Dónde está el "Puente"?</strong>
+        <p>El puente es la línea <code class="language-java">protected Dispositivo dispositivo;</code> dentro de <code class="language-java">MandoDistancia</code>. En lugar de que el mando herede de <code class="language-java">Televisor</code> o <code class="language-java">Radio</code>, se conecta a ellos mediante esa referencia.</p>
+    </li>
+    <li>
+        <strong>2. Diferencia clave entre Adapter y Bridge:</strong>
+        <p><strong>Adapter</strong> se usa <em>a posteriori</em> para hacer que dos clases incompatibles ya existentes funcionen juntas. <strong>Bridge</strong> se diseña <em>desde el principio</em> para evitar que una jerarquía de clases se multiplique descontroladamente.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("--- Controlando una TV con un Mando Básico ---");
+        Dispositivo myTv = new Televisor();
+        MandoDistancia basicRemote = new MandoDistancia(myTv);
+        basicRemote.alternarEncendido();
+        basicRemote.volumenUp();
+
+        System.out.println("\n--- Controlando una Radio con un Mando Avanzado ---");
+        Dispositivo myRadio = new Radio();
+        MandoAvanzado advancedRemote = new MandoAvanzado(myRadio);
+        advancedRemote.alternarEncendido();
+        advancedRemote.silenciar();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Cualquier mando puede combinarse con cualquier dispositivo</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Controlando una TV con un Mando Básico ---
+[TV] Televisor encendido.
+[TV] Volumen ajustado a 40%
+
+--- Controlando una Radio con un Mando Avanzado ---
+[Radio] Radio FM encendida.
+&gt;&gt; Pulsado botón MUTE en el mando avanzado
+[Radio] Volumen ajustado a 0%
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando tengas una clase con varias variantes de funcionalidad y varias variantes de plataforma/dispositivo y quieras combinarlas y extenderlas de forma independiente.</li>
+    <li><strong>Cuándo evitarlo:</strong> En clases simples que solo varían en una única dimensión.</li>
+</ul>

@@ -5,79 +5,118 @@
 </style>
 <h1 class="title">Patrón Proxy</h1>
 
-<p>El patrón <strong>Proxy</strong> es un patrón estructural que proporciona un sustituto o marcador de posición para otro objeto. Un proxy controla el acceso al objeto original, permitiendo hacer algo antes o después de que la solicitud llegue al objeto original.</p>
+<p>El patrón <strong>Proxy</strong> (Sustituto o Apoderado) es un patrón estructural que proporciona un objeto representante que <strong>controla el acceso</strong> a otro objeto real. Al implementar exactamente la misma interfaz que el objeto real, el Proxy puede interceptar las llamadas para realizar tareas antes o después (como carga perezosa, caché, control de permisos o registro de logs).</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en una <strong>tarjeta de débito bancaria</strong>. La tarjeta es un <strong>Proxy</strong> de tu dinero en efectivo guardado en la cámara acorazada del banco (el Objeto Real). Para el comerciante, cobrar con tarjeta o cobrar en efectivo cumple la misma interfaz ("pagar"), pero la tarjeta intercepta la operación, verifica si tienes saldo o permisos y solo mueve el dinero real cuando se confirma la compra.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Controlar el acceso a un objeto. Puede ser para carga perezosa (Virtual Proxy), control de acceso (Protection Proxy), ejecución remota (Remote Proxy) o logging.</p>
+<p>Actuar como intermediario transparente del objeto real para gestionar su ciclo de vida o proteger su acceso. Sus variantes más famosas son: <strong>Virtual Proxy</strong> (carga diferida / <em>Lazy Loading</em>), <strong>Protection Proxy</strong> (control de permisos) y <strong>Caching Proxy</strong> (guardar respuestas en caché).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Carga Diferida (Lazy Loading) de Imágenes</h2>
-<p><strong>Contexto:</strong> Tienes una lista de productos con imágenes de alta resolución (10MB cada una). El usuario hace scroll rápido por la lista.</p>
+<h2 class="subtitle">Caso de Uso Real: Carga Diferida (Lazy Loading) de Imágenes Pesadas</h2>
+<p><strong>Contexto:</strong> Un catálogo tiene 500 fotografías en alta resolución (<code class="language-java">ImagenReal</code>). Cargar cada foto desde el disco duro o desde internet tarda mucho tiempo y consume mucha memoria.</p>
 
-<p><strong>El Problema:</strong> Si cargas todas las imágenes reales al arrancar la aplicación o al crear el objeto del producto, la aplicación tardará minutos en iniciar y consumirá toda la memoria, incluso para imágenes que el usuario quizá nunca llegue a ver (porque no hizo scroll hasta abajo).</p>
+<p><strong>El Problema (Sin Proxy):</strong> Si al abrir la pantalla instancias las 500 <code class="language-java">ImagenReal</code> de golpe, la aplicación se quedará congelada cargando fotos que el usuario quizá ni siquiera llegue a mirar.</p>
 
-<p><strong>La Solución (Virtual Proxy):</strong> En lugar de la imagen real, pones un Proxy (un objeto ligero que ocupa poco).
-<br>Cuando la interfaz gráfica llama a <code class="language-java">display()</code> en el Proxy porque el usuario ha hecho scroll y la imagen debe verse, EN ESE MOMENTO el Proxy carga la imagen real del disco y delega la llamada. Mientras tanto, puede mostrar un placeholder.</p>
+<p><strong>La Solución (Con Virtual Proxy):</strong> La lista carga 500 objetos <code class="language-java">ImagenProxy</code> ultraligeros que implementan la interfaz <code class="language-java">Imagen</code> pero aún no han leído el disco. Solo cuando el usuario hace clic en una foto y se invoca <code class="language-java">mostrar()</code>, el <code class="language-java">ImagenProxy</code> instancia por primera vez a <code class="language-java">ImagenReal</code> y además la guarda en memoria por si vuelve a mostrarse.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Misma Interfaz:</strong> 
-        <p>El Proxy debe implementar <strong>la misma interfaz</strong> que el objeto real (<code class="language-java">Image</code>). Esto permite que el cliente trate al proxy y al objeto real de forma indistinta (Polimorfismo). El cliente no sabe (ni le importa) si la imagen está cargada o no.</p>
-    </li>
-    <li>
-        <strong>Control de Ciclo de Vida:</strong> 
-        <p>El Proxy es responsable de crear y destruir el objeto real (<code class="language-java">RealImage</code>). Esto le da el control para implementar optimizaciones como Lazy Loading o Caché.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/proxy/assets/img/proxy-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Proxy controlando la creación y acceso a ImagenReal</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Subject (Interfaz)</th>
+            <td><code class="language-java">Imagen</code></td>
+            <td>Define la interfaz común para que el cliente pueda usar un <code class="language-java">ImagenProxy</code> exactamente igual que usaría un <code class="language-java">ImagenReal</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Real Subject (Objeto Real)</th>
+            <td><code class="language-java">ImagenReal</code></td>
+            <td>La clase pesada que realiza el trabajo costoso real (leer la imagen de alta resolución del disco y renderizarla).</td>
+        </tr>
+        <tr>
+            <th scope="row">Proxy (Sustituto)</th>
+            <td><code class="language-java">ImagenProxy</code></td>
+            <td>Guarda una referencia a <code class="language-java">ImagenReal</code>, retrasa su creación hasta que se llama a <code class="language-java">mostrar()</code> y reutiliza la instancia en llamadas posteriores.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Proxy</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-interface Image {
-    void display();
+// 1. Interfaz común para el Objeto Real y para el Proxy
+interface Imagen {
+    void mostrar();
 }
 
-class RealImage implements Image {
-    private String fileName;
+// 2. Objeto Real: pesado de instanciar porque carga el archivo en su constructor
+class ImagenReal implements Imagen {
+    private String nombreArchivo;
 
-    public RealImage(String fileName) {
-        this.fileName = fileName;
-        loadFromDisk(fileName);
+    public ImagenReal(String nombreArchivo) {
+        this.nombreArchivo = nombreArchivo;
+        cargarDesdeDisco(nombreArchivo);
     }
 
-    private void loadFromDisk(String fileName) {
-        System.out.println("Cargando imagen pesada: " + fileName);
+    private void cargarDesdeDisco(String nombreArchivo) {
+        System.out.println("&gt;&gt; [DISCO] Cargando archivo pesado de 25MB: " + nombreArchivo + "...");
     }
 
     @Override
-    public void display() {
-        System.out.println("Mostrando imagen: " + fileName);
+    public void mostrar() {
+        System.out.println("🖼 Mostrando en pantalla la imagen: " + nombreArchivo);
     }
 }
 
-class ProxyImage implements Image {
-    private RealImage realImage;
-    private String fileName;
+// 3. Proxy: objeto ligero que retrasa la creación de ImagenReal hasta que sea indispensable
+class ImagenProxy implements Imagen {
+    private ImagenReal imagenReal;
+    private String nombreArchivo;
 
-    public ProxyImage(String fileName) {
-        this.fileName = fileName;
+    public ImagenProxy(String nombreArchivo) {
+        this.nombreArchivo = nombreArchivo;
     }
 
     @Override
-    public void display() {
-        if (realImage == null) {
-            realImage = new RealImage(fileName);
+    public void mostrar() {
+        // Lazy Loading: solo creamos ImagenReal la primera vez que alguien pide verla
+        if (imagenReal == null) {
+            imagenReal = new ImagenReal(nombreArchivo);
+        } else {
+            System.out.println("&gt;&gt; [CACHÉ PROXY] La imagen ya estaba en memoria, evitando lectura de disco.");
         }
-        realImage.display();
+        imagenReal.mostrar();
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Estructura Proxy (Virtual Proxy)</span>
+<span class="center-horizontal caption">Implementación del patrón Proxy (Virtual + Caching Proxy)</span>
 
-<br>
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Por qué Spring Boot e Hibernate usan tanto el patrón Proxy?</strong>
+        <p>En <strong>Hibernate/JPA</strong>, cuando tienes una relación <code class="language-java">FetchType.LAZY</code>, Hibernate te entrega un <em>Proxy</em> en vez de hacer un <code class="language-java">SELECT</code> inmediato a la base de datos. Y en <strong>Spring</strong>, anotaciones como <code class="language-java">@Transactional</code> o <code class="language-java">@Cacheable</code> funcionan creando un Proxy alrededor de tu <code class="language-java">@Service</code> que abre la transacción antes de llamar a tu método y hace <code class="language-java">commit</code> al terminar.</p>
+    </li>
+    <li>
+        <strong>2. Diferencia entre Decorator y Proxy:</strong>
+        <p>Aunque su estructura UML se parece mucho, en <strong>Decorator</strong> el cliente envuelve manualmente los objetos para sumar funcionalidades (leche + azúcar), mientras que el <strong>Proxy</strong> controla el acceso y suele gestionar él mismo la creación del objeto real sin que el cliente tenga que instanciarlo.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Ejemplo de Uso</h2>
 
@@ -85,27 +124,40 @@ class ProxyImage implements Image {
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        Image image = new ProxyImage("foto_alta_resolucion.jpg");
+        System.out.println("1. Creando el ImagenProxy...");
+        Image image = new ImagenProxy("paisaje_8k.jpg");
+        System.out.println("Proxy creado al instante (aún no se ha tocado el disco duro).\n");
 
-        // La imagen no se carga todavía
-        System.out.println("Proxy creado. Imagen no cargada.");
+        System.out.println("2. Primera llamada a image.mostrar():");
+        image.mostrar();
 
-        // La imagen se carga del disco ahora
-        image.display();
-
-        // La imagen ya está cargada, no se recarga
-        image.display();
+        System.out.println("\n3. Segunda llamada a image.mostrar():");
+        image.mostrar();
     }
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">Demostración de carga diferida y reutilización a través del Proxy</span>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-Output:
-Proxy creado. Imagen no cargada.
-Cargando imagen pesada: foto_alta_resolucion.jpg
-Mostrando imagen: foto_alta_resolucion.jpg
-Mostrando imagen: foto_alta_resolucion.jpg
+Salida por consola:
+1. Creando el ImagenProxy...
+Proxy creado al instante (aún no se ha tocado el disco duro).
+
+2. Primera llamada a image.mostrar():
+&gt;&gt; [DISCO] Cargando archivo pesado de 25MB: paisaje_8k.jpg...
+🖼 Mostrando en pantalla la imagen: paisaje_8k.jpg
+
+3. Segunda llamada a image.mostrar():
+&gt;&gt; [CACHÉ PROXY] La imagen ya estaba en memoria, evitando lectura de disco.
+🖼 Mostrando en pantalla la imagen: paisaje_8k.jpg
 </code></pre>
 </div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando tengas objetos muy pesados que no siempre se llegan a utilizar (<em>Lazy Loading</em>), cuando necesites comprobar permisos antes de ejecutar un método sensible, o para medir tiempos de ejecución y guardar logs sin ensuciar la clase de negocio.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si el objeto original es ligero, rápido y no requiere control de acceso ni caché.</li>
+</ul>

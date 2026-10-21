@@ -5,44 +5,156 @@
 </style>
 <h1 class="title">Patrón Application Controller</h1>
 
-<p>El patrón <strong>Application Controller</strong> es un patrón de la arquitectura Java EE que una extensión del Front Controller que maneja el flujo de navegación complejo.</p>
+<p>El patrón <strong>Application Controller</strong> (Controlador de Aplicación) es un patrón de la capa de presentación de Java EE que centraliza la <strong>lógica de flujo de navegación entre pantallas</strong> (como en un asistente o <em>Wizard</em> paso a paso) y la invocación de comandos de negocio.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en un <strong>asistente de instalación de un programa ("Siguiente &gt; Siguiente &gt; Finalizar")</strong>. La ventana de "Aceptar Licencia" no decide por su cuenta cuál es la siguiente ventana; le pregunta al motor del asistente (<code class="language-java">ControladorAplicacion</code>). Si el usuario eligió "Instalación Rápida", el motor salta directamente a la barra de progreso; si eligió "Instalación Personalizada", el motor muestra primero la pantalla de selección de carpetas.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Gestionar el flujo de la aplicación y la selección de vistas de forma reutilizable.</p>
+<p>Sacar las reglas de "¿a qué pantalla hay que ir después?" fuera de las vistas y de los controladores individuales, concentrando todo el mapa de navegación en una única clase fácil de mantener.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Flujos de Navegación Complejos (Wizards)</h2>
-<p><strong>Contexto:</strong> Tienes un proceso de Checkout en 5 pasos: Carrito -> Dirección -> Envío -> Pago -> Confirmación. El orden depende de condiciones (si es digital no hay envío, si paga con PayPal el flujo cambia).</p>
+<h2 class="subtitle">Caso de Uso Real: Asistente de Compra (Checkout Wizard) en E-Commerce</h2>
+<p><strong>Contexto:</strong> Un proceso de compra pasa por varias pantallas: <code class="language-java">CART</code> (Carrito) $\rightarrow$ <code class="language-java">SHIPPING</code> (Dirección de envío) $\rightarrow$ <code class="language-java">PAYMENT</code> (Pago) $\rightarrow$ <code class="language-java">SUCCESS</code> (Confirmación). Además, si el producto es un libro digital (E-Book), debe saltarse la pantalla de dirección de envío e ir directo al pago.</p>
 
-<p><strong>El Problema:</strong> Si pones la lógica de "a dónde ir después" en cada Vista o Controlador (<code class="language-java">if (step1_done) return "step2"</code>), dispersas el flujo por toda la aplicación. Cambiar el orden de los pasos se vuelve una pesadilla.</p>
+<p><strong>El Problema (Sin Application Controller):</strong> Si cada pantalla tiene <code class="language-java">if</code> internos apuntando al nombre de la siguiente pantalla, reordenar los pasos o añadir una condición nueva obliga a buscar y cambiar código en todas las pantallas.</p>
 
-<p><strong>La Solución (Application Controller):</strong> Centralizas la lógica de navegación en un único componente.
-<br>El Front Controller delega en el Application Controller la pregunta "¿Cuál es la siguiente vista?". Este componente actúa como una máquina de estados que conoce todo el mapa de navegación.</p>
+<p><strong>La Solución (Con Application Controller):</strong> Creamos <code class="language-java">ControladorAplicacion</code> con el método <code class="language-java">obtenerSiguienteVista(currentView, action)</code> que actúa como el mapa central de navegación de toda la aplicación.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Flujo y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Centralización del Flujo:</strong> 
-        <p>Todo el grafo de navegación está en un solo sitio (frecuentemente configurado en XML o Java Config). Esto permite visualizar y modificar el flujo de usuario globalmente.</p>
-    </li>
-    <li>
-        <strong>Reutilización de Acciones:</strong> 
-        <p>El Application Controller puede decidir reutilizar acciones existentes pero cambiar la vista destino dependiendo del contexto (ej. login exitoso vs login fallido redirigen a sitios distintos).</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/application-controller/assets/img/application-controller-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Application Controller gobernando las transiciones del Wizard de compra</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Controlador Frontal (Clase Normal)</th>
+            <td><code class="language-java">ControladorFrontal</code></td>
+            <td>Recibe la petición del usuario y consulta al <code class="language-java">ControladorAplicacion</code> qué acción ejecutar y qué vista mostrar a continuación.</td>
+        </tr>
+        <tr>
+            <th scope="row">Controlador de Aplicación (Clase Normal)</th>
+            <td><code class="language-java">ControladorAplicacion</code></td>
+            <td>Centraliza las reglas de transición entre pantallas (<code class="language-java">obtenerSiguienteVista</code>) según el paso actual y la acción realizada.</td>
+        </tr>
+        <tr>
+            <th scope="row">Views (Pantallas del Flujo)</th>
+            <td><code class="language-java">VistaCarrito</code>, <code class="language-java">VistaEnvio</code>, <code class="language-java">VistaPago</code>, <code class="language-java">VistaExito</code></td>
+            <td>Representan cada paso del proceso sin conocer qué pantalla viene antes o después.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Application Controller</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class ApplicationController {
-    public String getNextView(String currentView, String action) {
-        // Máquina de estados para navegación
-        if (currentView.equals("cart") && action.equals("checkout"))
-            return "shipping-info";
-        return "home";
+// 1. Application Controller: Máquina de estados que centraliza el mapa de navegación
+class ControladorAplicacion {
+
+    public String obtenerSiguienteVista(String currentView, String action) {
+        if (currentView.equals("CART") &amp;&amp; action.equals("CHECKOUT_FISICO")) {
+            return "SHIPPING_VIEW"; // Producto físico requiere dirección de envío
+        }
+        if (currentView.equals("CART") &amp;&amp; action.equals("CHECKOUT_DIGITAL")) {
+            return "PAYMENT_VIEW";  // Producto digital salta directamente al pago
+        }
+        if (currentView.equals("SHIPPING_VIEW") &amp;&amp; action.equals("ADDRESS_OK")) {
+            return "PAYMENT_VIEW";
+        }
+        if (currentView.equals("PAYMENT_VIEW") &amp;&amp; action.equals("PAY_SUCCESS")) {
+            return "SUCCESS_VIEW";
+        }
+        return "ERROR_VIEW";
+    }
+
+    public void renderView(String viewName) {
+        System.out.println("🖥️ [Navegación] Mostrando pantalla al usuario: &gt;&gt; " + viewName + " &lt;&lt;");
+    }
+}
+
+// 2. Front Controller que se apoya en el Application Controller
+class CheckoutControladorFrontal {
+    private ControladorAplicacion appController = new ControladorAplicacion();
+
+    public String processStep(String currentView, String userAction) {
+        System.out.println("➡️ Usuario en [" + currentView + "] ejecuta acción: " + userAction);
+        String nextView = appController.obtenerSiguienteVista(currentView, userAction);
+        appController.renderView(nextView);
+        return nextView;
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Application Controller</span>
+<span class="center-horizontal caption">Implementación completa del patrón Application Controller</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Diferencia entre Front Controller y Application Controller:</strong>
+        <p>El <strong>Front Controller</strong> es el portero que recibe la petición HTTP y verifica la seguridad general. El <strong>Application Controller</strong> es el navegador GPS que sabe qué pantalla toca mostrar después dentro de un flujo multipaso complejo.</p>
+    </li>
+    <li>
+        <strong>2. Fácil mantenimiento del flujo:</strong>
+        <p>Observa cómo en <code class="language-java">obtenerSiguienteVista()</code> se ve de un solo vistazo todo el recorrido de compra, tanto para productos físicos como para digitales (Spring Web Flow utiliza exactamente este patrón).</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        CheckoutControladorFrontal controller = new CheckoutControladorFrontal();
+
+        System.out.println("--- Caso 1: Compra de un producto FÍSICO (3 pasos) ---");
+        String step = "CART";
+        step = controller.processStep(step, "CHECKOUT_FISICO");
+        step = controller.processStep(step, "ADDRESS_OK");
+        controller.processStep(step, "PAY_SUCCESS");
+
+        System.out.println("\n--- Caso 2: Compra de un E-Book DIGITAL (salta el envío) ---");
+        String stepDigital = "CART";
+        stepDigital = controller.processStep(stepDigital, "CHECKOUT_DIGITAL");
+        controller.processStep(stepDigital, "PAY_SUCCESS");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Simulación de dos flujos de navegación distintos gobernados por el Application Controller</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Caso 1: Compra de un producto FÍSICO (3 pasos) ---
+➡️ Usuario en [CART] ejecuta acción: CHECKOUT_FISICO
+🖥️ [Navegación] Mostrando pantalla al usuario: &gt;&gt; SHIPPING_VIEW &lt;&lt;
+➡️ Usuario en [SHIPPING_VIEW] ejecuta acción: ADDRESS_OK
+🖥️ [Navegación] Mostrando pantalla al usuario: &gt;&gt; PAYMENT_VIEW &lt;&lt;
+➡️ Usuario en [PAYMENT_VIEW] ejecuta acción: PAY_SUCCESS
+🖥️ [Navegación] Mostrando pantalla al usuario: &gt;&gt; SUCCESS_VIEW &lt;&lt;
+
+--- Caso 2: Compra de un E-Book DIGITAL (salta el envío) ---
+➡️ Usuario en [CART] ejecuta acción: CHECKOUT_DIGITAL
+🖥️ [Navegación] Mostrando pantalla al usuario: &gt;&gt; PAYMENT_VIEW &lt;&lt;
+➡️ Usuario en [PAYMENT_VIEW] ejecuta acción: PAY_SUCCESS
+🖥️ [Navegación] Mostrando pantalla al usuario: &gt;&gt; SUCCESS_VIEW &lt;&lt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> En asistentes multipaso (<em>wizards</em> de contratación de seguros, procesos de checkout, encuestas condicionales) donde la siguiente pantalla depende del estado y de las respuestas previas.</li>
+    <li><strong>Cuándo evitarlo:</strong> En APIs REST sin estado o páginas con navegación libre donde cada enlace apunta siempre a un recurso fijo.</li>
+</ul>

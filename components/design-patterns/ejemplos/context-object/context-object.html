@@ -5,42 +5,164 @@
 </style>
 <h1 class="title">Patrón Context Object</h1>
 
-<p>El patrón <strong>Context Object</strong> es un patrón de la arquitectura Java EE que se usa para pasar información de contexto entre componentes sin ensuciar las firmas de los métodos.</p>
+<p>El patrón <strong>Context Object</strong> (Objeto de Contexto) es un patrón de la arquitectura Java EE que encapsula información del entorno o de la petición (como el usuario autenticado, su idioma o el ID de trazabilidad) en un <strong>objeto agnóstico del protocolo web</strong>, evitando acoplar las capas de negocio a clases como <code class="language-java">HttpServletRequest</code>.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en la <strong>pulsera identificativa que te ponen al ingresar en un hospital o en un hotel Todo Incluido</strong>. Cuando vas al comedor o a la piscina (las capas internas de negocio), no tienes que llevar encima el contrato original firmado en recepción ni pasárselo en mano a cada camarero: simplemente llevas puesta tu pulsera en la muñeca (el <code class="language-java">Context Object</code> asociado a ti) y cualquier empleado puede consultarla cuando lo necesite.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Evitar pasar parámetros de protocolo (Request, Response) a través de capas de negocio.</p>
+<p>Evitar dos malas prácticas muy comunes: 1) pasar el objeto <code class="language-java">HttpServletRequest</code> a los servicios de negocio, y 2) ensuciar todos los métodos de la aplicación añadiendo parámetros extra como <code class="language-java">(..., String currentUser, String locale)</code>.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Propagación de Usuario Logueado (SecurityContext)</h2>
-<p><strong>Contexto:</strong> En una aplicación web, necesitas saber quién es el usuario actual en capas profundas del negocio (ej. para auditoría en el DAO: "Usuario X modificó registro Y").</p>
+<h2 class="subtitle">Caso de Uso Real: Propagación del Usuario Logueado (ContextoSeguridad) para Auditoría</h2>
+<p><strong>Contexto:</strong> Cuando un usuario crea un pedido, la capa más profunda de base de datos (<code class="language-java">AuditoriaDAO</code>) necesita registrar en una tabla de auditoría qué usuario ejecutó la operación.</p>
 
-<p><strong>El Problema:</strong> Pasar el objeto <code class="language-java">User</code> o <code class="language-java">HttpServletRequest</code> como parámetro a TODOS los cientos de métodos de tu aplicación (<code class="language-java">metodo(param1, user)</code>) ensucia el código y acopla tu lógica de negocio a la capa web.</p>
+<p><strong>El Problema (Sin Context Object):</strong> Si pasas <code class="language-java">HttpServletRequest</code> desde el Controlador hasta el Servicio y luego hasta el DAO, tu DAO dependerá de la librería de Servlets web y no podrás reutilizarlo en un proceso por lotes (Batch) ni en tests unitarios simples.</p>
 
-<p><strong>La Solución (Context Object):</strong> Creas un objeto Contexto que vive en el hilo actual (ThreadLocal) o está asociado a la petición.
-<br>El filtro de seguridad lo rellena al principio de la petición. Cualquier clase, en cualquier capa, puede llamar a <code class="language-java">SecurityContext.getCurrentUser()</code> sin necesidad de recibirlo explícitamente.</p>
+<p><strong>La Solución (Con Context Object):</strong> Al entrar la petición, el filtro web guarda el usuario en <code class="language-java">ContextoSeguridad</code> (almacenado en un <code class="language-java">ThreadLocal</code> propio del hilo actual). El Servicio y el DAO mantienen sus firmas de métodos limpias, y cuando <code class="language-java">AuditoriaDAO</code> necesita saber quién es el usuario, llama directamente a <code class="language-java">ContextoSeguridad.getUser()</code>.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Limpieza de API:</strong> 
-        <p>Las firmas de los métodos se mantienen limpias, centradas solo en sus datos de negocio. La información contextual (seguridad, transacción, idioma) viaja por un canal paralelo invisible llamado "Contexto".</p>
-    </li>
-    <li>
-        <strong>ThreadLocal:</strong> 
-        <p>En entornos multi-hilo como Servidores Web, se suele usar <code class="language-java">ThreadLocal</code> para asegurar que el contexto de una petición no se mezcle con el de otra petición concurrente.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/context-object/assets/img/context-object-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Context Object compartiendo el usuario actual entre capas sin ensuciar firmas</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Objeto de Contexto (Clase Normal)</th>
+            <td><code class="language-java">ContextoSeguridad</code> / <code class="language-java">UserContext</code></td>
+            <td>Encapsula los datos de contexto (nombre de usuario, rol) de forma independiente de HTTP, apoyándose en <code class="language-java">ThreadLocal</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Inicializador Web</th>
+            <td><code class="language-java">FiltroSeguridadWeb</code> (en <code class="language-java">Main</code>)</td>
+            <td>Extrae los datos de la petición entrante al principio, rellena el <code class="language-java">ContextoSeguridad</code> y lo limpia al finalizar.</td>
+        </tr>
+        <tr>
+            <th scope="row">Capas de Negocio y Datos</th>
+            <td><code class="language-java">ServicioPedidos</code>, <code class="language-java">AuditoriaDAO</code></td>
+            <td>Ejecutan su lógica con firmas limpias y consultan <code class="language-java">ContextoSeguridad.get()</code> cuando necesitan información del usuario actual.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Context Object</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class SecurityContext {
-    private static ThreadLocal<User> currentUser = new ThreadLocal<>();
-    
-    public static void set(User user) { currentUser.set(user); }
-    public static User get() { return currentUser.get(); }
+// 1. Objeto de datos del Contexto (POJO limpio, sin dependencias de Servlets/HTTP)
+class UserContext {
+    private String username;
+    private String role;
+
+    public UserContext(String username, String role) {
+        this.username = username;
+        this.role = role;
+    }
+
+    public String getUsername() { return username; }
+    public String getRole() { return role; }
+}
+
+// 2. Context Object Holder: almacena el contexto aislado para el hilo actual
+class ContextoSeguridad {
+    private static final ThreadLocal&lt;UserContext&gt; currentContext = new ThreadLocal&lt;&gt;();
+
+    public static void set(UserContext context) {
+        currentContext.set(context);
+    }
+
+    public static UserContext get() {
+        return currentContext.get();
+    }
+
+    public static void clear() {
+        currentContext.remove();
+    }
+}
+
+// 3. Capa de Acceso a Datos (consulta el contexto sin recibirlo por parámetro)
+class AuditoriaDAO {
+    public void guardarRegistro(String operation) {
+        UserContext user = ContextoSeguridad.get();
+        System.out.println("📝 [AuditoriaDAO] Guardando en BD -&gt; Acción: '" + operation
+                + "' ejecutada por usuario: " + user.getUsername() + " (" + user.getRole() + ")");
+    }
+}
+
+// 4. Capa de Negocio (firma del método 100% limpia de datos de protocolo)
+class ServicioPedidos {
+    private AuditoriaDAO auditDAO = new AuditoriaDAO();
+
+    public void crearPedido(String product) {
+        System.out.println("⚙️ [ServicioPedidos] Procesando compra del producto: " + product);
+        auditDAO.guardarRegistro("CREAR_PEDIDO_" + product.toUpperCase());
+    }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Context Object</span>
+<span class="center-horizontal caption">Implementación completa del patrón Context Object con ThreadLocal</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Qué es <code class="language-java">ThreadLocal</code> y por qué se usa aquí?</strong>
+        <p>En un servidor web hay muchos usuarios haciendo peticiones al mismo tiempo, cada uno en su propio hilo (<em>thread</em>). <code class="language-java">ThreadLocal</code> es una "taquilla privada" por cada hilo: lo que el hilo de Ana guarda en <code class="language-java">ContextoSeguridad.set(...)</code> solo puede verlo el hilo de Ana cuando llama a <code class="language-java">ContextoSeguridad.get()</code>, sin mezclarse jamás con la petición de otro usuario.</p>
+    </li>
+    <li>
+        <strong>2. Uso real en Spring Security y Logback (MDC):</strong>
+        <p><code class="language-java">ContextoSeguridadHolder.getContext().getAuthentication()</code> en Spring Security y <code class="language-java">MDC.put("traceId", ...)</code> en SLF4J funcionan exactamente así.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        ServicioPedidos orderService = new ServicioPedidos();
+
+        try {
+            // 1. Al entrar la petición, el filtro web inicializa el Context Object
+            System.out.println("&gt;&gt; [Filtro Web] Inicializando ContextoSeguridad para la petición actual...");
+            ContextoSeguridad.set(new UserContext("antonio.dev", "ADMIN"));
+
+            // 2. Llamamos al servicio pasando SOLO datos de negocio (el producto)
+            orderService.crearPedido("Portátil Gaming");
+
+        } finally {
+            // 3. Buena práctica: limpiar siempre el ThreadLocal al terminar la petición
+            ContextoSeguridad.clear();
+            System.out.println("&gt;&gt; [Filtro Web] ContextoSeguridad limpiado al finalizar la petición.");
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ciclo completo de inicialización, consumo en capas profundas y limpieza del contexto</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+&gt;&gt; [Filtro Web] Inicializando ContextoSeguridad para la petición actual...
+⚙️ [ServicioPedidos] Procesando compra del producto: Portátil Gaming
+📝 [AuditoriaDAO] Guardando en BD -&gt; Acción: 'CREAR_PEDIDO_PORTÁTIL GAMING' ejecutada por usuario: antonio.dev (ADMIN)
+&gt;&gt; [Filtro Web] ContextoSeguridad limpiado al finalizar la petición.
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Para propagar metadatos transversales de infraestructura (usuario autenticado, idioma/región, ID de correlación de logs o transacciones) a través de las capas de la aplicación.</li>
+    <li><strong>Cuándo evitarlo:</strong> Nunca uses un <code class="language-java">Context Object</code> como "bolsa oculta" para pasar parámetros normales de negocio (como el ID del producto a comprar); los parámetros de negocio deben seguir pasándose explícitamente en los argumentos del método.</li>
+</ul>

@@ -5,75 +5,122 @@
 </style>
 <h1 class="title">Patrón Factory Method</h1>
 
-<p>El patrón <strong>Factory Method</strong> es un patrón de diseño creacional que proporciona una interfaz para crear objetos en una superclase, mientras permite a las subclases alterar el tipo de objetos que se crearán.</p>
+<p>El patrón <strong>Factory Method</strong> (Método Fábrica) es un patrón creacional que centraliza la creación de objetos a través de un método especializado, devolviendo los objetos bajo una interfaz común en lugar de acoplar el código cliente a clases concretas con <code class="language-java">new</code>.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en una <strong>empresa de logística y mensajería</strong>. Cuando contratas un envío en el mostrador, tú solo pides "enviar este paquete" (<code class="language-java">notificarUsuario</code>). No vas tú mismo al garaje a comprar un camión, un barco o una furgoneta. El departamento de despacho (la <strong>Fábrica</strong>) decide internamente qué medio de transporte concreto preparar según el destino, pero para ti todos cumplen exactamente el mismo contrato: entregar el paquete.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Definir una interfaz para crear un objeto, pero dejar que las subclases decidan qué clase instanciar. Permite que una clase delegue la instanciación a subclases.</p>
+<p>Separar el código que <strong>usa</strong> los objetos del código que los <strong>construye</strong>. El cliente trabaja únicamente con una interfaz abstracta (por ejemplo, <code class="language-java">Notificacion</code>) y delega en la fábrica la decisión de qué clase concreta instanciar.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Sistema de Notificaciones Multi-canal</h2>
-<p><strong>Contexto:</strong> Una aplicación moderna necesita enviar alertas a los usuarios por múltiples vías: Email, SMS, Notificaciones Push, Slack, etc. El sistema no sabe de antemano qué tipo de notificación se enviará hasta que ocurre el evento.</p>
+<h2 class="subtitle">Caso de Uso Real: Sistema de Notificaciones Multicanal</h2>
+<p><strong>Contexto:</strong> Una aplicación bancaria necesita enviar alertas a los clientes por distintos canales según sus preferencias: Email, SMS o Notificaciones Push móviles.</p>
 
-<p><strong>El Problema:</strong> Una mala implementación tendría un código lleno de <code class="language-java">new EmailNotification()</code> o <code class="language-java">new SMSNotification()</code> esparcido por toda la aplicación.
-<br>Si mañana decides cambiar el proveedor de SMS o añadir soporte para WhatsApp, tendrías que buscar y reemplazar ese código en decenas de archivos. El código cliente estaría fuertemente <strong>acoplado</strong> a las clases concretas de notificación.</p>
+<p><strong>El Problema (Sin Factory Method):</strong> Si repartes sentencias <code class="language-java">new NotificacionEmail()</code> y <code class="language-java">new NotificacionSMS()</code> por decenas de clases de tu aplicación, tu lógica de negocio queda fuertemente acoplada a esas clases concretas. Si mañana cambias el constructor de <code class="language-java">NotificacionSMS</code> o añades un canal de WhatsApp, tendrás que modificar código en toda la aplicación.</p>
 
-<p><strong>La Solución (Factory Method):</strong> En lugar de usar el operador <code class="language-java">new</code> directamente en la lógica de negocio, delegas esa responsabilidad a un método especial (la "Fábrica").
-<br>Tu código principal solo dice "Fábrica, dame una Notificación para este usuario" y recibe un objeto que cumple la interfaz <code class="language-java">Notification</code>. No le importa si es un SMS o un Email. Esto centraliza la creación en un solo punto, facilitando el mantenimiento y la evolución del sistema.</p>
+<p><strong>La Solución (Con Factory Method):</strong> Creas una interfaz <code class="language-java">Notificacion</code> con el método <code class="language-java">notificarUsuario()</code>, y una clase <code class="language-java">FabricaNotificaciones</code> cuyo método <code class="language-java">crearNotificacion(canal)</code> encapsula el <code class="language-java">switch</code> y los operadores <code class="language-java">new</code>. El resto de la aplicación solo conoce la interfaz <code class="language-java">Notificacion</code>.</p>
 
-<h2 class="subtitle">Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
+
+<img class="center-horizontal" src="components/design-patterns/ejemplos/factory-method/assets/img/factory-method-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Factory Method para un sistema de notificaciones</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Producto (Interfaz)</th>
+            <td><code class="language-java">Notificacion</code></td>
+            <td>Define el contrato común (<code class="language-java">notificarUsuario(String mensaje)</code>) que todas las notificaciones deben cumplir.</td>
+        </tr>
+        <tr>
+            <th scope="row">Productos Concretos (Clases Normales)</th>
+            <td><code class="language-java">NotificacionEmail</code>, <code class="language-java">NotificacionSMS</code>, <code class="language-java">NotificacionPush</code></td>
+            <td>Implementan la interfaz <code class="language-java">Notificacion</code> con la lógica real de envío de cada canal.</td>
+        </tr>
+        <tr>
+            <th scope="row">Creador / Fábrica (Clase Normal)</th>
+            <td><code class="language-java">FabricaNotificaciones</code></td>
+            <td>Contiene el método de fabricación (<code class="language-java">crearNotificacion</code>) que decide qué clase concreta instanciar.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cliente (Clase Normal)</th>
+            <td><code class="language-java">Main</code></td>
+            <td>Solicita objetos a la fábrica y los utiliza a través de la interfaz <code class="language-java">Notificacion</code> sin saber su clase concreta.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Factory Method</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Interfaz de producto
-interface Notification {
-    void notifyUser();
+// 1. Interfaz Producto: contrato común para cualquier tipo de notificación
+interface Notificacion {
+    void notificarUsuario(String mensaje);
 }
 
-// Productos concretos
-class EmailNotification implements Notification {
+// 2. Productos Concretos: cada uno implementa el envío a su manera
+class NotificacionEmail implements Notificacion {
     @Override
-    public void notifyUser() {
-        System.out.println("Enviando notificación por Email...");
+    public void notificarUsuario(String mensaje) {
+        System.out.println("[EMAIL] Enviando correo electrónico: " + mensaje);
     }
 }
 
-class SMSNotification implements Notification {
+class NotificacionSMS implements Notificacion {
     @Override
-    public void notifyUser() {
-        System.out.println("Enviando notificación por SMS...");
+    public void notificarUsuario(String mensaje) {
+        System.out.println("[SMS] Enviando mensaje de texto: " + mensaje);
     }
 }
 
-// Clase Factory
-class NotificationFactory {
-    public Notification createNotification(String channel) {
-        if (channel == null || channel.isEmpty())
-            return null;
-        switch (channel) {
-            case "SMS":
-                return new SMSNotification();
+class NotificacionPush implements Notificacion {
+    @Override
+    public void notificarUsuario(String mensaje) {
+        System.out.println("[PUSH] Enviando alerta móvil: " + mensaje);
+    }
+}
+
+// 3. Clase Fábrica: único lugar donde se hace 'new' de los productos
+class FabricaNotificaciones {
+    public Notification crearNotificacion(String channel) {
+        if (canal == null || canal.isEmpty()) {
+            throw new IllegalArgumentException("El canal no puede estar vacío");
+        }
+        switch (canal.toUpperCase()) {
             case "EMAIL":
-                return new EmailNotification();
+                return new NotificacionEmail();
+            case "SMS":
+                return new NotificacionSMS();
+            case "PUSH":
+                return new NotificacionPush();
             default:
-                throw new IllegalArgumentException("Canal desconocido " + channel);
+                throw new IllegalArgumentException("Canal desconocido: " + canal);
         }
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Estructura Factory Method</span>
+<span class="center-horizontal caption">Implementación completa del patrón Factory Method</span>
 
-<br>
-
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
 
 <ul>
     <li>
-        <strong>Interfaz <code class="language-java">Notification</code>:</strong> 
-        <p>Define un comportamiento común para todos los productos. El cliente (<code class="language-java">Main</code>) interactúa con esta interfaz, desconociendo las clases concretas (<code class="language-java">EmailNotification</code>, <code class="language-java">SMSNotification</code>), lo que reduce el acoplamiento.</p>
+        <strong>1. Programar hacia una interfaz, no hacia una implementación:</strong>
+        <p>Fíjate en el tipo de retorno de <code class="language-java">crearNotificacion(String channel)</code>: devuelve <code class="language-java">Notificacion</code> (la interfaz), no <code class="language-java">NotificacionEmail</code>. Gracias al polimorfismo, el cliente puede guardar cualquier notificación en una variable de tipo <code class="language-java">Notificacion</code> y llamar a <code class="language-java">notificarUsuario()</code> con total transparencia.</p>
     </li>
     <li>
-        <strong>Clase Factory <code class="language-java">NotificationFactory</code>:</strong> 
-        <p>Centraliza la lógica de creación (uso de <code class="language-java">new</code>). Si mañana añadimos <code class="language-java">PushNotification</code>, solo modificamos la Factory, no todo el código cliente. Esto cumple con el <strong>Principio de Responsabilidad Única</strong> al separar la creación del uso.</p>
+        <strong>2. Principio de Responsabilidad Única (SRP):</strong>
+        <p>Hemos sacado la lógica de decisión y construcción fuera del código de negocio y la hemos concentrado en <code class="language-java">FabricaNotificaciones</code>. Si mañana hay que añadir un cuarto canal (<code class="language-java">NotificacionSlack</code>), solo añadimos la nueva clase y un <code class="language-java">case "SLACK"</code> en la fábrica.</p>
     </li>
 </ul>
 
@@ -83,24 +130,35 @@ class NotificationFactory {
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        NotificationFactory factory = new NotificationFactory();
+        FabricaNotificaciones fabrica = new FabricaNotificaciones();
 
-        // Crear una notificación de Email
-        Notification notification = factory.createNotification("EMAIL");
-        notification.notifyUser();
+        // El cliente pide objetos por su identificador lógico, sin usar 'new NotificacionEmail()'
+        Notificacion alerta1 = fabrica.crearNotificacion("EMAIL");
+        alerta1.notificarUsuario("Tu factura de octubre ya está disponible.");
 
-        // Crear una notificación de SMS
-        Notification notification2 = factory.createNotification("SMS");
-        notification2.notifyUser();
+        Notificacion alerta2 = fabrica.crearNotificacion("SMS");
+        alerta2.notificarUsuario("Código de verificación: 849201");
+
+        Notificacion alerta3 = fabrica.crearNotificacion("PUSH");
+        alerta3.notificarUsuario("Has recibido una transferencia de 50,00 EUR.");
     }
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">Código cliente desacoplado de las clases concretas</span>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-Output:
-Enviando notificación por Email...
-Enviando notificación por SMS...
+Salida por consola:
+[EMAIL] Enviando correo electrónico: Tu factura de octubre ya está disponible.
+[SMS] Enviando mensaje de texto: Código de verificación: 849201
+[PUSH] Enviando alerta móvil: Has recibido una transferencia de 50,00 EUR.
 </code></pre>
 </div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando no sabes de antemano qué tipo exacto de objeto necesitarás crear hasta el momento de ejecución (por ejemplo, según un parámetro del usuario, un archivo de configuración o un evento entrante).</li>
+    <li><strong>Cuándo evitarlo:</strong> Si tu aplicación solo tiene una clase concreta y nunca va a variar, crear una interfaz y una fábrica añadirá complejidad innecesaria.</li>
+</ul>

@@ -5,73 +5,112 @@
 </style>
 <h1 class="title">Patrón Observer</h1>
 
-<p>El patrón <strong>Observer</strong> es un patrón de diseño de comportamiento que permite definir un mecanismo de suscripción para notificar a varios objetos sobre cualquier evento que le suceda al objeto que están observando.</p>
+<p>El patrón <strong>Observer</strong> (Observador o Publicador-Suscriptor) es un patrón de comportamiento que define un <strong>mecanismo de suscripción uno-a-muchos</strong> para que, cuando un objeto cambie de estado, notifique automáticamente a todos los objetos que están suscritos a él.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en <strong>suscribirte a un canal de YouTube</strong> y activar la campanita (🔔). En lugar de que tú tengas que entrar cada 5 minutos al canal para comprobar si hay un vídeo nuevo ("¿ya subió vídeo?, ¿y ahora?, ¿y ahora?"), simplemente te apuntas a su lista de suscriptores. En el instante en que el creador sube un vídeo, YouTube recorre la lista y os envía una notificación automática a todos.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Definir una dependencia uno-a-muchos entre objetos para que cuando un objeto cambie de estado, todos sus dependientes sean notificados y actualizados automáticamnte.</p>
+<p>Evitar el coste de comprobar continuamente cambios de estado (<em>polling</em>) y desacoplar al objeto que produce el evento (el <strong>Subject</strong>) de los múltiples objetos que reaccionan a él (los <strong>Observers</strong>).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Suscripción a Canales de YouTube</h2>
-<p><strong>Contexto:</strong> Tienes creadores de contenido (YouTubers) y millones de usuarios (Suscriptores). Un usuario quiere saber al instante cuándo su creador favorito sube un video.</p>
+<h2 class="subtitle">Caso de Uso Real: Notificaciones de un Canal de YouTube a sus Suscriptores</h2>
+<p><strong>Contexto:</strong> Un canal (<code class="language-java">CanalYoutube</code>) publica vídeos periódicamente y miles de usuarios (<code class="language-java">Suscriptor</code>) quieren enterarse al instante, pudiendo suscribirse o darse de baja en cualquier momento.</p>
 
-<p><strong>El Problema:</strong> Sin el patrón Observer, la única forma de saber si hay contenido nuevo sería que cada usuario entrara al canal constantemente a comprobar (Polling).
-<br>Imagina a 1 millón de usuarios refrescando la página cada segundo para ver si hay video nuevo. Esto saturaría el servidor y desperdiciaría recursos. Además, el Creador tendría que tener un código hardcodeado para avisar a cada usuario específico, lo cual es inmanejable.</p>
+<p><strong>El Problema (Sin Observer):</strong> Si el canal tuviera referencias fijas a usuarios concretos, no se podrían añadir ni quitar suscriptores dinámicamente en tiempo de ejecución ni añadir otros tipos de observadores (como un bot de Twitter o un sistema de estadísticas).</p>
 
-<p><strong>La Solución (Observer):</strong> Invertimos el control. En lugar de que el usuario pregunte, el canal <strong>notifica</strong>.
-<br>Los usuarios se "suscriben" (se añaden a una lista). Cuando el canal sube un video, recorre esa lista y avisa a todos. El canal no conoce a los usuarios, solo sabe que tiene una lista de "cosas que quieren ser avisadas". Esto es mucho más eficiente y escalable.</p>
+<p><strong>La Solución (Con Observer):</strong> El canal implementa <code class="language-java">Sujeto</code> y mantiene una lista dinámica <code class="language-java">List&lt;Observer&gt;</code>. Cuando se llama a <code class="language-java">subirVideo()</code>, el canal recorre su lista e invoca <code class="language-java">observer.actualizar(titulo)</code> en cada suscriptor.</p>
 
-<h2 class="subtitle">Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
+
+<img class="center-horizontal" src="components/design-patterns/ejemplos/observer/assets/img/observer-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Observador mostrando la relación entre Subject y Observer</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Subject (Publicador)</th>
+            <td><code class="language-java">Sujeto</code></td>
+            <td>Interfaz que declara los métodos para dar de alta (<code class="language-java">suscribir</code>), dar de baja (<code class="language-java">desuscribir</code>) y avisar (<code class="language-java">notificarObservadores</code>) a los observadores.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Subject</th>
+            <td><code class="language-java">CanalYoutube</code></td>
+            <td>Almacena la lista de suscriptores actuales y dispara <code class="language-java">notificarObservadores()</code> cada vez que sube un vídeo nuevo.</td>
+        </tr>
+        <tr>
+            <th scope="row">Observador (Suscriptor)</th>
+            <td><code class="language-java">Observador</code></td>
+            <td>Interfaz con el método <code class="language-java">actualizar(String videoTitle)</code> que el canal invocará al producirse un evento.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Observer</th>
+            <td><code class="language-java">Suscriptor</code></td>
+            <td>Implementa la reacción concreta al recibir la notificación del nuevo vídeo.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Observer</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 import java.util.ArrayList;
 import java.util.List;
 
-// Interfaz Observador
-interface Observer {
-    void update(String videoTitle);
+// 1. Interfaz Observador (Suscriptor)
+interface Observador {
+    void actualizar(String videoTitle);
 }
 
-// Interfaz Sujeto
-interface Subject {
-    void subscribe(Observer observer);
-    void unsubscribe(Observer observer);
-    void notifyObservers(String videoTitle);
+// 2. Interfaz Sujeto (Publicador)
+interface Sujeto {
+    void suscribir(Observador observer);
+    void desuscribir(Observador observer);
+    void notificarObservadores(String videoTitle);
 }
 
-// Sujeto Concreto: Canal de Youtube
-class YoutubeChannel implements Subject {
-    private List<Observer> subscribers = new ArrayList<>();
+// 3. Sujeto Concreto: Canal de YouTube
+class CanalYoutube implements Sujeto {
+    private List&lt;Observer&gt; suscribirrs = new ArrayList&lt;&gt;();
     private String channelName;
 
-    public YoutubeChannel(String channelName) {
+    public CanalYoutube(String channelName) {
         this.channelName = channelName;
     }
 
     @Override
-    public void subscribe(Observer observer) {
-        subscribers.add(observer);
+    public void suscribir(Observador observer) {
+        suscribirrs.add(observer);
     }
 
     @Override
-    public void unsubscribe(Observer observer) {
-        subscribers.remove(observer);
+    public void desuscribir(Observador observer) {
+        suscribirrs.remove(observer);
     }
 
     @Override
-    public void notifyObservers(String videoTitle) {
-        for (Observer observer : subscribers) {
-            observer.update(videoTitle);
+    public void notificarObservadores(String videoTitle) {
+        for (Observador observer : suscribirrs) {
+            observer.actualizar(videoTitle);
         }
     }
 
-    public void uploadVideo(String title) {
-        System.out.println(channelName + " ha subido un nuevo video: " + title);
-        notifyObservers(title);
+    public void subirVideo(String title) {
+        System.out.println("🎬 [" + channelName + "] Ha subido un nuevo vídeo: \"" + title + "\"");
+        notificarObservadores(title);
     }
 }
 
-// Observador Concreto: Suscriptor
-class Subscriber implements Observer {
+// 4. Observador Concreto: Usuario Suscriptor
+class Suscriptor implements Observador {
     private String name;
 
     public Subscriber(String name) {
@@ -79,26 +118,24 @@ class Subscriber implements Observer {
     }
 
     @Override
-    public void update(String videoTitle) {
-        System.out.println("Hola " + name + ", ¡hay un nuevo video: " + videoTitle + "!");
+    public void actualizar(String videoTitle) {
+        System.out.println("   🔔 Notificación para " + name + ": ¡Nuevo vídeo disponible -> " + videoTitle + "!");
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Esquema Observer: Youtube Channel y Subscribers</span>
+<span class="center-horizontal caption">Implementación completa del patrón Observer</span>
 
-<br>
-
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
 
 <ul>
     <li>
-        <strong>Interfaces <code class="language-java">Observer</code> y <code class="language-java">Subject</code>:</strong> 
-        <p>Permiten que el <code class="language-java">Subject</code> (YoutubeChannel) no conozca los detalles de sus observadores. Solo sabe que implementan la interfaz <code class="language-java">Observer</code> y tienen un método <code class="language-java">update</code>. Esto es un ejemplo de <strong>Inversión de Dependencias</strong>.</p>
+        <strong>1. Inversión de Dependencias y Bajo Acoplamiento:</strong>
+        <p><code class="language-java">CanalYoutube</code> no sabe si quien lo escucha es una persona (<code class="language-java">Suscriptor</code>), una app móvil o un bot de Discord. Solo sabe que todos los elementos de su lista implementan la interfaz <code class="language-java">Observador</code> y tienen el método <code class="language-java">actualizar()</code>.</p>
     </li>
     <li>
-        <strong>Gestión de Suscripciones:</strong> 
-        <p>La lista interna <code class="language-java">List&lt;Observer&gt;</code> permite una relación uno-a-muchos dinámica. Los objetos pueden suscribirse y desuscribirse en tiempo de ejecución sin afectar al funcionamiento interno del sujeto.</p>
+        <strong>2. Suscripción dinámica en tiempo de ejecución:</strong>
+        <p>En cualquier momento del programa un objeto puede suscribirse con <code class="language-java">suscribir()</code> o borrarse con <code class="language-java">desuscribir()</code> sin detener ni modificar el canal.</p>
     </li>
 </ul>
 
@@ -108,33 +145,46 @@ class Subscriber implements Observer {
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        YoutubeChannel myChannel = new YoutubeChannel("CodeChannel");
+        CanalYoutube channel = new CanalYoutube("JavaMasterClass");
 
-        Subscriber s1 = new Subscriber("Alice");
-        Subscriber s2 = new Subscriber("Bob");
+        Subscriber alice = new Suscriptor("Alice");
+        Subscriber bob = new Suscriptor("Bob");
 
-        myChannel.subscribe(s1);
-        myChannel.subscribe(s2);
+        // Alice y Bob se suscriben al canal
+        channel.suscribir(alice);
+        channel.suscribir(bob);
 
-        myChannel.uploadVideo("Patrón Observer en Java");
-        
-        System.out.println("--- Bob se desuscribe ---");
-        myChannel.unsubscribe(s2);
+        // El canal sube su primer vídeo (ambos reciben aviso)
+        channel.subirVideo("Patrón Observador explicado desde cero");
 
-        myChannel.uploadVideo("Patrón Singleton en Java");
+        System.out.println("\n--- Bob desactiva las notificaciones (desuscribir) ---\n");
+        channel.desuscribir(bob);
+
+        // El canal sube un segundo vídeo (solo Alice recibe aviso)
+        channel.subirVideo("Patrón Singleton en profundidad");
     }
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">Suscripción, notificación automática y baja de un observador</span>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-Output:
-CodeChannel ha subido un nuevo video: Patrón Observer en Java
-Hola Alice, ¡hay un nuevo video: Patrón Observer en Java!
-Hola Bob, ¡hay un nuevo video: Patrón Observer en Java!
---- Bob se desuscribe ---
-CodeChannel ha subido un nuevo video: Patrón Singleton en Java
-Hola Alice, ¡hay un nuevo video: Patrón Singleton en Java!
+Salida por consola:
+🎬 [JavaMasterClass] Ha subido un nuevo vídeo: "Patrón Observador explicado desde cero"
+   🔔 Notificación para Alice: ¡Nuevo vídeo disponible -> Patrón Observador explicado desde cero!
+   🔔 Notificación para Bob: ¡Nuevo vídeo disponible -> Patrón Observador explicado desde cero!
+
+--- Bob desactiva las notificaciones (desuscribir) ---
+
+🎬 [JavaMasterClass] Ha subido un nuevo vídeo: "Patrón Singleton en profundidad"
+   🔔 Notificación para Alice: ¡Nuevo vídeo disponible -> Patrón Singleton en profundidad!
 </code></pre>
 </div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando un cambio en un objeto requiera actualizar a otros objetos sin saber cuántos habrá o cuáles serán (eventos de interfaz gráfica como <code class="language-java">ActionListener</code>, arquitecturas orientadas a eventos, programación reactiva/RxJava).</li>
+    <li><strong>Cuándo evitarlo:</strong> Recuerda siempre dar de baja (<code class="language-java">desuscribir</code>) a los observadores que ya no se usen para evitar fugas de memoria (<em>memory leaks</em> por referencias retenidas en la lista).</li>
+</ul>

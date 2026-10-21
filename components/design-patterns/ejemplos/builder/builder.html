@@ -5,85 +5,119 @@
 </style>
 <h1 class="title">Patrón Builder</h1>
 
-<p>El patrón <strong>Builder</strong> es un patrón creacional que permite construir objetos complejos paso a paso. Permite producir diferentes tipos y representaciones de un objeto empleando el mismo código de construcción.</p>
+<p>El patrón <strong>Builder</strong> (Constructor) es un patrón creacional que permite construir objetos complejos <strong>paso a paso</strong>. En lugar de obligar al programador a usar un constructor gigante lleno de parámetros confusos, proporciona métodos claros y encadenables para configurar solo las piezas deseadas.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en pedir una <strong>pizza personalizada en una pizzería</strong>. En lugar de rellenar una tabla con 25 casillas donde tienes que escribir "sin anchoas, sin piña, sin aceitunas, sin jalapeños...", simplemente vas eligiendo paso a paso lo que sí quieres: primero eliges el tipo de masa, luego la salsa, después el ingrediente principal y finalmente dices "¡al horno!" (<code class="language-java">construir()</code>).</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Separar la construcción de un objeto complejo de su representación, de modo que el mismo proceso de construcción pueda crear diferentes representaciones. Es especialmente útil cuando un objeto tiene muchos parámetros, algunos obligatorios y otros opcionales (evitando el "Telescoping Constructor Anti-pattern").</p>
+<p>Separar la construcción de un objeto complejo de su representación final, evitando el anti-patrón conocido como <em>Telescoping Constructor</em> (tener múltiples constructores con 6, 8 o 10 parámetros donde muchos se pasan como <code class="language-java">null</code>).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Construcción de Consultas SQL (Query Builder)</h2>
-<p><strong>Contexto:</strong> Necesitas generar sentencias SQL dinámicamente. Una consulta puede tener un <code class="language-java">SELECT</code>, varios <code class="language-java">WHERE</code> (opcionales), <code class="language-java">ORDER BY</code>, <code class="language-java">LIMIT</code>, etc.</p>
+<h2 class="subtitle">Caso de Uso Real: Configuración de Pedidos o Consultas con Parámetros Opcionales</h2>
+<p><strong>Contexto:</strong> Tienes una clase <code class="language-java">Pizza</code> (o una petición HTTP, o una consulta SQL) donde algunos atributos son habituales y otros son completamente opcionales (masa, salsa, ingrediente extra, borde relleno de queso).</p>
 
-<p><strong>El Problema:</strong> Crear una clase <code class="language-java">SQLQuery</code> con un constructor gigante <code class="language-java">new SQLQuery("users", ["id", "name"], "age > 18", null, "name ASC", 10)</code> es terrible (Anti-patrón Telescoping Constructor). Es ilegible y propenso a errores si confundes el orden de los parámetros nulos.</p>
+<p><strong>El Problema (Sin Builder):</strong> Llamar a <code class="language-java">new Pizza("Fina", "Tomate", null, true, false, "Orégano")</code> es ilegible. Si te equivocas en el orden de dos <code class="language-java">String</code> seguidos, el compilador no te avisará y habrás puesto la salsa donde iba la masa.</p>
 
-<p><strong>La Solución (Builder):</strong> Usas un objeto Builder que te permite encadenar métodos de forma legible: 
-<br><code class="language-java">query.select("users").where("age > 18").orderBy("name").build()</code>.
-<br>El Builder va acumulando el estado paso a paso y solo al final construye el objeto complejo, garantizando que sea válido.</p>
+<p><strong>La Solución (Con Builder):</strong> Creas la clase <code class="language-java">ConstructorPizza</code> con métodos descriptivos (<code class="language-java">conMasa("Fina")</code>, <code class="language-java">conSalsa("Tomate")</code>). Cada método configura un paso y devuelve el propio Builder (<code class="language-java">return this</code>), permitiendo encadenar llamadas de forma autoexplicativa hasta invocar <code class="language-java">construir()</code>.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Separación Construcción/Representación:</strong> 
-        <p>La clase <code class="language-java">Pizza</code> (Producto) es un POJO simple. <code class="language-java">PizzaBuilder</code> contiene la lógica de cómo se asignan los valores y valida la consistencia. Esto permite tener múltiples builders (ej. <code class="language-java">VeganPizzaBuilder</code>) para la misma clase <code class="language-java">Pizza</code>.</p>
-    </li>
-    <li>
-        <strong>Fluent Interface:</strong> 
-        <p>Los métodos del Builder retornan <code class="language-java">this</code> (ej. <code class="language-java">public PizzaBuilder withDough(...) { ... return this; }</code>). Esto permite encadenar llamadas (<code class="language-java">.withDough().withSauce()</code>), haciendo el código del cliente mucho más expresivo y fácil de leer.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/builder/assets/img/builder-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Builder con interfaz fluida (Fluent Interface)</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Producto</th>
+            <td><code class="language-java">Pizza</code></td>
+            <td>El objeto complejo que queremos obtener al final del proceso.</td>
+        </tr>
+        <tr>
+            <th scope="row">Builder (Constructor)</th>
+            <td><code class="language-java">ConstructorPizza</code></td>
+            <td>Ofrece métodos paso a paso (<code class="language-java">conMasa</code>, <code class="language-java">conSalsa</code>, <code class="language-java">conIngrediente</code>) que se encadenan y un método final <code class="language-java">construir()</code> que entrega el producto terminado.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cliente</th>
+            <td><code class="language-java">Main</code></td>
+            <td>Instancia el <code class="language-java">ConstructorPizza</code>, invoca solo los pasos que necesita y recoge el objeto <code class="language-java">Pizza</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Builder</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Producto
+// 1. Producto final que queremos construir
 class Pizza {
-    private String dough;
-    private String sauce;
-    private String topping;
+    private String masa;
+    private String salsa;
+    private String ingrediente;
 
-    public void setDough(String dough) { this.dough = dough; }
-    public void setSauce(String sauce) { this.sauce = sauce; }
-    public void setTopping(String topping) { this.topping = topping; }
-    
+    public void setMasa(String masa) { this.masa = masa; }
+    public void setSalsa(String salsa) { this.salsa = salsa; }
+    public void setIngrediente(String ingrediente) { this.ingrediente = ingrediente; }
+
     @Override
     public String toString() {
-        return "Pizza [dough=" + dough + ", sauce=" + sauce + ", topping=" + topping + "]";
+        return "Pizza [masa=" + masa + ", salsa=" + salsa + ", ingrediente=" + ingrediente + "]";
     }
 }
 
-// Builder
-class PizzaBuilder {
+// 2. Clase Builder: construye la Pizza paso a paso
+class ConstructorPizza {
     private Pizza pizza;
 
-    public PizzaBuilder() {
+    public ConstructorPizza() {
         this.pizza = new Pizza();
     }
 
-    public PizzaBuilder withDough(String dough) {
-        pizza.setDough(dough);
+    // Cada método configura una parte y devuelve 'this' para poder encadenar llamadas
+    public ConstructorPizza conMasa(String masa) {
+        pizza.setMasa(masa);
         return this;
     }
 
-    public PizzaBuilder withSauce(String sauce) {
-        pizza.setSauce(sauce);
+    public ConstructorPizza conSalsa(String salsa) {
+        pizza.setSalsa(salsa);
         return this;
     }
 
-    public PizzaBuilder withTopping(String topping) {
-        pizza.setTopping(topping);
+    public ConstructorPizza conIngrediente(String ingrediente) {
+        pizza.setIngrediente(ingrediente);
         return this;
     }
 
-    public Pizza build() {
-        return pizza;
+    // Paso final: valida si es necesario y devuelve el objeto construido
+    public Pizza construir() {
+        return this.pizza;
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Patrón Builder Básico</span>
+<span class="center-horizontal caption">Implementación del patrón Builder con métodos encadenables</span>
 
-<br>
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Cuál es el truco del encadenamiento (<code class="language-java">return this</code>)?</strong>
+        <p>Fíjate en que <code class="language-java">conMasa()</code> no devuelve <code class="language-java">void</code>, sino <code class="language-java">ConstructorPizza</code>, y su última línea es <code class="language-java">return this;</code>. Eso significa: "devuélveme a mí mismo (el Builder) para que en la misma línea puedas seguir llamando a otro método mío como <code class="language-java">.conSalsa()</code>". Esta técnica se llama <strong>Fluent Interface</strong> (Interfaz Fluida).</p>
+    </li>
+    <li>
+        <strong>2. Parámetros opcionales sin pasar <code class="language-java">null</code>:</strong>
+        <p>Si un cliente quiere una pizza solo con masa gruesa (focaccia), simplemente llama a <code class="language-java">new ConstructorPizza().conMasa("Gruesa").construir()</code>. No tiene que preocuparse por los demás atributos.</p>
+    </li>
+</ul>
 
 <h2 class="subtitle">Ejemplo de Uso</h2>
 
@@ -91,28 +125,39 @@ class PizzaBuilder {
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        Pizza pizza = new PizzaBuilder()
-                        .withDough("Fina")
-                        .withSauce("Tomate")
-                        .withTopping("Pepperoni")
-                        .build();
+        // Construcción completa paso a paso
+        Pizza pepperoniPizza = new ConstructorPizza()
+                .conMasa("Fina y crujiente")
+                .conSalsa("Tomate natural")
+                .conIngrediente("Pepperoni y Mozzarella")
+                .construir();
 
-        System.out.println(pizza);
-        
-        Pizza basicPizza = new PizzaBuilder()
-                            .withDough("Gruesa")
-                            .build(); // Sin salsa ni topping
-                            
-        System.out.println(basicPizza);
+        System.out.println("Pedido 1: " + pepperoniPizza);
+
+        // Construcción parcial omitiendo pasos opcionales (sin pasar 'null')
+        Pizza focaccia = new ConstructorPizza()
+                .conMasa("Gruesa artesanal")
+                .conIngrediente("Romero y aceite de oliva")
+                .construir();
+
+        System.out.println("Pedido 2: " + focaccia);
     }
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">Construcción legible de distintas configuraciones del mismo objeto</span>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-Output:
-Pizza [dough=Fina, sauce=Tomate, topping=Pepperoni]
-Pizza [dough=Gruesa, sauce=null, topping=null]
+Salida por consola:
+Pedido 1: Pizza [masa=Fina y crujiente, salsa=Tomate natural, ingrediente=Pepperoni y Mozzarella]
+Pedido 2: Pizza [masa=Gruesa artesanal, salsa=null, ingrediente=Romero y aceite de oliva]
 </code></pre>
 </div>
+<span class="center-horizontal caption">Salida por consola</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando una clase tenga más de 3 o 4 parámetros en su constructor, especialmente si varios de ellos son opcionales o del mismo tipo de dato (<code class="language-java">String</code>, <code class="language-java">boolean</code>), o cuando quieras construir objetos inmutables paso a paso (muy común con la anotación <code class="language-java">@Builder</code> de Lombok).</li>
+    <li><strong>Cuándo evitarlo:</strong> En objetos muy simples de 1 o 2 atributos obligatorios donde un constructor normal es directo y claro.</li>
+</ul>

@@ -5,66 +5,185 @@
 </style>
 <h1 class="title">Patrón Prototype</h1>
 
-<p>El patrón <strong>Prototype</strong> es un patrón creacional que permite copiar objetos existentes sin que el código dependa de sus clases.</p>
+<p>El patrón <strong>Prototype</strong> (Prototipo) es un patrón creacional que permite crear nuevos objetos <strong>clonando una instancia ya existente</strong> (el prototipo), sin que el código cliente tenga que conocer ni depender de sus clases concretas.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en la <strong>división celular (mitosis)</strong> o en usar una <strong>fotocopiadora</strong> para duplicar un documento complejo ya redactado y sellado. En lugar de volver a redactar las 50 páginas desde cero cada vez que necesitas una copia, tomas el documento original (el prototipo) y pulsas el botón "Copiar" (<code class="language-java">clonar()</code>), obteniendo un objeto idéntico e independiente al instante.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Crear nuevos objetos clonando una instancia existente (prototipo). Reduce el costo de creación.</p>
+<p>Evitar el coste de crear e inicializar un objeto complejo desde cero (por ejemplo, cuando su creación inicial requiere consultas a base de datos o cálculos pesados) y permitir duplicar objetos polimórficamente sin acoplarse a sus clases concretas.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Generación de Enemigos en Videojuegos</h2>
-<p><strong>Contexto:</strong> En un juego de estrategia tienes miles de unidades (soldados, orcos) en pantalla. Crear cada unidad desde cero (cargar modelos 3D, texturas, sonidos, stats iniciales) consume mucha CPU y memoria.</p>
+<h2 class="subtitle">Caso de Uso Real: Duplicación de Figuras en un Editor Gráfico o Enemigos en un Videojuego</h2>
+<p><strong>Contexto:</strong> En un editor de diseño (o un motor de videojuegos), el usuario tiene en pantalla figuras geométricas (<code class="language-java">Circulo</code>, <code class="language-java">Rectangulo</code>) ya configuradas con coordenadas, colores y dimensiones específicas, y pulsa <code class="language-java">Ctrl+D</code> (Duplicar).</p>
 
-<p><strong>El Problema:</strong> Si usas <code class="language-java">new Orc()</code> y cargas todos los recursos cada vez, el juego se ralentizará. Además, si tienes un "Orco Jefe" configurado con stats especiales y quieres copiarlo, tendrías que copiar manualmente propiedad por propiedad, lo cual acopla tu código a la clase <code class="language-java">Orc</code>.</p>
+<p><strong>El Problema (Sin Prototype):</strong> Si el código del editor intenta copiar una figura desde fuera, primero tendría que averiguar qué clase exacta es (<code class="language-java">if (shape instanceof Circulo)</code>), crear una instancia vacía y copiar campo por campo. Además, si algunos campos son <code class="language-java">private</code>, ni siquiera podrá leerlos desde fuera.</p>
 
-<p><strong>La Solución (Prototype):</strong> Creas una instancia "maestra" (Prototipo) del Orco con todo cargado en memoria. Cuando necesitas un nuevo enemigo, simplemente pides al prototipo que se clone a sí mismo (<code class="language-java">orcMaster.clone()</code>).
-<br>Clonar un objeto en memoria es mucho más rápido que crearlo e inicializarlo desde cero (especialmente si implica I/O). Además, puedes clonar objetos complejos sin conocer sus clases concretas.</p>
+<p><strong>La Solución (Con Prototype):</strong> La clase base <code class="language-java">Figura</code> define el método <code class="language-java">clonar()</code>. Como un objeto sí tiene acceso a sus propios atributos privados, cada subclase (<code class="language-java">Circulo</code>, <code class="language-java">Rectangulo</code>) sabe exactamente cómo copiarse a sí misma llamando a su constructor de copia: <code class="language-java">new Circulo(this)</code>.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Interfaz <code class="language-java">Cloneable</code> (o método abstracto <code class="language-java">clone</code>):</strong> 
-        <p>Declara una interfaz común para la clonación. El cliente (<code class="language-java">Main</code>) trabaja con la clase abstracta <code class="language-java">Shape</code> y llama a <code class="language-java">clone()</code> sin saber si está clonando un <code class="language-java">Circle</code> o un <code class="language-java">Rectangle</code>. Esto es polimorfismo aplicado a la creación.</p>
-    </li>
-    <li>
-        <strong>Constructor de Copia:</strong> 
-        <p>Dentro del método <code class="language-java">clone()</code>, se suele llamar a un constructor privado que acepta un objeto del mismo tipo (<code class="language-java">public Circle(Circle target)</code>). Esto permite copiar los valores de los campos privados de la instancia original a la nueva instancia de forma segura.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/prototype/assets/img/prototype-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Prototype aplicado a una jerarquía de figuras</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Prototipo Abstracto</th>
+            <td><code class="language-java">Figura</code></td>
+            <td>Define los atributos comunes (<code class="language-java">x</code>, <code class="language-java">y</code>, <code class="language-java">color</code>), un constructor de copia y el método abstracto <code class="language-java">clonar()</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Prototipos Concretos</th>
+            <td><code class="language-java">Circulo</code>, <code class="language-java">Rectangulo</code></td>
+            <td>Implementan <code class="language-java">clonar()</code> devolviendo una nueva instancia de su propia clase con todos sus atributos copiados.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cliente</th>
+            <td><code class="language-java">Main</code></td>
+            <td>Duplica cualquier figura llamando simplemente a <code class="language-java">figura.clonar()</code> sin importar si es un círculo o un rectángulo.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Prototype</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-abstract class Shape implements Cloneable {
-    public int x, y;
-    
+// 1. Prototipo Abstracto
+abstract class Figura {
+    public int x;
+    public int y;
+    public String color;
+
     public Shape() {}
-    
-    public Shape(Shape target) {
-        if (target != null) {
-            this.x = target.x;
-            this.y = target.y;
+
+    // Constructor de copia: copia los atributos de la clase padre
+    public Shape(Figura origen) {
+        if (origen != null) {
+            this.x = origen.x;
+            this.y = origen.y;
+            this.color = origen.color;
         }
     }
-    
-    public abstract Shape clone();
+
+    // Método de clonación que cada subclase implementará
+    public abstract Figura clonar();
 }
 
-class Circle extends Shape {
-    public int radius;
+// 2. Prototipo Concreto A: Círculo
+class Circulo extends Figura {
+    public int radio;
 
-    public Circle(Circle target) {
-        super(target);
-        if (target != null) {
-            this.radius = target.radius;
+    public Circulo() {}
+
+    // Constructor de copia del Círculo
+    public Circulo(Circulo origen) {
+        super(origen); // Copia x, y, color usando el constructor del padre
+        if (origen != null) {
+            this.radio = origen.radio;
         }
     }
 
     @Override
-    public Shape clone() {
-        return new Circle(this);
+    public Figura clonar() {
+        return new Circulo(this);
+    }
+
+    @Override
+    public String toString() {
+        return "Circulo [x=" + x + ", y=" + y + ", color=" + color + ", radio=" + radio + "]";
+    }
+}
+
+// 3. Prototipo Concreto B: Rectángulo
+class Rectangulo extends Figura {
+    public int ancho;
+    public int alto;
+
+    public Rectangulo() {}
+
+    // Constructor de copia del Rectángulo
+    public Rectangulo(Rectangulo origen) {
+        super(origen);
+        if (origen != null) {
+            this.ancho = origen.ancho;
+            this.alto = origen.alto;
+        }
+    }
+
+    @Override
+    public Figura clonar() {
+        return new Rectangulo(this);
+    }
+
+    @Override
+    public String toString() {
+        return "Rectangulo [x=" + x + ", y=" + y + ", color=" + color + ", w=" + ancho + ", h=" + alto + "]";
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Prototype</span>
+<span class="center-horizontal caption">Implementación del patrón Prototype mediante constructores de copia</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Qué es el "Constructor de Copia" (<code class="language-java">public Circulo(Circulo origen)</code>)?</strong>
+        <p>Es un constructor que recibe como parámetro otro objeto de su misma clase y copia todos sus atributos al nuevo objeto (<code class="language-java">this.radio = origen.radio</code>). Es mucho más limpio y seguro que el antiguo <code class="language-java">Object.clonar()</code> nativo de Java.</p>
+    </li>
+    <li>
+        <strong>2. Objetos independientes en memoria:</strong>
+        <p>Al hacer <code class="language-java">Figura copia = original.clonar()</code>, se crea un objeto nuevo en otra dirección de memoria (<code class="language-java">original != copia</code>), pero con los mismos datos iniciales. Si después cambiamos el color de la copia, el original no se ve afectado.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        // 1. Creamos y configuramos un Círculo prototipo
+        Circulo circuloOriginal = new Circulo();
+        circuloOriginal.x = 10;
+        circuloOriginal.y = 20;
+        circuloOriginal.radio = 15;
+        circuloOriginal.color = "Rojo";
+
+        // 2. Lo clonamos sin acoplarnos a su proceso de configuración
+        Figura circuloClonado = circuloOriginal.clonar();
+        circuloClonado.color = "Azul"; // Modificamos solo el clon
+
+        System.out.println("Original: " + circuloOriginal);
+        System.out.println("Clonado : " + circuloClonado);
+        System.out.println("¿Son distintos objetos en memoria?: " + (circuloOriginal != circuloClonado));
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Clonación de un objeto existente y modificación independiente de su copia</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+Original: Circulo [x=10, y=20, color=Rojo, radio=15]
+Clonado : Circulo [x=10, y=20, color=Azul, radio=15]
+¿Son distintos objetos en memoria?: true
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola demostrando que el clon es una copia independiente</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando crear un objeto desde cero sea muy costoso (requiera leer archivos, red o base de datos) o cuando necesites duplicar objetos complejos sin acoplar tu código a sus clases concretas.</li>
+    <li><strong>Cuándo evitarlo:</strong> En objetos muy simples sin estado costoso de inicializar, o cuando los objetos tengan referencias circulares complejas que dificulten la copia profunda (<em>deep copy</em>).</li>
+</ul>

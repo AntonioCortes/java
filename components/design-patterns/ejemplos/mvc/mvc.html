@@ -5,51 +5,170 @@
 </style>
 <h1 class="title">Patrón Model View Controller (MVC)</h1>
 
-<p>El patrón <strong>Model View Controller (MVC)</strong> es un patrón de la arquitectura Java EE que arquitectura fundamental para aplicaciones interactivas.</p>
+<p>El patrón <strong>Model-View-Controller (MVC)</strong> es el patrón arquitectónico más famoso del desarrollo de software interactivo. Divide una aplicación en <strong>tres componentes con responsabilidades estrictamente separadas</strong>: el <strong>Modelo</strong> (los datos y reglas de negocio), la <strong>Vista</strong> (la pantalla que ve el usuario) y el <strong>Controlador</strong> (el cerebro coordinador que recibe las órdenes del usuario).</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en una <strong>tienda de ropa</strong>: el almacén con las prendas y sus precios reales es el <strong>Modelo</strong>. El escaparate de cristal donde se exhiben los maniquíes a la calle es la <strong>Vista</strong>. Y el dependiente que atiende al cliente, busca la talla en el almacén y actualiza el escaparate es el <strong>Controlador</strong>.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Separación de preocupaciones.</p>
+<p>Separar la lógica de datos de la interfaz visual para que puedas cambiar por completo el diseño de la pantalla sin romper las reglas de negocio, o reutilizar los mismos datos en una web, una app móvil o un PDF.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Arquitectura Web Moderna (Spring MVC)</h2>
-<p><strong>Contexto:</strong> Estás construyendo una tienda online. Tienes datos del producto (Modelo), páginas HTML para mostrarlos (Vista) y lógica para procesar el carrito de compra (Controlador).</p>
+<h2 class="subtitle">Caso de Uso Real: Gestión de Perfil de Usuario en una Aplicación Web</h2>
+<p><strong>Contexto:</strong> Tienes los datos de un cliente (<code class="language-java">ModeloUsuario</code>), una pantalla que muestra su ficha (<code class="language-java">VistaUsuario</code>) y un controlador que procesa los cambios cuando el usuario actualiza su email (<code class="language-java">ControladorUsuario</code>).</p>
 
-<p><strong>El Problema:</strong> Si mezclas código JDBC en tus JSPs (Vista), o generas HTML concatenando Strings dentro de tus Servlets (Controlador), creas un "código espagueti" que es imposible de testear y mantener. Un cambio en el diseño visual rompería la lógica de negocio.</p>
+<p><strong>El Problema (Sin MVC):</strong> Si mezclas consultas de datos, validaciones y generación de HTML en una sola clase gigante, cualquier cambio estético puede borrar por accidente una validación de negocio, y es imposible hacer tests unitarios limpios.</p>
 
-<p><strong>La Solución (MVC):</strong> Separas estrictamente las responsabilidades:
-<br>1. <strong>Modelo (POJOs):</strong> Representa los datos y reglas de negocio. No sabe nada de HTML ni HTTP.
-<br>2. <strong>Vista (JSP/Thymeleaf/Angular):</strong> Solo se encarga de renderizar. No ejecuta lógica.
-<br>3. <strong>Controlador (Servlet/Spring Controller):</strong> Recibe la entrada del usuario, interactúa con el modelo y selecciona la vista adecuada.</p>
+<p><strong>La Solución (Con MVC):</strong>
+<br>1. <code class="language-java">ModeloUsuario</code> guarda los datos (<code class="language-java">username</code>, <code class="language-java">email</code>) y no sabe nada de pantallas ni de HTML.
+<br>2. <code class="language-java">VistaUsuario</code> solo sabe imprimir los datos en pantalla.
+<br>3. <code class="language-java">ControladorUsuario</code> recibe la petición del usuario, actualiza el <code class="language-java">ModeloUsuario</code> y le pide a <code class="language-java">VistaUsuario</code> que vuelva a pintar la pantalla actualizada.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Desacoplamiento:</strong> 
-        <p>Permite que diseñadores web trabajen en la Vista mientras desarrolladores backend trabajan en el Modelo y Controlador en paralelo sin pisarse.</p>
-    </li>
-    <li>
-        <strong>Múltiples Vistas:</strong> 
-        <p>El mismo Modelo (ej. lista de productos) puede ser reutilizado por múltiples Vistas (una página HTML, un PDF, un Excel, una respuesta JSON) sin cambiar una sola línea de lógica.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/mvc/assets/img/mvc-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón MVC mostrando el flujo entre Usuario, Controlador, Modelo y Vista</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Model (Modelo)</th>
+            <td><code class="language-java">ModeloUsuario</code></td>
+            <td>Representa el estado de los datos y las reglas de negocio. Es 100% independiente de cómo se muestre en pantalla.</td>
+        </tr>
+        <tr>
+            <th scope="row">View (Vista)</th>
+            <td><code class="language-java">VistaUsuario</code></td>
+            <td>Se encarga exclusivamente de presentar la información al usuario de forma legible.</td>
+        </tr>
+        <tr>
+            <th scope="row">Controller (Controlador)</th>
+            <td><code class="language-java">ControladorUsuario</code></td>
+            <td>Actúa como intermediario: recibe las entradas del usuario, modifica el <code class="language-java">ModeloUsuario</code> y refresca la <code class="language-java">VistaUsuario</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón MVC</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Model: Datos
-class User { }
+// 1. MODELO (Model): Contiene los datos y estado del negocio
+class ModeloUsuario {
+    private String username;
+    private String email;
 
-// View: HTML
-// user-form.html
+    public ModeloUsuario(String username, String email) {
+        this.username = username;
+        this.email = email;
+    }
 
-// Controller: Lógica
-class UserController {
-    public String saveUser(User user) {
-        repo.save(user);
-        return "success";
+    public String getNombreUsuario() { return username; }
+    public String getEmail() { return email; }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+}
+
+// 2. VISTA (View): Solo se encarga de mostrar los datos por pantalla
+class VistaUsuario {
+    public void mostrarDetallesUsuario(String username, String email) {
+        System.out.println("🖥️ [VISTA - Ficha de Usuario]");
+        System.out.println("   👤 Nombre : " + username);
+        System.out.println("   ✉️ Email  : " + email);
+    }
+}
+
+// 3. CONTROLADOR (Controller): Coordina las peticiones entre Modelo y Vista
+class ControladorUsuario {
+    private ModeloUsuario model;
+    private VistaUsuario view;
+
+    public ControladorUsuario(ModeloUsuario model, VistaUsuario view) {
+        this.model = model;
+        this.view = view;
+    }
+
+    public void actualizarEmail(String newEmail) {
+        System.out.println("&gt;&gt; [CONTROLADOR] Recibida petición para cambiar email a: " + newEmail);
+        model.setEmail(newEmail);
+    }
+
+    public void actualizarVista() {
+        view.mostrarDetallesUsuario(model.getNombreUsuario(), model.getEmail());
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Model View Controller (MVC)</span>
+<span class="center-horizontal caption">Implementación completa y clara del patrón MVC</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Por qué <code class="language-java">ModeloUsuario</code> no tiene un atributo <code class="language-java">VistaUsuario</code>?</strong>
+        <p>Porque el Modelo debe ser reutilizable en cualquier sitio. Si mañana quieres mostrar ese mismo <code class="language-java">ModeloUsuario</code> en una aplicación de móvil o exportarlo a Excel, puedes hacerlo sin tocar ni una coma de <code class="language-java">ModeloUsuario</code>.</p>
+    </li>
+    <li>
+        <strong>2. Trabajo en equipo sin pisarse:</strong>
+        <p>Un diseñador frontend puede estar editando la Vista mientras un desarrollador backend programa el Modelo y el Controlador en paralelo.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        // 1. Inicializamos el Modelo, la Vista y el Controlador
+        ModeloUsuario model = new ModeloUsuario("antonio_java", "antonio.antiguo@correo.es");
+        VistaUsuario view = new VistaUsuario();
+        ControladorUsuario controller = new ControladorUsuario(model, view);
+
+        // 2. Mostramos la pantalla inicial
+        System.out.println("--- Estado Inicial ---");
+        controller.actualizarVista();
+
+        // 3. El usuario interactúa con el Controlador para actualizar su correo
+        System.out.println("\n--- Usuario actualiza su correo ---");
+        controller.actualizarEmail("antonio.nuevo@empresa.com");
+
+        // 4. El Controlador refresca la Vista con los nuevos datos del Modelo
+        controller.actualizarVista();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ciclo completo de interacción MVC</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- Estado Inicial ---
+🖥️ [VISTA - Ficha de Usuario]
+   👤 Nombre : antonio_java
+   ✉️ Email  : antonio.antiguo@correo.es
+
+--- Usuario actualiza su correo ---
+&gt;&gt; [CONTROLADOR] Recibida petición para cambiar email a: antonio.nuevo@empresa.com
+🖥️ [VISTA - Ficha de Usuario]
+   👤 Nombre : antonio_java
+   ✉️ Email  : antonio.nuevo@empresa.com
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Como arquitectura base de prácticamente cualquier aplicación web o de escritorio con interfaz de usuario (Spring MVC, Jakarta MVC, Ruby on Rails, ASP.NET MVC).</li>
+    <li><strong>Cuándo evitarlo:</strong> En pequeños scripts de consola o demonios de procesamiento por lotes que no tienen interfaz de usuario.</li>
+</ul>

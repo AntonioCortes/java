@@ -5,7 +5,41 @@
             "contentId": "basics",
             "content": [
                 {
-                    "text": "Ejemplo",
+                    "text": "¿Qué es Gradle?",
+                    "content": "component-gradle-introduccion"
+                },
+                {
+                    "text": "Estructura y Wrapper",
+                    "content": "component-gradle-estructura"
+                }
+            ]
+        },
+        {
+            "text": "Configuración y Uso",
+            "contentId": "config",
+            "content": [
+                {
+                    "text": "El Archivo build.gradle",
+                    "content": "component-gradle-build-gradle"
+                },
+                {
+                    "text": "Añadir Librerías (Dependencias)",
+                    "content": "component-gradle-dependencias"
+                },
+                {
+                    "text": "Ciclo de Vida y Tareas",
+                    "content": "component-gradle-ciclo-vida-tareas"
+                },
+                {
+                    "text": "Plugins Esenciales",
+                    "content": "component-gradle-plugins"
+                },
+                {
+                    "text": "Comandos y Uso Práctico",
+                    "content": "component-gradle-comandos-uso"
+                },
+                {
+                    "text": "Ejemplos Explicados",
                     "content": "component-gradle-ejemplo"
                 }
             ]
@@ -13,8 +47,16 @@
     ],
     "links": [
         {
-            "text": "Página Oficial",
+            "text": "Página Oficial de Gradle",
             "href": "https://gradle.org/"
+        },
+        {
+            "text": "Buscador de Librerías (MVNRepository)",
+            "href": "https://mvnrepository.com/"
+        },
+        {
+            "text": "Portal Oficial de Plugins de Gradle",
+            "href": "https://plugins.gradle.org/"
         }
     ]
 }

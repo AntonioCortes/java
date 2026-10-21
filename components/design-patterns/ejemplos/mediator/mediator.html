@@ -5,49 +5,179 @@
 </style>
 <h1 class="title">Patrón Mediator</h1>
 
-<p>El patrón <strong>Mediator</strong> es un patrón de comportamiento que reduce el acoplamiento caótico entre objetos. El patrón restringe las comunicaciones directas entre los objetos y los fuerza a colaborar únicamente a través de un objeto mediador.</p>
+<p>El patrón <strong>Mediator</strong> (Mediador) es un patrón de comportamiento que reduce las dependencias caóticas entre muchos objetos. En lugar de que todos los objetos hablen directamente entre sí (todos contra todos), los fuerza a comunicarse únicamente a través de un <strong>objeto mediador central</strong>.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en los pilotos de avión acercándose a un aeropuerto y la <strong>Torre de Control</strong>. Si los 30 pilotos en vuelo tuvieran que llamarse por radio unos a otros directamente para acordar quién aterriza primero, sería un caos absoluto y peligroso. En su lugar, ningún piloto habla con otro piloto: todos hablan exclusivamente con la <strong>Torre de Control (el Mediador)</strong>, y es la torre quien coordina y transmite los avisos.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Definir un objeto que encapsule cómo interactúan un conjunto de objetos.</p>
+<p>Transformar una red de dependencias "muchos a muchos" (en malla) en una estructura simple en estrella donde cada componente (llamado <em>Colleague</em> o Colega) solo conoce al <code class="language-java">Mediator</code>.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Torre de Control Áereo o Chat Room</h2>
-<p><strong>Contexto:</strong> Centenares de aviones volando cerca de un aeropuerto. Si cada avión tuviera que hablar con todos los demás para no chocar (A con B, A con C, B con C...), tendríamos un caos de comunicaciones (complejidad N*N).</p>
+<h2 class="subtitle">Caso de Uso Real: Sala de Chat Grupal</h2>
+<p><strong>Contexto:</strong> Tienes múltiples usuarios (<code class="language-java">UsuarioChat</code>) conectados a una sala de chat grupal. Cuando un usuario envía un mensaje, debe llegar a todos los demás participantes de la sala.</p>
 
-<p><strong>El Problema:</strong> Demasiadas dependencias directas entre componentes hacen que el sistema sea imposible de mantener y testear. Cada avión necesitaría conocer a todos los demás.</p>
+<p><strong>El Problema (Sin Mediator):</strong> Si cada objeto <code class="language-java">Usuario</code> tuviera que guardar una lista de referencias directas a todos los demás usuarios del chat, cada vez que alguien entrara o saliera habría que actualizar las listas de todos los usuarios conectados.</p>
 
-<p><strong>La Solución (Mediator):</strong> Los aviones (Componentes) solo se comunican con la Torre de Control (Mediador).
-<br>Si un avión quiere aterrizar, se lo dice a la Torre. La Torre comprueba si la pista está libre y avisa a los otros aviones si es necesario. Las dependencias se reducen drásticamente (de N*N a N).</p>
+<p><strong>La Solución (Con Mediator):</strong> Creamos la interfaz <code class="language-java">MediadorChat</code> y su implementación <code class="language-java">SalaChat</code>. Cada <code class="language-java">Usuario</code> solo guarda una referencia a su <code class="language-java">MediadorChat</code>. Cuando Ana escribe un mensaje, se lo entrega a <code class="language-java">SalaChat</code>, y la sala se encarga de reenviarlo al resto de participantes.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Centralización del Control:</strong> 
-        <p>El Mediador encapsula la lógica de interacción compleja. Los componentes individuales (<code class="language-java">User</code>, <code class="language-java">Aircraft</code>) se vuelven más simples y reutilizables porque no dependen de otros componentes concretos, solo del mediador.</p>
-    </li>
-    <li>
-        <strong>Mediator vs Observer:</strong> 
-        <p>En Observer, la comunicación es unidireccional (Subject -> Observers). En Mediator, suele ser multidireccional y el mediador contiene lógica de negocio para coordinar, no solo notificar.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/mediator/assets/img/mediator-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Mediator centralizando la comunicación en SalaChat</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Mediator (Interfaz)</th>
+            <td><code class="language-java">MediadorChat</code></td>
+            <td>Declara los métodos de comunicación (<code class="language-java">enviarMensaje</code> y <code class="language-java">registrarUsuario</code>) que usarán los componentes.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Mediator</th>
+            <td><code class="language-java">SalaChat</code></td>
+            <td>Mantiene la lista de usuarios registrados y distribuye los mensajes recibidos a todos los demás miembros.</td>
+        </tr>
+        <tr>
+            <th scope="row">Colleague (Abstracto)</th>
+            <td><code class="language-java">Usuario</code></td>
+            <td>Clase base de los participantes; guarda una referencia al <code class="language-java">MediadorChat</code> pero no conoce a los demás usuarios.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Colleague</th>
+            <td><code class="language-java">UsuarioChat</code></td>
+            <td>Participante concreto que envía y recibe mensajes a través del mediador.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Mediator</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class ChatRoom {
-    public static void showMessage(User user, String message) {
-        System.out.println(new Date().toString() + " [" + user.getName() + "] : " + message);
+import java.util.ArrayList;
+import java.util.List;
+
+// 1. Interfaz Mediador
+interface MediadorChat {
+    void enviarMensaje(String msg, Usuario emisor);
+    void registrarUsuario(Usuario usuario);
+}
+
+// 2. Mediador Concreto: la Sala de Chat que coordina a todos
+class SalaChat implements MediadorChat {
+    private List&lt;User&gt; users = new ArrayList&lt;&gt;();
+
+    @Override
+    public void registrarUsuario(Usuario usuario) {
+        this.users.add(user);
+    }
+
+    @Override
+    public void enviarMensaje(String msg, Usuario emisor) {
+        for (Usuario u : this.users) {
+            // El mediador reenvía el mensaje a todos excepto al propio emisor
+            if (u != sender) {
+                u.recibir(msg, sender.name);
+            }
+        }
     }
 }
 
-class User {
-    private String name;
-    public User(String name) { this.name = name; }
-    public void sendMessage(String message) {
-        ChatRoom.showMessage(this, message);
+// 3. Componente / Colega Abstracto
+abstract class Usuario {
+    protected MediadorChat mediator;
+    protected String name;
+
+    public User(MediadorChat mediator, String name) {
+        this.mediator = mediator;
+        this.name = name;
+    }
+
+    public abstract void enviar(String msg);
+    public abstract void recibir(String msg, String from);
+}
+
+// 4. Colega Concreto
+class UsuarioChat extends Usuario {
+    public UsuarioChat(MediadorChat mediator, String name) {
+        super(mediator, name);
+    }
+
+    @Override
+    public void enviar(String msg) {
+        System.out.println("📤 [" + this.name + " envía]: " + msg);
+        mediator.enviarMensaje(msg, this);
+    }
+
+    @Override
+    public void recibir(String msg, String from) {
+        System.out.println("   📥 [" + this.name + " recibe de " + from + "]: " + msg);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Mediator</span>
+<span class="center-horizontal caption">Implementación completa del patrón Mediator</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Desacoplamiento total entre compañeros:</strong>
+        <p>Observa la clase <code class="language-java">UsuarioChat</code>: no tiene ningún atributo <code class="language-java">List&lt;User&gt;</code> ni conoce a ningún otro usuario. Solo llama a <code class="language-java">mediator.enviarMensaje(msg, this)</code>.</p>
+    </li>
+    <li>
+        <strong>2. Diferencia entre Mediator y Observer:</strong>
+        <p>En <strong>Observer</strong>, un sujeto publica eventos de forma unidireccional a sus suscriptores. En <strong>Mediator</strong>, el objetivo es eliminar las conexiones cruzadas multidireccionales entre muchos compañeros centralizando las reglas de coordinación en un único punto.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        // 1. Creamos el Mediador central (la sala de chat)
+        MediadorChat salaGeneral = new SalaChat();
+
+        // 2. Creamos los usuarios vinculados al mediador
+        Usuario ana = new UsuarioChat(salaGeneral, "Ana");
+        Usuario luis = new UsuarioChat(salaGeneral, "Luis");
+        Usuario marta = new UsuarioChat(salaGeneral, "Marta");
+
+        // 3. Los registramos en la sala
+        salaGeneral.registrarUsuario(ana);
+        salaGeneral.registrarUsuario(luis);
+        salaGeneral.registrarUsuario(marta);
+
+        // 4. Ana envía un mensaje y el mediador lo reparte a Luis y Marta
+        ana.enviar("¡Hola equipo! ¿A qué hora es la reunión?");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Comunicación entre múltiples objetos a través del mediador</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+📤 [Ana envía]: ¡Hola equipo! ¿A qué hora es la reunión?
+   📥 [Luis recibe de Ana]: ¡Hola equipo! ¿A qué hora es la reunión?
+   📥 [Marta recibe de Ana]: ¡Hola equipo! ¿A qué hora es la reunión?
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando tengas muchos componentes que interactúan entre sí (como los campos de un formulario complejo donde marcar un checkbox habilita un desplegable y oculta un botón, o un sistema de chat/tráfico).</li>
+    <li><strong>Cuándo evitarlo:</strong> Ten cuidado de no meter demasiada lógica distinta en un único Mediador hasta convertirlo en un "Objeto Dios" difícil de mantener.</li>
+</ul>

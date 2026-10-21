@@ -1,0 +1,147 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Ciclo de Vida de Gradle y Tareas (Tasks)</h1>
+
+<p>Para dejar de ver a Gradle como una "caja negra mágica" y dominarlo de verdad, necesitas comprender dos conceptos fundamentales: las <strong>3 fases de su ciclo de vida</strong> y qué es el <strong>Grafo de Tareas (DAG)</strong>.</p>
+
+<img class="center-horizontal" src="components/gradle/ciclo-vida-tareas/assets/img/gradle-ciclo-vida-diagram.png">
+<span class="center-horizontal caption">Figura 1: Las 3 fases internas de Gradle y el Grafo Acíclico Dirigido (DAG) de tareas del plugin Java</span>
+
+<h2 class="subtitle">1. Las 3 Fases Internas que Ocurren cada vez que Ejecutas un Comando</h2>
+<p>Cada vez que escribes en la terminal un comando como <code class="language-bash">./gradlew build</code>, Gradle ejecuta internamente tres fases en estricto orden:</p>
+
+<ol>
+    <li>
+        <strong>Fase 1: Inicialización (Initialization):</strong>
+        <p>Gradle lee primero el archivo <code class="language-bash">settings.gradle</code> para descubrir el nombre del proyecto y comprobar si se trata de un único proyecto o de una estructura con múltiples submódulos.</p>
+    </li>
+    <li>
+        <strong>Fase 2: Configuración (Configuration):</strong>
+        <p>Gradle lee tu archivo <code class="language-bash">build.gradle</code> de arriba abajo, registra los plugins y construye en memoria el mapa de qué tareas dependen de cuáles (el <strong>Grafo Acíclico Dirigido o DAG</strong>). <em>¡Ojo! En esta fase todavía no se ha compilado ni ejecutado ninguna tarea real</em>.</p>
+    </li>
+    <li>
+        <strong>Fase 3: Ejecución (Execution):</strong>
+        <p>Una vez trazado el plan de ruta en la fase anterior, Gradle ejecuta una por una solo las tareas necesarias para cumplir el comando que le has pedido.</p>
+    </li>
+</ol>
+
+<h2 class="subtitle">2. Las Tareas Principales de un Proyecto Java</h2>
+<p>Cuando añades <code class="language-groovy">id 'java'</code> en tu <code class="language-bash">build.gradle</code>, Gradle crea automáticamente por ti las siguientes tareas listas para usar:</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Tarea (<code class="language-bash">./gradlew &lt;tarea&gt;</code>)</th>
+            <th scope="col">¿De qué tareas depende antes?</th>
+            <th scope="col">¿Qué hace exactamente?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><code class="language-bash">compileJava</code></th>
+            <td>Ninguna</td>
+            <td>Compila todos tus archivos <code class="language-bash">.java</code> de <code class="language-bash">src/main/java</code> y deja los <code class="language-bash">.class</code> en <code class="language-bash">build/classes/</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">processResources</code></th>
+            <td>Ninguna</td>
+            <td>Copia tus archivos de configuración desde <code class="language-bash">src/main/resources</code> hacia la carpeta <code class="language-bash">build/resources/</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">classes</code></th>
+            <td><code class="language-bash">compileJava</code> + <code class="language-bash">processResources</code></td>
+            <td>Agrupa el código compilado y los recursos listos para empaquetar.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">jar</code> / <code class="language-bash">assemble</code></th>
+            <td><code class="language-bash">classes</code></td>
+            <td>Empaqueta tu aplicación en un archivo <code class="language-bash">.jar</code> dentro de <code class="language-bash">build/libs/</code> <strong>sin ejecutar los tests</strong>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">test</code></th>
+            <td><code class="language-bash">classes</code> + <code class="language-bash">compileTestJava</code></td>
+            <td>Compila y ejecuta todos los tests unitarios de <code class="language-bash">src/test/java</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">check</code></th>
+            <td><code class="language-bash">test</code> (+ plugins de calidad)</td>
+            <td>Ejecuta todas las verificaciones de calidad del proyecto (tests, cobertura JaCoCo, linters).</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">build</code></th>
+            <td><code class="language-bash">assemble</code> + <code class="language-bash">check</code></td>
+            <td><strong>La tarea reina:</strong> compila todo, pasa todos los tests y genera el archivo <code class="language-bash">.jar</code> final.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-bash">clean</code></th>
+            <td>Ninguna</td>
+            <td>Borra por completo la carpeta <code class="language-bash">build/</code> para empezar una compilación limpia desde cero.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Tareas estándar de construcción en cualquier proyecto Java con Gradle</span>
+
+<h2 class="subtitle">3. Cómo Crear Tus Propias Tareas Personalizadas en <code class="language-bash">build.gradle</code></h2>
+<p>Una de las mayores ventajas de Gradle frente a Maven es lo fácil que resulta crear tus propias tareas automatizadas (por ejemplo, imprimir información, copiar archivos, generar un ZIP o ejecutar un test de integración especial).</p>
+
+<p><strong>¡Regla de Oro para Principiantes! (<code class="language-groovy">doLast</code> vs Configuración):</strong> Dentro de una tarea, las acciones que quieras que ocurran cuando alguien invoque esa tarea deben ir siempre dentro de un bloque <code class="language-groovy">doLast { ... }</code> (al final de la tarea) o <code class="language-groovy">doFirst { ... }</code> (al principio de la tarea). Si escribes un <code class="language-groovy">println</code> suelto fuera de <code class="language-groovy">doLast</code>, se ejecutará siempre en la Fase de Configuración aunque no hayas llamado a esa tarea.</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Ejemplo 1: Crear una tarea personalizada sencilla
+tasks.register('saludarEquipo') {
+    group = 'Mi Empresa'
+    description = 'Muestra un mensaje de estado del proyecto por consola'
+
+    doLast {
+        println '========================================='
+        println 'Proyecto: ' + project.name
+        println 'Versión actual: ' + project.version
+        println '¡Todo listo para desplegar!'
+        println '========================================='
+    }
+}
+
+// Ejemplo 2: Tarea para copiar archivos o hacer una copia de seguridad automática
+tasks.register('copiarConfiguracion', Copy) {
+    group = 'Utilidades'
+    description = 'Copia los archivos de configuración a la carpeta de distribución'
+    from 'src/main/resources'
+    into "${layout.buildDirectory.get()}/config-backup"
+    include '*.yml', '*.properties'
+}
+
+// Ejemplo 3: Hacer que una tarea dependa de otra (dependsOn)
+tasks.register('prepararEntrega') {
+    group = 'Mi Empresa'
+    description = 'Genera el JAR y además copia la configuración'
+    dependsOn 'jar', 'copiarConfiguracion'
+
+    doLast {
+        println 'Entrega generada correctamente en la carpeta build/'
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Creación de tareas propias, tareas de tipo Copy y encadenamiento con dependsOn</span>
+
+<p>Para ejecutar cualquiera de las tareas que acabas de crear en tu terminal, simplemente escribes su nombre:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+$ ./gradlew saludarEquipo
+
+&gt; Task :saludarEquipo
+=========================================
+Proyecto: sistema-reservas
+Versión actual: 1.0.0-SNAPSHOT
+¡Todo listo para desplegar!
+=========================================
+
+BUILD SUCCESSFUL in 450ms
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejecución por consola de nuestra tarea personalizada</span>

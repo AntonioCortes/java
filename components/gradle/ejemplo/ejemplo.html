@@ -1,23 +1,97 @@
-<h1 class="title">Gradle</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Ejemplos Reales de build.gradle Explicados Línea por Línea</h1>
+
+<p>Para consolidar todo lo aprendido, vamos a analizar dos ejemplos reales de archivos <code class="language-bash">build.gradle</code>: primero un <strong>ejemplo básico desde cero</strong> para una aplicación Java estándar, y a continuación un <strong>ejemplo empresarial completo de un microservicio real</strong> con Spring Boot, Spring Cloud, Kafka, Avro, Flyway, JaCoCo y SonarQube, explicando qué hace cada bloque.</p>
+
+<h2 class="subtitle">Ejemplo 1: Archivo <code class="language-bash">build.gradle</code> Básico para Empezar un Proyecto Java</h2>
+<p>Si vas a crear hoy tu primer proyecto en Java con soporte para convertir objetos a JSON (Gson), ahorrar código repetitivo (Lombok) y hacer pruebas unitarias (JUnit 5), esta es la plantilla limpia que necesitas:</p>
 
 <div class="center-horizontal">
-<pre ><code>
+<pre><code class="language-groovy">
+// 1. Activamos el soporte para Java y para poder ejecutar la clase Main con './gradlew run'
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// 2. Identificador de nuestra organización y versión de nuestro programa
+group = 'com.ejemplo.tienda'
+version = '1.0.0'
+
+// 3. Indicamos que compilaremos con Java 17
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+// 4. Descargaremos todas las librerías del repositorio oficial Maven Central
+repositories {
+    mavenCentral()
+}
+
+// 5. Librerías que necesita nuestro proyecto
+dependencies {
+    // Librería Gson para convertir objetos Java a JSON (disponible al compilar y ejecutar)
+    implementation 'com.google.code.gson:gson:2.11.0'
+
+    // Lombok: solo actúa mientras compilamos para generar getters/setters automáticamente
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    // JUnit 5: solo disponible dentro de la carpeta src/test/java
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// 6. Indicamos cuál es nuestra clase principal con el método public static void main
+application {
+    mainClass = 'com.ejemplo.tienda.Main'
+}
+
+// 7. Activamos el motor de JUnit 5 para la tarea './gradlew test'
+tasks.named('test') {
+    useJUnitPlatform()
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo 1: Plantilla moderna de build.gradle para un proyecto Java estándar</span>
+
+<h2 class="subtitle">Ejemplo 2: Archivo <code class="language-bash">build.gradle</code> de un Microservicio Empresarial Real</h2>
+<p>Cuando entras a trabajar en una gran empresa (banca, retail, telecomunicaciones), los archivos <code class="language-bash">build.gradle</code> son mucho más extensos porque integran repositorios privados, herramientas de cobertura (JaCoCo), calidad (SonarQube), mensajería (Kafka + Avro) y migraciones de bases de datos (Flyway).</p>
+<p>A continuación tienes un archivo <code class="language-bash">build.gradle</code> empresarial real completamente comentado bloque a bloque, seguido de una tabla explicativa para que entiendas cada línea:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// =========================================================================
+// 1. BLOQUE BUILDSCRIPT: Configuración previa de versiones y plugins legacy
+// =========================================================================
 buildscript {
+    // Variables globales (ext = Extra Properties) reutilizables en todo el script
     ext {
         springBootVersion = '2.1.10.RELEASE'
     }
-    ext['log4j2.version'] = '2.16.0'
-    repositories { maven { url "$RepositoryUrl" } }
+    ext['log4j2.version'] = '2.16.0' // Fuerza una versión segura de Log4j2
+
+    // Repositorio corporativo privado cuya URL se inyecta desde gradle.properties
+    repositories {
+        maven { url "$RepositoryUrl" }
+    }
+
+    // Librerías que necesita el propio motor de Gradle para sus plugins
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-    }
-    dependencies {
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
     }
-    
-    
 }
 
+// =========================================================================
+// 2. BLOQUE PLUGINS: Herramientas activadas en el microservicio
+// =========================================================================
 plugins {
     id "java"
     id "groovy"
@@ -25,13 +99,14 @@ plugins {
     id "idea"
     id "maven-publish"
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
-        id "org.springframework.boot" version "2.1.10.RELEASE"
+    id "org.springframework.boot" version "2.1.10.RELEASE"
     id "org.sonarqube" version "2.7"
     id "com.jfrog.artifactory" version "4.7.3"
     id "com.github.davidmc24.gradle.plugin.avro" version "1.2.0"
     id "org.flywaydb.flyway" version "7.9.2"
 }
 
+// Importa configuraciones externas separadas en la carpeta gradle/ para mantener el orden
 apply from: "gradle/sonar.gradle"
 apply from: "gradle/artifactory.gradle"
 
@@ -39,11 +114,14 @@ apply plugin: 'eclipse'
 apply plugin: 'jacoco'
 apply plugin: 'org.sonarqube'
 
+// =========================================================================
+// 3. COBERTURA DE CÓDIGO (JACOCO) Y PROCESADO DE RECURSOS
+// =========================================================================
 jacocoTestReport {
     reports {
-        xml.enabled true
+        xml.enabled true   // Genera XML para que SonarQube lea la cobertura
         csv.enabled false
-        html.destination = file("${buildDir}/reports/coverage")
+        html.destination = file("${buildDir}/reports/coverage") // Reporte visual HTML
     }
 }
 
@@ -51,105 +129,111 @@ jacoco {
     applyTo bootRun
 }
 
+// Reemplaza variables ${...} dentro de application.yml con propiedades del proyecto
 processResources {
     filesMatching('application.yml') {
         expand(project.properties)
     }
 }
 
+// =========================================================================
+// 4. METADATOS, VERSIÓN DE JAVA Y REPOSITORIOS
+// =========================================================================
 group = 'com.carrefour'
 
 sourceCompatibility = '1.11'
 targetCompatibility = '1.11'
 
 repositories {
-    mavenCentral()
-    maven { url "$RepositoryUrl"  }
-        flatDir { dirs 'libs' }
+    mavenCentral()                   // 1º Busca en el repositorio público Maven Central
+    maven { url "$RepositoryUrl" }   // 2º Busca en el repositorio privado de la empresa
+    flatDir { dirs 'libs' }          // 3º Busca archivos .jar locales en la carpeta libs/
 }
 
 ext {
     set('springCloudVersion', 'Greenwich.RELEASE')
 }
 
-
+// =========================================================================
+// 5. DEPENDENCIAS DEL MICROSERVICIO (Agrupadas por propósito)
+// =========================================================================
 dependencies {
+    // --- A) Starters principales de Spring Boot (Web, Métricas, SOAP y JPA) ---
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web-services'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-
-    //Spring Cloud
+    // --- B) Spring Cloud (Configuración centralizada, tolerancia a fallos y trazabilidad) ---
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix-dashboard'
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
 
-        //Swagger
+    // --- C) Documentación automática de la API REST (Swagger) ---
     implementation 'io.springfox:springfox-swagger2:2.9.2'
     implementation 'io.springfox:springfox-swagger-ui:2.9.2'
 
-    //Logs & metrics
+    // --- D) Logs centralizados y Métricas (Logstash y Micrometer) ---
     implementation 'biz.paluch.logging:logstash-gelf:1.13.0'
     implementation 'io.micrometer:micrometer-core'
     implementation 'io.micrometer:micrometer-registry-statsd'
 
-            // GCP
+    // --- E) Integración con Google Cloud Platform (GCP Storage) ---
     implementation 'org.springframework:spring-context'
     implementation 'com.google.cloud:google-cloud-storage'
     implementation 'org.springframework.integration:spring-integration-file'
     implementation 'org.springframework.cloud:spring-cloud-gcp-starter-storage'
-    
-    // Flyway
+
+    // --- F) Migraciones de Base de Datos y Drivers ---
     implementation 'org.flywaydb:flyway-core'
-    
-        // Bases de Datos
-    runtime 'org.postgresql:postgresql'
-        testImplementation 'com.h2database:h2'
+    runtime 'org.postgresql:postgresql'       // Driver de producción (en Gradle moderno: runtimeOnly)
+    testImplementation 'com.h2database:h2'    // Base de datos en memoria solo para los tests
 
+    // --- G) Utilidades generales y mapeo de DTOs ---
     implementation 'org.apache.commons:commons-lang3:3.8.1'
-
     implementation 'org.modelmapper:modelmapper:2.4.4'
-    
-        //KAFKA-SPRING
+
+    // --- H) Mensajería con Apache Kafka y Esquemas Avro ---
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.apache.kafka:kafka-clients:2.5.0'
 
-    compile ("io.confluent:kafka-schema-registry:5.0.0"){
+    // Se excluye 'slf4j-log4j12' para que no choque con el sistema de logs de Spring Boot
+    compile ("io.confluent:kafka-schema-registry:5.0.0") {
         exclude module: "slf4j-log4j12"
     }
-    compile ("io.confluent:kafka-schema-registry-client:5.0.0"){
+    compile ("io.confluent:kafka-schema-registry-client:5.0.0") {
         exclude module: "slf4j-log4j12"
     }
-    compile ("io.confluent:kafka-avro-serializer:5.0.0"){
+    compile ("io.confluent:kafka-avro-serializer:5.0.0") {
         exclude module: "slf4j-log4j12"
     }
-        
     implementation 'org.apache.avro:avro:1.10.2'
-    
-    // TEST
+
+    // --- I) Librerías exclusivas para Testing (RestAssured, Mockito, Spring Test) ---
     testImplementation 'io.rest-assured:rest-assured:3.3.0'
     testImplementation 'io.rest-assured:spring-mock-mvc:3.3.0'
     testImplementation 'org.mockito:mockito-core:2.22.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//    testImplementation 'org.springframework.security:spring-security-test'
-    //   testImplementation 'org.springframework.kafka:spring-kafka-test'
-    
-    // Lombok
-    dependencies {
-        compileOnly 'org.projectlombok:lombok:1.18.10'
-        annotationProcessor 'org.projectlombok:lombok:1.18.10'
-    }
+
+    // --- J) Lombok (Generación de código en tiempo de compilación) ---
+    compileOnly 'org.projectlombok:lombok:1.18.10'
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
 }
 
+// =========================================================================
+// 6. GESTIÓN DE VERSIONES CON BOM (SPRING CLOUD)
+// =========================================================================
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
 
-task integrationTest{
+// =========================================================================
+// 7. TAREAS PERSONALIZADAS Y AJUSTE DE PLUGINS (TEST Y AVRO)
+// =========================================================================
+task integrationTest {
     group 'Welcome'
     description 'Task para test de integracion'
 
@@ -158,17 +242,54 @@ task integrationTest{
     }
 }
 
+// Asigna hasta 1024 MB de memoria RAM al proceso que ejecuta los tests
 test {
     maxHeapSize = "1024m"
 }
 
-
+// Configura el generador de clases Avro para que los atributos generados sean private
 avro {
     fieldVisibility = "PRIVATE"
 }
 
+// Indica a Avro en qué carpeta están los esquemas .avsc a partir de los cuales crear clases Java
 generateAvroJava {
-        source("src/main/resources/avsc")
-}    
-</code></pre>    
+    source("src/main/resources/avsc")
+}
+</code></pre>
 </div>
+<span class="center-horizontal caption">Ejemplo 2: Archivo build.gradle real de un microservicio empresarial explicado paso a paso</span>
+
+<h2 class="subtitle">Resumen de los Bloques Clave del Ejemplo Empresarial</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Sección del Archivo</th>
+            <th scope="col">¿Qué problema resuelve en este proyecto?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><code class="language-groovy">ext { ... }</code></th>
+            <td>Permite definir variables como <code class="language-groovy">springBootVersion</code> o <code class="language-groovy">springCloudVersion</code> en un solo lugar e interpolarlas con <code class="language-groovy">${...}</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">apply from: "gradle/sonar.gradle"</code></th>
+            <td>Importa archivos secundarios de Gradle para no tener un único archivo de 1.000 líneas.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">exclude module: "slf4j-log4j12"</code></th>
+            <td>Evita que las librerías de Confluent Kafka introduzcan un motor de logs duplicado que impida arrancar a Spring Boot.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">dependencyManagement { mavenBom ... }</code></th>
+            <td>Importa el catálogo oficial de versiones de <em>Spring Cloud Greenwich</em> para que todas las librerías de Cloud sean compatibles sin escribir su versión una por una.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code class="language-groovy">avro</code> y <code class="language-groovy">generateAvroJava</code></th>
+            <td>Lee los archivos de esquema <code class="language-bash">.avsc</code> de la carpeta <code class="language-bash">src/main/resources/avsc</code> y genera automáticamente las clases Java antes de compilar el proyecto.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Análisis de las técnicas avanzadas utilizadas en el ejemplo empresarial</span>

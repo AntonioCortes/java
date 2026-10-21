@@ -5,51 +5,191 @@
 </style>
 <h1 class="title">Patrón Service Locator</h1>
 
-<p>El patrón <strong>Service Locator</strong> es un patrón de la arquitectura Java EE que centraliza la lógica para buscar recursos externos (EJBs, DataSources).</p>
+<p>El patrón <strong>Service Locator</strong> (Localizador de Servicios) es un patrón de la arquitectura Java EE que centraliza la búsqueda de servicios o recursos costosos (como conexiones JNDI, colas de mensajería o microservicios) y <strong>guarda sus referencias en una caché en memoria</strong> para no tener que buscarlos una y otra vez.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en la <strong>agenda de contactos rápidos de tu teléfono móvil</strong>. La primera vez que necesitas llamar al fontanero, tienes que buscar su número en las Páginas Amarillas o en Google (una búsqueda lenta: <code class="language-java">ContextoInicial.buscar()</code>). Una vez que lo encuentras, lo guardas en los "Contactos Favoritos" de tu móvil (la <strong>Caché del Service Locator</strong>). La próxima vez que lo necesites, lo obtienes al instante sin volver a buscar en la guía telefónica.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Evitar la redundancia de código de búsqueda JNDI y mejorar performance con caching.</p>
+<p>Abstraer la complejidad de los directorios de nombres (como JNDI o registros de servicios) y mejorar drásticamente el rendimiento evitando búsquedas de red repetitivas.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Búsqueda de Recursos JNDI en Servidores de Aplicaciones</h2>
-<p><strong>Contexto:</strong> En aplicaciones empresariales antiguas (EJB 2.x, Datasources), obtener una referencia a un servicio requería un proceso de "Lookup" JNDI costoso y verboso: <code class="language-java">new InitialContext().lookup("java:comp/env/jdbc/MyDS")</code>.</p>
+<h2 class="subtitle">Caso de Uso Real: Localización y Caché de Servicios Empresariales</h2>
+<p><strong>Contexto:</strong> En un servidor de aplicaciones empresarial, localizar un servicio por su nombre (<code class="language-java">PaymentService</code> o <code class="language-java">MessagingService</code>) a través de <code class="language-java">ContextoInicial.buscar()</code> tarda varios milisegundos porque consulta un directorio en red.</p>
 
-<p><strong>El Problema:</strong> Hacer este lookup cada vez que necesitas el servicio mata el rendimiento (es una operación de red o inter-proceso lenta). Además, llena el código de Strings mágicos difíciles de mantener.</p>
+<p><strong>El Problema (Sin Service Locator):</strong> Si cada petición de usuario ejecuta <code class="language-java">new ContextoInicial().buscar("PaymentService")</code>, el servidor perderá la mayor parte del tiempo haciendo búsquedas repetidas del mismo servicio.</p>
 
-<p><strong>La Solución (Service Locator):</strong> Un objeto singleton que encapsula el lookup.
-<br>La primera vez que pides un servicio, lo busca en el JNDI y lo guarda en una caché interna (HashMap). Las siguientes veces, lo devuelve directamente de la memoria, mejorando drásticamente el rendimiento.</p>
+<p><strong>La Solución (Con Service Locator):</strong> El cliente pide el servicio a <code class="language-java">LocalizadorServicios.obtenerServicio("PaymentService")</code>. El localizador mira primero en su <code class="language-java">CacheServicios</code>: si aún no está, hace el <em>lookup</em> costoso una sola vez y lo guarda en caché; en todas las llamadas siguientes lo devuelve inmediatamente desde la memoria RAM.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Caché de Recursos:</strong> 
-        <p>La clave del patrón es el rendimiento. Almacenar referencias costosas de obtener para su reutilización inmediata. Hoy en día, la Inyección de Dependencias (Spring, CDI) ha reemplazado en gran medida a este patrón, haciendo el caché de forma transparente.</p>
-    </li>
-    <li>
-        <strong>Abstracción del Registro:</strong> 
-        <p>El cliente no necesita saber si el servicio viene de JNDI, de un archivo de configuración o de un mock de pruebas. Solo pide el servicio por un nombre lógico.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/service-locator/assets/img/service-locator-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama del patrón Service Locator combinando directorio ContextoInicial y CacheServicios</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Localizador de Servicios (Clase Normal)</th>
+            <td><code class="language-java">LocalizadorServicios</code></td>
+            <td>Punto central que coordina la búsqueda: primero consulta la caché y solo si no existe acude al directorio <code class="language-java">ContextoInicial</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cache (Caché)</th>
+            <td><code class="language-java">CacheServicios</code></td>
+            <td>Mapa en memoria que almacena las instancias de servicios ya localizados para reutilizarlas al instante.</td>
+        </tr>
+        <tr>
+            <th scope="row">Initial Context</th>
+            <td><code class="language-java">ContextoInicial</code></td>
+            <td>Representa el registro o directorio externo (ej. JNDI) donde se buscan e inicializan los servicios por primera vez.</td>
+        </tr>
+        <tr>
+            <th scope="row">Servicio (Interfaz y Clases Normales)</th>
+            <td><code class="language-java">Servicio</code>, <code class="language-java">PaymentService</code>, <code class="language-java">EmailService</code></td>
+            <td>Los servicios concretos que el cliente desea localizar y ejecutar.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Service Locator</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class ServiceLocator {
-    private static Cache cache;
-    
-    static { cache = new Cache(); }
+import java.util.HashMap;
+import java.util.Map;
 
-    public Service getService(String jndiName) {
-        Service service = cache.getService(jndiName);
-        if (service != null) return service;
+// 1. Interfaz común para los servicios
+interface Servicio {
+    String getNombre();
+    void ejecutar();
+}
 
-        Context context = new InitialContext();
-        service = (Service) context.lookup(jndiName);
-        cache.addService(service);
-        return service;
+// 2. Servicios Concretos
+class PaymentService implements Servicio {
+    public String getNombre() { return "PaymentService"; }
+    public void ejecutar() { System.out.println("💳 Ejecutando PaymentService..."); }
+}
+
+class EmailService implements Servicio {
+    public String getNombre() { return "EmailService"; }
+    public void ejecutar() { System.out.println("✉️ Ejecutando EmailService..."); }
+}
+
+// 3. ContextoInicial: Simula el directorio JNDI (operación lenta/costosa)
+class ContextoInicial {
+    public Object buscar(String jndiName) {
+        System.out.println("🔍 [JNDI Lookup Costoso] Buscando y creando '" + jndiName + "' en el directorio de red...");
+        if (jndiName.equalsIgnoreCase("PaymentService")) {
+            return new PaymentService();
+        } else if (jndiName.equalsIgnoreCase("EmailService")) {
+            return new EmailService();
+        }
+        return null;
+    }
+}
+
+// 4. CacheServicios: Almacena en memoria los servicios ya encontrados
+class CacheServicios {
+    private Map&lt;String, Service&gt; services = new HashMap&lt;&gt;();
+
+    public Servicio obtenerServicio(String serviceName) {
+        Servicio s = services.get(serviceName.toUpperCase());
+        if (s != null) {
+            System.out.println("⚡ [CACHÉ HIT] Devolviendo '" + serviceName + "' directamente desde memoria.");
+        }
+        return s;
+    }
+
+    public void agregarServicio(Servicio newService) {
+        services.put(newService.getNombre().toUpperCase(), newService);
+    }
+}
+
+// 5. Service Locator: Fachada estática de localización
+class LocalizadorServicios {
+    private static CacheServicios cache = new CacheServicios();
+
+    public static Servicio obtenerServicio(String jndiName) {
+        // Paso 1: Comprobar si ya está en la caché
+        Servicio service = cache.obtenerServicio(jndiName);
+        if (service != null) {
+            return service;
+        }
+
+        // Paso 2: Si no está, hacer lookup en ContextoInicial y guardarlo en caché
+        ContextoInicial context = new ContextoInicial();
+        Service newService = (Service) context.buscar(jndiName);
+        cache.agregarServicio(newService);
+        return newService;
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Service Locator</span>
+<span class="center-horizontal caption">Implementación completa del patrón Service Locator con caché</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Observa la diferencia entre la 1ª y la 2ª llamada:</strong>
+        <p>La primera vez que pides <code class="language-java">"PaymentService"</code>, se ejecuta el costoso <code class="language-java">ContextoInicial.buscar()</code>. La segunda vez que lo pides, <code class="language-java">CacheServicios</code> lo intercepta y lo entrega al instante sin tocar la red.</p>
+    </li>
+    <li>
+        <strong>2. Service Locator vs Inyección de Dependencias (Spring):</strong>
+        <p>En el patrón <strong>Service Locator</strong>, la clase pide activamente su dependencia (<code class="language-java">LocalizadorServicios.obtenerServicio(...)</code>). Con <strong>Inyección de Dependencias</strong> (<code class="language-java">@Autowired</code> en Spring), el contenedor de Spring busca en su registro interno y te inyecta el objeto automáticamente por constructor.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("--- 1ª Petición de PaymentService ---");
+        Servicio service = LocalizadorServicios.obtenerServicio("PaymentService");
+        service.ejecutar();
+
+        System.out.println("\n--- 2ª Petición de PaymentService (ya está en caché) ---");
+        service = LocalizadorServicios.obtenerServicio("PaymentService");
+        service.ejecutar();
+
+        System.out.println("\n--- 1ª Petición de EmailService ---");
+        service = LocalizadorServicios.obtenerServicio("EmailService");
+        service.ejecutar();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Prueba del ahorro de búsquedas repetidas gracias a la caché del Service Locator</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+--- 1ª Petición de PaymentService ---
+🔍 [JNDI Lookup Costoso] Buscando y creando 'PaymentService' en el directorio de red...
+💳 Ejecutando PaymentService...
+
+--- 2ª Petición de PaymentService (ya está en caché) ---
+⚡ [CACHÉ HIT] Devolviendo 'PaymentService' directamente desde memoria.
+💳 Ejecutando PaymentService...
+
+--- 1ª Petición de EmailService ---
+🔍 [JNDI Lookup Costoso] Buscando y creando 'EmailService' en el directorio de red...
+✉️ Ejecutando EmailService...
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando trabajes con registros JNDI, descubrimiento de servicios dinámicos o sistemas de plugins donde el servicio a cargar se decide por nombre en tiempo de ejecución.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si usas un framework moderno como Spring Boot o Jakarta CDI, prefiere siempre la <strong>Inyección de Dependencias por constructor</strong> en lugar de llamar manualmente a un Service Locator estático, ya que la inyección por constructor facilita mucho los tests unitarios.</li>
+</ul>

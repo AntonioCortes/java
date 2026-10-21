@@ -1,0 +1,115 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Plugins Esenciales de Gradle (Java, Spring Boot, JaCoCo, Sonar, Flyway)</h1>
+
+<p>En Gradle, los <strong>Plugins</strong> son extensiones que le "enseñan" a Gradle nuevas habilidades. Sin plugins, Gradle es un lienzo en blanco; cada vez que añades una línea al bloque <code class="language-groovy">plugins { ... }</code>, desbloqueas automáticamente nuevas tareas y nuevos bloques de configuración en tu proyecto.</p>
+
+<img class="center-horizontal" src="components/gradle/plugins/assets/img/gradle-plugins-diagram.png">
+<span class="center-horizontal caption">Figura 1: Cómo los plugins inyectan nuevas tareas ejecutables dentro del motor de Gradle</span>
+
+<h2 class="subtitle">1. Plugins Oficiales Incluidos en Gradle (Core Plugins)</h2>
+<p>Estos plugins vienen integrados de fábrica dentro de Gradle, por lo que <strong>no necesitan número de versión</strong> al declararlos:</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Plugin</th>
+            <th scope="col">Declaración</th>
+            <th scope="col">¿Qué añade a tu proyecto?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><strong>Java</strong></th>
+            <td><code class="language-groovy">id 'java'</code></td>
+            <td>Compilación de <code class="language-bash">src/main/java</code>, ejecución de tests JUnit y generación de archivos <code class="language-bash">.jar</code>. Es la base de todo proyecto Java.</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Application</strong></th>
+            <td><code class="language-groovy">id 'application'</code></td>
+            <td>Añade la tarea <code class="language-bash">./gradlew run</code> para arrancar tu clase <code class="language-java">Main</code> directamente y genera un ZIP/TAR instalable con scripts de inicio.</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Java Library</strong></th>
+            <td><code class="language-groovy">id 'java-library'</code></td>
+            <td>Se usa cuando estás creando una librería para otros programadores. Habilita la palabra clave <code class="language-groovy">api</code> además de <code class="language-groovy">implementation</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>JaCoCo</strong></th>
+            <td><code class="language-groovy">id 'jacoco'</code></td>
+            <td>Mide qué porcentaje de las líneas de tu código Java están cubiertas por tus tests unitarios y genera un reporte web en colores verde/rojo.</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Maven Publish</strong></th>
+            <td><code class="language-groovy">id 'maven-publish'</code></td>
+            <td>Permite subir y publicar el <code class="language-bash">.jar</code> de tu librería en el servidor privado de tu empresa (Nexus, Artifactory, GitHub Packages).</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Eclipse / IDEA</strong></th>
+            <td><code class="language-groovy">id 'eclipse'</code> / <code class="language-groovy">id 'idea'</code></td>
+            <td>Genera los archivos de configuración del proyecto para importarlo en los editores Eclipse o IntelliJ IDEA.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Plugins oficiales de Gradle que no requieren indicar versión</span>
+
+<h2 class="subtitle">2. Plugins de Comunidad y Empresa (Spring Boot, SonarQube, Flyway, Avro)</h2>
+<p>Los plugins creados por terceros se descargan automáticamente del <a href="https://plugins.gradle.org/" target="_blank">Gradle Plugin Portal</a> y <strong>sí requieren indicar su versión</strong>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+plugins {
+    id 'java'
+    id 'jacoco'
+
+    // 1. Plugins de Spring Boot y gestión automática de versiones de Spring
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+
+    // 2. Plugin de SonarQube para auditoría de calidad y seguridad de código
+    id 'org.sonarqube' version '5.1.0.4882'
+
+    // 3. Plugin de Flyway para ejecutar scripts SQL de migración de Base de Datos
+    id 'org.flywaydb.flyway' version '10.18.0'
+
+    // 4. Plugin de Apache Avro para autogenerar clases Java desde esquemas .avsc de Kafka
+    id 'com.github.davidmc24.gradle.plugin.avro' version '1.9.1'
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Declaración de los plugins empresariales más utilizados en microservicios Java</span>
+
+<h2 class="subtitle">¿Qué hace exactamente el Plugin de Spring Boot (<code class="language-groovy">org.springframework.boot</code>)?</h2>
+<p>Cuando trabajas con Spring Boot, este plugin transforma tu proyecto y te regala dos tareas fundamentales que usarás todos los días:</p>
+<ul>
+    <li><strong><code class="language-bash">./gradlew bootRun</code>:</strong> Levanta tu microservicio o servidor web local directamente en tu ordenador sin tener que empaquetarlo antes.</li>
+    <li><strong><code class="language-bash">./gradlew bootJar</code>:</strong> Por defecto en Java, un archivo <code class="language-bash">.jar</code> normal solo contiene tus clases, pero NO contiene las librerías externas (por lo que al llevarlo a otro servidor fallaría). La tarea <code class="language-bash">bootJar</code> crea un <strong>Fat JAR (JAR Ejecutable Autónomo)</strong> que mete dentro de un único archivo <code class="language-bash">.jar</code> tu código, el servidor Tomcat embebido y todas las librerías de Spring listas para arrancar con <code class="language-bash">java -jar app.jar</code>.</li>
+</ul>
+
+<h2 class="subtitle">¿Cómo configurar JaCoCo para ver el Informe de Cobertura de tus Tests?</h2>
+<p>Al añadir <code class="language-groovy">id 'jacoco'</code>, puedes configurar en tu <code class="language-bash">build.gradle</code> que cada vez que pasen los tests se genere una página web en <code class="language-bash">build/reports/coverage/index.html</code> donde verás línea por línea qué partes de tu código han sido probadas:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+jacocoTestReport {
+    dependsOn test // Asegura que primero se ejecuten los tests antes de medir la cobertura
+    reports {
+        xml.required = true  // Necesario si luego envías los datos a SonarQube
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('reports/coverage')
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Configuración del reporte de cobertura de código con JaCoCo</span>
+
+<h2 class="subtitle">Nota importante: <code class="language-groovy">plugins { id ... }</code> vs el antiguo <code class="language-groovy">apply plugin:</code></h2>
+<p>Si abres proyectos de empresa creados hace unos años, es muy probable que veas dos formas distintas de aplicar plugins:</p>
+<ul>
+    <li><strong>Forma moderna y recomendada:</strong> El bloque <code class="language-groovy">plugins { id 'java' }</code> arriba del todo del archivo.</li>
+    <li><strong>Forma antigua (Legacy):</strong> Un bloque <code class="language-groovy">buildscript { dependencies { classpath ... } }</code> seguido más abajo de <code class="language-groovy">apply plugin: 'eclipse'</code>. Sigue funcionando por compatibilidad, pero en proyectos nuevos debes usar siempre el bloque <code class="language-groovy">plugins { ... }</code>.</li>
+    <li><strong>Dividir configuración en varios archivos (<code class="language-groovy">apply from:</code>):</strong> Cuando un <code class="language-bash">build.gradle</code> crece mucho, las empresas suelen separar la configuración de SonarQube o Artifactory en archivos aparte (por ejemplo, <code class="language-bash">gradle/sonar.gradle</code>) y los importan en el archivo principal escribiendo <code class="language-groovy">apply from: "gradle/sonar.gradle"</code>.</li>
+</ul>

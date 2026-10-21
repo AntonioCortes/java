@@ -5,93 +5,122 @@
 </style>
 <h1 class="title">Patrón Strategy</h1>
 
-<p>El patrón <strong>Strategy</strong> es un patrón de comportamiento que permite definir una familia de algoritmos, encapsular cada uno de ellos y hacerlos intercambiables. Permite que el algoritmo varíe independientemente de los clientes que lo usan.</p>
+<p>El patrón <strong>Strategy</strong> (Estrategia) es un patrón de comportamiento que permite definir una <strong>familia de algoritmos</strong>, colocar cada uno de ellos en una clase separada y hacer que sus objetos sean <strong>intercambiables en tiempo de ejecución</strong>.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en <strong>Google Maps cuando calculas una ruta al aeropuerto</strong>. El objetivo final siempre es el mismo ("llegar del punto A al punto B"), pero tú puedes elegir distintas <strong>Estrategias de ruta</strong> pulsando un icono: ir en Coche, en Transporte Público, en Bicicleta o Caminando. El mapa (el Contexto) cambia instantáneamente el algoritmo de cálculo según la estrategia que selecciones.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Permitir seleccionar un algoritmo en tiempo de ejecución. Evita grandes sentencias <code class="language-java">switch</code> o <code class="language-java">if-else</code>.</p>
+<p>Extraer distintos algoritmos que resuelven la misma tarea fuera de la clase principal, eliminando bloques <code class="language-java">if-else</code> o <code class="language-java">switch</code> y permitiendo cambiar el algoritmo al vuelo mediante composición.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Procesamiento de Pagos en E-commerce</h2>
-<p><strong>Contexto:</strong> Imagina una tienda online que acepta múltiples formas de pago: Tarjeta de Crédito, PayPal, Bitcoin, etc. Todos estos métodos tienen el mismo objetivo (pagar) pero la lógica interna para conectarse con el banco o la API es completamente diferente.</p>
+<h2 class="subtitle">Caso de Uso Real: Pasarela de Pagos en un Carrito de Compra</h2>
+<p><strong>Contexto:</strong> Una tienda online (<code class="language-java">CarritoCompra</code>) permite al usuario pagar su compra eligiendo entre Tarjeta de Crédito (<code class="language-java">PagoTarjetaCredito</code>) o PayPal (<code class="language-java">PagoPayPal</code>).</p>
 
-<p><strong>El Problema:</strong> Sin el patrón Strategy, la clase encargada del pago (<code class="language-java">Checkout</code>) tendría un método monstruoso lleno de sentencias <code class="language-java">if (type == "PAYPAL") { ... } else if (type == "CARD") { ... }</code>. 
-<br>Esto tiene graves consecuencias:
-<ul>
-    <li>Viola el <strong>Principio Open/Closed</strong>: Cada vez que quieras añadir un nuevo método de pago (ej. Apple Pay), tienes que modificar y recompilar la clase <code class="language-java">Checkout</code>, arriesgándote a romper el funcionamiento de los pagos existentes.</li>
-    <li>La clase <code class="language-java">Checkout</code> se vuelve enorme y difícil de mantener.</li>
-</ul></p>
+<p><strong>El Problema (Sin Strategy):</strong> Si dentro de <code class="language-java">CarritoCompra.procesarCompra()</code> pones <code class="language-java">if (type.equals("CARD")) { ... } else if (type.equals("PAYPAL")) { ... }</code>, violas el <strong>Principio Abierto/Cerrado (OCP)</strong>: cada vez que quieras añadir Bizum o Apple Pay tendrás que abrir y modificar la clase del carrito.</p>
 
-<p><strong>La Solución (Strategy):</strong> El patrón sugiere sacar toda esa lógica de los <code class="language-java">if-else</code> y encapsular cada algoritmo de pago en su propia clase independiente.
-<br>
-El <code class="language-java">Checkout</code> ya no conoce los detalles, solo sabe que tiene un objeto que sabe "pagar" (implementa <code class="language-java">PaymentStrategy</code>). Para añadir Apple Pay, solo creas una nueva clase, sin tocar ni una línea del código de <code class="language-java">Checkout</code>.</p>
+<p><strong>La Solución (Con Strategy):</strong> Definimos la interfaz <code class="language-java">EstrategiaPago</code> con el método <code class="language-java">pagar(int amount)</code>. Cada método de pago es una clase independiente que implementa esa interfaz. El carrito solo tiene el método <code class="language-java">setEstrategiaPago()</code> y delega el cobro llamando a <code class="language-java">estrategiaPago.pagar(amount)</code>.</p>
 
-<h2 class="subtitle">Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
+
+<img class="center-horizontal" src="components/design-patterns/ejemplos/strategy/assets/img/strategy-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Strategy aplicado al procesamiento de pagos</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase / Interfaz en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Strategy (Interfaz)</th>
+            <td><code class="language-java">EstrategiaPago</code></td>
+            <td>Declara el método común (<code class="language-java">pagar(int amount)</code>) para todos los algoritmos de pago soportados.</td>
+        </tr>
+        <tr>
+            <th scope="row">Concrete Strategies</th>
+            <td><code class="language-java">PagoTarjetaCredito</code>, <code class="language-java">PagoPayPal</code></td>
+            <td>Implementan cada algoritmo específico de pago con sus propios datos (número de tarjeta o email de cuenta).</td>
+        </tr>
+        <tr>
+            <th scope="row">Context (Contexto)</th>
+            <td><code class="language-java">CarritoCompra</code></td>
+            <td>Guarda una referencia a una <code class="language-java">EstrategiaPago</code> y permite cambiarla en cualquier momento con <code class="language-java">setEstrategiaPago()</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Strategy</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Estrategia
-interface PaymentStrategy {
-    void pay(int amount);
+// 1. Interfaz Strategy: contrato común para cualquier algoritmo de pago
+interface EstrategiaPago {
+    void pagar(int amount);
 }
 
-// Estrategias Concretas
-class CreditCardPayment implements PaymentStrategy {
+// 2. Estrategia Concreta A: Pago con Tarjeta de Crédito
+class PagoTarjetaCredito implements EstrategiaPago {
     private String cardNumber;
 
-    public CreditCardPayment(String cardNumber) {
+    public PagoTarjetaCredito(String cardNumber) {
         this.cardNumber = cardNumber;
     }
 
     @Override
-    public void pay(int amount) {
-        System.out.println("Pagado " + amount + " usando Tarjeta de Crédito: " + cardNumber);
+    public void pagar(int amount) {
+        System.out.println("💳 Pagando " + amount + "€ con Tarjeta de Crédito terminada en: " + cardNumber);
     }
 }
 
-class PayPalPayment implements PaymentStrategy {
+// 3. Estrategia Concreta B: Pago con PayPal
+class PagoPayPal implements EstrategiaPago {
     private String email;
 
-    public PayPalPayment(String email) {
+    public PagoPayPal(String email) {
         this.email = email;
     }
 
     @Override
-    public void pay(int amount) {
-        System.out.println("Pagado " + amount + " usando PayPal: " + email);
+    public void pagar(int amount) {
+        System.out.println("🅿️ Pagando " + amount + "€ mediante cuenta PayPal: " + email);
     }
 }
 
-// Contexto
-class ShoppingCart {
-    private PaymentStrategy paymentStrategy;
+// 4. Contexto: El Carrito de Compra que delega el cobro en la estrategia elegida
+class CarritoCompra {
+    private EstrategiaPago estrategiaPago;
 
-    public void setPaymentStrategy(PaymentStrategy paymentStrategy) {
-        this.paymentStrategy = paymentStrategy;
+    // Permite asignar o cambiar la estrategia en tiempo de ejecución
+    public void setEstrategiaPago(EstrategiaPago estrategiaPago) {
+        this.estrategiaPago = estrategiaPago;
     }
 
-    public void checkout(int amount) {
-        if (paymentStrategy == null) {
-            System.out.println("Seleccione un método de pago.");
+    public void procesarCompra(int amount) {
+        if (estrategiaPago == null) {
+            System.out.println("⚠️ Por favor, seleccione un método de pago antes de continuar.");
         } else {
-            paymentStrategy.pay(amount);
+            estrategiaPago.pagar(amount);
         }
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Estructura Strategy</span>
+<span class="center-horizontal caption">Implementación completa del patrón Strategy</span>
 
-<br>
-
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
 
 <ul>
     <li>
-        <strong>Interfaz <code class="language-java">PaymentStrategy</code>:</strong> 
-        <p>Se utiliza una <strong>interfaz</strong> en lugar de una clase concreta para desacoplar el contexto (<code class="language-java">ShoppingCart</code>) de las implementaciones específicas de pago. Esto define un contrato que todas las estrategias deben cumplir, permitiendo el <strong>Polimorfismo</strong>.</p>
+        <strong>1. Composición sobre Herencia:</strong>
+        <p><code class="language-java">CarritoCompra</code> no hereda de ninguna pasarela de pago; <strong>contiene</strong> un atributo <code class="language-java">private EstrategiaPago</code>. Eso es lo que permite que el mismo carrito pague primero con PayPal y dos líneas más abajo cambie a Tarjeta sin crear otro carrito.</p>
     </li>
     <li>
-        <strong>Composición sobre Herencia:</strong> 
-        <p><code class="language-java">ShoppingCart</code> tiene una referencia (composición) a <code class="language-java">PaymentStrategy</code> en lugar de heredar de una clase de pago. Esto permite cambiar el comportamiento en tiempo de ejecución (<code class="language-java">setPaymentStrategy</code>), algo que la herencia no permite dinámicamente.</p>
+        <strong>2. Ejemplo en el propio JDK de Java:</strong>
+        <p><code class="language-java">Collections.sort(lista, comparator)</code> es un ejemplo clásico de Strategy: la lista es el contexto y el <code class="language-java">Comparator</code> que le pasas por parámetro es la estrategia de ordenación (ordenar por precio, por nombre o por fecha).</p>
     </li>
 </ul>
 
@@ -101,24 +130,32 @@ class ShoppingCart {
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        ShoppingCart cart = new ShoppingCart();
+        CarritoCompra cart = new CarritoCompra();
 
-        // Pagar con PayPal
-        cart.setPaymentStrategy(new PayPalPayment("user@example.com"));
-        cart.checkout(100);
+        // El usuario selecciona pagar con PayPal su primer pedido
+        cart.setEstrategiaPago(new PagoPayPal("cliente@ejemplo.com"));
+        cart.procesarCompra(120);
 
-        // Cambiar estrategia a Tarjeta
-        cart.setPaymentStrategy(new CreditCardPayment("1234-5678-9012-3456"));
-        cart.checkout(200);
+        // El usuario cambia de opinión y selecciona pagar con Tarjeta el segundo pedido
+        cart.setEstrategiaPago(new PagoTarjetaCredito("****-****-****-4589"));
+        cart.procesarCompra(250);
     }
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">Cambio dinámico de algoritmo en tiempo de ejecución</span>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-Output:
-Pagado 100 usando PayPal: user@example.com
-Pagado 200 usando Tarjeta de Crédito: 1234-5678-9012-3456
+Salida por consola:
+🅿️ Pagando 120€ mediante cuenta PayPal: cliente@ejemplo.com
+💳 Pagando 250€ con Tarjeta de Crédito terminada en: ****-****-****-4589
 </code></pre>
 </div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando tengas distintas variantes de un mismo algoritmo (cálculo de impuestos por país, algoritmos de compresión ZIP/RAR, métodos de pago o descuentos) y quieras poder intercambiarlos en tiempo de ejecución sin usar condicionales <code class="language-java">switch</code>.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si solo tienes un par de algoritmos muy breves que casi nunca cambian (en Java 8+ a menudo puedes pasar directamente una expresión lambda).</li>
+</ul>

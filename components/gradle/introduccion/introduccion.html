@@ -1,0 +1,129 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">¿Qué es Gradle y Para Qué Sirve?</h1>
+
+<p><strong>Gradle</strong> es una herramienta moderna de <strong>automatización de compilación y gestión de proyectos</strong> (conocida en inglés como <em>Build Automation Tool</em>). Es actualmente el estándar oficial para compilar aplicaciones Android y una de las dos herramientas más utilizadas del mundo (junto con Maven) para construir proyectos empresariales en <strong>Java</strong>, <strong>Kotlin</strong> y <strong>Spring Boot</strong>.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: ¿Qué problema resuelve Gradle?</h2>
+<p>Imagina que quieres preparar una tarta compleja en casa:</p>
+<ul>
+    <li><strong>Sin Gradle (A mano):</strong> Tendrías que ir tú mismo a diez tiendas distintas a comprar harina, huevos, levadura y chocolate (descargar archivos <code class="language-bash">.jar</code> por internet uno a uno), asegurarte de que ninguno esté caducado ni sea incompatible con otro, batir a mano, hornear vigilando el reloj y empaquetar la tarta en una caja. Si mañana quieres hacer otra tarta igual en casa de un amigo, tienes que repetir todo el proceso manual desde cero.</li>
+    <li><strong>Con Gradle (Automatizado):</strong> Solo escribes una hoja de receta (<code class="language-groovy">build.gradle</code>) donde anotas los ingredientes que necesitas y cómo quieres el resultado. Cuando pulsas un botón (<code class="language-bash">./gradlew build</code>), el robot de cocina pide los ingredientes exactos a domicilio, comprueba que sean compatibles, compila tu código, pasa los controles de calidad (tests) y te entrega el programa empaquetado (<code class="language-bash">.jar</code>) listo para funcionar en cualquier ordenador del mundo.</li>
+</ul>
+
+<h2 class="subtitle">¿Qué pasaba antes de existir herramientas como Gradle?</h2>
+<p>Cuando empiezas a aprender Java, sueles tener 2 o 3 archivos <code class="language-bash">.java</code> que compilas desde tu editor dándole al botón "Run". Pero en un proyecto real de empresa ocurren cuatro problemas graves si no usas una herramienta como Gradle:</p>
+<ol>
+    <li><strong>El infierno de las librerías (<em>JAR Hell</em>):</strong> Si quieres usar <em>Spring Boot</em> o <em>Hibernate</em>, esa librería necesita a su vez otras 40 librerías internas (dependencias transitivas). Descargar esos 40 archivos <code class="language-bash">.jar</code> a mano de internet y meterlos en una carpeta es inmanejable.</li>
+    <li><strong>Conflictos de versiones:</strong> Si la librería A usa la versión 1.0 de un conector y la librería B usa la versión 2.0 del mismo conector, tu programa fallará al arrancar si no hay un árbitro inteligente que resuelva el conflicto.</li>
+    <li><strong>El síndrome de "en mi máquina funciona":</strong> Si tú tienes una versión de una librería en tu carpeta local y tu compañero de equipo tiene otra, el proyecto compilará en tu ordenador pero fallará en el suyo.</li>
+    <li><strong>Procesos repetitivos y lentos:</strong> Compilar cientos de clases, copiar archivos de configuración, pasar 500 tests unitarios, medir la cobertura de código y generar el ejecutable final a mano llevaría horas cada día.</li>
+</ol>
+
+<h2 class="subtitle">¿Para qué sirve Gradle exactamente?</h2>
+<p>Gradle se encarga automáticamente de todo el ciclo de vida de tu proyecto desde que escribes el código hasta que lo pones en producción:</p>
+
+<img class="center-horizontal" src="components/gradle/introduccion/assets/img/gradle-intro-diagram.png">
+<span class="center-horizontal caption">Figura 1: Flujo completo de trabajo automatizado por el motor de Gradle</span>
+
+<ul>
+    <li><strong>1. Gestión automática de librerías (Dependencias):</strong> Tú solo escribes una línea indicando el nombre y versión de la librería que necesitas (por ejemplo, <code class="language-groovy">implementation 'com.google.code.gson:gson:2.10.1'</code>) y Gradle la descarga de internet (desde repositorios como <em>Maven Central</em>) junto con todas las sub-librerías que necesite para funcionar.</li>
+    <li><strong>2. Compilación del código fuente:</strong> Traduce tus archivos <code class="language-bash">.java</code> a bytecode <code class="language-bash">.class</code> respetando la versión de Java que hayas configurado.</li>
+    <li><strong>3. Ejecución automática de Tests:</strong> Ejecuta todas tus pruebas unitarias y de integración (por ejemplo, con JUnit 5) y genera un informe web en HTML indicando qué tests han pasado y cuáles han fallado.</li>
+    <li><strong>4. Empaquetado (Packaging):</strong> Reúne tu código compilado, tus archivos de configuración (<code class="language-bash">application.yml</code>) y tus librerías en un único archivo distribuible (<code class="language-bash">.jar</code> o <code class="language-bash">.war</code>).</li>
+    <li><strong>5. Automatización mediante Tareas y Plugins:</strong> Permite ejecutar tu servidor en local, analizar la calidad del código con SonarQube, aplicar migraciones de base de datos con Flyway o subir tu aplicación a un servidor con un solo comando.</li>
+</ul>
+
+<h2 class="subtitle">¿Por qué usar Gradle en vez de Maven o Ant? (Comparativa)</h2>
+<p>En el ecosistema Java han existido históricamente tres grandes herramientas de construcción: <strong>Apache Ant</strong> (la más antigua), <strong>Apache Maven</strong> (el estándar clásico basado en XML) y <strong>Gradle</strong> (la evolución moderna que combina lo mejor de ambos mundos).</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Característica</th>
+            <th scope="col">Apache Ant (2000)</th>
+            <th scope="col">Apache Maven (2004)</th>
+            <th scope="col">Gradle (Actualidad)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Formato del archivo de configuración</th>
+            <td>XML imperativo (<code class="language-bash">build.xml</code>). Muy largo y manual.</td>
+            <td>XML declarativo (<code class="language-bash">pom.xml</code>). Muy verboso (muchas etiquetas abiertas y cerradas).</td>
+            <td>Código conciso en <strong>Groovy</strong> (<code class="language-bash">build.gradle</code>) o <strong>Kotlin</strong> (<code class="language-bash">build.gradle.kts</code>). Ocupa 3 veces menos líneas que XML.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cómo se añade una librería</th>
+            <td>No tenía gestor de librerías integrado (requería Apache Ivy aparte).</td>
+            <td>5 líneas de etiquetas XML (<code class="language-xml">&lt;dependency&gt;&lt;groupId&gt;...</code>) por cada librería.</td>
+            <td><strong>1 sola línea:</strong> <code class="language-groovy">implementation 'grupo:nombre:versión'</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Velocidad de compilación</th>
+            <td>Básica (recompila según reglas manuales).</td>
+            <td>Más lenta en proyectos grandes: suele recompilar módulos enteros secuencialmente.</td>
+            <td><strong>Ultrarrápida (hasta 2x-10x más rápido que Maven)</strong> gracias a su compilación incremental, su caché inteligente y el <em>Gradle Daemon</em>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Flexibilidad y personalización</th>
+            <td>Total, pero tienes que programarlo absolutamente todo desde cero.</td>
+            <td>Rígida: si te sales de su ciclo de vida fijo, debes escribir un plugin complejo en Java.</td>
+            <td><strong>Alta sin perder orden:</strong> sigue las mismas convenciones cómodas que Maven, pero te permite escribir un <code class="language-groovy">if</code>, un bucle o una tarea propia en 4 líneas.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa entre Apache Ant, Apache Maven y Gradle</span>
+
+<h2 class="subtitle">Comparación Visual: Añadir una librería en Maven vs Gradle</h2>
+<p>Observa la diferencia de legibilidad al añadir exactamente las mismas dos librerías (Spring Web y Lombok) en Maven frente a Gradle:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- En MAVEN (pom.xml): 14 líneas de etiquetas XML --&gt;
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+        &lt;version&gt;1.18.30&lt;/version&gt;
+        &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Declaración de dependencias en Maven (XML)</span>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// En GRADLE (build.gradle): 5 líneas limpias y directas
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Declaración equivalente en Gradle (Groovy DSL)</span>
+
+<h2 class="subtitle">Los 3 Secretos por los que Gradle es tan Rápido</h2>
+<ul>
+    <li>
+        <strong>1. El Demonio de Gradle (<em>Gradle Daemon</em>):</strong>
+        <p>Cada vez que ejecutas Maven, tiene que arrancar una Máquina Virtual de Java (JVM) desde cero, hacer el trabajo y apagarse. Gradle, en cambio, deja un proceso ligero en segundo plano en memoria (el <em>Daemon</em>) ya caliente y optimizado. Por eso, a partir de la segunda ejecución, tus compilaciones arrancan al instante.</p>
+    </li>
+    <li>
+        <strong>2. Comprobación Incremental (<code class="language-bash">UP-TO-DATE</code>):</strong>
+        <p>Antes de ejecutar cualquier paso (por ejemplo, compilar tus clases o procesar tus recursos), Gradle calcula una huella digital (hash) de los archivos de entrada y de salida. Si no has tocado ningún archivo <code class="language-bash">.java</code> desde la última vez, Gradle no vuelve a compilar: imprime <code class="language-bash">UP-TO-DATE</code> (Actualizado) y se salta ese paso en 0 milisegundos.</p>
+    </li>
+    <li>
+        <strong>3. Caché de Construcción (<em>Build Cache</em>):</strong>
+        <p>Si cambias de rama en Git y vuelves a una versión que ya habías compilado hace diez minutos, Gradle recupera el resultado compilado directamente de su caché local (<code class="language-bash">FROM-CACHE</code>) sin tener que volver a compilar ni repetir los tests.</p>
+    </li>
+</ul>

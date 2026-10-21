@@ -5,43 +5,180 @@
 </style>
 <h1 class="title">Patrón Business Object</h1>
 
-<p>El patrón <strong>Business Object</strong> es un patrón de la arquitectura Java EE que es el núcleo de la lógica de negocio. Puede ser un Entity Bean o un POJO enriquecido.</p>
+<p>El patrón <strong>Business Object</strong> (Objeto de Negocio) es un patrón de la capa de negocio de Java EE que propone diseñar clases de dominio que <strong>contengan tanto los datos como las reglas de negocio, validaciones y cálculos</strong> propios de ese concepto empresarial.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en una <strong>Caja Fuerte inteligente con bloqueo de seguridad</strong> frente a una simple <strong>caja de cartón abierta</strong>. En una caja de cartón (un objeto solo con <code class="language-java">getters</code> y <code class="language-java">setters</code>), cualquiera puede meter un saldo negativo o sacar dinero cuando está cerrada. En cambio, la Caja Fuerte (<code class="language-java">Business Object</code>) guarda el dinero en su interior y tiene sus propios mecanismos internos que impiden retirar más dinero del que hay o modificar una factura que ya ha sido pagada.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Modelar conceptos del negocio.</p>
+<p>Evitar el anti-patrón del <strong>Modelo de Dominio Anémico</strong> (clases que solo tienen atributos, <code class="language-java">getters</code> y <code class="language-java">setters</code> sin ninguna lógica), asegurando una <strong>alta cohesión</strong> al colocar las reglas de negocio justo al lado de los datos que protegen.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Lógica de Dominio Rica (DDD)</h2>
-<p><strong>Contexto:</strong> En una aplicación bancaria, una cuenta tiene saldo, historial de movimientos y reglas de descubierto. Estas reglas no deben estar en el Controlador ni en la interfaz de usuario.</p>
+<h2 class="subtitle">Caso de Uso Real: Facturación con Reglas de Integridad (Factura y LineaFactura)</h2>
+<p><strong>Contexto:</strong> En un sistema contable, una factura (<code class="language-java">Factura</code>) contiene líneas de detalle (<code class="language-java">LineaFactura</code>) y debe cumplir reglas estrictas: ninguna línea puede tener precio o cantidad negativa, y una vez que la factura se marca como pagada, está prohibido añadirle líneas nuevas.</p>
 
-<p><strong>El Problema:</strong> El "Modelo Anémico" (anti-patrón) ocurre cuando tus clases de negocio son solo Getters y Setters, y la lógica está dispersa en Servicios proceduras gigantes. Esto rompe la encapsulación y la orientación a objetos.</p>
+<p><strong>El Problema (Con Modelo Anémico):</strong> Si <code class="language-java">Factura</code> tiene un <code class="language-java">public void setItems(...)</code> libre y los cálculos del total e IVA están dispersos en 5 controladores distintos, tarde o temprano alguien modificará una factura ya pagada o calculará mal el IVA en una pantalla.</p>
 
-<p><strong>La Solución (Business Object):</strong> El objeto de negocio no solo transporta datos, también contiene la lógica asociada a esos datos (Comportamiento).
-<br>Por ejemplo, la clase <code class="language-java">Account</code> tiene el método <code class="language-java">debit(amount)</code> que lanza una excepción si no hay saldo suficiente. La regla de negocio viaja con los datos.</p>
+<p><strong>La Solución (Con Business Object):</strong> <code class="language-java">Factura</code> encapsula su lista de líneas y ofrece métodos de negocio ricos: <code class="language-java">agregarLinea(item)</code> (que comprueba si ya está pagada), <code class="language-java">calcularSubtotal()</code>, <code class="language-java">calcularTotalConImpuestos(iva)</code> y <code class="language-java">marcarComoPagada()</code>.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Cohesión Alta:</strong> 
-        <p>Al juntar datos y comportamiento, el código es más fácil de entender. Si quieres saber cómo se calcula el interés de una cuenta, vas a la clase <code class="language-java">Account</code>, no a una clase <code class="language-java">InterestCalculatorServiceHelper</code> perdida.</p>
-    </li>
-    <li>
-        <strong>Validación de Invariantes:</strong> 
-        <p>Un Business Object es responsable de mantenerse en un estado válido siempre. No deberías poder crear una Factura sin Cliente ni Líneas.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/business-object/assets/img/business-object-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Business Object uniendo estado y comportamiento de negocio</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Business Object Principal</th>
+            <td><code class="language-java">Factura</code></td>
+            <td>Gestiona el estado de la factura, protege la invariante de bloqueo tras el pago y calcula subtotales e impuestos.</td>
+        </tr>
+        <tr>
+            <th scope="row">Business Object Dependiente</th>
+            <td><code class="language-java">LineaFactura</code></td>
+            <td>Representa un concepto de línea de factura, validando en su constructor que cantidad y precio sean positivos y calculando su propio importe.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Business Object</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class Invoice {
-    private List<LineItem> items;
-    
-    public double calculateTotal() {
-        return items.stream().mapToDouble(LineItem::getPrice).sum();
+import java.util.ArrayList;
+import java.util.List;
+
+// 1. Business Object de Línea de Factura (valida sus propios datos y calcula su subtotal)
+class LineaFactura {
+    private final String productName;
+    private final int quantity;
+    private final double unitPrice;
+
+    public LineaFactura(String productName, int quantity, double unitPrice) {
+        if (quantity &lt;= 0 || unitPrice &lt; 0) {
+            throw new IllegalArgumentException("La cantidad y el precio deben ser positivos.");
+        }
+        this.productName = productName;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+    }
+
+    public double calcularTotalLinea() {
+        return quantity * unitPrice;
+    }
+
+    public String getProductName() { return productName; }
+}
+
+// 2. Business Object Principal: Factura con comportamiento y reglas de negocio ricas
+class Factura {
+    private final String invoiceNumber;
+    private final List&lt;LineaFactura&gt; items = new ArrayList&lt;&gt;();
+    private boolean paid = false;
+
+    public Factura(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    // Regla de negocio 1: No se pueden añadir conceptos a una factura ya pagada
+    public void agregarLinea(LineaFactura item) {
+        if (paid) {
+            throw new IllegalStateException("Error: No se puede modificar la factura " + invoiceNumber + " porque ya está PAGADA.");
+        }
+        items.add(item);
+        System.out.println("➕ Añadido a factura " + invoiceNumber + ": " + item.getProductName() + " (" + item.calcularTotalLinea() + " EUR)");
+    }
+
+    // Comportamiento de negocio 2: Cálculo del subtotal
+    public double calcularSubtotal() {
+        double sum = 0;
+        for (LineaFactura item : items) {
+            sum += item.calcularTotalLinea();
+        }
+        return sum;
+    }
+
+    // Comportamiento de negocio 3: Cálculo del total con impuestos (IVA)
+    public double calcularTotalConImpuestos(double taxPercentage) {
+        double subtotal = calcularSubtotal();
+        return subtotal + (subtotal * (taxPercentage / 100.0));
+    }
+
+    public void marcarComoPagada() {
+        this.paid = true;
+        System.out.println("✅ Factura " + invoiceNumber + " marcada oficialmente como PAGADA.");
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Business Object</span>
+<span class="center-horizontal caption">Implementación completa de Business Objects ricos en Java</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Qué es una "Invariante de Negocio"?</strong>
+        <p>Es una regla que <strong>siempre debe cumplirse</strong> para que el objeto sea válido (por ejemplo: "una factura pagada no se puede alterar"). Al poner el chequeo <code class="language-java">if (paid) throw ...</code> dentro de <code class="language-java">Factura.agregarLinea()</code>, es imposible que ningún programador se salte esa regla en ninguna parte del programa.</p>
+    </li>
+    <li>
+        <strong>2. Business Object vs DTO (Transfer Object):</strong>
+        <p>Un <strong>DTO</strong> es solo una caja tonta sin lógica para transportar datos por la red (JSON). Un <strong>Business Object</strong> vive en el corazón de tu servidor y contiene la inteligencia de tu negocio (base de <em>Domain-Driven Design</em>).</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        Factura factura = new Factura("FAC-2026-001");
+
+        // Añadimos conceptos a la factura abierta
+        factura.agregarLinea(new LineaFactura("Licencia Servidor Anual", 1, 500.0));
+        factura.agregarLinea(new LineaFactura("Soporte Técnico 24/7", 2, 100.0));
+
+        System.out.println("Subtotal sin IVA : " + factura.calcularSubtotal() + " EUR");
+        System.out.println("Total con 21% IVA: " + factura.calcularTotalConImpuestos(21.0) + " EUR\n");
+
+        // Pagamos la factura
+        factura.marcarComoPagada();
+
+        // Intentamos añadir un concepto después de pagada (el Business Object se protege solo)
+        try {
+            factura.agregarLinea(new LineaFactura("Teclado Extra", 1, 50.0));
+        } catch (IllegalStateException e) {
+            System.out.println("🛡️ [Regla de Negocio Activada] " + e.getMessage());
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">El propio Business Object calcula totales y defiende sus reglas de integridad</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+➕ Añadido a factura FAC-2026-001: Licencia Servidor Anual (500.0 EUR)
+➕ Añadido a factura FAC-2026-001: Soporte Técnico 24/7 (200.0 EUR)
+Subtotal sin IVA : 700.0 EUR
+Total con 21% IVA: 847.0 EUR
+
+✅ Factura FAC-2026-001 marcada oficialmente como PAGADA.
+🛡️ [Regla de Negocio Activada] Error: No se puede modificar la factura FAC-2026-001 porque ya está PAGADA.
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Siempre que modeles conceptos centrales de tu negocio (Cuentas bancarias, Pedidos, Facturas, Pólizas, Reservas) que tengan reglas de validación y cálculos propios.</li>
+    <li><strong>Cuándo evitarlo:</strong> En catálogos meramente informativos de solo lectura donde no existen reglas de negocio ni transiciones de estado.</li>
+</ul>

@@ -49,6 +49,13 @@ import '../components/design-patterns/ejemplos/context-object/context-object.js'
 import '../components/design-patterns/ejemplos/application-controller/application-controller.js';
 
 // ===== GRADLE =====
+import '../components/gradle/introduccion/introduccion.js';
+import '../components/gradle/estructura/estructura.js';
+import '../components/gradle/build-gradle/build-gradle.js';
+import '../components/gradle/dependencias/dependencias.js';
+import '../components/gradle/ciclo-vida-tareas/ciclo-vida-tareas.js';
+import '../components/gradle/plugins/plugins.js';
+import '../components/gradle/comandos-uso/comandos-uso.js';
 import '../components/gradle/ejemplo/ejemplo.js';
 
 // ===== JAVA =====

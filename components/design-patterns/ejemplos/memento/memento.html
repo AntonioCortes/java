@@ -5,54 +5,179 @@
 </style>
 <h1 class="title">Patrón Memento</h1>
 
-<p>El patrón <strong>Memento</strong> es un patrón de comportamiento que permite guardar y restaurar el estado previo de un objeto sin revelar los detalles de su implementación.</p>
+<p>El patrón <strong>Memento</strong> (Recuerdo o Instantánea) es un patrón de comportamiento que permite <strong>guardar y restaurar el estado previo de un objeto</strong> (como un punto de guardado o un <code class="language-java">Ctrl+Z</code>) sin romper su encapsulamiento ni exponer sus atributos privados al exterior.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Piensa en los <strong>puntos de guardado (Save Points) de un videojuego</strong>. Antes de enfrentarte al jefe final, guardas la partida. El juego empaqueta tu vida actual, nivel y monedas en una "cápsula sellada" (el <code class="language-java">Memento</code>) y la almacena en la tarjeta de memoria (el <code class="language-java">CareTaker</code>). Si pierdes la batalla, cargas esa cápsula y tu personaje vuelve exactamente al estado que tenía antes.</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Capturar y externalizar el estado interno de un objeto para que pueda ser restaurado posteriormente (Undo/Redo).</p>
+<p>Permitir que el propio objeto dueño de los datos (llamado <code class="language-java">Originator</code>) cree una "fotografía" inmutable de su estado (<code class="language-java">Memento</code>) para que un guardián externo (<code class="language-java">CareTaker</code>) la custodie en un historial sin poder alterar su contenido.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Guardado de Partida (Videojuegos) o Ctrl+Z (Editor)</h2>
-<p><strong>Contexto:</strong> Estás jugando a un RPG y vas a luchar contra un jefe. Quieres "Guardar Partida" por si mueres. El estado del juego incluye la posición del jugador, vida, inventario, enemigos vivos, etc.</p>
+<h2 class="subtitle">Caso de Uso Real: Función Deshacer (Ctrl+Z) en un Editor de Texto</h2>
+<p><strong>Contexto:</strong> Un usuario escribe frases en un editor de texto (<code class="language-java">EditorTexto</code>) y quiere poder volver a versiones anteriores del documento en cualquier momento.</p>
 
-<p><strong>El Problema:</strong> Para guardar el estado, un objeto externo (el `GameSaver`) necesitaría acceder a todos los campos privados de los objetos del juego (Player, World). Esto violaría el principio de encapsulamiento (hacer todo público es mala idea).</p>
+<p><strong>El Problema (Sin Memento):</strong> Si una clase externa intenta hacer copias manuales de todos los atributos del editor desde fuera, necesitaría que todos los campos internos del editor fueran <code class="language-java">public</code>, rompiendo el principio de encapsulamiento.</p>
 
-<p><strong>La Solución (Memento):</strong> El objeto del juego (Originator) es el único capaz de crear una instantánea válida de sí mismo (Memento).
-<br>El Memento es una caja negra para el exterior; solo el Originator puede leerlo. El `GameSaver` (Caretaker) simplemente guarda la caja negra sin saber qué hay dentro. Cuando quieres cargar partida, le devuelves la caja al Originator y él se restaura.</p>
+<p><strong>La Solución (Con Memento):</strong> El propio <code class="language-java">EditorTexto</code> tiene el método <code class="language-java">guardarEnMemento()</code> que devuelve un objeto inmutable <code class="language-java">Memento</code>, y el método <code class="language-java">restaurarDesdeMemento(m)</code> que restaura su texto a partir de esa instantánea. La clase <code class="language-java">Historial</code> solo guarda una lista de instantáneas.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Encapsulamiento Preservado:</strong> 
-        <p>El patrón permite guardar el estado completo (incluyendo privados) sin exponer la estructura interna del objeto al resto del mundo. El Memento suele ser una clase interna o tener una interfaz estrecha para el Caretaker y una ancha para el Originator.</p>
-    </li>
-    <li>
-        <strong>Coste de Recursos:</strong> 
-        <p>Si el estado es muy grande, crear Mementos constantemente (ej. en cada pulsación de tecla) puede consumir mucha RAM. En esos casos se pueden usar Mementos incrementales (guardar solo diferencias).</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/memento/assets/img/memento-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Memento con sus tres actores: Originator, Memento y CareTaker</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Originator (Creador)</th>
+            <td><code class="language-java">EditorTexto</code></td>
+            <td>El objeto cuyo estado queremos proteger; sabe crear un <code class="language-java">Memento</code> con su estado actual y restaurarse desde uno.</td>
+        </tr>
+        <tr>
+            <th scope="row">Memento (Instantánea)</th>
+            <td><code class="language-java">Memento</code></td>
+            <td>Objeto inmutable (<code class="language-java">final</code>) que guarda una copia congelada del estado en un instante concreto.</td>
+        </tr>
+        <tr>
+            <th scope="row">CareTaker (Guardián)</th>
+            <td><code class="language-java">Historial</code></td>
+            <td>Almacena el historial de objetos <code class="language-java">Memento</code> (sabe cuándo guardarlos y cuál devolver), pero nunca modifica su interior.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Memento</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+import java.util.ArrayList;
+import java.util.List;
+
+// 1. Memento: Instantánea inmutable del estado en un momento dado
 class Memento {
-    private String state;
-    public Memento(String state) { this.state = state; }
-    public String getState() { return state; }
+    private final String state;
+
+    public Memento(String state) {
+        this.state = state;
+    }
+
+    public String getEstado() {
+        return state;
+    }
 }
 
-class Originator {
+// 2. Originator: El Editor de Texto que crea y restaura sus propias instantáneas
+class EditorTexto {
     private String state;
-    public void setState(String state) { this.state = state; }
-    public Memento saveStateToMemento() { return new Memento(state); }
-    public void getStateFromMemento(Memento memento) { state = memento.getState(); }
+
+    public void setEstado(String state) {
+        System.out.println("[Editor] Escribiendo texto: \"" + state + "\"");
+        this.state = state;
+    }
+
+    public String getEstado() {
+        return state;
+    }
+
+    // Crea una fotografía inmutable del estado actual
+    public Memento guardarEnMemento() {
+        System.out.println("💾 [Guardado] Creando instantánea Memento...");
+        return new Memento(this.state);
+    }
+
+    // Restaura el estado interno a partir de un Memento previo
+    public void restaurarDesdeMemento(Memento memento) {
+        this.state = memento.getEstado();
+        System.out.println("⏪ [Restaurado] Volviendo al estado: \"" + this.state + "\"");
+    }
 }
 
-class CareTaker {
-    private List<Memento> mementoList = new ArrayList<Memento>();
-    public void add(Memento state) { mementoList.add(state); }
-    public Memento get(int index) { return mementoList.get(index); }
+// 3. CareTaker (Guardián): Gestiona el historial de instantáneas
+class Historial {
+    private List&lt;Memento&gt; mementoList = new ArrayList&lt;&gt;();
+
+    public void guardar(Memento state) {
+        mementoList.add(state);
+    }
+
+    public Memento obtener(int index) {
+        return mementoList.get(index);
+    }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Memento</span>
+<span class="center-horizontal caption">Implementación completa del patrón Memento</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. ¿Por qué <code class="language-java">Memento</code> no tiene método <code class="language-java">setEstado()</code>?</strong>
+        <p>Porque una fotografía del pasado nunca debe alterarse. Al declarar <code class="language-java">private final String state</code> sin ningún <em>setter</em>, garantizamos que nadie en el programa pueda corromper un punto de guardado antiguo.</p>
+    </li>
+    <li>
+        <strong>2. Separación de responsabilidades entre <code class="language-java">EditorTexto</code> y <code class="language-java">Historial</code>:</strong>
+        <p><code class="language-java">EditorTexto</code> solo se preocupa del estado actual, mientras que <code class="language-java">Historial</code> se encarga de almacenar la pila o lista de versiones pasadas.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        EditorTexto editor = new EditorTexto();
+        Historial historial = new Historial();
+
+        // Versión 1: escribimos y guardamos instantánea
+        editor.setEstado("Versión 1: Hola Mundo");
+        historial.guardar(editor.guardarEnMemento());
+
+        // Versión 2: escribimos y guardamos instantánea
+        editor.setEstado("Versión 2: Hola Mundo en Java");
+        historial.guardar(editor.guardarEnMemento());
+
+        // Versión 3: cometemos un error y NO guardamos
+        editor.setEstado("Versión 3: Texto borrado por accidente #@!");
+        System.out.println("Estado actual antes de deshacer: \"" + editor.getEstado() + "\"\n");
+
+        // Deshacer (Ctrl+Z): restauramos la versión guardada en el índice 1
+        editor.restaurarDesdeMemento(historial.obtener(1));
+
+        // Deshacer otra vez: restauramos la primera versión (índice 0)
+        editor.restaurarDesdeMemento(historial.obtener(0));
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Guardado de versiones y restauración con Memento</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+[Editor] Escribiendo texto: "Versión 1: Hola Mundo"
+💾 [Guardado] Creando instantánea Memento...
+[Editor] Escribiendo texto: "Versión 2: Hola Mundo en Java"
+💾 [Guardado] Creando instantánea Memento...
+[Editor] Escribiendo texto: "Versión 3: Texto borrado por accidente #@!"
+Estado actual antes de deshacer: "Versión 3: Texto borrado por accidente #@!"
+
+⏪ [Restaurado] Volviendo al estado: "Versión 2: Hola Mundo en Java"
+⏪ [Restaurado] Volviendo al estado: "Versión 1: Hola Mundo"
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Cuando necesites implementar operaciones de Deshacer/Rehacer (<em>Undo/Redo</em>), puntos de control (<em>checkpoints</em>) o rollback en memoria preservando el encapsulamiento del objeto.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si el objeto contiene cientos de megabytes de datos (por ejemplo, un vídeo o imagen en crudo) y se crean instantáneas cada segundo, ya que llenaría rápidamente la memoria RAM.</li>
+</ul>

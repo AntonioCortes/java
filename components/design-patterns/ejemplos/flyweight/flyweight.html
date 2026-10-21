@@ -5,54 +5,196 @@
 </style>
 <h1 class="title">Patrón Flyweight</h1>
 
-<p>El patrón <strong>Flyweight</strong> es un patrón estructural que permite mantener más objetos dentro de la cantidad disponible de memoria RAM compartiendo las partes comunes del estado entre varios objetos.</p>
+<p>El patrón <strong>Flyweight</strong> (Peso Mosca) es un patrón estructural diseñado para <strong>ahorrar memoria RAM</strong> cuando necesitamos crear una cantidad masiva de objetos similares, compartiendo los datos pesados comunes entre todos ellos en lugar de duplicarlos en cada objeto.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real</h2>
+<p>Imagina un <strong>documento de procesador de textos con 500.000 letras</strong>. Si cada letra individual de la página guardara en memoria todo el dibujo vectorial de su tipografía Arial, el documento ocuparía gigabytes de RAM. En lugar de eso, el programa guarda el dibujo de la letra <code class="language-java">'A'</code> una única vez en memoria (<strong>estado compartido</strong>) y en la página solo anota en qué fila y columna aparece cada <code class="language-java">'A'</code> (<strong>estado único</strong>).</p>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Usar compartición para soportar eficientemente grandes cantidades de objetos de grano fino.</p>
+<p>Dividir los datos de un objeto en dos partes: el <strong>Estado Intrínseco</strong> (datos pesados, idénticos e inmutables que se comparten entre miles de objetos) y el <strong>Estado Extrínseco</strong> (datos ligeros y únicos de cada instancia, como sus coordenadas X e Y).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Renderizado de Bosques en Videojuegos</h2>
-<p><strong>Contexto:</strong> En un juego de mundo abierto necesitas dibujar 1.000.000 de árboles. Cada árbol tiene una malla 3D compleja (polígonos), texturas de hojas y corteza que ocupan mucha memoria.</p>
+<h2 class="subtitle">Caso de Uso Real: Renderizado de un Bosque en un Videojuego</h2>
+<p><strong>Contexto:</strong> En un videojuego de mundo abierto necesitas dibujar un bosque con 1.000.000 de árboles (Pinos y Robles). Cada especie tiene una textura 4K y un modelo 3D muy pesado.</p>
 
-<p><strong>El Problema:</strong> Si creas 1 millón de objetos <code class="language-java">Tree</code> y cada uno carga su propia copia de la textura y el modelo 3D, te quedarás sin memoria RAM/VRAM inmediatamente (Crash).</p>
+<p><strong>El Problema (Sin Flyweight):</strong> Si creas 1.000.000 de objetos <code class="language-java">Arbol</code> y cada uno guarda su propia copia de la textura y la malla 3D en memoria, la tarjeta gráfica y la RAM se agotarán en pocos segundos (<code class="language-java">OutOfMemoryError</code>).</p>
 
-<p><strong>La Solución (Flyweight):</strong> Separas el estado.
-<br>1. <strong>Estado Instrínseco (Pesado):</strong> Modelo 3D, Textura, Color. Esto se guarda en un objeto <code class="language-java">TreeType</code> y <strong>se comparte</strong>. Solo necesitas 3 o 4 instancias de esto en total (Pino, Roble, Abedul).
-<br>2. <strong>Estado Extrínseco (Ligero):</strong> Coordenadas X, Y, Z. Esto se pasa al método <code class="language-java">draw()</code> o se guarda en objetos muy ligeros.
-<br>Ahora tienes 1 millón de coordenadas (poco peso) referenciando a solo 3 objetos pesados.</p>
+<p><strong>La Solución (Con Flyweight):</strong> Extraemos los datos pesados (nombre de especie, color, textura) a la clase compartida <code class="language-java">TipoArbol</code> (el <em>Flyweight</em>), gestionada por una caché <code class="language-java">FabricaArboles</code>. Así solo existen 2 objetos <code class="language-java">TipoArbol</code> en memoria ("Pino" y "Roble"), y el millón de objetos <code class="language-java">Arbol</code> solo ocupa unos pocos bytes guardando sus coordenadas <code class="language-java">(x, y)</code> y un puntero al <code class="language-java">TipoArbol</code> compartido.</p>
 
-<h2 class="subtitle">Análisis de la Implementación</h2>
+<h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
-<ul>
-    <li>
-        <strong>Inmutabilidad:</strong> 
-        <p>Los objetos Flyweight (<code class="language-java">TreeType</code>) deben ser inmutables. Como son compartidos por múltiples contextos simultáneamente, no pueden tener campos que cambien (como coordenadas), ya que afectarían a todos los árboles a la vez.</p>
-    </li>
-    <li>
-        <strong>Factoría de Flyweights:</strong> 
-        <p>Generalmente se usa una Factoría para gestionar el caché de los objetos compartidos. Si pides un "Pino" y ya existe, te devuelve el existente; si no, lo crea.</p>
-    </li>
-</ul>
+<img class="center-horizontal" src="components/design-patterns/ejemplos/flyweight/assets/img/flyweight-diagram.png">
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Flyweight separando estado intrínseco (TipoArbol) y extrínseco (Tree)</span>
 
-<h2 class="subtitle">Implementación</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Rol en el Patrón</th>
+            <th scope="col">Clase en el Ejemplo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Flyweight (Estado Intrínseco)</th>
+            <td><code class="language-java">TipoArbol</code></td>
+            <td>Contiene la parte pesada e inmutable (especie, color, malla 3D) que se comparte entre miles de árboles.</td>
+        </tr>
+        <tr>
+            <th scope="row">Flyweight Factory</th>
+            <td><code class="language-java">FabricaArboles</code></td>
+            <td>Mantiene un <code class="language-java">Map</code> (caché) de tipos de árbol. Si ya existe el tipo solicitado, devuelve el mismo; si no, lo crea una vez.</td>
+        </tr>
+        <tr>
+            <th scope="row">Contexto (Estado Extrínseco)</th>
+            <td><code class="language-java">Arbol</code></td>
+            <td>Objeto ultraligero que solo guarda las coordenadas <code class="language-java">x, y</code> únicas de ese árbol y una referencia al <code class="language-java">TipoArbol</code> compartido.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del patrón Flyweight</span>
+
+<h2 class="subtitle">Implementación en Java</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// Flyweight
-class TreeType {
-    private String name;
-    private Color color; // Estado intrínseco compartido
-    
-    public TreeType(String name, Color color) { ... }
-    public void draw(int x, int y) { ... }
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+// 1. Flyweight: Estado Intrínseco (pesado, inmutable y compartido)
+class TipoArbol {
+    private final String name;
+    private final String color;
+    private final String heavyTextureData;
+
+    public TipoArbol(String name, String color, String heavyTextureData) {
+        this.name = name;
+        this.color = color;
+        this.heavyTextureData = heavyTextureData;
+        System.out.println("&gt;&gt; [MEMORIA] Cargando textura 3D pesada una sola vez para especie: " + name);
+    }
+
+    public void dibujar(int x, int y) {
+        System.out.println("Dibujando " + name + " (" + color + ") en coordenadas (" + x + ", " + y + ")");
+    }
 }
 
-// Contexto
-class Tree {
-    private int x, y; // Estado extrínseco único
-    private TreeType type;
-    
-    public void draw() { type.draw(x, y); }
+// 2. Flyweight Factory: Caché que garantiza que no se dupliquen los TipoArbol
+class FabricaArboles {
+    private static final Map&lt;String, TipoArbol&gt; tiposArbol = new HashMap&lt;&gt;();
+
+    public static TipoArbol getTipoArbol(String name, String color, String texture) {
+        TipoArbol result = tiposArbol.get(name);
+        if (result == null) {
+            result = new TipoArbol(name, color, texture);
+            tiposArbol.put(name, result);
+        }
+        return result;
+    }
+
+    public static int getTotalSharedTypes() {
+        return tiposArbol.size();
+    }
+}
+
+// 3. Contexto: Estado Extrínseco (ligero, único para cada árbol plantado)
+class Arbol {
+    private int x;
+    private int y;
+    private TipoArbol type; // Referencia al Flyweight compartido
+
+    public Tree(int x, int y, TipoArbol type) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+    }
+
+    public void dibujar() {
+        type.dibujar(x, y);
+    }
+}
+
+// 4. Cliente contenedor: El Bosque
+class Bosque {
+    private List&lt;Tree&gt; trees = new ArrayList&lt;&gt;();
+
+    public void plantarArbol(int x, int y, String name, String color, String texture) {
+        TipoArbol type = FabricaArboles.getTipoArbol(name, color, texture);
+        Tree tree = new Arbol(x, y, type);
+        trees.add(tree);
+    }
+
+    public void pintarBosque() {
+        for (Tree tree : trees) {
+            tree.dibujar();
+        }
+    }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Ejemplo de Flyweight</span>
+<span class="center-horizontal caption">Implementación completa del patrón Flyweight</span>
+
+<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+
+<ul>
+    <li>
+        <strong>1. Inmutabilidad del Flyweight (<code class="language-java">final</code>):</strong>
+        <p>Como miles de objetos <code class="language-java">Arbol</code> apuntan al mismo objeto <code class="language-java">TipoArbol</code> ("Pino"), los atributos de <code class="language-java">TipoArbol</code> deben ser <code class="language-java">final</code> (inmutables). Si un árbol pudiera cambiar el color dentro de <code class="language-java">TipoArbol</code>, ¡todos los pinos del bosque cambiarían de color a la vez!</p>
+    </li>
+    <li>
+        <strong>2. Ejemplo en el propio JDK de Java:</strong>
+        <p><code class="language-java">String.intern()</code> y <code class="language-java">Integer.valueOf(int)</code> (que reutiliza en caché los enteros entre -128 y 127) aplican exactamente el patrón Flyweight.</p>
+    </li>
+</ul>
+
+<h2 class="subtitle">Ejemplo de Uso</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+        Bosque bosque = new Bosque();
+
+        // Plantamos 5 árboles, pero solo de 2 especies ("Pino" y "Roble")
+        bosque.plantarArbol(10, 20, "Pino", "Verde Oscuro", "Textura_Pino_4K.png");
+        bosque.plantarArbol(15, 25, "Pino", "Verde Oscuro", "Textura_Pino_4K.png");
+        bosque.plantarArbol(50, 80, "Roble", "Verde Claro", "Textura_Roble_4K.png");
+        bosque.plantarArbol(70, 90, "Pino", "Verde Oscuro", "Textura_Pino_4K.png");
+        bosque.plantarArbol(85, 95, "Roble", "Verde Claro", "Textura_Roble_4K.png");
+
+        System.out.println("\n--- Renderizando el bosque ---");
+        bosque.pintarBosque();
+
+        System.out.println("\nTotal de árboles plantados: 5");
+        System.out.println("Total de objetos pesados TipoArbol en memoria: " + FabricaArboles.getTotalSharedTypes());
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">5 árboles en distintas posiciones compartiendo solo 2 objetos pesados en memoria</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+Salida por consola:
+&gt;&gt; [MEMORIA] Cargando textura 3D pesada una sola vez para especie: Pino
+&gt;&gt; [MEMORIA] Cargando textura 3D pesada una sola vez para especie: Roble
+
+--- Renderizando el bosque ---
+Dibujando Pino (Verde Oscuro) en coordenadas (10, 20)
+Dibujando Pino (Verde Oscuro) en coordenadas (15, 25)
+Dibujando Roble (Verde Claro) en coordenadas (50, 80)
+Dibujando Pino (Verde Oscuro) en coordenadas (70, 90)
+Dibujando Roble (Verde Claro) en coordenadas (85, 95)
+
+Total de árboles plantados: 5
+Total de objetos pesados TipoArbol en memoria: 2
+</code></pre>
+</div>
+<span class="center-horizontal caption">Salida por consola demostrando el ahorro de memoria</span>
+
+<h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<ul>
+    <li><strong>Cuándo usarlo:</strong> Únicamente cuando tu aplicación deba mantener en RAM decenas de miles o millones de objetos que comparten gran parte de su estado pesado.</li>
+    <li><strong>Cuándo evitarlo:</strong> Si tienes pocos objetos en memoria o si ningún objeto comparte datos repetidos con los demás.</li>
+</ul>
