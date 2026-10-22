@@ -1,1 +1,183 @@
 <h1 class="title">Log</h1>
+
+<p>En cualquier aplicación empresarial en Java o Spring Boot es imprescindible registrar eventos, trazas de depuración y errores mediante un sistema de <i>logging</i>. Tradicionalmente, esto obliga a declarar al inicio de cada clase una constante estática indicando explícitamente el nombre de la clase actual (por ejemplo, <code>private static final Logger LOGGER = LoggerFactory.getLogger(PetController.class);</code>).</p>
+
+<p>Además de ser código repetitivo, declarar el logger manualmente suele provocar errores de copia y pega cuando un desarrollador copia la línea de una clase a otra y olvida actualizar el parámetro <code>OtraClase.class</code>, haciendo que las trazas aparezcan en los ficheros de log asociadas a una clase equivocada.</p>
+
+<p><b>Project Lombok</b> soluciona este problema mediante un conjunto de anotaciones en los subpaquetes de <code>lombok.extern.*</code> que generan automáticamente la constante estática llamada <b><code>log</code></b> (en minúsculas) lista para ser utilizada en cualquier método de la clase.</p>
+
+<h2>Anotaciones de Logging en Lombok</h2>
+
+<p>Dependiendo de la librería de registro que utilice el proyecto, se debe elegir la anotación correspondiente colocándola sobre la declaración de la clase:</p>
+
+<ul>
+    <li><b>@Slf4j:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.extern.slf4j.Slf4j</code> y genera un logger de <b>SLF4J (Simple Logging Facade for Java)</b>.<br>
+    Es la anotación <b>más utilizada en proyectos con Spring Boot</b>, ya que Spring Boot incluye SLF4J con Logback por defecto dentro de <code>spring-boot-starter-web</code> y <code>spring-boot-starter-logging</code> sin necesidad de añadir dependencias adicionales.</li>
+
+    <li><b>@Log4j2:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.extern.log4j.Log4j2</code> y genera un logger nativo de <b>Apache Log4j 2</b> utilizando <code>org.apache.logging.log4j.LogManager</code>.</li>
+
+    <li><b>@Log:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.extern.java.Log</code> y genera un logger del sistema estándar incluido en el propio JDK de Java (<code>java.util.logging.Logger</code>), por lo que no requiere ninguna librería externa de logging.</li>
+
+    <li><b>@CommonsLog:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.extern.apachecommons.CommonsLog</code> y genera un logger de <b>Apache Commons Logging</b>.</li>
+
+    <li><b>@JBossLog:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.extern.jbosslog.JBossLog</code> y genera un logger de <b>JBoss Logging</b> (habitual en entornos WildFly, Hibernate o Quarkus).</li>
+
+    <li><b>@Flogger:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.extern.flogger.Flogger</code> y genera una instancia de <b>Google Fluent Logger</b>.</li>
+</ul>
+
+<h2>Tabla comparativa de código generado</h2>
+
+<p>En la siguiente tabla se detalla exactamente qué atributo estático inyecta cada anotación en el bytecode de la clase:</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Paquete</th>
+            <th scope="col">Código Java generado en la clase</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@Slf4j</code></td>
+            <td><code>lombok.extern.slf4j.Slf4j</code></td>
+            <td><code>private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NombreClase.class);</code></td>
+        </tr>
+        <tr>
+            <td><code>@Log4j2</code></td>
+            <td><code>lombok.extern.log4j.Log4j2</code></td>
+            <td><code>private static final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager.getLogger(NombreClase.class);</code></td>
+        </tr>
+        <tr>
+            <td><code>@Log</code></td>
+            <td><code>lombok.extern.java.Log</code></td>
+            <td><code>private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger(NombreClase.class.getName());</code></td>
+        </tr>
+        <tr>
+            <td><code>@CommonsLog</code></td>
+            <td><code>lombok.extern.apachecommons.CommonsLog</code></td>
+            <td><code>private static final org.apache.commons.logging.Log log = org.apache.commons.logging.LogFactory.getLog(NombreClase.class);</code></td>
+        </tr>
+        <tr>
+            <td><code>@JBossLog</code></td>
+            <td><code>lombok.extern.jbosslog.JBossLog</code></td>
+            <td><code>private static final org.jboss.logging.Logger log = org.jboss.logging.Logger.getLogger(NombreClase.class);</code></td>
+        </tr>
+        <tr>
+            <td><code>@Flogger</code></td>
+            <td><code>lombok.extern.flogger.Flogger</code></td>
+            <td><code>private static final com.google.common.flogger.FluentLogger log = com.google.common.flogger.FluentLogger.forEnclosingClass();</code></td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Comparativa de las anotaciones de logging de Lombok y la constante estática que generan</span>
+
+<h2>Parámetro topic</h2>
+
+<p>Todas las anotaciones de log anteriores (excepto <code>@Flogger</code>) admiten el parámetro opcional <b><code>topic</code></b>:</p>
+
+<ul>
+    <li><b>topic:</b> Recibe un <code>String</code> con el nombre personalizado del logger. Por defecto, el logger toma como identificador el nombre completo de la clase donde se ubica (<code>NombreClase.class</code>). Si se especifica por ejemplo <code>@Slf4j(topic = "AuditoriaMascotas")</code>, Lombok inicializará el logger con esa cadena de texto (<code>LoggerFactory.getLogger("AuditoriaMascotas")</code>), permitiendo agrupar las trazas de distintas clases bajo un mismo canal o fichero de log configurado en <code>logback-spring.xml</code>.</li>
+</ul>
+
+<h2>Ejemplo práctico en Spring Boot (@Slf4j)</h2>
+
+<p>A continuación se compara un controlador y servicio de la tienda de mascotas escrito en Java estándar frente al uso de <code>@Slf4j</code> junto con <code>@RequiredArgsConstructor</code>. Con SLF4J se recomienda utilizar siempre los marcadores de posición <b><code>{}</code></b> (<i>placeholders</i>) en lugar de concatenar cadenas con <code>+</code>, ya que así solo se evalúa y construye el texto si el nivel de log correspondiente está activo:</p>
+
+<p>Vanilla Java:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import java.util.Optional;
+
+@Service
+public class PetService {
+
+    private static final Logger log = LoggerFactory.getLogger(PetService.class);
+
+    private final PetRepository petRepository;
+
+    public PetService(PetRepository petRepository) {
+        this.petRepository = petRepository;
+    }
+
+    public Optional&lt;Pet&gt; findById(Integer id) {
+        log.debug("Buscando mascota con id {}", id);
+        Optional&lt;Pet&gt; pet = petRepository.findById(id);
+        if (pet.isEmpty()) {
+            log.warn("No se ha encontrado ninguna mascota con id {}", id);
+        }
+        return pet;
+    }
+}
+</code></pre>
+</div>
+
+<p>Con Lombok (<code>@Slf4j</code> y <code>@RequiredArgsConstructor</code>):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import java.util.Optional;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PetService {
+
+    private final PetRepository petRepository;
+
+    public Optional&lt;Pet&gt; findById(Integer id) {
+        // La variable estática 'log' está disponible automáticamente
+        log.debug("Buscando mascota con id {}", id);
+        Optional&lt;Pet&gt; pet = petRepository.findById(id);
+        if (pet.isEmpty()) {
+            log.warn("No se ha encontrado ninguna mascota con id {}", id);
+        }
+        return pet;
+    }
+
+    public Pet save(Pet pet) {
+        try {
+            Pet savedPet = petRepository.save(pet);
+            log.info("Mascota guardada correctamente con id {}", savedPet.getId());
+            return savedPet;
+        } catch (Exception e) {
+            log.error("Error al guardar la mascota {}: {}", pet.getName(), e.getMessage(), e);
+            throw e;
+        }
+    }
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar @Slf4j y cuándo NO usarlo?</h2>
+
+<ul>
+    <li><b>Cuándo usarlo:</b> En todos los controladores, servicios, consumidores de colas y componentes de negocio donde se necesite registrar actividad o errores sin ensuciar la clase con la línea de declaración de <code>LoggerFactory</code>.</li>
+    <li><b>Cuándo NO usarlo (Malas prácticas de Logging):</b>
+        <ul>
+            <li><b>No concatenar Strings con <code>+</code> dentro del log:</b> Concatenar <code>log.debug("Mascota: " + pet.toString())</code> evalúa el método <code>toString()</code> y reserva memoria en el <i>Heap</i> incluso cuando el nivel <code>DEBUG</code> está desactivado en producción. Siempre deben usarse placeholders <code>{}</code>.</li>
+            <li><b>No hacer <i>Log and Throw</i> repetido en cada capa:</b> Si el repositorio hace <code>log.error</code> y relanza la excepción, el servicio hace <code>log.error</code> y la relanza, y el controlador también la registra, la misma traza de pila aparecerá triplicada en los logs dificultando el diagnóstico.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo en el uso de trazas con <code>@Slf4j</code></h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (MALA PRÁCTICA): Concatenación costosa con '+' y pérdida del stacktrace de la excepción
+log.debug("Consultando mascota con id: " + id + " y filtro: " + filter.toString());
+log.error("Fallo al guardar: " + ex.getMessage()); // Se pierde la pila de llamadas (stacktrace) de 'ex'
+
+// EJEMPLO (BUENA PRÁCTICA): Uso de placeholders '{}' y paso de la excepción como último argumento
+log.debug("Consultando mascota con id: {} y filtro: {}", id, filter);
+log.error("Fallo al guardar la mascota con id {}", id, ex); // SLF4J imprime el mensaje y todo el stacktrace de 'ex'
+</code></pre>
+</div>

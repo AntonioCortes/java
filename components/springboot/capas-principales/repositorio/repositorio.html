@@ -1,235 +1,294 @@
-<h1 class="title">Repositorio</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Capa de Repositorio (@Repository / Spring Data JPA)</h1>
+
+<p>La <strong>Capa de Repositorio (o DAO - Data Access Object)</strong> es el componente de Spring Boot encargado exclusivamente del <strong>acceso y persistencia de datos</strong> en la base de datos física. Gracias a <strong>Spring Data JPA</strong>, los desarrolladores no necesitan escribir sentencias SQL manuales con JDBC ni abrir/cerrar conexiones: basta con declarar una <strong>interfaz</strong> que extienda de <code>JpaRepository</code> para que Spring genere automáticamente en tiempo de ejecución todas las operaciones CRUD (crear, leer, actualizar, borrar), paginación y consultas avanzadas.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: El Archivero del Almacén</h2>
+<p>Imagina una gran biblioteca histórica:</p>
+<ul>
+    <li>El <strong>Servicio (@Service)</strong> es el investigador que necesita consultar el libro "Mascota #15". El investigador no sabe en qué sótano, pasillo o estantería física se encuentra guardado el libro físico ni qué llave abre el candado (no necesita conocer sentencias SQL directas).</li>
+    <li>El investigador acude al <strong>Archivero (@Repository)</strong> y le entrega una ficha de solicitud: <code>findById(15)</code> o <code>findByAgeBetween(1, 5)</code>. El archivero baja al almacén (la base de datos relacional), localiza el registro, traduce las filas de bytes en el objeto Java (la Entidad) y se lo entrega limpiamente al investigador.</li>
+</ul>
+
+<h2 class="subtitle">Jerarquía de Interfaces en Spring Data JPA</h2>
+<p>Spring Data proporciona una jerarquía escalonada de interfaces según las necesidades del proyecto:</p>
+<ol>
+    <li><strong><code>Repository&lt;T, ID&gt;</code>:</strong> Interfaz marcadora raíz sin métodos.</li>
+    <li><strong><code>CrudRepository&lt;T, ID&gt;</code>:</strong> Proporciona las operaciones CRUD estándar: <code>save()</code>, <code>findById()</code>, <code>existsById()</code>, <code>findAll()</code>, <code>count()</code>, <code>deleteById()</code> y <code>delete()</code>.</li>
+    <li><strong><code>PagingAndSortingRepository&lt;T, ID&gt;</code>:</strong> Extiende <code>CrudRepository</code> añadiendo soporte para ordenar (<code>Sort</code>) y paginar grandes volúmenes de datos con <code>Pageable</code> y <code>Page&lt;T&gt;</code>.</li>
+    <li><strong><code>JpaRepository&lt;T, ID&gt;</code>:</strong> La interfaz más completa y utilizada. Extiende las anteriores y añade métodos propios de JPA como <code>flush()</code>, <code>saveAndFlush()</code>, <code>deleteInBatch()</code> y operaciones en bloque.</li>
+</ol>
+
+<h2 class="subtitle">Definición Básica: PetRepository</h2>
+<p>Para crear un repositorio básico de la tienda de mascotas, solo se declara la interfaz indicando la clase de la Entidad (<code>Pet</code>) y el tipo de su clave primaria (<code>Integer</code>):</p>
 
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
 @Repository
-public interface PetRepository extends JpaRepository< Pet, Integer>{}
-</code></pre>    
-</div>
-
-<h2>Ejemplos de consultas declaradas:</h2>
-
-<div class="center-horizontal">
-<pre class="language-java"><code>
-@Repository
-public interface ProductoRepository extends JpaRepository<Producto, Integer> {
-    
-    @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.precio >= (:precioMenor) AND p.precio <= (:precioMayor)")
-    List<Producto> getPrecioRango(@Param("precioMenor") Integer precioMenor, @Param("precioMayor") Integer precioMayor);
-    List<Producto> findByPrecioBetween(Integer precioMenor, Integer precioMayor);
-    
-    @Query("SELECT p FROM com.thecompany.entities.Producto p")
-    List<Producto> getAllProductos();
-
-    @Query("SELECT p FROM com.thecompany.entities.Producto p")
-    Optional<Producto> getAllProductos();
-    
-    @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.activo = (:activo)")
-    List<Producto> getAllProductosActivos(@Param("activo") Boolean activo);
-    
-    @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.vendedor = (:vendedor)")
-    List<Producto> getProductosVendedor(@Param("vendedor") String vendedor);
-    
-    @Query("SELECT p FROM com.thecompany.entities.Producto p ORDER BY p.precio")
-    List<Producto> getDatosOrdenados();
-    
-    @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.id = (:id) AND p.precio = (:precio)")
-    List<Producto> getDatosPosicionales(@Param("id") Integer id, @Param("precio") Integer precio);   
+public interface PetRepository extends JpaRepository&lt;Pet, Integer&gt; {
 }
 </code></pre>    
 </div>
+<span class="center-horizontal caption">Declaración mínima de repositorio con JpaRepository para la entidad Pet</span>
 
-<h2>Derived Query methods:</h2>
-<p>La consulta debe comenzar por:</p>
+<h2 class="subtitle">Ejemplos de Consultas Declaradas (@Query) y Derivadas: ProductoRepository</h2>
+<p>Cuando las consultas predeterminadas de <code>JpaRepository</code> no son suficientes, se pueden definir consultas personalizadas mediante <strong>anotaciones <code>@Query</code> en JPQL</strong> (Java Persistence Query Language) o aprovechando la convención de nombres de métodos derivados (<em>Derived Query Methods</em>):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Repository
+public interface ProductoRepository extends JpaRepository&lt;Producto, Integer&gt; {
+    
+    @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.precio >= (:precioMenor) AND p.precio <= (:precioMayor)")
+    List&lt;Producto&gt; getPrecioRango(@Param("precioMenor") Integer precioMenor, @Param("precioMayor") Integer precioMayor);
+
+    List&lt;Producto&gt; findByPrecioBetween(Integer precioMenor, Integer precioMayor);
+    
+    @Query("SELECT p FROM com.thecompany.entities.Producto p")
+    List&lt;Producto&gt; getAllProductos();
+
+    @Query("SELECT p FROM com.thecompany.entities.Producto p")
+    Optional&lt;Producto&gt; getProductoUnico();
+    
+    @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.activo = (:activo)")
+    List&lt;Producto&gt; getAllProductosActivos(@Param("activo") Boolean activo);
+    
+    @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.vendedor = (:vendedor)")
+    List&lt;Producto&gt; getProductosVendedor(@Param("vendedor") String vendedor);
+    
+    @Query("SELECT p FROM com.thecompany.entities.Producto p ORDER BY p.precio")
+    List&lt;Producto&gt; getDatosOrdenados();
+    
+    @Query("SELECT p FROM com.thecompany.entities.Producto p WHERE p.id = (:id) AND p.precio = (:precio)")
+    List&lt;Producto&gt; getDatosPosicionales(@Param("id") Integer id, @Param("precio") Integer precio);   
+}
+</code></pre>    
+</div>
+<span class="center-horizontal caption">ProductoRepository combinando consultas JPQL con @Query y métodos derivados por nombre</span>
+
+<h2 class="subtitle">Convención de Nombres de Métodos Derivados (Derived Query Methods)</h2>
+<p>Spring Data inspecciona el nombre del método en la interfaz y <strong>deduce automáticamente la consulta SQL</strong> que debe ejecutar en la base de datos. La firma del método debe estructurarse de la siguiente manera:</p>
+
 <ul>
-	<li>
-        <b>find</b>...By puede no devolver ningún resultado.
-	</li>
-    <li>
-        <b>get</b>...By siempre debe devolver algo o dará Excepción.
-	</li>
-    <li>
-        <b>read</b>...By
-	</li>
-    <li>
-        <b>query</b>...By
-	</li>
-    <li>
-        <b>count</b>...By
-	</li>
+	<li><b>find...By:</b> Recupera registros coincidentes. Puede devolver una lista vacía o un <code>Optional.empty()</code> si no encuentra coincidencias.</li>
+    <li><b>get...By:</b> Busca registros obligatorios; si no existe, lanza una excepción en runtime.</li>
+    <li><b>read...By:</b> Equivalente a <code>find...By</code>.</li>
+    <li><b>query...By:</b> Equivalente a <code>find...By</code>.</li>
+    <li><b>count...By:</b> Devuelve el número total de registros (<code>long</code>) que cumplen el filtro.</li>
+    <li><b>delete...By / remove...By:</b> Elimina los registros que coinciden con el criterio y devuelve el conteo de filas borradas.</li>
 </ul>
 
-<p><b>By</b> es el delimitador para definir los criterios</p>
-<p>
-<b>*Antonación:</b> Se puede buscar sin establecer ningún criterio y luego realizar una operación sobre el resultado (ordenar, mostrar solo los 15 primeros, etc) haciendo la consulta de la misma manera pero omitiendo el criterio.
+<p>La palabra clave <b>By</b> actúa como delimitador para definir los criterios y campos de filtro sobre los atributos de la entidad.</p>
+<p><strong>Búsquedas sin criterio previo con ordenación u operaciones de límite:</strong> Se puede omitir el criterio intermedio para ordenar toda la tabla o limitar los primeros resultados:</p>
+<ul>
+    <li>Buscar por nombre ordenando por edad: <code>findByNameOrderByAge();</code></li>
+    <li>Buscar todos los registros ordenando por edad: <code>findByOrderByAge();</code></li>
+    <li>Obtener solo los 3 primeros registros más caros: <code>findTop3ByOrderByPrecioDesc();</code></li>
+</ul>
 
-Ejemplo: 
-    <ul>
-        <li>
-            Buscar por nombre y ordenando por edad: <b>findByNameOrderByAge();</b>
-        </li>
-        <li>
-            Buscar todos y ordenar por edad: <b>findByOrderByAge();</b>
-        </li>
-    </ul>
-</p>
-
+<h2 class="subtitle">Tabla Maestra de Palabras Clave para Métodos de Consulta</h2>
 <table class="table table-striped table-hover">
     <thead>
         <tr>
-            <th>Super Table of the Query Methods</th>
+            <th scope="col">Palabra Clave (Keyword)</th>
+            <th scope="col">Ejemplo de Firma de Método</th>
+            <th scope="col">Equivalente en JPQL / SQL</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <th>Keyword</th>
-            <th>Sample</th>
-            <th>JPQL snippet (Java Persistence Query Language)</th>
+            <td><b>And</b></td>
+            <td><code>findByLastnameAndFirstname</code></td>
+            <td><code>WHERE x.lastname = ?1 AND x.firstname = ?2</code></td>
         </tr>
         <tr>
-            <td>And</td>
-            <td>findByLastnameAndFirstname</td>
-            <td>where x.lastname = ?1 and x.firstname = ?2</td>
+            <td><b>Or</b></td>
+            <td><code>findByLastnameOrFirstname</code></td>
+            <td><code>WHERE x.lastname = ?1 OR x.firstname = ?2</code></td>
         </tr>
         <tr>
-            <td>Or</td>
-            <td>findByLastnameOrFirstname</td>
-            <td>where x.lastname = ?1 or x.firstname = ?2</td>
+            <td><b>Is, Equals</b></td>
+            <td><code>findByFirstname, findByFirstnameIs</code></td>
+            <td><code>WHERE x.firstname = ?1</code></td>
         </tr>
         <tr>
-            <td>Is,Equals</td>
-            <td>findByFirstname,findByFirstnameIs,findByFirstnameEquals</td>
-            <td>where x.firstname = ?1</td>
+            <td><b>Between</b></td>
+            <td><code>findByStartDateBetween</code></td>
+            <td><code>WHERE x.startDate BETWEEN ?1 AND ?2</code></td>
         </tr>
         <tr>
-            <td>Between</td>
-            <td>findBystartDateBetween</td>
-            <td>where x.startDate between ?1 and ?2</td>
+            <td><b>LessThan</b></td>
+            <td><code>findByAgeLessThan</code></td>
+            <td><code>WHERE x.age &lt; ?1</code></td>
         </tr>
         <tr>
-            <td>LessThan</td>
-            <td>findByAgeLessThan</td>
-            <td>where x.age < ?1</td>
+            <td><b>LessThanEqual</b></td>
+            <td><code>findByAgeLessThanEqual</code></td>
+            <td><code>WHERE x.age &lt;= ?1</code></td>
         </tr>
         <tr>
-            <td>LessThanEqual</td>
-            <td>findByAgeLessThanEqual</td>
-            <td>where x.age <= ?1</td>
+            <td><b>GreaterThan</b></td>
+            <td><code>findByAgeGreaterThan</code></td>
+            <td><code>WHERE x.age &gt; ?1</code></td>
         </tr>
         <tr>
-            <td>GreaterThan</td>
-            <td>findByAgeGreaterThan</td>
-            <td>where x.age > ?1</td>
+            <td><b>GreaterThanEqual</b></td>
+            <td><code>findByAgeGreaterThanEqual</code></td>
+            <td><code>WHERE x.age &gt;= ?1</code></td>
         </tr>
         <tr>
-            <td>GreaterThanEqual</td>
-            <td>findByAgeGreaterThanEqual</td>
-            <td>where x.age >= ?1</td>
+            <td><b>After</b></td>
+            <td><code>findByStartDateAfter</code></td>
+            <td><code>WHERE x.startDate &gt; ?1</code></td>
         </tr>
         <tr>
-            <td>After</td>
-            <td>findByStartDateAfter</td>
-            <td>where x.startDate > ?1</td>
+            <td><b>Before</b></td>
+            <td><code>findByStartDateBefore</code></td>
+            <td><code>WHERE x.startDate &lt; ?1</code></td>
         </tr>
         <tr>
-            <td>Before</td>
-            <td>findByStartDateBefore</td>
-            <td>where x.startDate < ?1</td>
+            <td><b>IsNull</b></td>
+            <td><code>findByAgeIsNull</code></td>
+            <td><code>WHERE x.age IS NULL</code></td>
         </tr>
         <tr>
-            <td>IsNull</td>
-            <td>findByAgeIsNull</td>
-            <td>where x.age is null</td>
+            <td><b>IsNotNull, NotNull</b></td>
+            <td><code>findByAgeIsNotNull</code></td>
+            <td><code>WHERE x.age IS NOT NULL</code></td>
         </tr>
         <tr>
-            <td>IsNotNull, NotNull</td>
-            <td>findByAgeIsNotNull</td>
-            <td>where x.age not null</td>
+            <td><b>Like</b></td>
+            <td><code>findByFirstnameLike</code></td>
+            <td><code>WHERE x.firstname LIKE ?1</code></td>
         </tr>
         <tr>
-            <td>Like</td>
-            <td>findByFirstnameLike</td>
-            <td>where x.firstname like ?1</td>
+            <td><b>NotLike</b></td>
+            <td><code>findByFirstnameNotLike</code></td>
+            <td><code>WHERE x.firstname NOT LIKE ?1</code></td>
         </tr>
         <tr>
-            <td>NotLike</td>
-            <td>findByFirstnameNotLike</td>
-            <td>where x.firstname not like ?1</td>
+            <td><b>StartingWith</b></td>
+            <td><code>findByFirstnameStartingWith</code></td>
+            <td><code>WHERE x.firstname LIKE ?1%</code> (Añade % al final automáticamente)</td>
         </tr>
         <tr>
-            <td>StartingWith</td>
-            <td>findByfirstnameStartingWith</td>
-            <td>where x.firstname like ?1 (Parameter bound with APPENDED %) => where x.firstname like '?%'</td>
+            <td><b>EndingWith</b></td>
+            <td><code>findByFirstnameEndingWith</code></td>
+            <td><code>WHERE x.firstname LIKE %?1</code> (Añade % al inicio automáticamente)</td>
         </tr>
         <tr>
-            <td>EndingWith</td>
-            <td>findByfirstnameEndingWith</td>
-            <td>where x.firstname like ?1 (Parameter bound with PREPENDED %) => where x.firstname like '?%'</td>
+            <td><b>Containing</b></td>
+            <td><code>findByFirstnameContaining</code></td>
+            <td><code>WHERE x.firstname LIKE %?1%</code> (Envuelve con % en ambos lados)</td>
         </tr>
         <tr>
-            <td>Containing</td>
-            <td>findByFirstnameContaining</td>
-            <td>where x.firstname like ?1 (Parameter bound with WRAPPED IN %) => where x.firstname like '?%'</td>
+            <td><b>OrderBy</b></td>
+            <td><code>findByAgeOrderByLastnameDesc</code></td>
+            <td><code>WHERE x.age = ?1 ORDER BY x.lastname DESC</code></td>
         </tr>
         <tr>
-            <td>OrderBy</td>
-            <td>findByAgeOrderbyLastnameDesc</td>
-            <td>where x.age = ?1 order by x.lastname desc</td>
+            <td><b>Not</b></td>
+            <td><code>findByLastnameNot</code></td>
+            <td><code>WHERE x.lastname &lt;&gt; ?1</code></td>
         </tr>
         <tr>
-            <td>Not</td>
-            <td>findByLastnameNot</td>
-            <td>where x.lastname <> ?1</td>
+            <td><b>In</b></td>
+            <td><code>findByAgeIn(Collection&lt;Integer&gt; ages)</code></td>
+            <td><code>WHERE x.age IN ?1</code></td>
         </tr>
         <tr>
-            <td>In</td>
-            <td>findByAgeIn(Collection<Age> ages)</td>
-            <td>where x.age in ?1</td>
+            <td><b>NotIn</b></td>
+            <td><code>findByAgeNotIn(Collection&lt;Integer&gt; ages)</code></td>
+            <td><code>WHERE x.age NOT IN ?1</code></td>
         </tr>
         <tr>
-            <td>NotIn</td>
-            <td>findByAgeNotIn(Collection<Age> ages)</td>
-            <td>where x.age not in ?1</td>
+            <td><b>True</b></td>
+            <td><code>findByActiveTrue()</code></td>
+            <td><code>WHERE x.active = TRUE</code></td>
         </tr>
         <tr>
-            <td>True</td>
-            <td>findByActiveTrue()</td>
-            <td>where x.active = true</td>
+            <td><b>False</b></td>
+            <td><code>findByActiveFalse()</code></td>
+            <td><code>WHERE x.active = FALSE</code></td>
         </tr>
         <tr>
-            <td>False</td>
-            <td>findByActiveFalse()</td>
-            <td>where x.active = false</td>
+            <td><b>IgnoreCase</b></td>
+            <td><code>findByFirstnameIgnoreCase</code></td>
+            <td><code>WHERE UPPER(x.firstname) = UPPER(?1)</code></td>
         </tr>
         <tr>
-            <td>IgnoreCase</td>
-            <td>findByFirstnameIgnoreCase</td>
-            <td>where UPPER(x.firstname) = UPPER(?1)</td>
+            <td><b>First / Top</b></td>
+            <td><code>findFirstBy / findTopBy</code></td>
+            <td><code>LIMIT 1</code></td>
         </tr>
         <tr>
-            <td>First</td>
-            <td>findFirstBy</td>
-            <td>limit 1</td>
+            <td><b>FirstN / TopN</b></td>
+            <td><code>findFirst15By / findTop15By</code></td>
+            <td><code>LIMIT 15</code></td>
         </tr>
         <tr>
-            <td>Top</td>
-            <td>findTopBy</td>
-            <td>limit 1</td>
-        </tr>
-        <tr>
-            <td>First</td>
-            <td>findFirst15By</td>
-            <td>limit 15</td>
-        </tr>
-        <tr>
-            <td>Top</td>
-            <td>findTop15By</td>
-            <td>limit 15</td>
-        </tr>
-        <tr>
-            <td>Top</td>
-            <td>findTop20ByOrderByAgeDesc</td>
-            <td>order by x.age desc limit 20</td>
+            <td><b>TopN con OrderBy</b></td>
+            <td><code>findTop20ByOrderByAgeDesc</code></td>
+            <td><code>ORDER BY x.age DESC LIMIT 20</code></td>
         </tr>
     </tbody>
 </table>
+<span class="center-horizontal caption">Tabla 1: Catálogo exhaustivo de palabras clave de consultas derivadas en Spring Data JPA</span>
+
+<h2 class="subtitle">Consultas de Modificación (@Modifying y @Transactional)</h2>
+<p>Si defines una consulta <code>@Query</code> para ejecutar un <code>UPDATE</code> o <code>DELETE</code>, es <strong>obligatorio</strong> añadir la anotación <code>@Modifying</code> para avisar a JPA de que no es una consulta de lectura <code>SELECT</code>, y asegurar que el método esté dentro de una transacción con <code>@Transactional</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Modifying
+@Transactional
+@Query("UPDATE Pet p SET p.name = :name WHERE p.id = :id")
+int updatePetName(@Param("id") Integer id, @Param("name") String name);
+</code></pre>
+</div>
+<span class="center-horizontal caption">Consulta de modificación con @Modifying devolviendo el número de filas alteradas</span>
+
+<h2 class="subtitle">¿Cuándo Usar Métodos Derivados frente a @Query o Criteria API?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Técnica</th>
+            <th scope="col">¿Cuándo Usarla?</th>
+            <th scope="col">¿Cuándo NO Usarla?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Métodos Derivados (findByName...)</b></td>
+            <td>Consultas sencillas con 1, 2 o 3 condiciones (igualdad, rangos, ordenación).</td>
+            <td>Consultas con más de 4 condiciones (nombres de método larguísimos e ilegibles como <code>findByNameAndAgeAndCityAndStatusAnd...</code>).</td>
+        </tr>
+        <tr>
+            <td><b>@Query (JPQL o SQL Nativo)</b></td>
+            <td>Consultas con <code>JOIN FETCH</code>, agrupaciones (<code>GROUP BY</code>), subconsultas complejas o agregaciones.</td>
+            <td>Consultas básicas que Spring Data resuelve con una sola línea de método derivado.</td>
+        </tr>
+        <tr>
+            <td><b>Criteria API / QueryDSL</b></td>
+            <td>Filtros dinámicos con formularios donde el usuario puede rellenar o dejar vacíos 10 campos opcionales.</td>
+            <td>Consultas estáticas de estructura fija.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios para seleccionar el mecanismo de consulta adecuado</span>
+
+<h2 class="subtitle">Contraejemplo (Mala Práctica): El Problema de las N+1 Consultas en Repositorios</h2>
+<p>Si una entidad tiene una relación perezosa (<code>FetchType.LAZY</code>) y recuperas 100 registros con <code>findAll()</code>, cada vez que accedes a la relación en un bucle Hibernate ejecutará 100 consultas SQL adicionales a la base de datos (problema N+1). La solución es usar <strong><code>JOIN FETCH</code></strong> dentro de un <code>@Query</code>:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ¡SOLUCIÓN AL PROBLEMA N+1!
+// Trae la mascota y su dueño en una ÚNICA consulta SQL con JOIN
+@Query("SELECT p FROM Pet p JOIN FETCH p.owner WHERE p.age &gt;= :age")
+List&lt;Pet&gt; findAllWithOwners(@Param("age") Short age);
+</code></pre>
+</div>
+<span class="center-horizontal caption">Uso de JOIN FETCH en JPQL para resolver el cuello de botella N+1 consultas</span>

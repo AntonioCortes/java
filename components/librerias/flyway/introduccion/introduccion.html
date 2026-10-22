@@ -1,0 +1,260 @@
+<h1 class="title">Flyway - Control de Versiones de Base de Datos</h1>
+
+<p><b>Flyway</b> es una herramienta de código abierto para la gestión y automatización de <b>migraciones de bases de datos</b>. Su objetivo es aplicar al esquema de la base de datos el mismo control de versiones que <b>Git</b> aplica al código fuente Java.</p>
+
+<p>En proyectos donde trabajan varios desarrolladores o existen múltiples entornos (local, desarrollo, integración, preproducción y producción), modificar las tablas manualmente o depender de que Hibernate regenere el esquema automáticamente (<code>ddl-auto=update</code>) provoca inconsistencias graves. Con <b>Flyway</b>, cada cambio en la base de datos (creación de tablas, alteración de columnas, inserción de datos maestros) se escribe en un script SQL numerado secuencialmente que viaja dentro del repositorio junto al código de la aplicación.</p>
+
+<h2>¿Cómo funciona Flyway internamente?</h2>
+
+<p>Cuando arranca una aplicación con Flyway activado, ocurre el siguiente proceso automático:</p>
+<ol>
+	<li>Flyway se conecta a la base de datos configurada en el proyecto y comprueba si existe su tabla de control interno llamada por defecto <b><code>flyway_schema_history</code></b>. Si la base de datos está vacía, crea esa tabla automáticamente.</li>
+	<li>Escanea la carpeta del proyecto donde se alojan las migraciones (por defecto <code>src/main/resources/db/migration</code>) en busca de scripts SQL o clases Java de migración.</li>
+	<li>Compara los scripts encontrados con los registros ya guardados en la tabla <code>flyway_schema_history</code> y <b>valida su suma de comprobación (<i>checksum</i> CRC32)</b>. Si alguien ha modificado un script que ya se había ejecutado en el pasado, Flyway detiene el arranque lanzando un error de validación para proteger la integridad de la base de datos.</li>
+	<li>Ordena las migraciones nuevas por su número de versión y las ejecuta una por una dentro de una transacción, registrando cada ejecución exitosa en <code>flyway_schema_history</code>.</li>
+</ol>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">installed_rank</th>
+			<th scope="col">version</th>
+			<th scope="col">description</th>
+			<th scope="col">type</th>
+			<th scope="col">script</th>
+			<th scope="col">checksum</th>
+			<th scope="col">installed_on</th>
+			<th scope="col">success</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>1</td>
+			<td>1</td>
+			<td>create pet table</td>
+			<td>SQL</td>
+			<td><code>V1__create_pet_table.sql</code></td>
+			<td>1849201452</td>
+			<td>2026-10-22 10:15:00</td>
+			<td><code>true</code></td>
+		</tr>
+		<tr>
+			<td>2</td>
+			<td>2</td>
+			<td>insert initial pets</td>
+			<td>SQL</td>
+			<td><code>V2__insert_initial_pets.sql</code></td>
+			<td>-948172631</td>
+			<td>2026-10-22 10:15:01</td>
+			<td><code>true</code></td>
+		</tr>
+		<tr>
+			<td>3</td>
+			<td>3</td>
+			<td>add picture columns</td>
+			<td>SQL</td>
+			<td><code>V3__add_picture_columns.sql</code></td>
+			<td>412398710</td>
+			<td>2026-10-22 12:40:15</td>
+			<td><code>true</code></td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Ejemplo de registros almacenados automáticamente en la tabla flyway_schema_history</span>
+
+<h2>Diagrama de funcionamiento</h2>
+
+<img class="center-horizontal" src="components/librerias/flyway/introduccion/assets/img/flyway-funcionamiento.svg">
+<span class="center-horizontal caption">Figura 1: Qué ocurre cuando arranca la aplicación con Flyway activado</span>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Elemento</th>
+			<th scope="col">Tipo</th>
+			<th scope="col">Responsabilidad</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>PetShop</td>
+			<td>Aplicación Spring Boot</td>
+			<td>Al arrancar dispara la ejecución de Flyway antes de inicializar JPA.</td>
+		</tr>
+		<tr>
+			<td>Flyway</td>
+			<td>Librería de migraciones</td>
+			<td>Ordena los scripts por versión, valida su checksum y ejecuta los pendientes.</td>
+		</tr>
+		<tr>
+			<td><code>db/migration</code></td>
+			<td>Carpeta de scripts SQL</td>
+			<td>Contiene las migraciones versionadas (<code>V1__...</code>, <code>V2__...</code>).</td>
+		</tr>
+		<tr>
+			<td>PostgreSQL</td>
+			<td>Base de datos</td>
+			<td>Recibe el SQL y contiene las tablas de la aplicación (<code>pet</code>).</td>
+		</tr>
+		<tr>
+			<td><code>flyway_schema_history</code></td>
+			<td>Tabla de control</td>
+			<td>Registra qué versiones se han aplicado, con su checksum y resultado.</td>
+		</tr>
+		<tr>
+			<td>Hibernate</td>
+			<td>ORM</td>
+			<td>Con <code>ddl-auto: validate</code> solo comprueba que las entidades coinciden con el esquema creado por Flyway.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del diagrama de Flyway</span>
+
+<h2>Dependencias necesarias</h2>
+
+<p>Para integrar Flyway en un proyecto Spring Boot o Java estándar se requiere la dependencia principal <code>flyway-core</code> del grupo <code>org.flywaydb</code>. A partir de Flyway 9+ / Spring Boot 3+, algunos motores de base de datos como MySQL/MariaDB o PostgreSQL requieren además su módulo específico (como <code>flyway-mysql</code> o <code>flyway-database-postgresql</code>).</p>
+
+<p>En <b>Maven (<code>pom.xml</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependencies&gt;
+	&lt;!-- Dependencia principal de Flyway --&gt;
+	&lt;dependency&gt;
+		&lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+		&lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+	&lt;/dependency&gt;
+
+	&lt;!-- Opcional en versiones recientes si se usa MySQL / MariaDB --&gt;
+	&lt;dependency&gt;
+		&lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+		&lt;artifactId&gt;flyway-mysql&lt;/artifactId&gt;
+	&lt;/dependency&gt;
+&lt;/dependencies&gt;
+
+&lt;!-- Plugin opcional de Maven para ejecutar comandos mvn flyway:migrate por consola --&gt;
+&lt;build&gt;
+	&lt;plugins&gt;
+		&lt;plugin&gt;
+			&lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+			&lt;artifactId&gt;flyway-maven-plugin&lt;/artifactId&gt;
+		&lt;/plugin&gt;
+	&lt;/plugins&gt;
+&lt;/build&gt;
+</code></pre>
+</div>
+
+<p>En <b>Gradle (<code>build.gradle</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+plugins {
+	id 'org.flywaydb.flyway' version '9.22.3'
+}
+
+dependencies {
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
+}
+</code></pre>
+</div>
+
+<h2>Configuración en Spring Boot</h2>
+
+<p>En <b>Spring Boot</b>, el mero hecho de incluir <code>flyway-core</code> en las dependencias activa la autoconfiguración de Flyway al iniciar la aplicación, ejecutándose justo antes de que se inicialice el <code>EntityManagerFactory</code> de JPA/Hibernate. Su comportamiento se personaliza desde <code>application.properties</code> o <code>application.yml</code> mediante el prefijo <code>spring.flyway.*</code>:</p>
+
+<ul>
+	<li><b><code>spring.flyway.enabled</code>:</b> Activa (<code>true</code>, valor por defecto) o desactiva (<code>false</code>) la ejecución automática de Flyway al arrancar la aplicación.</li>
+	<li><b><code>spring.flyway.locations</code>:</b> Indica la ruta o rutas donde Flyway buscará los archivos de migración. Por defecto es <code>classpath:db/migration</code>, pero permite separar scripts según el motor de base de datos usando el comodín <code>{vendor}</code> (por ejemplo, <code>classpath:db/migration/{vendor}</code>).</li>
+	<li><b><code>spring.flyway.baseline-on-migrate</code>:</b> Por defecto es <code>false</code>. Si se activa a <code>true</code> al conectarse a una base de datos que ya existía previamente y tenía tablas pero no tenía la tabla <code>flyway_schema_history</code>, Flyway crea la línea base inicial (por defecto en la versión <code>1</code>) e aplica solo las migraciones superiores.</li>
+	<li><b><code>spring.flyway.validate-on-migrate</code>:</b> Por defecto es <code>true</code>. Verifica antes de migrar que los scripts ya ejecutados no hayan sido alterados comparando su <i>checksum</i>.</li>
+	<li><b><code>spring.flyway.table</code>:</b> Permite cambiar el nombre de la tabla de historial (por defecto <code>flyway_schema_history</code>).</li>
+	<li><b><code>spring.flyway.clean-disabled</code>:</b> Por seguridad, desde Flyway 9 su valor por defecto es <code>true</code> para impedir el borrado accidental de toda la base de datos mediante el comando <code>clean</code>.</li>
+	<li><b><code>spring.jpa.hibernate.ddl-auto</code>:</b> Cuando se gestiona la base de datos con Flyway, es una <b>buena práctica obligatoria</b> configurar Hibernate en modo <b><code>validate</code></b> (o <code>none</code>). Así Flyway es el único responsable de crear y modificar las tablas, mientras que Hibernate únicamente comprueba al arrancar que las entidades Java coinciden con las tablas creadas por Flyway.</li>
+</ul>
+
+<p>Ejemplo de configuración en <b><code>application.yml</code></b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/petshop_db
+    username: postgres
+    password: secret
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # Hibernate solo valida el esquema creado por Flyway, nunca lo modifica por su cuenta
+      ddl-auto: validate
+    show-sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar Flyway y cuándo NO usarlo?</h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Escenario</th>
+			<th scope="col">¿Cuándo SÍ usarlo? (Recomendado)</th>
+			<th scope="col">¿Cuándo NO usarlo? (Desaconsejado / Alternativas)</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Proyectos en Equipo y Producción</b></td>
+			<td>En cualquier aplicación o microservicio con base de datos relacional que pase por entornos de desarrollo, integración y producción, garantizando que todos tengan exactamente el mismo esquema.</td>
+			<td>En pruebas de concepto (PoC) rápidas o ejercicios académicos con base de datos en memoria H2 que se destruye al apagar la aplicación (donde basta con <code>ddl-auto: create-drop</code>).</td>
+		</tr>
+		<tr>
+			<td><b>Control del SQL Nativo</b></td>
+			<td>Cuando el equipo prefiere escribir scripts SQL nativos claros y aprovechar características propias del motor (índices específicos, particiones, triggers en PostgreSQL/Oracle/MySQL).</td>
+			<td>Si un proyecto corporativo exige definir los cambios de esquema en formato XML/YAML agnóstico al motor de base de datos para desplegar el mismo cambio en Oracle, SQL Server y PostgreSQL sin tocar SQL, en cuyo caso suele preferirse <b>Liquibase</b>.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Cuándo utilizar Flyway frente a otras alternativas</span>
+
+<h2>Ejemplo y Contraejemplo: Convivencia entre Flyway e Hibernate</h2>
+
+<h3>Contraejemplo (Mala práctica): Usar Flyway dejando <code>ddl-auto: update</code> o <code>create</code> en Hibernate</h3>
+<p>Si activamos Flyway pero dejamos que Hibernate modifique las tablas por su cuenta con <code>ddl-auto: update</code> o <code>create</code>, se pierde todo el control del versionado: Hibernate creará o alterará columnas automáticamente basándose en las clases <code>@Entity</code> sin que queden registradas en ningún script de <code>db/migration</code>, o borrará las tablas creadas por Flyway al arrancar:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# CONTRAEJEMPLO (INCORRECTO): Hibernate modificará las tablas a espaldas de Flyway
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update # ¡Peligro! Desincroniza el esquema real respecto a los scripts de Flyway
+  flyway:
+    enabled: true
+    clean-disabled: false # ¡Peligro crítico! Permite que un comando clean borre toda la base de datos
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Flyway crea el esquema e Hibernate solo lo valida (<code>ddl-auto: validate</code>)</h3>
+<p>En una configuración profesional, <b>Flyway es el único dueño del esquema DDL</b> y a Hibernate se le asigna <code>ddl-auto: validate</code>. Así, si un desarrollador añade un campo en la clase Java <code>Pet</code> pero olvida crear el script <code>V4__...sql</code> en Flyway, la aplicación fallará inmediatamente al arrancar avisando de la discrepancia:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# EJEMPLO (CORRECTO): Flyway aplica los scripts SQL e Hibernate verifica que las entidades coincidan
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    clean-disabled: true
+</code></pre>
+</div>

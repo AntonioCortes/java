@@ -1,0 +1,194 @@
+<h1 class="title">Migraciones SQL y Comandos de Flyway</h1>
+
+<p>Para que <b>Flyway</b> reconozca y ejecute los scripts en el orden adecuado, todos los archivos deben ubicarse dentro del directorio <code>src/main/resources/db/migration/</code> y cumplir estrictamente su convención de nombres.</p>
+
+<h2>Estructura de Carpetas y Nomenclatura de Archivos</h2>
+
+<p>La estructura estándar en un proyecto Maven o Gradle con Spring Boot es la siguiente:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+src/main/resources/
+├── application.yml
+└── db/
+    └── migration/
+        ├── V1__create_pet_table.sql
+        ├── V2__insert_initial_pets.sql
+        ├── V2.1__add_picture_columns_to_pet.sql
+        └── R__create_pet_summary_view.sql
+</code></pre>
+</div>
+
+<p>El patrón de nombre de cualquier archivo de migración se compone de: <b><code>&lt;Prefijo&gt;&lt;Versión&gt;__&lt;Descripción&gt;.sql</code></b>. Es fundamental destacar que el separador entre la versión y la descripción son <b>dos guiones bajos seguidos (<code>__</code>)</b>, mientras que dentro de la descripción se utiliza un único guion bajo (<code>_</code>) que Flyway transformará en espacios al guardarlo en la tabla de historial.</p>
+
+<h3>Tipos de Migraciones según su Prefijo</h3>
+
+<ul>
+	<li><b><code>V</code> - Migraciones Versionadas (<i>Versioned Migrations</i>):</b>
+		Son las migraciones más habituales. Representan un cambio evolutivo en el esquema o en los datos y <b>se ejecutan una única vez</b> en orden ascendente de versión. La versión puede ser un número entero (<code>V1</code>, <code>V2</code>), decimal (<code>V1.1</code>, <code>V2.0.1</code>) o una marca de tiempo (<code>V202610221200</code>). Una vez aplicadas, su contenido es inmutable.
+	</li>
+
+	<li><b><code>R</code> - Migraciones Repetibles (<i>Repeatable Migrations</i>):</b>
+		No llevan número de versión (su formato es <code>R__&lt;Descripción&gt;.sql</code>). Se ejecutan siempre <b>después</b> de todas las migraciones versionadas pendientes, y se vuelven a ejecutar automáticamente cada vez que cambia su <i>checksum</i> (es decir, cuando el desarrollador modifica el archivo). Son ideales para mantener actualizadas vistas (<code>CREATE OR REPLACE VIEW</code>), funciones o procedimientos almacenados.
+	</li>
+
+	<li><b><code>U</code> - Migraciones de Deshacer (<i>Undo Migrations</i>):</b>
+		Tienen el formato <code>U&lt;Versión&gt;__&lt;Descripción&gt;.sql</code> y contienen las sentencias inversas para revertir una migración versionada con el mismo número (disponibles en ediciones avanzadas de Flyway, aunque en entornos productivos se recomienda crear siempre una nueva migración hacia adelante, como <code>V4__...</code>, en lugar de deshacer versiones pasadas).
+	</li>
+</ul>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Tipo de Migración</th>
+			<th scope="col">Prefijo</th>
+			<th scope="col">Patrón de Nombre</th>
+			<th scope="col">Cuándo se ejecuta</th>
+			<th scope="col">Uso principal</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Versionada</b></td>
+			<td><code>V</code></td>
+			<td><code>V1__create_pet_table.sql</code></td>
+			<td>Una sola vez, por orden de versión.</td>
+			<td><code>CREATE TABLE</code>, <code>ALTER TABLE</code>, <code>DROP</code>, inserción de datos iniciales.</td>
+		</tr>
+		<tr>
+			<td><b>Repetible</b></td>
+			<td><code>R</code></td>
+			<td><code>R__vista_mascotas.sql</code></td>
+			<td>Cada vez que cambia su contenido (checksum).</td>
+			<td><code>CREATE OR REPLACE VIEW</code>, procedimientos almacenados, triggers.</td>
+		</tr>
+		<tr>
+			<td><b>Undo (Deshacer)</b></td>
+			<td><code>U</code></td>
+			<td><code>U1__drop_pet_table.sql</code></td>
+			<td>Solo al invocar explícitamente el comando <code>undo</code>.</td>
+			<td>Revertir los cambios introducidos por la versión <code>V</code> equivalente.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tipos de scripts de migración soportados por Flyway</span>
+
+<h2>Ejemplos Prácticos de Scripts SQL</h2>
+
+<h3>1. Creación de la tabla inicial (<code>V1__create_pet_table.sql</code>)</h3>
+<p>Primer script que crea la tabla <code>pet</code> coincidiendo con los atributos básicos de la entidad <code>Pet</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-sql">
+CREATE TABLE pet (
+    id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age SMALLINT NOT NULL,
+    birth_date DATE NOT NULL
+);
+</code></pre>
+</div>
+
+<h3>2. Inserción de datos maestros iniciales (<code>V2__insert_initial_pets.sql</code>)</h3>
+<p>Segundo script que puebla la tabla recién creada con registros de prueba o catálogo inicial:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-sql">
+INSERT INTO pet (id, name, age, birth_date) VALUES (1, 'Joe', 2, '2024-02-01');
+INSERT INTO pet (id, name, age, birth_date) VALUES (2, 'Luna', 4, '2022-05-15');
+</code></pre>
+</div>
+
+<h3>3. Evolución del esquema en una versión posterior (<code>V3__add_picture_columns_to_pet.sql</code>)</h3>
+<p>Si más adelante el equipo añade soporte para guardar la foto de la mascota en <code>PetDTO</code> y <code>Pet</code>, nunca se modifica el archivo <code>V1</code>, sino que se añade un nuevo archivo <code>V3</code> con el <code>ALTER TABLE</code> correspondiente:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-sql">
+ALTER TABLE pet
+    ADD COLUMN picture BYTEA,
+    ADD COLUMN picture_media_type VARCHAR(50);
+</code></pre>
+</div>
+
+<h2>Comandos Principales de Flyway</h2>
+
+<p>Tanto a través de su integración con Spring Boot como mediante el plugin de Maven (<code>mvn flyway:&lt;comando&gt;</code>) o Gradle (<code>gradle flyway&lt;Comando&gt;</code>), Flyway dispone de 6 operaciones fundamentales:</p>
+
+<ul>
+	<li><b><code>migrate</code>:</b> Escanea el classpath, valida las migraciones previas y aplica en orden todas las migraciones pendientes hasta dejar el esquema en la última versión. Es el comando que Spring Boot ejecuta automáticamente al arrancar.</li>
+	<li><b><code>info</code>:</b> Muestra una tabla detallada con el estado actual de todas las migraciones (cuáles ya están aplicadas, en qué fecha se instalaron y cuáles están pendientes de ejecución).</li>
+	<li><b><code>validate</code>:</b> Comprueba que los archivos de migración presentes en el proyecto coinciden exactamente en nombre y <i>checksum</i> con los registrados en la tabla <code>flyway_schema_history</code> de la base de datos.</li>
+	<li><b><code>baseline</code>:</b> Inicializa la tabla <code>flyway_schema_history</code> en una base de datos que ya contenía tablas antes de incorporar Flyway al proyecto, marcando el estado actual como versión base para no intentar recrear tablas existentes.</li>
+	<li><b><code>repair</code>:</b> Corrige problemas en la tabla <code>flyway_schema_history</code>, eliminando entradas de migraciones fallidas (en bases de datos sin transacciones DDL como MySQL) y realineando los <i>checksums</i> de las migraciones aplicadas con los archivos actuales del disco.</li>
+	<li><b><code>clean</code>:</b> Elimina <b>todos los objetos</b> (tablas, vistas, secuencias, procedimientos) del esquema configurado dejándolo completamente vacío. Es útil en entornos de test locales, pero nunca debe habilitarse en producción.</li>
+</ul>
+
+<h2>Migraciones Basadas en Java (<code>BaseJavaMigration</code>)</h2>
+
+<p>En ocasiones una migración no puede resolverse únicamente con SQL estático porque requiere leer datos, procesarlos con lógica de negocio en Java, cifrar valores o transformar blobs antes de volver a guardarlos. Para estos casos, Flyway proporciona la clase abstracta <b><code>BaseJavaMigration</code></b> en el paquete <code>org.flywaydb.core.api.migration.BaseJavaMigration</code>.</p>
+
+<p>Basta con crear una clase dentro del paquete Java <code>db.migration</code> siguiendo la misma nomenclatura (por ejemplo, <code>V4__EncryptPetNotes.java</code>) e implementar el método <code>migrate(Context context)</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package db.migration;
+
+import java.sql.PreparedStatement;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+
+public class V4__NormalizePetNames extends BaseJavaMigration 
+{
+	@Override
+	public void migrate(Context context) throws Exception 
+	{
+		try (PreparedStatement statement = context.getConnection().prepareStatement(
+				"UPDATE pet SET name = INITCAP(TRIM(name)) WHERE name IS NOT NULL")) 
+		{
+			statement.executeUpdate();
+		}
+	}
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar cada tipo de migración y comando y cuándo NO usarlos?</h2>
+
+<ul>
+	<li><b>Migración <code>V</code>:</b> Para cualquier cambio de esquema o dato que debe ejecutarse una sola vez. <b>No</b> editarla tras aplicarla.</li>
+	<li><b>Migración <code>R</code>:</b> Para vistas, funciones o procedimientos que se redefinen con <code>CREATE OR REPLACE</code>. <b>No</b> usarla para <code>CREATE TABLE</code> ni <code>ALTER TABLE</code>.</li>
+	<li><b>Migración Java (<code>BaseJavaMigration</code>):</b> Cuando hace falta lógica que SQL no cubre bien. <b>No</b> usarla si un <code>UPDATE</code> en SQL lo resuelve.</li>
+	<li><b><code>baseline</code>:</b> Al incorporar Flyway a una base de datos que ya tenía tablas.</li>
+	<li><b><code>repair</code>:</b> Para corregir el historial tras un fallo o un cambio legítimo de checksum.</li>
+	<li><b><code>clean</code>:</b> Solo en entornos locales o de test. <b>Nunca</b> en producción.</li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo: Evolución de Scripts en Flyway</h2>
+
+<h3>Contraejemplo (Mala práctica): Editar un archivo <code>V1__...sql</code> que ya ha sido ejecutado</h3>
+<p>Una regla de oro en Flyway es que <b>una migración versionada (<code>V</code>) ya aplicada en base de datos jamás se debe editar</b>. Si un desarrollador abre el archivo <code>V1__create_pet_table.sql</code> que se ejecutó la semana pasada y le añade una columna nueva, el <i>checksum</i> CRC32 del archivo cambiará. Al arrancar el microservicio, Flyway detectará que el checksum del archivo en disco no coincide con el guardado en <code>flyway_schema_history</code> y abortará el arranque con una excepción <code>FlywayValidateException: Migration checksum mismatch</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-sql">
+-- CONTRAEJEMPLO (INCORRECTO): Modificar V1__create_pet_table.sql después de que ya se ejecutó en BD
+-- Provoca el error: Validate failed: Migration checksum mismatch for migration version 1
+CREATE TABLE pet (
+    id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age SMALLINT NOT NULL,
+    birth_date DATE NOT NULL,
+    microchip_code VARCHAR(50) -- ¡Error! Nunca añadir columnas editando un script ya ejecutado
+);
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Crear un nuevo script incremental <code>V4__...sql</code></h3>
+<p>Para añadir, modificar o eliminar cualquier columna o restricción de una tabla existente, el archivo <code>V1__create_pet_table.sql</code> se deja intacto y se crea un archivo nuevo con el siguiente número de versión disponible:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-sql">
+-- EJEMPLO (CORRECTO): Nuevo archivo V4__add_microchip_code_to_pet.sql
+ALTER TABLE pet
+    ADD COLUMN microchip_code VARCHAR(50) UNIQUE;
+</code></pre>
+</div>

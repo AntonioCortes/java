@@ -1,9 +1,141 @@
-<h1 class="title">Introducción</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">¿Qué es Apache Maven y Para Qué Sirve?</h1>
 
-<p>
-    Maven es una herramienta de software para la gestión y construcción de proyectos Java. Tiene un modelo de configuración de construcción más simple, basado en un formato XML.
-    Maven utiliza un Project Object Model (POM) para describir el proyecto de software a construir, sus dependencias de otros módulos y componentes externos, y el orden de construcción de los elementos. Viene con objetivos predefinidos para realizar ciertas tareas claramente definidas, como la compilación del código y su empaquetado.
-</p>
+<p><strong>Apache Maven</strong> es una herramienta líder y el estándar histórico de la industria para la <strong>gestión y automatización de proyectos de software en Java</strong> (conocida como <em>Build Tool</em>). Su filosofía central se basa en el principio de <strong>Convención sobre Configuración (Convention over Configuration)</strong>: Maven impone una estructura de carpetas estándar y un ciclo de vida predefinido, de manera que cualquier desarrollador Java que abra un proyecto Maven puede compilarlo, testearlo y empaquetarlo inmediatamente con comandos universales como <code>mvn clean install</code>.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: La Fábrica Automatizada con Almacén Central</h2>
+<p>Imagina una cadena de montaje de automóviles:</p>
+<ul>
+    <li><strong>Sin Maven (A mano):</strong> Cada operario tendría que viajar por el mundo buscando fabricantes de tornillos, parabrisas y motores (archivos <code>.jar</code>), medir a mano que los tornillos encajen con las tuercas (evitar conflictos de versiones) y ensamblar el coche según sus propias reglas inventadas. Cada fábrica construiría el coche de una forma distinta.</li>
+    <li><strong>Con Maven (Estandarizado):</strong> Toda la fábrica sigue un único plano de especificaciones en papel (el archivo <code>pom.xml</code>). La cinta transportadora conoce de memoria las fases obligatorias: comprobar piezas (<code>validate</code>), ensamblar chasis (<code>compile</code>), pasar test de colisión (<code>test</code>) y embalar el vehículo (<code>package</code>). Si falta una pieza, un dron acude automáticamente al almacén central mundial (<em>Maven Central</em>) y la descarga al almacén local del taller (<code>~/.m2/repository</code>).</li>
+</ul>
+
+<h2 class="subtitle">Arquitectura y Componentes Clave de Maven</h2>
+<p>Maven se compone de un archivo declarativo central (POM), un motor de ciclo de vida en memoria, dos niveles de repositorios y un catálogo modular de plugins:</p>
+
+<img class="center-horizontal" src="components/maven/introduccion/assets/img/maven-arquitectura.svg">
+<span class="center-horizontal caption">Figura 1: Arquitectura global de Maven y flujo entre repositorios, plugins y target/</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Componente</th>
+            <th scope="col">Estereotipo / Tipo</th>
+            <th scope="col">Responsabilidad en el Sistema</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">pom.xml</th>
+            <td>«archivo declarativo»</td>
+            <td>Define las coordenadas GAV del proyecto, las librerías necesarias y la configuración de plugins.</td>
+        </tr>
+        <tr>
+            <th scope="row">Maven Core Engine</th>
+            <td>«motor de construcción»</td>
+            <td>Calcula el POM Efectivo, resuelve las fases del ciclo de vida y orquesta la llamada a los plugins.</td>
+        </tr>
+        <tr>
+            <th scope="row">~/.m2/repository</th>
+            <td>«caché local en disco»</td>
+            <td>Almacén local en el disco duro del usuario. Guarda las librerías descargadas para no volver a pedirlas por internet.</td>
+        </tr>
+        <tr>
+            <th scope="row">Maven Central / Nexus</th>
+            <td>«servidor remoto»</td>
+            <td>Repositorio público o privado corporativo desde el que Maven descarga artefactos y dependencias.</td>
+        </tr>
+        <tr>
+            <th scope="row">Plugins de Maven</th>
+            <td>«ejecutores de tareas»</td>
+            <td>Clases Java (Mojos) que ejecutan el trabajo físico real: compilar (javac), ejecutar pruebas (Surefire) o empaquetar (JAR).</td>
+        </tr>
+        <tr>
+            <th scope="row">Carpeta target/</th>
+            <td>«artefacto generado»</td>
+            <td>Directorio temporal donde Maven deposita los archivos <code>.class</code> compilados y el paquete ejecutable final.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes de la arquitectura de Apache Maven</span>
+
+<h2 class="subtitle">Las Coordenadas GAV: La Identidad de Todo en Maven</h2>
+<p>En Maven, tanto tu propio proyecto como cualquier librería del mundo se identifican de manera inequívoca mediante las coordenadas <strong>GAV</strong>:</p>
+<ul>
+    <li><strong>GroupId (<code>&lt;groupId&gt;</code>):</strong> Identifica a la organización, empresa o dominio inverso creador (ej. <code>org.springframework.boot</code>, <code>com.google.guava</code>).</li>
+    <li><strong>ArtifactId (<code>&lt;artifactId&gt;</code>):</strong> El nombre específico de la librería o microservicio (ej. <code>spring-boot-starter-web</code>, <code>guava</code>).</li>
+    <li><strong>Version (<code>&lt;version&gt;</code>):</strong> El número de release concreto (ej. <code>3.3.4</code>). Si termina en <code>-SNAPSHOT</code>, indica una versión en desarrollo activa que cambia con frecuencia.</li>
+</ul>
+
+<h2 class="subtitle">¿Cuándo Usar Maven y Cuándo NO Usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Cuándo SÍ Usar Maven</th>
+            <th scope="col">Cuándo NO Usar Maven (Preferir Gradle)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Estabilidad y Gobernanza</th>
+            <td><b>Excelente:</b> Formato XML puramente declarativo y rígido. Evita que los desarrolladores metan lógica condicional o código imperativo inseguro en los builds.</td>
+            <td>Si necesitas construir flujos de compilación altamente personalizados o scripts dinámicos complejos.</td>
+        </tr>
+        <tr>
+            <th scope="row">Proyectos Grandes Multi-módulo</th>
+            <td><b>Muy bueno:</b> Muy claro y probado en proyectos corporativos clásicos de banca y seguros con Nexus/Artifactory.</td>
+            <td>Si el tiempo de compilación es crítico: Gradle es entre 2x y 10x más rápido gracias a su compilación incremental avanzada y su daemon residente.</td>
+        </tr>
+        <tr>
+            <th scope="row">Desarrollo Móvil (Android)</th>
+            <td><b>NO recomendado:</b> No es el estándar del ecosistema Android.</td>
+            <td><b>Obligatorio:</b> Google ha diseñado el sistema oficial de Android exclusivamente sobre Gradle.</td>
+        </tr>
+        <tr>
+            <th scope="row">Curva de Aprendizaje</th>
+            <td><b>Muy baja:</b> La estructura estándar es idéntica en todos los proyectos del planeta. Fácil de entender para juniors.</td>
+            <td>Cuando el equipo ya domina Kotlin DSL o Groovy y busca scripts más concisos y compactos.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios de selección para Apache Maven</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en el Uso de Maven</h2>
+
+<h3>Ejemplo (Buena Práctica): Compilación y empaquetado estándar reproducible</h3>
+<p>Ejecutar Maven respetando sus fases predefinidas garantiza que el código sea validado, compilado y testeado antes de generar el paquete final:</p>
 <div class="center-horizontal">
-    <img src=".\components\maven\introduccion\assets\maven_intro.png">
+<pre><code class="language-bash">
+# Limpia target/ y ejecuta todo el ciclo hasta instalar en la caché local
+mvn clean install
+
+# Salida esperada en consola:
+[INFO] Scanning for projects...
+[INFO] Building pet-service 1.0.0
+[INFO] --- maven-clean-plugin:3.2.0:clean (default-clean) ---
+[INFO] --- maven-resources-plugin:3.3.1:resources (default-resources) ---
+[INFO] --- maven-compiler-plugin:3.13.0:compile (default-compile) ---
+[INFO] Compiling 12 source files to /home/dev/pet-service/target/classes
+[INFO] --- maven-surefire-plugin:3.2.5:test (default-test) ---
+[INFO] Running com.petshop.PetServiceTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] --- maven-jar-plugin:3.4.1:jar (default-jar) ---
+[INFO] Building jar: /home/dev/pet-service/target/pet-service-1.0.0.jar
+[INFO] BUILD SUCCESS
+</code></pre>
 </div>
+<span class="center-horizontal caption">Salida estándar de compilación limpia y ejecución de pruebas en Maven</span>
+
+<h3>Contraejemplo (Mala Práctica): Saltarse las pruebas en producción con -DskipTests</h3>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# ¡GRAVE RIESGO EN CI/CD!
+mvn clean package -DskipTests
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Desplegar paquetes a producción saltándose la verificación de calidad por prisas</span>

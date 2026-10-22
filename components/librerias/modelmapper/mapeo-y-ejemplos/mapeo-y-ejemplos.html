@@ -1,0 +1,214 @@
+<h1 class="title">Mapeo de Objetos y Personalización en ModelMapper</h1>
+
+<p>Una vez configurado el objeto <code>ModelMapper</code>, la librería ofrece distintas sobrecargas del método <code>map()</code> así como herramientas avanzadas (<code>TypeMap</code>, <code>PropertyMap</code>, <code>Converter</code> y <code>Condition</code>) para adaptar la conversión de datos a cualquier necesidad del negocio.</p>
+
+<h2>Métodos Principales de Mapeo</h2>
+
+<h3>1. Mapear creando una nueva instancia (<code>map(Object source, Class&lt;D&gt; destinationType)</code>)</h3>
+
+<p>Es el método más utilizado. Recibe el objeto de origen y la clase del objeto de destino (que debe disponer de un constructor sin argumentos accesible), instancia automáticamente un nuevo objeto de la clase destino y copia en él todas las propiedades coincidentes.</p>
+
+<p>Se utiliza habitualmente en los métodos <b>GET</b> (para transformar la entidad <code>Pet</code> recuperada de base de datos en un <code>PetDTO</code> antes de devolver la respuesta HTTP) y en los métodos <b>POST</b> (para convertir el <code>PetDTO</code> recibido en el body de la petición en una nueva entidad <code>Pet</code> lista para guardarse):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// 1. De Entidad (Pet) a DTO (PetDTO) en una petición GET
+Optional&lt;Pet&gt; petOpt = petService.findById(pId);
+if (petOpt.isPresent()) 
+{
+	PetDTO petDTO = mapper.map(petOpt.get(), PetDTO.class);
+	return new ResponseEntity&lt;&gt;(petDTO, HttpStatus.OK);
+}
+
+// 2. De DTO (PetDTO) a Entidad (Pet) en una petición POST
+Pet newPet = mapper.map(pPetDTO, Pet.class);
+newPet = petService.save(newPet);
+</code></pre>
+</div>
+
+<h3>2. Mapear sobre una instancia ya existente (<code>map(Object source, Object destination)</code>)</h3>
+
+<p>En lugar de recibir una clase y crear un objeto nuevo, esta sobrecarga recibe <b>una instancia de destino que ya existe en memoria</b> y vuelca sobre ella los atributos del objeto de origen.</p>
+
+<p>Combinado con el bean <code>patchMapper</code> (que tiene activado <code>setSkipNullEnabled(true)</code>), este método es la pieza clave para implementar el endpoint <b>PATCH</b>: primero se recupera la mascota existente de la base de datos (con su ID, nombre, edad y fecha de nacimiento actuales), y luego se vuelcan sobre ella únicamente los campos no nulos enviados en el <code>PetPatchDTO</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@PatchMapping("/{id}")
+public ResponseEntity&lt;HttpStatus&gt; patch(
+		@PathVariable(value = "id") final Integer pId,
+		@Valid @RequestBody final PetPatchDTO pPetPatchDTO) 
+{
+	Optional&lt;Pet&gt; petOpt = petService.findById(pId);
+	if (petOpt.isEmpty()) 
+	{
+		return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);
+	}
+
+	Pet existingPet = petOpt.get();
+	
+	// Copia sobre existingPet solo los atributos de pPetPatchDTO que NO sean null
+	patchMapper.map(pPetPatchDTO, existingPet);
+
+	// Guarda la entidad actualizada conservando el resto de sus datos originales
+	petService.save(existingPet);
+
+	return new ResponseEntity&lt;&gt;(HttpStatus.NO_CONTENT);
+}
+</code></pre>
+</div>
+
+<h3>3. Mapeo de Colecciones y Listas</h3>
+
+<p>En Java, debido al borrado de tipos genéricos en tiempo de ejecución (<i>Type Erasure</i>), no se puede hacer directamente <code>mapper.map(petList, List&lt;PetDTO&gt;.class)</code>. Existen dos formas recomendadas de mapear una lista de entidades a una lista de DTOs:</p>
+
+<h4>Opción A: Usando el API Stream de Java 8+ (Recomendada)</h4>
+<p>Es la forma más clara, legible y utilizada en los controladores de Spring Boot. Se recorre el <code>Stream</code> de la lista de entidades aplicando <code>mapper.map()</code> a cada elemento individual:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+List&lt;Pet&gt; petList = petService.findByAge(pAge);
+
+List&lt;PetDTO&gt; petDTOList = petList.stream()
+		.map(pet -&gt; mapper.map(pet, PetDTO.class))
+		.collect(Collectors.toList());
+
+return new ResponseEntity&lt;&gt;(petDTOList, HttpStatus.OK);
+</code></pre>
+</div>
+
+<h4>Opción B: Usando la clase <code>TypeToken</code> de ModelMapper</h4>
+<p>ModelMapper incluye la clase <code>TypeToken</code> (en el paquete <code>org.modelmapper.TypeToken</code>) que captura el tipo genérico mediante una clase anónima para pasárselo al método <code>map()</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import java.lang.reflect.Type;
+import org.modelmapper.TypeToken;
+
+List&lt;Pet&gt; petList = petService.findByAge(pAge);
+
+Type listType = new TypeToken&lt;List&lt;PetDTO&gt;&gt;() {}.getType();
+List&lt;PetDTO&gt; petDTOList = mapper.map(petList, listType);
+</code></pre>
+</div>
+
+<h2>Personalización Avanzada del Mapeo</h2>
+
+<p>Cuando los nombres de los atributos entre la entidad y el DTO son completamente diferentes, cuando se quiere ignorar un campo concreto, o cuando hace falta transformar el tipo de dato (por ejemplo, convertir un <code>byte[]</code> a Base64 o calcular un valor), ModelMapper proporciona las siguientes herramientas:</p>
+
+<ul>
+	<li><b>TypeMap:</b> Interfaz ubicada en el paquete <code>org.modelmapper.TypeMap</code>. Representa la relación de mapeo específica entre un tipo de origen <code>&lt;S&gt;</code> y un tipo de destino <code>&lt;D&gt;</code>. Se crea u obtiene llamando a <code>mapper.createTypeMap(Origen.class, Destino.class)</code> o <code>mapper.typeMap(Origen.class, Destino.class)</code> y permite añadir reglas mediante expresiones lambda con <code>addMappings()</code>:
+		<ul>
+			<li><b><code>mapper.map(getterOrigen, setterDestino)</code>:</b> Vincula explícitamente un campo de origen con uno de destino aunque se llamen distinto.</li>
+			<li><b><code>mapper.skip(setterDestino)</code>:</b> Indica que un atributo concreto de la clase destino nunca debe ser modificado durante el mapeo (por ejemplo, ignorar el campo <code>id</code> o una contraseña).</li>
+		</ul>
+	</li>
+
+	<li><b>PropertyMap:</b> Clase abstracta ubicada en el paquete <code>org.modelmapper.PropertyMap</code>. Permite definir un conjunto de reglas de mapeo dentro de su método <code>configure()</code> utilizando los objetos protegidos <code>source</code> y <code>destination</code>, y registrarlo en el mapeador mediante <code>mapper.addMappings(new PropertyMap&lt;S, D&gt;() { ... })</code>.</li>
+
+	<li><b>Converter y AbstractConverter:</b> Ubicados en el paquete <code>org.modelmapper.Converter</code> y <code>org.modelmapper.AbstractConverter</code>. Permiten programar lógica de transformación a medida entre un tipo de dato <code>S</code> y un tipo de dato <code>D</code> (por ejemplo, convertir una imagen <code>byte[]</code> a un <code>String</code> codificado en Base64 o transformar una fecha).</li>
+
+	<li><b>Condition y Conditions:</b> Ubicados en el paquete <code>org.modelmapper.Condition</code> y <code>org.modelmapper.Conditions</code>. Permiten establecer una condición booleana que debe cumplirse sobre el contexto de mapeo (<code>MappingContext</code>) para que el atributo se copie (por ejemplo, <code>Conditions.isNotNull()</code> o comprobar que un String no esté vacío).</li>
+</ul>
+
+<h3>Ejemplo completo de personalización con <code>TypeMap</code>, <code>Converter</code> y <code>skip</code></h3>
+
+<p>En el siguiente ejemplo se configura un <code>TypeMap</code> entre la entidad <code>Pet</code> y un DTO de resumen <code>PetSummaryDTO</code> donde:</p>
+<ul>
+	<li>El atributo <code>name</code> de <code>Pet</code> se mapea al atributo <code>petFullName</code> del DTO (que tiene un nombre distinto).</li>
+	<li>El atributo <code>internalCode</code> del destino se ignora explícitamente con <code>skip()</code>.</li>
+	<li>El array de bytes <code>picture</code> de la mascota se transforma automáticamente a un texto en Base64 mediante un <code>Converter</code> personalizado.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import java.util.Base64;
+import org.modelmapper.Converter;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeMap;
+
+// 1. Definición de un Converter personalizado de byte[] a String Base64
+Converter&lt;byte[], String&gt; bytesToBase64Converter = context -&gt; {
+	if (context.getSource() == null) 
+	{
+		return null;
+	}
+	return Base64.getEncoder().encodeToString(context.getSource());
+};
+
+// 2. Creación del TypeMap entre Pet y PetSummaryDTO
+TypeMap&lt;Pet, PetSummaryDTO&gt; typeMap = mapper.createTypeMap(Pet.class, PetSummaryDTO.class);
+
+// 3. Registro de reglas personalizadas mediante expresiones lambda
+typeMap.addMappings(mapping -&gt; {
+	// Mapear campos con nombres distintos
+	mapping.map(Pet::getName, PetSummaryDTO::setPetFullName);
+
+	// Ignorar un campo concreto en el destino
+	mapping.skip(PetSummaryDTO::setInternalCode);
+
+	// Aplicar el conversor personalizado al campo picture
+	mapping.using(bytesToBase64Converter)
+			.map(Pet::getPicture, PetSummaryDTO::setPictureBase64);
+});
+
+// 4. Validación opcional para comprobar que ningún campo del destino quedó sin mapear por error
+mapper.validate();
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar cada herramienta de personalización y cuándo NO usarla?</h2>
+
+<ul>
+	<li><b>Mapeo automático (<code>map()</code> sin configuración):</b> Cuando los atributos de ambas clases se llaman igual. <b>No</b> usarlo si los nombres difieren: o queda sin mapear o se mapea mal.</li>
+	<li><b><code>TypeMap</code> / <code>PropertyMap</code>:</b> Cuando hay nombres distintos o campos que ignorar. <b>No</b> usarlos para una conversión que solo ocurre una vez: un método manual es más claro.</li>
+	<li><b><code>Converter</code>:</b> Cuando hay que transformar el tipo (<code>byte[]</code> a Base64, fechas). <b>No</b> meter lógica de negocio dentro del conversor.</li>
+	<li><b><code>TypeToken</code> o <code>Stream</code>:</b> Para listas. Se prefiere <code>Stream</code> por legibilidad; <code>TypeToken</code> solo si se quiere una única llamada.</li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo: Actualizaciones parciales (HTTP PATCH)</h2>
+
+<h3>Contraejemplo (Mala práctica): Usar el mapper estándar o crear una instancia nueva en un PATCH</h3>
+<p>En una petición <code>PATCH /petshop/pet/15</code>, el cliente envía un JSON únicamente con el campo que desea cambiar (por ejemplo, <code>{"age": 5}</code>), por lo que en el objeto recibido <code>PetPatchDTO</code> el resto de atributos (<code>name</code>, <code>birthDate</code>, <code>picture</code>) valdrán <b><code>null</code></b>. Si usamos el <code>mapper</code> normal (que tiene <code>skipNullEnabled = false</code>), ModelMapper copiará esos valores <code>null</code> encima de la entidad <code>Pet</code> y <b>borrará el nombre y la foto que la mascota ya tenía en la base de datos</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Como skipNullEnabled es false en el mapper normal,
+// los campos no enviados en el JSON (que vienen a null en pPetPatchDTO) machacarán con null los datos en BD
+@PatchMapping("/{id}")
+public ResponseEntity&lt;HttpStatus&gt; patchBad(
+		@PathVariable("id") final Integer pId,
+		@RequestBody final PetPatchDTO pPetPatchDTO) 
+{
+	Pet pet = petService.findById(pId).orElseThrow();
+
+	// ¡Error grave! Si pPetPatchDTO.getName() es null, pet.getName() pasará a ser null
+	mapper.map(pPetPatchDTO, pet);
+	petService.save(pet);
+
+	return new ResponseEntity&lt;&gt;(HttpStatus.NO_CONTENT);
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Usar <code>patchMapper</code> con <code>setSkipNullEnabled(true)</code> sobre la entidad recuperada</h3>
+<p>Al utilizar el bean <code>patchMapper</code> (configurado con <code>setSkipNullEnabled(true)</code> y <code>MatchingStrategies.STRICT</code>) pasando como segundo argumento la instancia <code>pet</code> recuperada de base de datos, solo se modifican los campos que el usuario envió en el JSON y el resto conserva su valor original:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): patchMapper ignora los campos null de pPetPatchDTO y conserva los datos previos de pet
+@PatchMapping("/{id}")
+public ResponseEntity&lt;HttpStatus&gt; patchGood(
+		@PathVariable("id") final Integer pId,
+		@Valid @RequestBody final PetPatchDTO pPetPatchDTO) 
+{
+	Pet pet = petService.findById(pId).orElseThrow();
+
+	// Solo actualiza los campos que NO son null en pPetPatchDTO
+	patchMapper.map(pPetPatchDTO, pet);
+	petService.save(pet);
+
+	return new ResponseEntity&lt;&gt;(HttpStatus.NO_CONTENT);
+}
+</code></pre>
+</div>

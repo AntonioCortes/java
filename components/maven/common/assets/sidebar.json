@@ -15,7 +15,7 @@
             "contentId": "main",
             "content": [
                 {
-                    "text": "The Build LifeCycle",
+                    "text": "Ciclo de Vida del Build",
                     "content": "component-maven-lifecycle"
                 },
                 {
@@ -23,7 +23,7 @@
                     "content": "component-maven-plugins"
                 },
                 {
-                    "text": "Estructura de archivos",
+                    "text": "Estructura de Archivos",
                     "content": "component-maven-structure"
                 },
                 {
@@ -31,15 +31,15 @@
                     "content": "component-maven-arquetypes"
                 },
                 {
-                    "text": "POM",
+                    "text": "El Archivo POM",
                     "content": "component-maven-pom"
                 },
                 {
-                    "text": "Dependency Mechanisim",
+                    "text": "Mecanismo de Dependencias",
                     "content": "component-maven-dependency"
                 },
                 {
-                    "text": "Ejemplos",
+                    "text": "Ejemplos Reales de POM",
                     "content": "component-maven-examples"
                 }
             ]
@@ -47,11 +47,11 @@
     ],
     "links": [
         {
-            "text": "Página Oficial",
+            "text": "Página Oficial de Maven",
             "href": "https://maven.apache.org/"
         },
         {
-            "text": "Maven central repository",
+            "text": "Buscador Maven Central",
             "href": "https://search.maven.org/"
         }
     ]

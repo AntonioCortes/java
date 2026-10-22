@@ -1,0 +1,293 @@
+<h1 class="title">ModelMapper - Introducción y Configuración</h1>
+
+<p><b>ModelMapper</b> es una librería de Java que automatiza el mapeo (conversión) de objetos entre distintas capas de una aplicación, especialmente entre las <b>Entidades de persistencia (JPA / Hibernate)</b> y los <b>DTOs (Data Transfer Objects)</b> que se exponen en los controladores REST.</p>
+
+<p>En una arquitectura limpia por capas, nunca se debe devolver directamente una entidad de base de datos (como <code>Pet</code>) en un endpoint REST ni recibirla directamente desde el cliente. Sin embargo, copiar manualmente cada atributo mediante llamadas repetitivas a <code>dto.setName(entity.getName())</code> genera código difícil de mantener y propenso a errores cuando se añaden nuevos campos. <b>ModelMapper</b> soluciona esto analizando automáticamente ambos objetos mediante reflexión y convenciones de nombres para transferir los valores de un objeto a otro en una sola línea.</p>
+
+<h2>Dependencias necesarias</h2>
+
+<p>Para utilizar ModelMapper es necesario añadir el artefacto <code>modelmapper</code> del grupo <code>org.modelmapper</code> en el archivo de construcción del proyecto.</p>
+
+<p>En <b>Maven (<code>pom.xml</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+	&lt;groupId&gt;org.modelmapper&lt;/groupId&gt;
+	&lt;artifactId&gt;modelmapper&lt;/artifactId&gt;
+	&lt;version&gt;3.1.1&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<p>En <b>Gradle (<code>build.gradle</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+	implementation 'org.modelmapper:modelmapper:3.1.1'
+}
+</code></pre>
+</div>
+
+<h2>Diagrama de clases y participantes</h2>
+
+<img class="center-horizontal" src="components/librerias/modelmapper/introduccion/assets/img/modelmapper-clases.svg">
+<span class="center-horizontal caption">Figura 1: Diagrama de clases del uso de ModelMapper en el dominio de la tienda de mascotas</span>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Elemento</th>
+			<th scope="col">Tipo</th>
+			<th scope="col">Responsabilidad</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><code>MapperConfig</code></td>
+			<td>Clase (<code>@Configuration</code>)</td>
+			<td>Crea los beans <code>modelMapper</code> y <code>patchModelMapper</code> con su configuración.</td>
+		</tr>
+		<tr>
+			<td><code>ModelMapper</code></td>
+			<td>Clase de la librería</td>
+			<td>Motor que copia atributos de un objeto a otro según la estrategia de coincidencia configurada.</td>
+		</tr>
+		<tr>
+			<td><code>PetController</code></td>
+			<td>Clase (controlador)</td>
+			<td>Inyecta ambos mappers con <code>@Qualifier</code> y los usa en los endpoints.</td>
+		</tr>
+		<tr>
+			<td><code>Pet</code></td>
+			<td>Clase (entidad JPA)</td>
+			<td>Modelo de persistencia; nunca se expone directamente en la API.</td>
+		</tr>
+		<tr>
+			<td><code>PetDTO</code></td>
+			<td>Clase (DTO)</td>
+			<td>Objeto de transferencia completo para <code>GET</code> y <code>POST</code>.</td>
+		</tr>
+		<tr>
+			<td><code>PetPatchDTO</code></td>
+			<td>Clase (DTO)</td>
+			<td>Objeto con campos opcionales para actualizaciones parciales (<code>PATCH</code>).</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del diagrama de ModelMapper</span>
+
+<h2>Clases e Interfaces Principales de Configuración</h2>
+
+<ul>
+	<li><b>ModelMapper:</b> Clase principal de la librería, ubicada en el paquete <code>org.modelmapper.ModelMapper</code>. Es el motor central encargado de ejecutar las conversiones mediante su método <code>map()</code> y almacenar las reglas de configuración y mapas de tipos (<code>TypeMap</code>). Es <i>thread-safe</i> una vez configurado, por lo que en Spring Boot se declara como un <b>Singleton Bean</b>.</li>
+
+	<li><b>Configuration:</b> Interfaz ubicada en el paquete <code>org.modelmapper.config.Configuration</code> (accesible mediante <code>modelMapper.getConfiguration()</code>). Permite personalizar el comportamiento global del mapeador: cómo empareja nombres de campos, si debe ignorar valores nulos, o si debe acceder por métodos getter/setter o directamente a los atributos privados.
+		<p>Sus métodos de configuración más importantes son:</p>
+		<ul>
+			<li><b><code>setMatchingStrategy(MatchingStrategy)</code>:</b> Define la estrategia de emparejamiento de nombres entre los atributos de origen y destino (por defecto usa <code>MatchingStrategies.STANDARD</code>).</li>
+			<li><b><code>setSkipNullEnabled(boolean)</code>:</b> Por defecto es <code>false</code>. Si se establece a <code>true</code>, cuando un atributo en el objeto de origen vale <code>null</code>, ModelMapper lo ignora y <b>no sobrescribe</b> el valor que ya tuviera ese atributo en el objeto de destino. Esta opción es imprescindible para implementar actualizaciones parciales (método HTTP <b>PATCH</b>).</li>
+			<li><b><code>setFieldMatchingEnabled(boolean)</code>:</b> Por defecto es <code>false</code> (solo usa getters y setters). Si se activa a <code>true</code>, permite a ModelMapper comparar y copiar campos directamente aunque no tengan getters o setters.</li>
+			<li><b><code>setFieldAccessLevel(AccessLevel)</code>:</b> Ubicado en <code>org.modelmapper.config.Configuration.AccessLevel</code>. Define el nivel de visibilidad de los atributos o métodos a los que puede acceder ModelMapper:
+				<ul>
+					<li><b><code>PUBLIC</code>:</b> Solo accede a miembros públicos (valor por defecto).</li>
+					<li><b><code>PROTECTED</code>:</b> Accede a miembros públicos y protegidos.</li>
+					<li><b><code>PACKAGE_PRIVATE</code>:</b> Incluye miembros con visibilidad de paquete.</li>
+					<li><b><code>PRIVATE</code>:</b> Permite acceder directamente a atributos <code>private</code> mediante reflexión.</li>
+				</ul>
+			</li>
+			<li><b><code>setAmbiguityIgnored(boolean)</code>:</b> Por defecto es <code>false</code>. Si dos propiedades de origen podrían coincidir con el mismo atributo de destino, ModelMapper lanza una excepción de validación; al ponerlo a <code>true</code>, ignora las propiedades ambiguas.</li>
+		</ul>
+	</li>
+
+	<li><b>MatchingStrategies:</b> Clase de utilidades ubicada en el paquete <code>org.modelmapper.convention.MatchingStrategies</code> que define las tres estrategias de coincidencia de nombres:
+		<ul>
+			<li><b><code>MatchingStrategies.STANDARD</code>:</b> Es la estrategia por defecto. Divide los nombres de los atributos en tokens (palabras) y permite que coincidan en cualquier orden, siempre que todos los tokens de destino tengan correspondencia y al menos un nombre de propiedad coincida. Es ideal para la mayoría de conversiones entre Entidades y DTOs.</li>
+			<li><b><code>MatchingStrategies.LOOSE</code>:</b> Estrategia laxa. Solo exige que coincida el último token de la jerarquía de nombres. Es muy útil para aplanar objetos complejos con varios niveles de anidación hacia un DTO plano (por ejemplo, mapear automáticamente <code>order.getCustomer().getAddress().getCity()</code> a <code>orderDTO.setCity()</code>), pero puede provocar mapeos accidentales si existen varios campos con nombres parecidos.</li>
+			<li><b><code>MatchingStrategies.STRICT</code>:</b> Estrategia estricta. Exige que los tokens de origen y destino coincidan exactamente en nombre y en el mismo orden. Garantiza que jamás se produzca un mapeo inesperado o ambiguo, siendo la opción más segura cuando las clases comparten estructura idéntica.</li>
+		</ul>
+	</li>
+</ul>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Estrategia</th>
+			<th scope="col">Orden de Tokens</th>
+			<th scope="col">Todos los tokens origen deben coincidir</th>
+			<th scope="col">Todos los tokens destino deben coincidir</th>
+			<th scope="col">Caso de uso recomendado</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b><code>STRICT</code></b></td>
+			<td>Debe ser exacto</td>
+			<td>Sí</td>
+			<td>Sí</td>
+			<td>Mapeos críticos, actualizaciones parciales (<code>PATCH</code>) o clases con múltiples campos de nombres similares.</td>
+		</tr>
+		<tr>
+			<td><b><code>STANDARD</code></b></td>
+			<td>Cualquier orden</td>
+			<td>No (mínimo el nombre del atributo)</td>
+			<td>Sí</td>
+			<td>Comportamiento por defecto para mapear entre Entidades y DTOs convencionales.</td>
+		</tr>
+		<tr>
+			<td><b><code>LOOSE</code></b></td>
+			<td>Cualquier orden</td>
+			<td>No</td>
+			<td>No (solo el último token)</td>
+			<td>Aplanar jerarquías profundas de objetos anidados en un único DTO plano.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Comparativa de estrategias de emparejamiento en ModelMapper</span>
+
+<h2>Configuración en Spring Boot (<code>@Bean</code> y <code>@Qualifier</code>)</h2>
+
+<p>En una aplicación <b>Spring Boot</b>, la práctica recomendada es crear una clase anotada con <code>@Configuration</code> donde se expongan una o varias instancias de <code>ModelMapper</code> como <i>Spring Beans</i> para poder inyectarlas posteriormente con <code>@Autowired</code> en los controladores o servicios.</p>
+
+<p>Tal y como se observa en <code>PetController</code>, es muy habitual definir <b>dos Beans distintos de <code>ModelMapper</code></b> diferenciados por nombre:</p>
+<ol>
+	<li><b><code>modelMapper</code>:</b> Mapeador estándar para crear un <code>PetDTO</code> a partir de un <code>Pet</code> (en peticiones <code>GET</code>) o crear un nuevo <code>Pet</code> a partir de un <code>PetDTO</code> (en peticiones <code>POST</code> / <code>PUT</code>).</li>
+	<li><b><code>patchModelMapper</code>:</b> Mapeador configurado con <code>setSkipNullEnabled(true)</code> y estrategia <code>STRICT</code>. Se utiliza en peticiones <code>PATCH</code> para volcar los cambios de un <code>PetPatchDTO</code> sobre una entidad <code>Pet</code> recuperada de base de datos, modificando únicamente los campos enviados en el JSON y respetando los campos que venían a <code>null</code>.</li>
+</ol>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.petshop.config;
+
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+@Configuration
+public class MapperConfig 
+{
+	@Bean(name = "modelMapper")
+	@Primary
+	public ModelMapper modelMapper() 
+	{
+		ModelMapper mapper = new ModelMapper();
+		mapper.getConfiguration()
+				.setMatchingStrategy(MatchingStrategies.STANDARD);
+		return mapper;
+	}
+
+	@Bean(name = "patchModelMapper")
+	public ModelMapper patchModelMapper() 
+	{
+		ModelMapper patchMapper = new ModelMapper();
+		patchMapper.getConfiguration()
+				.setMatchingStrategy(MatchingStrategies.STRICT)
+				.setSkipNullEnabled(true);
+		return patchMapper;
+	}
+}
+</code></pre>
+</div>
+
+<p>Una vez registrados ambos beans en el contenedor de Spring, se pueden inyectar en <code>PetController</code> utilizando la anotación <code>@Qualifier</code> de Spring Framework (paquete <code>org.springframework.beans.factory.annotation.Qualifier</code>) para indicar cuál de los dos mapeadores se desea utilizar en cada atributo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@RestController
+@RequestMapping("/petshop/pet")
+public class PetController 
+{
+	@Autowired
+	private PetService petService;
+
+	@Autowired
+	@Qualifier("modelMapper")
+	private ModelMapper mapper;
+
+	@Autowired
+	@Qualifier("patchModelMapper")
+	private ModelMapper patchMapper;
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar ModelMapper y cuándo NO usarlo?</h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Escenario</th>
+			<th scope="col">¿Cuándo SÍ usarlo? (Recomendado)</th>
+			<th scope="col">¿Cuándo NO usarlo? (Desaconsejado / Alternativas)</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Microservicios CRUD y APIs REST</b></td>
+			<td>Cuando existen múltiples Entidades y DTOs con nombres de atributos equivalentes y se quiere ahorrar escribir decenas de métodos manuales de conversión, o para aplicar cambios parciales en endpoints <code>PATCH</code> con <code>setSkipNullEnabled(true)</code>.</td>
+			<td>Cuando una clase solo tiene 2 o 3 atributos simples o solo se mapea en un único punto del proyecto (un método <code>toDTO()</code> manual o un constructor es más explícito y rápido).</td>
+		</tr>
+		<tr>
+			<td><b>Rendimiento y Tiempo de Ejecución</b></td>
+			<td>En aplicaciones empresariales estándar donde la latencia dominante es la base de datos o la red HTTP, el coste de la reflexión de ModelMapper es despreciable.</td>
+			<td>En sistemas de <b>ultra baja latencia</b> o procesamientos por lotes (<i>batch</i>) que convierten millones de objetos por segundo en memoria: al usar reflexión en ejecución es más lento que <b>MapStruct</b> (que genera código Java en compilación).</td>
+		</tr>
+		<tr>
+			<td><b>Estrategia de Coincidencia</b></td>
+			<td>Usar <code>STANDARD</code> para mapeos generales y <code>STRICT</code> cuando hay campos con nombres parecidos o en actualizaciones parciales.</td>
+			<td><b>No usar <code>MatchingStrategies.LOOSE</code> por defecto</b> en el mapper global, ya que empareja cualquier atributo cuyo último token coincida (pudiendo mapear accidentalmente <code>owner.id</code> sobre <code>pet.id</code>).</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Cuándo utilizar ModelMapper y cuándo evitarlo</span>
+
+<h2>Ejemplo y Contraejemplo: Ciclo de vida del Bean y Estrategia de Mapeo</h2>
+
+<h3>Contraejemplo (Mala práctica): Instanciar <code>new ModelMapper()</code> en cada petición y usar estrategia <code>LOOSE</code></h3>
+<p>Crear un objeto <code>new ModelMapper()</code> dentro de un método del controlador obliga a la librería a volver a analizar por reflexión las clases en cada llamada HTTP, degradando gravemente el rendimiento y la memoria. Además, usar <code>MatchingStrategies.LOOSE</code> puede sobrescribir el ID o el nombre de la mascota con el del dueño si ambos objetos tienen un campo llamado <code>name</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Instanciar ModelMapper en cada llamada HTTP y usar LOOSE sin control
+@GetMapping("/{id}")
+public ResponseEntity&lt;PetDTO&gt; getBad(@PathVariable final Integer id) 
+{
+	// ¡Mala práctica! Costoso en CPU/memoria al no reutilizar el Singleton Bean de Spring
+	ModelMapper localMapper = new ModelMapper();
+	localMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+
+	Pet pet = petService.findById(id).orElseThrow();
+	// Con LOOSE, pet.getOwner().getName() puede terminar sobrescribiendo petDTO.setName()
+	PetDTO dto = localMapper.map(pet, PetDTO.class);
+	return ResponseEntity.ok(dto);
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Inyectar el Singleton Bean preconfigurado con <code>STANDARD</code> o <code>STRICT</code></h3>
+<p>Al inyectar el bean configurado en <code>MapperConfig</code>, todas las peticiones reutilizan la caché de tipos de una única instancia <i>thread-safe</i>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Reutilización del Singleton Bean inyectado por Spring
+@RestController
+@RequestMapping("/petshop/pet")
+public class PetController 
+{
+	@Autowired
+	@Qualifier("modelMapper")
+	private ModelMapper mapper;
+
+	@GetMapping("/{id}")
+	public ResponseEntity&lt;PetDTO&gt; getGood(@PathVariable final Integer id) 
+	{
+		Pet pet = petService.findById(id).orElseThrow();
+		PetDTO dto = mapper.map(pet, PetDTO.class);
+		return ResponseEntity.ok(dto);
+	}
+}
+</code></pre>
+</div>

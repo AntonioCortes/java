@@ -10,6 +10,44 @@
 <img class="center-horizontal" src="components/gradle/dependencias/assets/img/gradle-dependencias-diagram.png">
 <span class="center-horizontal caption">Figura 1: Mapa visual de las configuraciones de dependencias en Gradle y el formato de coordenadas GAV</span>
 
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento del Diagrama</th>
+            <th scope="col">Tipo de Configuración</th>
+            <th scope="col">Visibilidad en el Classpath</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Coordenadas GAV</th>
+            <td>Identificador Universal</td>
+            <td>Formato <code>'grupo:artefacto:versión'</code> que localiza unívocamente el binario en repositorios.</td>
+        </tr>
+        <tr>
+            <th scope="row">implementation</th>
+            <td>Classpath Compilación + Ejecución</td>
+            <td>Oculta la librería a los módulos que consumen este proyecto (aislamiento interno).</td>
+        </tr>
+        <tr>
+            <th scope="row">compileOnly</th>
+            <td>Classpath Compilación únicamente</td>
+            <td>No se empaqueta en el <code>.jar</code> de salida; desaparece tras generar el bytecode.</td>
+        </tr>
+        <tr>
+            <th scope="row">runtimeOnly</th>
+            <td>Classpath Ejecución únicamente</td>
+            <td>No está visible al compilar; se carga por reflexión durante el arranque del sistema.</td>
+        </tr>
+        <tr>
+            <th scope="row">testImplementation</th>
+            <td>Classpath de Tests</td>
+            <td>Disponible exclusivamente al compilar y ejecutar los tests de <code>src/test/java</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del sistema de resolución de dependencias</span>
+
 <h2 class="subtitle">1. ¿Dónde busco una librería y cómo sé qué texto poner?</h2>
 <p>Cualquier librería de Java en el mundo se identifica por tres datos separados por dos puntos (<code class="language-groovy">'grupo:artefacto:versión'</code>), conocidos como coordenadas <strong>GAV</strong> (<em>Group, Artifact, Version</em>):</p>
 <ol>
@@ -70,7 +108,35 @@
         </tr>
     </tbody>
 </table>
-<span class="center-horizontal caption">Tabla 1: Guía definitiva de configuraciones de dependencias en Gradle</span>
+<span class="center-horizontal caption">Tabla 2: Guía definitiva de configuraciones de dependencias en Gradle</span>
+
+<h2 class="subtitle">¿Cuándo usar implementation vs api?</h2>
+<p>Al aplicar el plugin <code>java-library</code>, aparece la configuración <code>api</code>:</p>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Configuración</th>
+            <th scope="col">Fuga de Dependencia</th>
+            <th scope="col">Impacto en Tiempos de Compilación</th>
+            <th scope="col">¿Cuándo usarla?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>implementation</code></td>
+            <td><b>NO:</b> Oculta la librería. Quien dependa de este módulo no ve sus clases transitivas.</td>
+            <td><b>Óptimo:</b> Si cambias la librería interna, Gradle NO necesita recompilar los módulos consumidores.</td>
+            <td><b>Por defecto siempre</b> para cualquier dependencia interna de servicio o lógica.</td>
+        </tr>
+        <tr>
+            <td><code>api</code></td>
+            <td><b>SÍ:</b> Expone la librería transitivamente a cualquiera que importe este proyecto.</td>
+            <td><b>Pesado:</b> Cualquier cambio interno fuerza a Gradle a recompilar todo el grafo de proyectos hijos.</td>
+            <td>Solo cuando tus propios métodos públicos devuelven o reciben clases de esa librería externa en su firma.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Comparativa arquitectónica entre implementation y api</span>
 
 <h2 class="subtitle">3. Ejemplos Prácticos de los Casos Más Habituales</h2>
 
@@ -131,3 +197,23 @@ dependencies {
 </code></pre>
 </div>
 <span class="center-horizontal caption">Exclusión de dependencias transitivas conflictivas con exclude</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en Versiones de Dependencias</h2>
+
+<h3>Ejemplo (Buena Práctica): Versión fija y determinista</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// La versión queda fijada de manera explícita: compilará igual hoy y dentro de 3 años
+implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
+</code></pre>
+</div>
+<span class="center-horizontal caption">Build reproducible y seguro</span>
+
+<h3>Contraejemplo (Mala Práctica): Usar comodines dinámicos (+)</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// ¡ERROR PELIGROSO! Pide a Gradle que baje la última sub-versión disponible en internet
+implementation 'com.fasterxml.jackson.core:jackson-databind:2.+'
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: si el creador de la librería publica un parche con bugs un viernes, tu CI/CD romperá producción automáticamente</span>

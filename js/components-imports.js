@@ -130,8 +130,14 @@ import '../components/librerias/apacheHttpClient/examples/examples.js';
 import '../components/librerias/apacheHttpClient/intro/intro.js';
 import '../components/librerias/apacheHttpClient/request/request.js';
 
+// Librerias - Flyway
+import '../components/librerias/flyway/introduccion/introduccion.js';
+import '../components/librerias/flyway/migraciones-y-uso/migraciones-y-uso.js';
+
 // Librerias - Hibernate
+import '../components/librerias/hibernate/introduccion/introduccion.js';
 import '../components/librerias/hibernate/conceptos-basicos/insercion/insercion.js';
+import '../components/librerias/hibernate/conceptos-basicos/consultas-crud/consultas-crud.js';
 
 // Librerias - Lombok
 import '../components/librerias/lombok/accessors/accessors.js';
@@ -142,6 +148,14 @@ import '../components/librerias/lombok/getter-setter/getter-setter.js';
 import '../components/librerias/lombok/introduccion/introduccion.js';
 import '../components/librerias/lombok/log/log.js';
 import '../components/librerias/lombok/tostring/tostring.js';
+
+// Librerias - ModelMapper
+import '../components/librerias/modelmapper/introduccion/introduccion.js';
+import '../components/librerias/modelmapper/mapeo-y-ejemplos/mapeo-y-ejemplos.js';
+
+// Librerias - SpringFox / Swagger
+import '../components/librerias/springfox/introduccion/introduccion.js';
+import '../components/librerias/springfox/anotaciones-y-ejemplos/anotaciones-y-ejemplos.js';
 
 // ===== MAVEN =====
 import '../components/maven/arquetypes/arquetypes.js';

@@ -1,0 +1,220 @@
+<h1 class="title">Operaciones CRUD y Consultas (HQL y Criteria)</h1>
+
+<p>Además de la inserción de registros, <b>Hibernate</b> y <b>JPA</b> proporcionan métodos directos en <code>Session</code> y <code>EntityManager</code> para recuperar entidades por clave primaria, actualizarlas, eliminarlas y ejecutar consultas complejas orientadas a objetos mediante <b>HQL (Hibernate Query Language) / JPQL</b> o mediante el <b>API Criteria</b>.</p>
+
+<h2>1. Operaciones CRUD Básicas</h2>
+
+<h3>Lectura por ID: <code>get()</code> / <code>find()</code> frente a <code>load()</code> / <code>getReference()</code></h3>
+
+<p>Para buscar un registro concreto por su clave primaria (<code>@Id</code>), Hibernate ofrece dos métodos con comportamientos de carga distintos:</p>
+
+<ul>
+	<li><b><code>session.get(Pet.class, id)</code> (o <code>entityManager.find(Pet.class, id)</code> en JPA):</b>
+		Realiza una carga inmediata (<i>Eager</i>). Busca primero en la caché de primer nivel de la sesión y, si no está, ejecuta inmediatamente el <code>SELECT</code> en la base de datos. Si el registro no existe en la base de datos, devuelve <b><code>null</code></b>.
+	</li>
+	<li><b><code>session.load(Pet.class, id)</code> (o <code>entityManager.getReference(Pet.class, id)</code> en JPA):</b>
+		Realiza una carga perezosa (<i>Lazy</i>). No ejecuta ningún <code>SELECT</code> en el momento de llamarlo, sino que devuelve un objeto <i>Proxy</i> temporal con el ID relleno. Solo lanza la consulta a la base de datos si se invoca algún getter distinto del ID (como <code>pet.getName()</code>). Si el registro no existe en el momento de inicializar el proxy, lanza la excepción <code>ObjectNotFoundException</code> / <code>EntityNotFoundException</code>. Es muy útil cuando solo se necesita asociar una clave foránea sin necesidad de traer todos los datos de la fila.
+	</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try (Session session = HibernateUtil.getSessionFactory().openSession()) 
+{
+	// Consulta inmediata: ejecuta SELECT y devuelve el objeto Pet o null si no existe
+	Pet pet = session.get(Pet.class, 15);
+	if (pet != null) 
+	{
+		System.out.println("Mascota encontrada: " + pet.getName());
+	}
+}
+</code></pre>
+</div>
+
+<h3>Actualización de Entidades: <i>Dirty Checking</i>, <code>update()</code> y <code>merge()</code></h3>
+
+<ul>
+	<li><b>Actualización automática por <i>Dirty Checking</i> (Entidad Persistente):</b>
+		Cuando se recupera una entidad dentro de una sesión abierta con <code>get()</code> o <code>find()</code>, el objeto está en estado <b>Persistent</b>. Basta con modificar cualquiera de sus atributos mediante sus métodos <code>set...()</code> (por ejemplo, <code>pet.setAge((short) 5)</code>) y hacer <code>commit()</code> de la transacción. Hibernate detecta automáticamente qué campos han cambiado respecto al estado original y genera la sentencia <code>UPDATE</code> sin necesidad de llamar a ningún método de guardado.
+	</li>
+	<li><b><code>session.merge(entidad)</code> (Estándar JPA e Hibernate para Entidades <i>Detached</i>):</b>
+		Si el objeto fue modificado fuera de la sesión (estado <i>Detached</i>), <code>merge()</code> copia el estado del objeto separado sobre una instancia gestionada por la sesión actual y devuelve dicha instancia gestionada, programando el <code>UPDATE</code> correspondiente.
+	</li>
+	<li><b><code>session.update(entidad)</code> (Propio de Hibernate):</b>
+		Vuelve a adjuntar directamente la instancia <i>Detached</i> a la sesión actual para actualizarla (si en la sesión ya había otra instancia en memoria con ese mismo ID, lanza <code>NonUniqueObjectException</code>, motivo por el cual se prefiere <code>merge()</code>).
+	</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try (Session session = HibernateUtil.getSessionFactory().openSession()) 
+{
+	session.beginTransaction();
+
+	// 1. Recuperamos la entidad (entra en estado Persistent)
+	Pet pet = session.get(Pet.class, 15);
+	if (pet != null) 
+	{
+		// 2. Modificamos el atributo en memoria
+		pet.setAge((short) 5);
+		// Al hacer commit, el Dirty Checking de Hibernate ejecuta automáticamente el UPDATE
+	}
+
+	session.getTransaction().commit();
+}
+</code></pre>
+</div>
+
+<h3>Borrado de Entidades: <code>remove()</code> y <code>delete()</code></h3>
+
+<p>Para eliminar un registro de la base de datos se pasa la instancia al método <code>session.remove(pet)</code> (estándar JPA) o <code>session.delete(pet)</code> (clásico de Hibernate) dentro de una transacción:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+try (Session session = HibernateUtil.getSessionFactory().openSession()) 
+{
+	session.beginTransaction();
+
+	Pet pet = session.get(Pet.class, 15);
+	if (pet != null) 
+	{
+		session.remove(pet); // Ejecuta DELETE FROM pet WHERE id = 15 al hacer commit
+	}
+
+	session.getTransaction().commit();
+}
+</code></pre>
+</div>
+
+<h2>2. Consultas con HQL (Hibernate Query Language) / JPQL</h2>
+
+<p><b>HQL</b> (y su subconjunto estándar <b>JPQL</b>) es un lenguaje de consultas similar a SQL pero <b>totalmente orientado a objetos</b>: en lugar de escribir nombres de tablas y columnas de base de datos, en las consultas HQL se escriben <b>los nombres de las clases Java (respetando mayúsculas/minúsculas) y los nombres de sus atributos</b>.</p>
+
+<p>Para evitar vulnerabilidades de inyección SQL y permitir a Hibernate reutilizar el plan de ejecución de la consulta, siempre se deben pasar los filtros mediante <b>parámetros con nombre (<code>:nombreParametro</code>)</b> asignados con <code>setParameter()</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import java.util.List;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+
+try (Session session = HibernateUtil.getSessionFactory().openSession()) 
+{
+	// En HQL usamos el nombre de la clase "Pet" y su atributo "age", no el nombre de la tabla
+	String hql = "FROM Pet p WHERE p.age = :petAge ORDER BY p.name ASC";
+
+	Query&lt;Pet&gt; query = session.createQuery(hql, Pet.class);
+	query.setParameter("petAge", (short) 4);
+
+	// Obtener la lista de resultados
+	List&lt;Pet&gt; pets = query.getResultList();
+}
+</code></pre>
+</div>
+
+<p>Métodos principales de la interfaz <b><code>org.hibernate.query.Query&lt;T&gt;</code></b>:</p>
+<ul>
+	<li><b><code>getResultList()</code>:</b> Ejecuta el <code>SELECT</code> y devuelve una <code>List&lt;T&gt;</code> con todas las entidades encontradas (o una lista vacía si no hay coincidencias).</li>
+	<li><b><code>uniqueResultOptional()</code>:</b> Devuelve un <code>Optional&lt;T&gt;</code> cuando se espera como máximo un único resultado (por ejemplo al buscar por un campo único como el email o código).</li>
+	<li><b><code>setFirstResult(int offset)</code> y <code>setMaxResults(int limit)</code>:</b> Permiten paginar los resultados de la consulta en base de datos (equivalente a <code>OFFSET</code> y <code>LIMIT</code> en SQL).</li>
+	<li><b><code>executeUpdate()</code>:</b> Permite ejecutar sentencias masivas <code>UPDATE</code> o <code>DELETE</code> en HQL dentro de una transacción, devolviendo el número de filas afectadas.</li>
+</ul>
+
+<h2>3. Consultas Dinámicas con Criteria API</h2>
+
+<p>Cuando una búsqueda tiene múltiples filtros opcionales (por ejemplo, buscar mascotas filtrando opcionalmente por nombre, rango de edad y fecha de nacimiento según lo que el usuario haya rellenado en el formulario), concatenar Strings en HQL resulta complejo. Para ello se utiliza <b>Criteria API</b> (paquete <code>javax.persistence.criteria.*</code> / <code>jakarta.persistence.criteria.*</code>), que permite construir la consulta de forma programática y segura en tipos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+try (Session session = HibernateUtil.getSessionFactory().openSession()) 
+{
+	// 1. Obtener el constructor de criterios a partir de la sesión
+	CriteriaBuilder cb = session.getCriteriaBuilder();
+
+	// 2. Definir el tipo de retorno de la consulta (Pet.class) y la raíz del FROM
+	CriteriaQuery&lt;Pet&gt; cr = cb.createQuery(Pet.class);
+	Root&lt;Pet&gt; root = cr.from(Pet.class);
+
+	// 3. Construir la lista de condiciones (WHERE) dinámicamente
+	List&lt;Predicate&gt; predicates = new ArrayList&lt;&gt;();
+	predicates.add(cb.greaterThanOrEqualTo(root.get("age"), (short) 2));
+	predicates.add(cb.like(root.get("name"), "J%"));
+
+	cr.select(root)
+			.where(predicates.toArray(new Predicate[0]))
+			.orderBy(cb.asc(root.get("name")));
+
+	// 4. Ejecutar la consulta
+	List&lt;Pet&gt; result = session.createQuery(cr).getResultList();
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar HQL, Criteria o SQL nativo y cuándo NO usarlos?</h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Opción</th>
+			<th scope="col">Cuándo usarla</th>
+			<th scope="col">Cuándo NO usarla</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>HQL / JPQL</b></td>
+			<td>Consultas con filtros fijos y legibles (<code>FROM Pet p WHERE p.age = :age</code>).</td>
+			<td>Cuando los filtros son opcionales y obligarían a concatenar fragmentos de texto.</td>
+		</tr>
+		<tr>
+			<td><b>Criteria API</b></td>
+			<td>Búsquedas con filtros dinámicos que se activan según lo que el usuario rellene.</td>
+			<td>Consultas sencillas y estáticas: añade verbosidad sin aportar nada.</td>
+		</tr>
+		<tr>
+			<td><b>SQL nativo</b></td>
+			<td>Funciones específicas del motor, informes complejos o optimizaciones muy concretas.</td>
+			<td>Cuando se busca independencia del motor de base de datos.</td>
+		</tr>
+		<tr>
+			<td><b><code>get()</code> / <code>find()</code></b></td>
+			<td>Cuando se necesita el objeto completo por su <code>@Id</code>.</td>
+			<td>Cuando solo se necesita la referencia (usar <code>load()</code> / <code>getReference()</code>).</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Cuándo elegir cada forma de consultar con Hibernate</span>
+
+<h2>Ejemplo y Contraejemplo en Consultas HQL (Inyección SQL y Rendimiento)</h2>
+
+<h3>Contraejemplo (Mala práctica): Concatenar variables en la cadena HQL</h3>
+<p>Concatenar directamente el valor recibido del usuario dentro del String de la consulta HQL abre una vulnerabilidad crítica de <b>Inyección HQL/SQL</b> y además impide que Hibernate y el motor de base de datos reutilicen la caché de planes de ejecución (<i>PreparedStatement cache</i>), ya que cada búsqueda genera una cadena de consulta distinta:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (PELIGROSO): Vulnerable a inyección HQL y rompe la caché de consultas
+String userInputName = "Joe' OR '1'='1";
+String badHql = "FROM Pet p WHERE p.name = '" + userInputName + "'";
+List&lt;Pet&gt; pets = session.createQuery(badHql, Pet.class).getResultList(); // ¡Devuelve toda la tabla!
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Uso obligatorio de parámetros enlazados (<code>setParameter</code>)</h3>
+<p>Utilizando parámetros con nombre (<code>:name</code>), Hibernate traduce la consulta a un <code>PreparedStatement</code> parametrizado (<code>?</code>) donde el texto del usuario se escapa de forma totalmente segura y el plan de ejecución se reutiliza en memoria:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (SEGURO Y ÓPTIMO): Uso de parámetros con nombre (:name)
+String safeHql = "FROM Pet p WHERE p.name = :name";
+List&lt;Pet&gt; pets = session.createQuery(safeHql, Pet.class)
+		.setParameter("name", userInputName)
+		.getResultList();
+</code></pre>
+</div>

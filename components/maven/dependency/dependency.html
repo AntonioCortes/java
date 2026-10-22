@@ -1,95 +1,211 @@
-<h1 class="title">Mecanismos de dependencia</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Mecanismo de Dependencias en Maven</h1>
 
-<p>Dentro de la etiqueta <b>&lt;dependencies&gt;</b> se incluyen las dependencias de la siguiente manera:</p>
+<p>La gestión de dependencias externas es una de las funciones más potentes de <strong>Apache Maven</strong>. En lugar de obligar al desarrollador a descargar y gestionar manualmente decenas de archivos <code>.jar</code>, Maven resuelve automáticamente las librerías necesarias, descarga sus <strong>dependencias transitivas</strong> (las librerías que a su vez necesitan esas librerías) y arbitra los conflictos de versiones.</p>
 
-<div class="center-horizontal">
-<pre><code class="language-xml">
-&lt;dependencies&gt;
-  &lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
-  &lt;/dependency&gt;
-&lt;/dependencies&gt;
-</code></pre>
-</div>
+<h2 class="subtitle">Árbol de Dependencias y Resolución de Conflictos</h2>
+<p>Cuando declaras una dependencia directa, Maven construye un grafo o árbol en memoria. Para resolver colisiones de versiones (cuando dos dependencias piden versiones distintas de la misma librería), Maven aplica la regla de <strong>"La definición más cercana prevalece" (Nearest Definition Wins)</strong>:</p>
 
-<p>La etiqueta <b>&lt;dependencyManagement&gt;</b> permite gestionar las dependencias desde un pom superior o padre. Se utiliza para definir versiones comunes y estándares de las dependencias para todo el proyecto.</p>
+<img class="center-horizontal" src="components/maven/dependency/assets/img/maven-dependencias.svg">
+<span class="center-horizontal caption">Figura 1: Árbol de resolución de dependencias, transitividad y exclusiones</span>
 
-<div class="center-horizontal">
-<pre><code class="language-xml">
-&lt;dependencyManagement&gt;
-  &lt;dependencies&gt;
-    &lt;dependency&gt;
-      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-      &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
-      &lt;version&gt;3.0.0&lt;/version&gt;
-      &lt;scope&gt;import&lt;/scope&gt;
-      &lt;type&gt;pom&lt;/type&gt;
-    &lt;/dependency&gt;
-  &lt;/dependencies&gt;
-&lt;/dependencyManagement&gt;
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento del Diagrama</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Comportamiento en el Classpath</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Mi Microservicio</th>
+            <td>«proyecto raíz»</td>
+            <td>Punto de origen (distancia 0). Cualquier versión fijada aquí anula cualquier versión transitiva.</td>
+        </tr>
+        <tr>
+            <th scope="row">Dependencia Directa</th>
+            <td>«dependencia directa»</td>
+            <td>Declarada directamente en <code>&lt;dependencies&gt;</code> (distancia 1). Entra al classpath según su scope.</td>
+        </tr>
+        <tr>
+            <th scope="row">Dependencia Transitiva</th>
+            <td>«dependencia transitiva»</td>
+            <td>Librería secundaria requerida por una dependencia directa (distancia 2 o superior).</td>
+        </tr>
+        <tr>
+            <th scope="row">Dependencia Excluida</th>
+            <td>«dependencia excluida»</td>
+            <td>Librería bloqueada mediante <code>&lt;exclusions&gt;</code> para evitar conflictos o duplicidades de logging.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del árbol de dependencias de Maven</span>
 
-&lt;dependencies&gt;
-  &lt;dependency&gt;
-      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-      &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;
-  &lt;/dependency&gt;
-&lt;/dependencies&gt;
-</code></pre>
-</div>
+<h2 class="subtitle">Los 6 Ámbitos de Dependencia (Scopes)</h2>
+<p>La etiqueta <code>&lt;scope&gt;</code> controla en qué momentos del ciclo de vida (compilación, pruebas o ejecución) estará disponible la librería y si se empaqueta en el <code>.jar</code> final:</p>
 
-<p>La etiqueta <b>&lt;scope&gt;</b> con valor <b>import</b>  se utiliza en la sección &lt;dependency&gt; del archivo pom.xml de Maven para importar la sección &lt;dependencyManagement&gt; de otro archivo pom.xml.</p>
-TODO: Since they are replaced, dependencies with a scope of import do not actually participate in limiting the transitivity of a dependency.
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Scope</th>
+            <th scope="col">Classpath de Compilación</th>
+            <th scope="col">Classpath de Tests</th>
+            <th scope="col">Classpath de Ejecución (JAR)</th>
+            <th scope="col">¿Transitivo?</th>
+            <th scope="col">Ejemplo Típico</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><b>compile</b> (Por defecto)</th>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td><b>Sí (se empaqueta)</b></td>
+            <td>Sí</td>
+            <td>Spring Web, Jackson, Apache Commons, Guava.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>provided</b></th>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td><b>NO (externo)</b></td>
+            <td>No</td>
+            <td><b>Lombok</b>, Servlet API (la provee Tomcat).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>runtime</b></th>
+            <td>NO</td>
+            <td>Sí</td>
+            <td><b>Sí (se empaqueta)</b></td>
+            <td>Sí</td>
+            <td>Drivers de Base de Datos (PostgreSQL, MySQL).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>test</b></th>
+            <td>NO (solo en <code>src/test</code>)</td>
+            <td>Sí</td>
+            <td><b>NO (nunca viaja)</b></td>
+            <td>No</td>
+            <td><b>JUnit 5</b>, Mockito, AssertJ, H2 Database.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>system</b></th>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td>NO</td>
+            <td>No</td>
+            <td>Librerías locales fuera de repositorios (antipatrón).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>import</b></th>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>Solo en <code>&lt;dependencyManagement&gt;</code> para BOMs.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Matriz comparativa de scopes de dependencias en Maven</span>
 
-<p>La etiqueta <b>&lt;scope&gt;</b> puede tomar mas valores:</p>
+<h2 class="subtitle"><code>&lt;dependencyManagement&gt;</code> vs <code>&lt;dependencies&gt;</code></h2>
+<p>Es muy común confundir estas dos secciones:</p>
 <ul>
-    <li>
-        <b>compile:</b>
-        This is the default scope, used if none is specified. Compile dependencies are available in all classpaths of a
-        project. Furthermore, those dependencies are propagated to dependent projects.
-    </li>
-    <li>
-        <b>provided:</b>
-        This is much like compile, but indicates you expect the JDK or a container to provide the dependency at runtime.
-        For example, when building a web application for the Java Enterprise Edition, you would set the dependency on
-        the Servlet API and related Java EE APIs to scope provided because the web container provides those classes. A
-        dependency with this scope is added to the classpath used for compilation and test, but not the runtime
-        classpath. It is not transitive.
-    </li>
-    <li>
-        <b>runtime:</b>
-        This scope indicates that the dependency is not required for compilation, but is for execution. Maven includes a
-        dependency with this scope in the runtime and test classpaths, but not the compile classpath.
-    </li>
-    <li>
-        <b>test:</b>
-        This scope indicates that the dependency is not required for normal use of the application, and is only
-        available for the test compilation and execution phases. This scope is not transitive. Typically this scope is
-        used for test libraries such as JUnit and Mockito. It is also used for non-test libraries such as Apache Commons
-        IO if those libraries are used in unit tests (src/test/java) but not in the model code (src/main/java).
-    </li>
-    <li>
-        <b>system:</b>
-        This scope is similar to provided except that you have to provide the JAR which contains it explicitly. The
-        artifact is always available and is not looked up in a repository.
-    </li>
-    <li>
-        <b>import</b>
-    </li>
+    <li><strong><code>&lt;dependencies&gt;</code>:</strong> Declara librerías que <strong>se descargan e incluyen físicamente</strong> en el proyecto actual.</li>
+    <li><strong><code>&lt;dependencyManagement&gt;</code>:</strong> Actúa como un <strong>catálogo centralizado de versiones</strong>. No añade ninguna librería al proyecto por sí misma; simplemente indica: <em>"Si algún módulo hijo decide pedir la librería X, debe usar obligatoriamente la versión Y"</em>. Permite omitir la etiqueta <code>&lt;version&gt;</code> en los submódulos.</li>
 </ul>
 
-<p>Para indicar que un POM es hijo, se indica cual es el padre de la siguiente forma:</p>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- En el POM Padre: define la versión recomendada --&gt;
+&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.google.guava&lt;/groupId&gt;
+            &lt;artifactId&gt;guava&lt;/artifactId&gt;
+            &lt;version&gt;33.3.0-jre&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+
+&lt;!-- En el POM Hijo: solo pide la librería SIN indicar versión --&gt;
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.google.guava&lt;/groupId&gt;
+        &lt;artifactId&gt;guava&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Uso correcto de dependencyManagement para centralizar versiones en proyectos multi-módulo</span>
+
+<h2 class="subtitle">Cómo Excluir Dependencias Transitivas Conflictivas (<code>&lt;exclusions&gt;</code>)</h2>
+<p>Si una librería externa arrastra una versión obsoleta o incompatible de otra biblioteca (por ejemplo, el viejo <code>commons-logging</code> en lugar de <code>slf4j</code>), se bloquea con <code>&lt;exclusions&gt;</code>:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
-&lt;parent&gt;
-    &lt;artifactId&gt;PetShop&lt;/artifactId&gt;
-    &lt;groupId&gt;org.atr&lt;/groupId&gt;
-    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
-&lt;/parent&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;exclusions&gt;
+        &lt;exclusion&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
+        &lt;/exclusion&gt;
+    &lt;/exclusions&gt;
+&lt;/dependency&gt;
+&lt;!-- Sustituimos Tomcat por Jetty como servidor embebido --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-jetty&lt;/artifactId&gt;
+&lt;/dependency&gt;
 </code></pre>
 </div>
+<span class="center-horizontal caption">Exclusión de Tomcat para sustituirlo por el servidor web ligero Jetty</span>
 
-<p>Se referencia al artefacto, grupo y versión del padre;</p>
-<p><b>NOTA:</b> Las dependencias que se especifiquen en el padre las heredaran los hijos. Mas tarde se pueden añadir mas 
-  dependencias a los hijos, que no necesariamente se encuentren en el padre.</p>
+<h2 class="subtitle">Comandos de Diagnóstico del Árbol de Dependencias</h2>
+<p>Para inspeccionar qué librerías exactas están viajando a tu aplicación y por qué, ejecuta por consola:</p>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Dibuja el árbol completo de dependencias directas y transitivas
+mvn dependency:tree
+
+# Filtra solo las dependencias que incluyan la palabra 'jackson'
+mvn dependency:tree -Dincludes=*jackson*
+</code></pre>
+</div>
+<span class="center-horizontal caption">Comando fundamental para depurar colisiones de dependencias en Maven</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en la Selección de Scopes</h2>
+
+<h3>Ejemplo (Buena Práctica): Uso de provided para Lombok</h3>
+<p>Lombok solo actúa durante la compilación sustituyendo anotaciones por getters/setters y no debe viajar al ejecutable de producción:</p>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+    &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+    &lt;version&gt;1.18.34&lt;/version&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Configuración limpia: el JAR de producción no se infla con librerías innecesarias</span>
+
+<h3>Contraejemplo (Mala Práctica): Dejar dependencias de test con scope compile</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- ¡ERROR GRAVE! Olvidar &lt;scope&gt;test&lt;/scope&gt; en librerías de prueba --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.junit.jupiter&lt;/groupId&gt;
+    &lt;artifactId&gt;junit-jupiter&lt;/artifactId&gt;
+    &lt;version&gt;5.10.2&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+<p>Si omites la etiqueta <code>&lt;scope&gt;test&lt;/scope&gt;</code>, Maven asumirá el scope por defecto (<code>compile</code>). Como consecuencia, <strong>las clases de JUnit y de prueba se empaquetarán dentro del JAR de producción</strong>, aumentando el tamaño del artefacto, exponiendo posibles vulnerabilidades de seguridad y permitiendo por error que clases de negocio llamen a aserciones de test.</p>

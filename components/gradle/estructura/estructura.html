@@ -10,6 +10,44 @@
 <img class="center-horizontal" src="components/gradle/estructura/assets/img/gradle-estructura-diagram.png">
 <span class="center-horizontal caption">Figura 1: Mapa de carpetas y archivos de un proyecto estándar en Gradle y flujo del Wrapper</span>
 
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento del Diagrama</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Responsabilidad en la Estructura</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">gradlew / gradlew.bat</th>
+            <td>Script ejecutable (Shell / Batch)</td>
+            <td>Punto de entrada universal que detecta el SO y arranca el Wrapper de Gradle.</td>
+        </tr>
+        <tr>
+            <th scope="row">gradle/wrapper/gradle-wrapper.jar</th>
+            <td>Binario ligero</td>
+            <td>Descarga automáticamente la distribución exacta de Gradle si no está presente en la caché local.</td>
+        </tr>
+        <tr>
+            <th scope="row">gradle-wrapper.properties</th>
+            <td>Configuración</td>
+            <td>Fija la URL y versión exacta de Gradle que todo el equipo debe utilizar.</td>
+        </tr>
+        <tr>
+            <th scope="row">src/main/ y src/test/</th>
+            <td>Árbol de fuentes</td>
+            <td>Separa estrictamente el código y recursos de producción frente a las pruebas automatizadas.</td>
+        </tr>
+        <tr>
+            <th scope="row">build/</th>
+            <td>Directorio de salida</td>
+            <td>Almacena clases compiladas, artefactos JAR e informes de tests (nunca se versiona en Git).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes de la estructura y flujo del Wrapper</span>
+
 <h2 class="subtitle">Árbol de Carpetas y Archivos Explicado Paso a Paso</h2>
 
 <div class="center-horizontal">
@@ -86,7 +124,7 @@ mi-proyecto-java/
         </tr>
     </tbody>
 </table>
-<span class="center-horizontal caption">Tabla 1: Resumen de los elementos de un proyecto Gradle</span>
+<span class="center-horizontal caption">Tabla 2: Resumen de los elementos de un proyecto Gradle</span>
 
 <h2 class="subtitle">¿Qué es el Gradle Wrapper (<code class="language-bash">./gradlew</code>) y por qué es tan importante?</h2>
 <p>Una de las primeras dudas de cualquier principiante es: <em>"¿Por qué en todos los tutoriales ejecutan <code class="language-bash">./gradlew build</code> con una <strong>w</strong> al final en vez de escribir <code class="language-bash">gradle build</code>?"</em></p>
@@ -114,6 +152,40 @@ zipStorePath=wrapper/dists
     <li>En <strong>Windows (CMD o PowerShell):</strong> <code class="language-bash">.\gradlew.bat build</code></li>
 </ul>
 <p>El script comprueba si en su ordenador ya está descargado Gradle 8.10.2. Si no lo tiene, <strong>lo descarga él solo en segundo plano</strong> dentro de la carpeta <code class="language-bash">~/.gradle/wrapper/dists</code> y compila el proyecto usando exactamente esa versión. ¡Nadie del equipo tiene que instalar Gradle manualmente nunca más!</p>
+
+<h2 class="subtitle">¿Cuándo usar el Gradle Wrapper y cuándo NO?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Compilar en entornos de desarrollo local</td>
+            <td><b>SIEMPRE</b> usar <code>./gradlew</code></td>
+            <td>Garantiza que todos los desarrolladores ejecuten idéntica versión de Gradle y plugins.</td>
+        </tr>
+        <tr>
+            <td>Pipelines de Integración Continua (GitHub Actions, Jenkins, GitLab CI)</td>
+            <td><b>SIEMPRE</b> usar <code>./gradlew</code></td>
+            <td>No requiere instalar paquetes globales de Gradle en las imágenes Docker del runner.</td>
+        </tr>
+        <tr>
+            <td>Subir archivos a Git</td>
+            <td><b>SÍ</b> subir <code>gradlew</code>, <code>gradlew.bat</code> y <code>gradle/wrapper/*</code></td>
+            <td>Sin estos 4 archivos, el wrapper no puede arrancar en otras máquinas.</td>
+        </tr>
+        <tr>
+            <td>Ignorar en Git</td>
+            <td><b>NUNCA</b> subir <code>.gradle/</code> ni <code>build/</code></td>
+            <td>Contienen binarios compilados y cachés específicas de la máquina que inflan el repositorio.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Buenas prácticas con el Wrapper y control de versiones</span>
 
 <h2 class="subtitle">Groovy DSL (<code class="language-bash">build.gradle</code>) vs Kotlin DSL (<code class="language-bash">build.gradle.kts</code>)</h2>
 <p>Cuando crees un proyecto nuevo (por ejemplo, en <a href="https://start.spring.io" target="_blank">Spring Initializr</a> o en IntelliJ IDEA), te preguntará qué lenguaje quieres usar para los archivos de Gradle:</p>
@@ -147,3 +219,37 @@ dependencies {
 </code></pre>
 </div>
 <span class="center-horizontal caption">Ejemplo equivalente en Kotlin DSL (build.gradle.kts)</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo de Configuración de Repositorio (.gitignore)</h2>
+
+<h3>Ejemplo (Buena Práctica): Archivo .gitignore Completo para Gradle</h3>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Caché y artefactos de Gradle
+.gradle/
+build/
+
+# Salidas de IDEs
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+bin/
+
+# Logs del sistema
+*.log
+</code></pre>
+</div>
+<span class="center-horizontal caption">Reglas de exclusión estándar para mantener limpio el repositorio</span>
+
+<h3>Contraejemplo (Mala Práctica): Subir la carpeta build/ o .gradle/ a Git</h3>
+<p>Si no se configura <code>.gitignore</code>, se subirán cientos de archivos binarios <code>.class</code>, el <code>.jar</code> temporal y la base de datos de caché de Gradle (que puede ocupar más de 200 MB). Esto provoca conflictos masivos de merge cada vez que dos desarrolladores compilan en ramas distintas:</p>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Conflicto al hacer git pull porque ambos compilaron y tocaron build/
+CONFLICT (content): Merge conflict in build/classes/java/main/com/ejemplo/Main.class
+Automatic merge failed; fix conflicts and then commit the result.
+</code></pre>
+</div>
+<span class="center-horizontal caption">Conflicto en binarios provocado por no excluir build/ en .gitignore</span>

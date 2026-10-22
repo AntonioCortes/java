@@ -1,190 +1,167 @@
-<h1 class="title">Ejemplos de POM</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Ejemplos Reales de POMs Explicados Línea por Línea</h1>
 
-<h2>Ejemplo de POM superior - Proyecto microservicios</h2>
+<p>Para consolidar todo lo aprendido sobre Maven, analizamos a continuación la arquitectura real de un sistema de <strong>microservicios en producción (PetStore)</strong>: un <strong>POM Superior (Padre Agregador)</strong> que coordina 7 microservicios, y un <strong>POM Hijo (Módulo Customer)</strong> que hereda la configuración común e implementa su propia persistencia (PostgreSQL + Spring Data JPA), mensajería asíncrona (RabbitMQ AMQP), descubrimiento (Eureka) y contenedorización automática (Jib).</p>
+
+<h2 class="subtitle">1. POM Superior Agregador (petstoreservices/pom.xml)</h2>
+<p>Este archivo se ubica en la raíz del repositorio. Su objetivo es orquestar la compilación multi-módulo con <code>&lt;modules&gt;</code>, fijar versiones compatibles mediante <code>&lt;dependencyManagement&gt;</code> y centralizar plugins en <code>&lt;pluginManagement&gt;</code>:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
-  &lt;?xml version="1.0" encoding="UTF-8"?&gt;
-  
-  &lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+
     &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
-  
+
     &lt;groupId&gt;com.petStore&lt;/groupId&gt;
     &lt;artifactId&gt;petstoreservices&lt;/artifactId&gt;
     &lt;packaging&gt;pom&lt;/packaging&gt;
     &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
-  
+
+    &lt;!-- Submódulos que componen la arquitectura de microservicios --&gt;
     &lt;modules&gt;
-      &lt;module&gt;customer&lt;/module&gt;
-      &lt;module&gt;fraud&lt;/module&gt;
-      &lt;module&gt;eureka-server&lt;/module&gt;
-      &lt;module&gt;clients&lt;/module&gt;
-      &lt;module&gt;notification&lt;/module&gt;
-      &lt;module&gt;apigw&lt;/module&gt;
-      &lt;module&gt;amqp&lt;/module&gt;
+        &lt;module&gt;customer&lt;/module&gt;
+        &lt;module&gt;fraud&lt;/module&gt;
+        &lt;module&gt;eureka-server&lt;/module&gt;
+        &lt;module&gt;clients&lt;/module&gt;
+        &lt;module&gt;notification&lt;/module&gt;
+        &lt;module&gt;apigw&lt;/module&gt;
+        &lt;module&gt;amqp&lt;/module&gt;
     &lt;/modules&gt;
-  
+
     &lt;name&gt;petstoreservices&lt;/name&gt;
     &lt;url&gt;https://www.petStore.com&lt;/url&gt;
-  
+
     &lt;properties&gt;
-      &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
-      &lt;maven.compiler.source&gt;17&lt;/maven.compiler.source&gt;
-      &lt;maven.compiler.target&gt;17&lt;/maven.compiler.target&gt;
-      &lt;spring.boot.maven.plugin.version&gt;2.5.7&lt;/spring.boot.maven.plugin.version&gt;
-      &lt;spring.boot.dependencies.version&gt;2.5.7&lt;/spring.boot.dependencies.version&gt;
-      &lt;spring.cloud-version&gt;2020.0.3&lt;/spring.cloud-version&gt;
-      &lt;image&gt;petStore/${project.artifactId}:${project.version}&lt;/image&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;maven.compiler.source&gt;17&lt;/maven.compiler.source&gt;
+        &lt;maven.compiler.target&gt;17&lt;/maven.compiler.target&gt;
+        &lt;spring.boot.maven.plugin.version&gt;2.7.14&lt;/spring.boot.maven.plugin.version&gt;
+        &lt;spring.boot.dependencies.version&gt;2.7.14&lt;/spring.boot.dependencies.version&gt;
+        &lt;spring.cloud-version&gt;2021.0.8&lt;/spring.cloud-version&gt;
+        &lt;image&gt;petStore/${project.artifactId}:${project.version}&lt;/image&gt;
     &lt;/properties&gt;
-  
+
+    &lt;!-- Catálogo central de versiones para todos los microservicios hijos --&gt;
     &lt;dependencyManagement&gt;
-      &lt;dependencies&gt;
-        &lt;dependency&gt;
-          &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-          &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
-          &lt;version&gt;${spring.boot.dependencies.version}&lt;/version&gt;
-          &lt;scope&gt;import&lt;/scope&gt;
-          &lt;type&gt;pom&lt;/type&gt;
-        &lt;/dependency&gt;
-        &lt;dependency&gt;
-          &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-          &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
-          &lt;version&gt;${spring.cloud-version}&lt;/version&gt;
-          &lt;type&gt;pom&lt;/type&gt;
-          &lt;scope&gt;import&lt;/scope&gt;
-        &lt;/dependency&gt;
-      &lt;/dependencies&gt;
+        &lt;dependencies&gt;
+            &lt;!-- BOM oficial de Spring Boot --&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+                &lt;version&gt;${spring.boot.dependencies.version}&lt;/version&gt;
+                &lt;scope&gt;import&lt;/scope&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+            &lt;/dependency&gt;
+            &lt;!-- BOM oficial de Spring Cloud (Eureka, Gateway, Sleuth) --&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+                &lt;version&gt;${spring.cloud-version}&lt;/version&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+                &lt;scope&gt;import&lt;/scope&gt;
+            &lt;/dependency&gt;
+        &lt;/dependencies&gt;
     &lt;/dependencyManagement&gt;
-  
+
+    &lt;!-- Dependencias comunes que heredarán TODOS los submódulos --&gt;
     &lt;dependencies&gt;
-      &lt;dependency&gt;
-        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
-        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
-      &lt;/dependency&gt;
-      &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
-      &lt;/dependency&gt;
-      &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
-      &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-  
-    &lt;build&gt;
-      &lt;pluginManagement&gt;&lt;!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) --&gt;
-        &lt;plugins&gt;
-          &lt;plugin&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+            &lt;scope&gt;provided&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
             &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-            &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
-            &lt;version&gt;${spring.boot.maven.plugin.version}&lt;/version&gt;
-            &lt;executions&gt;
-              &lt;execution&gt;
-                &lt;goals&gt;
-                  &lt;goal&gt;repackage&lt;/goal&gt;
-                &lt;/goals&gt;
-              &lt;/execution&gt;
-            &lt;/executions&gt;
-          &lt;/plugin&gt;
-          &lt;plugin&gt;
-            &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
-            &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
-            &lt;version&gt;3.1.4&lt;/version&gt;
-            &lt;configuration&gt;
-              &lt;from&gt;
-                &lt;image&gt;eclipse-temurin:17@sha256:2b47a8ea946ce1e5365a1562414ed576e378b7b670cadff3fb98ebecf2890cdc&lt;/image&gt;
-                &lt;platforms&gt;
-                  &lt;platform&gt;
-                    &lt;architecture&gt;arm64&lt;/architecture&gt;
-                    &lt;os&gt;linux&lt;/os&gt;
-                  &lt;/platform&gt;
-                  &lt;platform&gt;
-                    &lt;architecture&gt;amd64&lt;/architecture&gt;
-                    &lt;os&gt;linux&lt;/os&gt;
-                  &lt;/platform&gt;
-                &lt;/platforms&gt;
-              &lt;/from&gt;
-              &lt;to&gt;
-                &lt;tags&gt;
-                  &lt;tag&gt;latest&lt;/tag&gt;
-                &lt;/tags&gt;
-              &lt;/to&gt;
-            &lt;/configuration&gt;
-            &lt;executions&gt;
-              &lt;execution&gt;
-                &lt;phase&gt;package&lt;/phase&gt;
-                &lt;goals&gt;
-                  &lt;goal&gt;build&lt;/goal&gt;
-                &lt;/goals&gt;
-              &lt;/execution&gt;
-            &lt;/executions&gt;
-          &lt;/plugin&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;pluginManagement&gt;
+            &lt;plugins&gt;
+                &lt;plugin&gt;
+                    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                    &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+                    &lt;version&gt;${spring.boot.maven.plugin.version}&lt;/version&gt;
+                    &lt;executions&gt;
+                        &lt;execution&gt;
+                            &lt;goals&gt;
+                                &lt;goal&gt;repackage&lt;/goal&gt;
+                            &lt;/goals&gt;
+                        &lt;/execution&gt;
+                    &lt;/executions&gt;
+                &lt;/plugin&gt;
+                &lt;!-- Plugin Jib para generar imágenes Docker sin necesidad de demonio Docker local --&gt;
+                &lt;plugin&gt;
+                    &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
+                    &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
+                    &lt;version&gt;3.3.2&lt;/version&gt;
+                    &lt;configuration&gt;
+                        &lt;from&gt;
+                            &lt;image&gt;eclipse-temurin:17-jre-focal&lt;/image&gt;
+                        &lt;/from&gt;
+                        &lt;to&gt;
+                            &lt;image&gt;${image}&lt;/image&gt;
+                        &lt;/to&gt;
+                    &lt;/configuration&gt;
+                &lt;/plugin&gt;
+            &lt;/plugins&gt;
+        &lt;/pluginManagement&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+                &lt;version&gt;3.10.1&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;source&gt;17&lt;/source&gt;
+                    &lt;target&gt;17&lt;/target&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
         &lt;/plugins&gt;
-      &lt;/pluginManagement&gt;
-      &lt;plugins&gt;
-        &lt;plugin&gt;
-          &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-          &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
-          &lt;version&gt;3.8.0&lt;/version&gt;
-          &lt;configuration&gt;
-            &lt;source&gt;17&lt;/source&gt;
-            &lt;target&gt;17&lt;/target&gt;
-          &lt;/configuration&gt;
-        &lt;/plugin&gt;
-      &lt;/plugins&gt;
     &lt;/build&gt;
-  &lt;/project&gt;
+&lt;/project&gt;
 </code></pre>
 </div>
+<span class="center-horizontal caption">POM Padre que centraliza versiones y empaquetado Docker con Jib</span>
 
-<h2>Ejemplo de POM hijo - proyecto microservicios</h2>
-
-<p><b>NOTA:</b> Este POM pertenece al modulo "customer" del proyecto</p>
+<h2 class="subtitle">2. POM Hijo: Microservicio de Clientes (customer/pom.xml)</h2>
+<p>Este POM hereda del padre anterior. Observa cómo <strong>ninguna librería de Spring Boot o Spring Cloud necesita llevar número de versión</strong>:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
     &lt;parent&gt;
         &lt;groupId&gt;com.petStore&lt;/groupId&gt;
         &lt;artifactId&gt;petstoreservices&lt;/artifactId&gt;
         &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
     &lt;/parent&gt;
-    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
-    &lt;packaging&gt;jar&lt;/packaging&gt;
+
     &lt;artifactId&gt;customer&lt;/artifactId&gt;
-
-    &lt;build&gt;
-        &lt;plugins&gt;
-            &lt;plugin&gt;
-                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
-            &lt;/plugin&gt;
-        &lt;/plugins&gt;
-    &lt;/build&gt;
-
-    &lt;profiles&gt;
-        &lt;profile&gt;
-            &lt;id&gt;build-docker-image&lt;/id&gt;
-            &lt;build&gt;
-                &lt;plugins&gt;
-                    &lt;plugin&gt;
-                        &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
-                        &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
-                    &lt;/plugin&gt;
-                &lt;/plugins&gt;
-            &lt;/build&gt;
-        &lt;/profile&gt;
-    &lt;/profiles&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
 
     &lt;dependencies&gt;
+        &lt;!-- Capa Web REST --&gt;
         &lt;dependency&gt;
             &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
             &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
         &lt;/dependency&gt;
+        &lt;!-- Persistencia JPA y Driver PostgreSQL --&gt;
         &lt;dependency&gt;
             &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
             &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
@@ -194,6 +171,7 @@
             &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
             &lt;scope&gt;runtime&lt;/scope&gt;
         &lt;/dependency&gt;
+        &lt;!-- Descubrimiento con Eureka y Trazabilidad distribuida con Sleuth + Zipkin --&gt;
         &lt;dependency&gt;
             &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
             &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
@@ -206,6 +184,7 @@
             &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
             &lt;artifactId&gt;spring-cloud-sleuth-zipkin&lt;/artifactId&gt;
         &lt;/dependency&gt;
+        &lt;!-- Mensajería Asíncrona con RabbitMQ y módulos hermanos --&gt;
         &lt;dependency&gt;
             &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
             &lt;artifactId&gt;spring-boot-starter-amqp&lt;/artifactId&gt;
@@ -214,15 +193,86 @@
             &lt;groupId&gt;com.petStore&lt;/groupId&gt;
             &lt;artifactId&gt;amqp&lt;/artifactId&gt;
             &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
-            &lt;scope&gt;compile&lt;/scope&gt;
         &lt;/dependency&gt;
         &lt;dependency&gt;
             &lt;groupId&gt;com.petStore&lt;/groupId&gt;
             &lt;artifactId&gt;clients&lt;/artifactId&gt;
             &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
-            &lt;scope&gt;compile&lt;/scope&gt;
         &lt;/dependency&gt;
     &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+    &lt;!-- Perfil para construir la imagen Docker en pipelines de CI/CD --&gt;
+    &lt;profiles&gt;
+        &lt;profile&gt;
+            &lt;id&gt;build-docker-image&lt;/id&gt;
+            &lt;build&gt;
+                &lt;plugins&gt;
+                    &lt;plugin&gt;
+                        &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
+                        &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
+                        &lt;executions&gt;
+                            &lt;execution&gt;
+                                &lt;phase&gt;package&lt;/phase&gt;
+                                &lt;goals&gt;
+                                    &lt;goal&gt;dockerBuild&lt;/goal&gt;
+                                &lt;/goals&gt;
+                            &lt;/execution&gt;
+                        &lt;/executions&gt;
+                    &lt;/plugin&gt;
+                &lt;/plugins&gt;
+            &lt;/build&gt;
+        &lt;/profile&gt;
+    &lt;/profiles&gt;
 &lt;/project&gt;
 </code></pre>
 </div>
+<span class="center-horizontal caption">POM Hijo del microservicio customer con perfiles de contenedorización Docker</span>
+
+<h2 class="subtitle">¿Cuándo Usar Perfiles de Maven (<code>&lt;profiles&gt;</code>) y Cuándo NO?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Buenas Prácticas</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Tareas costosas en tiempo (ej. crear imágenes Docker con Jib o escaneo SonarQube)</td>
+            <td><b>SÍ usar &lt;profile&gt;</b></td>
+            <td>Aislar en un perfil para que el desarrollador local no sufra esperas al ejecutar <code>mvn test</code>.</td>
+        </tr>
+        <tr>
+            <td>Configuraciones de entornos (dev, pro, test)</td>
+            <td><b>NO usar perfiles Maven</b></td>
+            <td>Preferir perfiles de Spring Boot (<code>application-dev.yml</code>, <code>application-pro.yml</code>) para no recompilar el artefacto para cada entorno (principio <em>Twelve-Factor App</em>).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Buenas prácticas en el uso de perfiles de Maven</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en la Invocación del Proyecto</h2>
+
+<h3>Ejemplo (Buena Práctica): Compilar todos los microservicios desde la raíz</h3>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Desde la raíz donde reside el POM Padre:
+mvn clean install
+
+# Maven calcula automáticamente el orden topológico y compila primero amqp y clients antes que customer
+</code></pre>
+</div>
+<span class="center-horizontal caption">Compilación coordinada de todo el ecosistema de microservicios</span>
+
+<h3>Contraejemplo (Mala Práctica): Compilar un hijo sin haber instalado sus dependencias locales</h3>
+<p>Si entras directamente a la carpeta <code>customer/</code> y ejecutas <code>mvn compile</code> sin haber ejecutado <code>mvn install</code> previamente en la raíz, Maven buscará el módulo <code>amqp:1.0-SNAPSHOT</code> en Maven Central. Al no encontrarlo en internet, fallará con <code>Could not resolve dependencies</code>.</p>

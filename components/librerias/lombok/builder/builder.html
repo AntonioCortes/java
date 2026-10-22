@@ -1,45 +1,253 @@
 <h1 class="title">Anotación @Builder</h1>
+
 <p>
-    Esta anotación permite aplicar el patrón "Builder" a una clase sin tener que escribir el código. También puede ser usado sobre métodos para trabajar con clases inmutables.
+    Esta anotación permite aplicar el patrón de diseño creacional <b>"Builder"</b> a una clase sin tener que escribir todo el código auxiliar manualmente. También puede ser usada sobre constructores específicos o sobre métodos estáticos para trabajar con clases inmutables y métodos factoría.
 </p>
-<h2>Ejemplo:</h2>
+
+<h2>¿Qué es y cómo funciona @Builder?</h2>
+
+<ul>
+    <li><b>@Builder:</b> Esta anotación pertenece a la librería <b>Project Lombok</b> y se encuentra dentro del paquete <code>lombok.Builder</code>. Al colocarla sobre una clase (por ejemplo, <code>Customer</code> o <code>Pet</code>), Lombok genera automáticamente en tiempo de compilación:
+        <ul>
+            <li>Una clase interna estática llamada <code>NombreClaseBuilder</code> (ej. <code>CustomerBuilder</code>) con los mismos atributos que la clase principal.</li>
+            <li>Un método estático público <code>builder()</code> en la clase principal que devuelve una nueva instancia de ese builder.</li>
+            <li>Un método fluido (sin prefijo, que devuelve el propio builder) por cada atributo para asignar su valor encadenando llamadas.</li>
+            <li>Un método <code>build()</code> que invoca al constructor de la clase principal pasándole los valores configurados y devuelve la instancia final creada.</li>
+            <li>Una implementación de <code>toString()</code> dentro de la propia clase Builder.</li>
+            <li>Un constructor con todos los argumentos de visibilidad de paquete (<i>package-private</i>) en la clase principal (siempre que no se haya definido otro constructor explícito).</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Dónde se puede aplicar @Builder</h2>
+
+<ul>
+    <li><b>A nivel de clase:</b> El builder incluirá todos los atributos de instancia no estáticos (excepto los campos <code>final</code> que ya estén inicializados en su declaración).</li>
+    <li><b>A nivel de constructor:</b> Si solo queremos que el Builder exponga un subconjunto concreto de atributos o ejecute lógica personalizada al construir el objeto, podemos escribir un constructor manual y anotar únicamente ese constructor con <code>@Builder</code>.</li>
+    <li><b>A nivel de método estático:</b> Si se coloca <code>@Builder</code> sobre un método <code>static</code>, Lombok creará un Builder cuyos campos coinciden exactamente con los parámetros de entrada de ese método, y al llamar a <code>build()</code> se ejecutará dicho método estático devolviendo su tipo de retorno.</li>
+</ul>
+
+<h2>Ejemplo básico:</h2>
+
+<p>En el siguiente ejemplo se anota la clase <code>Customer</code> con <code>@Builder</code> y se instancia un objeto de forma fluida indicando únicamente los atributos deseados sin importar el orden:</p>
+
 <div class="center-horizontal">
 <pre><code class="language-java">
-    @Builder
-    public class Customer {
-        private Integer id;
-        private String firstName;
-        private String lastName;
-        private String email;
+import lombok.Builder;
 
-    }
+@Builder
+public class Customer {
+    private Integer id;
+    private String firstName;
+    private String lastName;
+    private String email;
+}
 
-    Customer customer = Customer.builder()
-                .firstName("Luffy")
-                .lastName("Monkey")
-                .email("luffy_d_monkey@grandline.com")
-                .build();
-</code></pre>	
+Customer customer = Customer.builder()
+        .firstName("Luffy")
+        .lastName("Monkey")
+        .email("luffy_d_monkey@grandline.com")
+        .build();
+</code></pre>
 </div>
-<h2>Atributos</h2>
-<p>La anotación tiene como atributo (builderMethodName = "") y su valor predefinido es "builder"</p>
-<p>Ejemplo:</p>
-<div class="center-horizontal">
-    <pre><code class="language-java">
-        @Builder(builderMethodName = "buildingTheThing")
-        public class Customer {
-            private Integer id;
-            private String firstName;
-            private String lastName;
-            private String email;
 
-    
-        }
-    
-        Customer customer = Customer.buildingTheThing()
-                    .firstName("Luffy")
-                    .lastName("Monkey")
-                    .email("luffy_d_monkey@grandline.com")
-                    .build();
-    </code></pre>	
-    </div>
+<h2>Atributos y parámetros de @Builder</h2>
+
+<p>La anotación <code>@Builder</code> admite varios parámetros para personalizar los nombres de los métodos y el comportamiento del constructor fluido:</p>
+
+<ul>
+    <li><b>builderMethodName:</b> Define el nombre del método estático inicial que crea la instancia del builder. Su valor predefinido es <code>"builder"</code>.</li>
+    <li><b>buildMethodName:</b> Define el nombre del método final que construye y devuelve el objeto. Su valor predefinido es <code>"build"</code>.</li>
+    <li><b>builderClassName:</b> Permite cambiar el nombre de la clase interna estática generada (por defecto es <code>NombreClaseBuilder</code>).</li>
+    <li><b>toBuilder:</b> Recibe un booleano (por defecto <code>false</code>). Cuando se activa como <code>@Builder(toBuilder = true)</code>, Lombok añade un método de instancia llamado <code>toBuilder()</code> en la clase principal. Al invocarlo sobre un objeto ya existente, crea un nuevo builder precargado con todos los valores actuales de ese objeto, permitiendo modificar solo uno o dos campos y generar una copia actualizada (muy útil con objetos inmutables).</li>
+    <li><b>setterPrefix:</b> Recibe un <code>String</code> (por defecto vacío <code>""</code>). Permite añadir un prefijo a los métodos de asignación del builder (por ejemplo, <code>@Builder(setterPrefix = "with")</code> generará métodos como <code>.withFirstName("Luffy")</code>).</li>
+    <li><b>access:</b> Permite restringir la visibilidad de la clase builder y del método <code>builder()</code> utilizando el enumerado <code>lombok.AccessLevel</code> (por defecto <code>AccessLevel.PUBLIC</code>).</li>
+</ul>
+
+<p>Ejemplo personalizando el atributo <code>builderMethodName</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Builder;
+
+@Builder(builderMethodName = "buildingTheThing")
+public class Customer {
+    private Integer id;
+    private String firstName;
+    private String lastName;
+    private String email;
+}
+
+Customer customer = Customer.buildingTheThing()
+        .firstName("Luffy")
+        .lastName("Monkey")
+        .email("luffy_d_monkey@grandline.com")
+        .build();
+</code></pre>
+</div>
+
+<h2>Anotaciones complementarias de @Builder</h2>
+
+<h3>1. @Builder.Default (Valores por defecto)</h3>
+
+<ul>
+    <li><b>@Builder.Default:</b> Cuando inicializamos un atributo directamente en su declaración (por ejemplo, <code>private boolean active = true;</code>), si la clase está anotada con <code>@Builder</code> y no asignamos ese campo al construir el objeto, <b>el valor inicial se perderá</b> y tomará <code>false</code> o <code>null</code> (porque el builder interno tiene sus propios atributos sin inicializar que luego pasa al constructor de todos los argumentos).<br>
+    Para conservar la expresión de inicialización por defecto cuando no se especifica el valor en el builder, es obligatorio anotar el atributo con <code>@Builder.Default</code>.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
+import java.time.LocalDate;
+
+@Getter
+@ToString
+@Builder(toBuilder = true)
+public class Pet {
+
+    private Integer id;
+    private String name;
+
+    // Sin @Builder.Default, si no se llama a .vaccinated(...) valdría false
+    @Builder.Default
+    private boolean vaccinated = true;
+
+    // Se evalúa LocalDate.now() cada vez que se construye un Pet sin indicar registrationDate
+    @Builder.Default
+    private LocalDate registrationDate = LocalDate.now();
+}
+
+// Uso de @Builder.Default y toBuilder = true:
+Pet pet1 = Pet.builder()
+        .id(1)
+        .name("Joe")
+        .build(); // vaccinated es true y registrationDate es la fecha de hoy
+
+// Creamos una copia modificando únicamente el nombre a partir de pet1:
+Pet pet2 = pet1.toBuilder()
+        .id(2)
+        .name("Max")
+        .build();
+</code></pre>
+</div>
+
+<h3>2. @Singular (Colecciones inmutables elemento a elemento)</h3>
+
+<ul>
+    <li><b>@Singular:</b> Esta anotación pertenece a <b>Project Lombok</b>, se encuentra en el paquete <code>lombok.Singular</code> y se coloca sobre atributos de tipo colección o mapa (<code>List</code>, <code>Set</code>, <code>Iterable</code>, <code>Map</code>) dentro de una clase o constructor con <code>@Builder</code>.<br>
+    Al anotar por ejemplo <code>@Singular private List&lt;String&gt; vaccines;</code>, Lombok singulariza automáticamente el nombre en inglés (o permite indicarlo por parámetro como <code>@Singular("vacuna")</code>) y genera tres métodos en el builder:
+        <ul>
+            <li>Un método en singular (<code>.vaccine("Rabia")</code>) para añadir elementos sueltos uno a uno sin tener que instanciar una lista previa.</li>
+            <li>Un método en plural (<code>.vaccines(List.of(...))</code>) para añadir toda una colección de golpe.</li>
+            <li>Un método de limpieza (<code>.clearVaccines()</code>) para vaciar los elementos acumulados en el builder.</li>
+        </ul>
+    Además, la colección resultante tras llamar a <code>.build()</code> es <b>inmutable</b> y nunca es <code>null</code> (si no se añade ningún elemento, devuelve una colección vacía inmutable).</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+import lombok.ToString;
+import java.util.List;
+
+@Getter
+@ToString
+@Builder
+public class PetHealthCard {
+
+    private Integer petId;
+
+    @Singular
+    private List&lt;String&gt; vaccines;
+}
+
+// Añadimos vacunas individualmente sin crear un ArrayList manualmente:
+PetHealthCard card = PetHealthCard.builder()
+        .petId(1)
+        .vaccine("Rabia")
+        .vaccine("Parvovirus")
+        .vaccine("Moquillo")
+        .build();
+</code></pre>
+</div>
+
+<h3>3. @SuperBuilder (Soporte para herencia)</h3>
+
+<ul>
+    <li><b>@SuperBuilder:</b> Esta anotación pertenece al módulo experimental de <b>Project Lombok</b> y se encuentra en el paquete <code>lombok.experimental.SuperBuilder</code>.<br>
+    La anotación estándar <code>@Builder</code> solo contempla los atributos de la propia clase y no incluye los atributos heredados de una superclase. Cuando existe una jerarquía de herencia (por ejemplo, una clase hija <code>Pet</code> que extiende de una clase padre <code>Animal</code>), se debe anotar <b>tanto la clase padre como la clase hija con <code>@SuperBuilder</code></b>. De este modo, el builder generado para la clase hija permitirá encadenar indistintamente los atributos del padre y los de la hija.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
+@Getter
+@ToString
+@SuperBuilder
+public class Animal {
+    private String species;
+    private Short age;
+}
+
+@Getter
+@ToString(callSuper = true)
+@SuperBuilder
+public class Pet extends Animal {
+    private Integer id;
+    private String name;
+}
+
+// El builder de Pet permite asignar atributos tanto de Animal como de Pet:
+Pet pet = Pet.builder()
+        .id(1)
+        .name("Joe")
+        .species("Canis lupus familiaris")
+        .age((short) 4)
+        .build();
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar @Builder y cuándo NO usarlo?</h2>
+
+<ul>
+    <li><b>Cuándo usarlo:</b> En clases con <b>muchos atributos (3 o más)</b>, especialmente cuando varios son opcionales o del mismo tipo, y en la creación de datos de prueba (<i>Test Fixtures</i>) en tests unitarios e integración.</li>
+    <li><b>Cuándo NO usarlo:</b>
+        <ul>
+            <li>En clases con solo 1 o 2 atributos obligatorios donde un constructor normal o un método estático <code>of(id, name)</code> es mucho más directo y ligero.</li>
+            <li>En jerarquías de clases con herencia usando <code>@Builder</code> simple: si la clase hereda de otra, usar <code>@Builder</code> ocultará los campos del padre o dará conflicto de firmas; en ese caso debe usarse siempre <b><code>@SuperBuilder</code></b>.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo: Valores iniciales con <code>@Builder</code></h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Olvidar @Builder.Default hace que 'active' valga false y 'tags' sea null
+@Builder
+public class BadPet {
+    private String name;
+    private boolean active = true; // ¡Lombok ignora este '= true' al usar Pet.builder().name("Joe").build()!
+    private List&lt;String&gt; tags = new ArrayList&lt;&gt;(); // ¡Valdrá null al construir con el builder!
+}
+
+// EJEMPLO (CORRECTO): Uso de @Builder.Default para conservar los valores por defecto
+@Builder
+public class GoodPet {
+    private String name;
+
+    @Builder.Default
+    private boolean active = true;
+
+    @Builder.Default
+    private List&lt;String&gt; tags = new ArrayList&lt;&gt;();
+}
+</code></pre>
+</div>

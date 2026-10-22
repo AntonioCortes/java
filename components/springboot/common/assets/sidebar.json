@@ -25,12 +25,8 @@
                     "content": "component-springboot-conceptos-basicos-dependency-injection"
                 },
                 {
-                    "text": "Estructura",
+                    "text": "Estructura y Arquitectura",
                     "content": "component-springboot-conceptos-basicos-estructura"
-                },
-                {
-                    "text": "Arquitectura de un proyecto",
-                    "content": ""
                 }
             ]
         },
@@ -76,7 +72,7 @@
             "content": [
                 {
                     "text": "Configuración",
-                    "content": "component-springboot-otros-springConfig"
+                    "content": "component-springboot-otros-spring-config"
                 },
                 {
                     "text": "Excepciones",
@@ -98,23 +94,23 @@
                     "content": [
                         {
                             "text": "Introducción",
-                            "content": "component-springboot-librerias-spring-cloud-introduccionSpringCloud"
+                            "content": "component-springboot-librerias-spring-cloud-introduccion-spring-cloud"
                         },
                         {
                             "text": "Open Feign",
-                            "content": "component-springboot-librerias-spring-cloud-openFeign"
+                            "content": "component-springboot-librerias-spring-cloud-open-feign"
                         },
                         {
                             "text": "Eureka server",
-                            "content": "component-springboot-librerias-spring-cloud-eurekaServer"
+                            "content": "component-springboot-librerias-spring-cloud-eureka-server"
                         },
                         {
                             "text": "Trazas distribuidas",
-                            "content": "component-springboot-librerias-spring-cloud-distributedTracing"
+                            "content": "component-springboot-librerias-spring-cloud-distributed-tracing"
                         },
                         {
                             "text": "Load Balancers",
-                            "content": "component-springboot-librerias-spring-cloud-loadBalancers"
+                            "content": "component-springboot-librerias-spring-cloud-load-balancers"
                         }
                     ]
                 },
@@ -123,8 +119,8 @@
                     "contentId": "springSecurity",
                     "content": [
                         {
-                            "text": "Basic Secutiry",
-                            "content": "component-springboot-librerias-spring-security-basic"
+                            "text": "Basic Security",
+                            "content": "component-springboot-librerias-spring-security-basic-security"
                         },
                         {
                             "text": "Microservicios",

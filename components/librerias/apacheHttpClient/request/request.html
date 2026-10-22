@@ -1,2 +1,212 @@
-<h1 class="title">Request</h1>
-TODO:
+<h1 class="title">Construcción y Configuración de Requests en Apache HttpClient</h1>
+
+<p>Para realizar una llamada HTTP con <b>Apache HttpClient</b>, primero es necesario construir un objeto que represente la petición (implementación de la interfaz <code>HttpUriRequest</code>), configurar su URL, sus parámetros de consulta (<i>query params</i>), sus cabeceras HTTP, su cuerpo (si aplica) y sus tiempos máximos de espera (<i>timeouts</i>).</p>
+
+<h2>1. Clases de Métodos HTTP</h2>
+
+<p>En el paquete <b><code>org.apache.http.client.methods.*</code></b> existe una clase específica para cada verbo del protocolo HTTP. Todas ellas reciben en su constructor la URL de destino (como <code>String</code> o como objeto <code>java.net.URI</code>):</p>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Clase Java</th>
+			<th scope="col">Verbo HTTP</th>
+			<th scope="col">¿Admite Body (<code>setEntity</code>)?</th>
+			<th scope="col">Propósito habitual</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b><code>HttpGet</code></b></td>
+			<td><code>GET</code></td>
+			<td>No</td>
+			<td>Consultar y recuperar un recurso o listado de recursos pasando filtros en la URL.</td>
+		</tr>
+		<tr>
+			<td><b><code>HttpPost</code></b></td>
+			<td><code>POST</code></td>
+			<td>Sí</td>
+			<td>Crear un nuevo recurso enviando un JSON, un formulario o un archivo en el cuerpo.</td>
+		</tr>
+		<tr>
+			<td><b><code>HttpPut</code></b></td>
+			<td><code>PUT</code></td>
+			<td>Sí</td>
+			<td>Reemplazar por completo un recurso existente identificado en la ruta.</td>
+		</tr>
+		<tr>
+			<td><b><code>HttpPatch</code></b></td>
+			<td><code>PATCH</code></td>
+			<td>Sí</td>
+			<td>Modificar parcialmente algunos campos de un recurso existente.</td>
+		</tr>
+		<tr>
+			<td><b><code>HttpDelete</code></b></td>
+			<td><code>DELETE</code></td>
+			<td>No</td>
+			<td>Eliminar un recurso identificado por su ruta.</td>
+		</tr>
+		<tr>
+			<td><b><code>HttpHead</code> / <code>HttpOptions</code></b></td>
+			<td><code>HEAD</code> / <code>OPTIONS</code></td>
+			<td>No</td>
+			<td>Obtener únicamente las cabeceras de un recurso o consultar los métodos permitidos por el servidor.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Clases de petición disponibles en el paquete org.apache.http.client.methods</span>
+
+<h2>2. Construcción de URLs y Query Params con <code>URIBuilder</code></h2>
+
+<p>Para evitar errores de codificación de caracteres especiales (espacios, tildes, símbolos <code>&amp;</code>) al concatenar parámetros manualmente en un String, Apache HttpClient incluye la clase <b><code>URIBuilder</code></b> en el paquete <code>org.apache.http.client.utils.URIBuilder</code>.</p>
+
+<p>Permite construir la URL de forma fluida y segura añadiendo todos los parámetros de búsqueda con <code>addParameter(clave, valor)</code> o <code>setParameter(clave, valor)</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import java.net.URI;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+
+// Construye de forma segura: http://localhost:8080/petshop/pet/all?age=4&amp;name=Joe
+URI uri = new URIBuilder()
+		.setScheme("http")
+		.setHost("localhost")
+		.setPort(8080)
+		.setPath("/petshop/pet/all")
+		.addParameter("age", "4")
+		.addParameter("name", "Joe")
+		.build();
+
+HttpGet httpGet = new HttpGet(uri);
+</code></pre>
+</div>
+
+<h2>3. Configuración de Cabeceras HTTP (<i>Headers</i>)</h2>
+
+<p>Las cabeceras permiten indicar al servidor en qué formato se envía el cuerpo (<code>Content-Type</code>), qué formato de respuesta se espera (<code>Accept</code>), credenciales de seguridad (<code>Authorization</code>) o metadatos personalizados. Se recomienda utilizar las constantes estándar de la clase <b><code>org.apache.http.HttpHeaders</code></b>:</p>
+
+<ul>
+	<li><b><code>request.addHeader(nombre, valor)</code>:</b> Añade una nueva cabecera a la petición (si ya existía una con ese nombre, conserva ambas).</li>
+	<li><b><code>request.setHeader(nombre, valor)</code>:</b> Establece el valor de la cabecera sobrescribiendo cualquier valor previo que tuviera esa misma clave.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.HttpGet;
+
+HttpGet request = new HttpGet("http://localhost:8080/petshop/pet/15");
+
+request.setHeader(HttpHeaders.ACCEPT, "application/json");
+request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+request.setHeader(HttpHeaders.USER_AGENT, "PetShop-Client/1.0");
+request.setHeader("X-Request-ID", "98a7bc-1234");
+</code></pre>
+</div>
+
+<h2>4. Envío de Datos en el Cuerpo de la Petición (<code>HttpEntity</code>)</h2>
+
+<p>Las clases que heredan de <code>HttpEntityEnclosingRequestBase</code> (es decir: <b><code>HttpPost</code></b>, <b><code>HttpPut</code></b> y <b><code>HttpPatch</code></b>) disponen del método <b><code>setEntity(HttpEntity entity)</code></b> para adjuntar datos en el cuerpo de la llamada:</p>
+
+<ul>
+	<li><b><code>StringEntity</code> (Paquete <code>org.apache.http.entity.StringEntity</code>):</b>
+		Se utiliza para enviar cadenas de texto como <b>JSON</b> o <b>XML</b>. Es importante especificar siempre el tipo de contenido (<code>ContentType.APPLICATION_JSON</code>, que ya establece la codificación UTF-8 y la cabecera <code>Content-Type: application/json; charset=UTF-8</code>):
+	</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+
+HttpPost postRequest = new HttpPost("http://localhost:8080/petshop/pet");
+
+String jsonBody = "{\"petId\": 10, \"petName\": \"Rocky\", \"age\": 3}";
+StringEntity entity = new StringEntity(jsonBody, ContentType.APPLICATION_JSON);
+
+postRequest.setEntity(entity);
+</code></pre>
+</div>
+
+<ul>
+	<li><b><code>UrlEncodedFormEntity</code> (Paquete <code>org.apache.http.client.entity.UrlEncodedFormEntity</code>):</b>
+		Simula el envío de un formulario HTML tradicional (<code>application/x-www-form-urlencoded</code>) a partir de una lista de pares clave-valor representados con <b><code>NameValuePair</code></b> y <b><code>BasicNameValuePair</code></b> (paquete <code>org.apache.http.message.BasicNameValuePair</code>).
+	</li>
+	<li><b><code>MultipartEntityBuilder</code> (Paquete <code>org.apache.http.entity.mime.MultipartEntityBuilder</code> de la dependencia <code>httpmime</code>):</b>
+		Permite construir peticiones <code>multipart/form-data</code> combinando campos de texto (<code>addTextBody</code>) y archivos binarios o imágenes (<code>addBinaryBody</code>).
+	</li>
+</ul>
+
+<h2>5. Configuración de Timeouts y Redirecciones con <code>RequestConfig</code></h2>
+
+<p>En cualquier entorno de producción es crítico configurar tiempos máximos de espera (<i>timeouts</i>) para evitar que los hilos de nuestra aplicación queden bloqueados indefinidamente si el servidor externo tarda en responder. Esto se realiza mediante la clase <b><code>RequestConfig</code></b> ubicada en el paquete <code>org.apache.http.client.config.RequestConfig</code>:</p>
+
+<ul>
+	<li><b><code>setConnectTimeout(int ms)</code>:</b> Tiempo máximo (en milisegundos) permitido para establecer el <i>handshake</i> TCP inicial con el servidor remoto. Si se supera, lanza <code>ConnectTimeoutException</code>.</li>
+	<li><b><code>setConnectionRequestTimeout(int ms)</code>:</b> Tiempo máximo esperando a que el pool interno de conexiones (<code>ConnectionManager</code>) nos asigne una conexión libre cuando todas están ocupadas.</li>
+	<li><b><code>setSocketTimeout(int ms)</code>:</b> Tiempo máximo de inactividad esperando la llegada de paquetes de datos una vez establecida la conexión (tiempo que tarda el servidor remoto en procesar y devolver la respuesta). Si se supera, lanza <code>SocketTimeoutException</code>.</li>
+	<li><b><code>setRedirectsEnabled(boolean)</code>:</b> Activa o desactiva el seguimiento automático de redirecciones HTTP (códigos <code>301</code>, <code>302</code>, <code>307</code>).</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+
+// Configurar timeouts de 5 segundos (5000 ms)
+RequestConfig requestConfig = RequestConfig.custom()
+		.setConnectTimeout(5000)
+		.setConnectionRequestTimeout(5000)
+		.setSocketTimeout(5000)
+		.setRedirectsEnabled(true)
+		.build();
+
+HttpGet request = new HttpGet("http://localhost:8080/petshop/pet/15");
+request.setConfig(requestConfig);
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar cada tipo de petición y de entidad y cuándo NO usarlos?</h2>
+
+<ul>
+	<li><b><code>HttpGet</code> / <code>HttpDelete</code>:</b> Para consultar o eliminar. <b>No</b> enviar cuerpo en un <code>GET</code>: muchos servidores lo ignoran.</li>
+	<li><b><code>HttpPost</code> / <code>HttpPut</code> / <code>HttpPatch</code>:</b> Para crear, reemplazar o modificar parcialmente. <b>No</b> usar <code>POST</code> para consultas que no modifican datos.</li>
+	<li><b><code>StringEntity</code>:</b> Para JSON o XML. <b>No</b> olvidar el <code>ContentType</code>, o el servidor puede rechazar la petición con un <code>415</code>.</li>
+	<li><b><code>UrlEncodedFormEntity</code>:</b> Para formularios clásicos. <b>No</b> usarla para enviar JSON.</li>
+	<li><b><code>RequestConfig</code>:</b> Siempre en producción. <b>No</b> dejar los timeouts por defecto (infinitos en <code>socketTimeout</code> de HttpClient 4.x).</li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo al Construir una Petición HTTP</h2>
+
+<h3>Contraejemplo (Mala práctica): Concatenar parámetros en la URL a mano y no definir Timeouts</h3>
+<p>Si concatenamos directamente parámetros de búsqueda en el String de la URL (por ejemplo, un nombre con espacios como <code>"San Bernardo"</code> o caracteres especiales) sin usar <code>URIBuilder</code>, el constructor de <code>HttpGet</code> lanzará una excepción <code>IllegalArgumentException: Illegal character in query</code>. Además, si no configuramos un <code>RequestConfig</code> con timeouts, una caída del servidor externo bloqueará los hilos de nuestra aplicación indefinidamente:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): El espacio en blanco en 'San Bernardo' rompe la URI y no hay timeouts configurados
+String breed = "San Bernardo";
+HttpGet badRequest = new HttpGet("http://localhost:8080/petshop/pet/search?breed=" + breed); // ¡Lanza IllegalArgumentException!
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Construir la URI con <code>URIBuilder</code> y aplicar <code>RequestConfig</code></h3>
+<p>Con <code>URIBuilder</code> los espacios y caracteres especiales se codifican automáticamente en formato URL (<code>San+Bernardo</code> o <code>San%20Bernardo</code>) y <code>RequestConfig</code> protege el hilo frente a bloqueos de red:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Codificación segura de parámetros con URIBuilder y protección con RequestConfig
+URI safeUri = new URIBuilder("http://localhost:8080/petshop/pet/search")
+		.addParameter("breed", "San Bernardo")
+		.build();
+
+RequestConfig config = RequestConfig.custom()
+		.setConnectTimeout(3000)
+		.setSocketTimeout(5000)
+		.build();
+
+HttpGet goodRequest = new HttpGet(safeUri);
+goodRequest.setConfig(config);
+</code></pre>
+</div>

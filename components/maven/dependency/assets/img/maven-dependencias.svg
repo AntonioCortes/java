@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.15" />
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1E293B" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#DC2626" />
+    </marker>
+  </defs>
+
+  <rect width="920" height="480" fill="#F8FAFC" rx="10" />
+
+  <text x="460" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1E293B">Mecanismo de Dependencias, Árbol Transitivo y Scopes en Maven</text>
+  <text x="460" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#64748B">Regla de resolución: la declaración más cercana en el árbol prevalece ("Nearest Definition Wins")</text>
+
+  <!-- Project Root -->
+  <g transform="translate(30, 180)" filter="url(#shadow)">
+    <rect width="180" height="110" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+    <rect width="180" height="28" rx="8" fill="#3B82F6" />
+    <rect width="180" height="8" y="20" fill="#3B82F6" />
+    <text x="90" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#DBEAFE">&lt;&lt;proyecto raiz&gt;&gt;</text>
+    <text x="90" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E3A8A">Mi Microservicio</text>
+    <text x="90" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">pom.xml local</text>
+    <text x="90" y="94" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2563EB">Distancia = 0</text>
+  </g>
+
+  <!-- Direct Dep A (Spring Boot Starter Web) -->
+  <g transform="translate(290, 100)" filter="url(#shadow)">
+    <rect width="210" height="100" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+    <rect width="210" height="28" rx="8" fill="#10B981" />
+    <rect width="210" height="8" y="20" fill="#10B981" />
+    <text x="105" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#D1FAE5">&lt;&lt;dependencia directa&gt;&gt;</text>
+    <text x="105" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#065F46">spring-boot-starter-web</text>
+    <text x="105" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">scope: compile</text>
+    <text x="105" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#15803D">Distancia = 1 (Directa)</text>
+  </g>
+
+  <!-- Direct Dep B (Lombok) -->
+  <g transform="translate(290, 260)" filter="url(#shadow)">
+    <rect width="210" height="100" rx="8" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2"/>
+    <rect width="210" height="28" rx="8" fill="#8B5CF6" />
+    <rect width="210" height="8" y="20" fill="#8B5CF6" />
+    <text x="105" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#EDE9FE">&lt;&lt;dependencia directa&gt;&gt;</text>
+    <text x="105" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#5B21B6">org.projectlombok:lombok</text>
+    <text x="105" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">scope: provided</text>
+    <text x="105" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6D28D9">No viaja al JAR final</text>
+  </g>
+
+  <!-- Transitive Dep C (Jackson) from Web -->
+  <g transform="translate(580, 100)" filter="url(#shadow)">
+    <rect width="200" height="100" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+    <rect width="200" height="28" rx="8" fill="#F59E0B" />
+    <rect width="200" height="8" y="20" fill="#F59E0B" />
+    <text x="100" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#FEF3C7">&lt;&lt;dependencia transitiva&gt;&gt;</text>
+    <text x="100" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#92400E">jackson-databind:2.17</text>
+    <text x="100" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Hereda scope compile</text>
+    <text x="100" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#B45309">Distancia = 2 (Transitiva)</text>
+  </g>
+
+  <!-- Conflict Example (Excluded dependency) -->
+  <g transform="translate(580, 260)" filter="url(#shadow)">
+    <rect width="200" height="100" rx="8" fill="#FFF1F2" stroke="#EF4444" stroke-width="2" stroke-dasharray="4"/>
+    <rect width="200" height="28" rx="8" fill="#EF4444" />
+    <rect width="200" height="8" y="20" fill="#EF4444" />
+    <text x="100" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#FEE2E2">&lt;&lt;dependencia excluida&gt;&gt;</text>
+    <text x="100" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#991B1B">commons-logging</text>
+    <text x="100" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#DC2626">&lt;exclusions&gt; en pom.xml</text>
+    <text x="100" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#B91C1C">¡Bloqueada / No se descarga!</text>
+  </g>
+
+  <!-- Arrows -->
+  <path d="M 210 215 L 290 160" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M 210 245 L 290 295" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <path d="M 500 150 L 580 150" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M 500 180 L 580 280" stroke="#DC2626" stroke-dasharray="4" stroke-width="2" marker-end="url(#arrow-red)"/>
+
+  <!-- Legend -->
+  <g transform="translate(110, 420)">
+    <rect width="700" height="40" rx="5" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="20" y="25" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#334155">Scopes:</text>
+    <text x="75" y="25" font-family="Arial, sans-serif" font-size="11" fill="#166534"><b>compile:</b> Todo el ciclo</text>
+    <text x="210" y="25" font-family="Arial, sans-serif" font-size="11" fill="#6D28D9"><b>provided:</b> Solo compilar</text>
+    <text x="360" y="25" font-family="Arial, sans-serif" font-size="11" fill="#D97706"><b>runtime:</b> Solo ejecución</text>
+    <text x="500" y="25" font-family="Arial, sans-serif" font-size="11" fill="#2563EB"><b>test:</b> Solo src/test</text>
+    <text x="635" y="25" font-family="Arial, sans-serif" font-size="11" fill="#DC2626"><b>excl:</b> Bloqueado</text>
+  </g>
+</svg>

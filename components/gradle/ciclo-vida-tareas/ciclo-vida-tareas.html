@@ -10,6 +10,39 @@
 <img class="center-horizontal" src="components/gradle/ciclo-vida-tareas/assets/img/gradle-ciclo-vida-diagram.png">
 <span class="center-horizontal caption">Figura 1: Las 3 fases internas de Gradle y el Grafo Acíclico Dirigido (DAG) de tareas del plugin Java</span>
 
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Fase / Elemento</th>
+            <th scope="col">Nivel Interno</th>
+            <th scope="col">Responsabilidad y Funcionamiento</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">1. Inicialización</th>
+            <td>Ámbito Global</td>
+            <td>Evalúa <code>settings.gradle</code> para determinar el nombre raíz del proyecto y detectar submódulos.</td>
+        </tr>
+        <tr>
+            <th scope="row">2. Configuración</th>
+            <td>Ámbito de Proyecto</td>
+            <td>Ejecuta los scripts <code>build.gradle</code> para registrar objetos <code>Task</code> y tejer el grafo de dependencias en memoria.</td>
+        </tr>
+        <tr>
+            <th scope="row">Grafo Acíclico Dirigido (DAG)</th>
+            <td>Estructura de Datos</td>
+            <td>Ordena topológicamente las tareas asegurando que ninguna tarea se ejecute antes de sus dependencias previas.</td>
+        </tr>
+        <tr>
+            <th scope="row">3. Ejecución</th>
+            <td>Ámbito de Acción</td>
+            <td>Ejecuta únicamente las acciones (<code>doFirst</code> / <code>doLast</code>) de las tareas seleccionadas que no estén <code>UP-TO-DATE</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del ciclo de vida y motor de ejecución</span>
+
 <h2 class="subtitle">1. Las 3 Fases Internas que Ocurren cada vez que Ejecutas un Comando</h2>
 <p>Cada vez que escribes en la terminal un comando como <code class="language-bash">./gradlew build</code>, Gradle ejecuta internamente tres fases en estricto orden:</p>
 
@@ -82,7 +115,36 @@
         </tr>
     </tbody>
 </table>
-<span class="center-horizontal caption">Tabla 1: Tareas estándar de construcción en cualquier proyecto Java con Gradle</span>
+<span class="center-horizontal caption">Tabla 2: Tareas estándar de construcción en cualquier proyecto Java con Gradle</span>
+
+<h2 class="subtitle">¿Cuándo Crear Tareas Personalizadas y Cuándo NO?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Práctica Adecuada</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Generar código desde esquemas OpenAPI, Avro o WSDL</td>
+            <td><b>NO</b> reinventar</td>
+            <td>Usar plugins oficiales consolidados (ej. <code>org.openapi.generator</code>, <code>com.github.davidmc24.gradle.plugin.avro</code>).</td>
+        </tr>
+        <tr>
+            <td>Compilar, testear o empaquetar un JAR</td>
+            <td><b>NO</b> reprogramar</td>
+            <td>Usar el plugin estándar <code>java</code> o <code>org.springframework.boot</code>.</td>
+        </tr>
+        <tr>
+            <td>Copiar archivos a un servidor Docker o renombrar artefactos finales</td>
+            <td><b>SÍ</b> crear tarea</td>
+            <td>Registrar una tarea de tipo <code>Copy</code> o <code>Zip</code> con <code>tasks.register(...)</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Criterios para escribir tareas propias frente a plugins</span>
 
 <h2 class="subtitle">3. Cómo Crear Tus Propias Tareas Personalizadas en <code class="language-bash">build.gradle</code></h2>
 <p>Una de las mayores ventajas de Gradle frente a Maven es lo fácil que resulta crear tus propias tareas automatizadas (por ejemplo, imprimir información, copiar archivos, generar un ZIP o ejecutar un test de integración especial).</p>
@@ -145,3 +207,29 @@ BUILD SUCCESSFUL in 450ms
 </code></pre>
 </div>
 <span class="center-horizontal caption">Ejecución por consola de nuestra tarea personalizada</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo: El Error más Frecuente en Tareas de Gradle</h2>
+
+<h3>Ejemplo (Buena Práctica): Uso de tasks.register y doLast</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Registra la tarea de forma perezosa (lazy configuration) y solo ejecuta el código cuando se invoca
+tasks.register('generarReporte') {
+    doLast {
+        println "Generando reporte de entrega..."
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Acción diferida correcta: solo corre si se invoca ./gradlew generarReporte</span>
+
+<h3>Contraejemplo (Mala Práctica): Escribir lógica de ejecución fuera de doLast</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// ¡ERROR CLÁSICO! Este bloque NO tiene doLast: se ejecuta SIEMPRE en la Fase 2 (Configuración)
+tasks.register('generarReporte') {
+    println "Generando reporte de entrega..." // ¡Se ejecuta con cualquier comando, como ./gradlew tasks o ./gradlew clean!
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: ralentiza todas las invocaciones de Gradle al ejecutar lógica durante la configuración</span>

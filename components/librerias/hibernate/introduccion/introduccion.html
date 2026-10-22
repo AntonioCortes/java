@@ -1,0 +1,259 @@
+<h1 class="title">Hibernate ORM - Introducción y Arquitectura</h1>
+
+<p><b>Hibernate ORM</b> es el framework de <b>Mapeo Objeto-Relacional (ORM)</b> más utilizado en el ecosistema Java. Su objetivo principal es resolver el <i>desajuste de impedancia objeto-relacional</i>, permitiendo asociar clases Java (<b>Entidades</b> como <code>Pet</code> o <code>EmployeeEntity</code>) directamente con tablas de una base de datos relacional (PostgreSQL, MySQL, Oracle, H2, SQL Server) y traducir automáticamente las operaciones sobre objetos en sentencias SQL optimizadas.</p>
+
+<h2>Relación entre JPA e Hibernate</h2>
+
+<p>Es muy común confundir los términos <b>JPA</b> e <b>Hibernate</b>, pero cumplen roles distintos y complementarios:</p>
+<ul>
+	<li><b>JPA (Jakarta Persistence API / anteriormente Javax Persistence API):</b> Es únicamente una <b>especificación oficial</b> compuesta por interfaces (como <code>EntityManagerFactory</code>, <code>EntityManager</code>, <code>EntityTransaction</code>) y anotaciones estándar (<code>@Entity</code>, <code>@Table</code>, <code>@Id</code>, <code>@Column</code>, <code>@OneToMany</code>) en el paquete <code>javax.persistence.*</code> (o <code>jakarta.persistence.*</code> desde JPA 3.0 / Spring Boot 3). JPA por sí sola no ejecuta nada; define el contrato.</li>
+	<li><b>Hibernate ORM:</b> Es la <b>implementación real</b> más popular de la especificación JPA. Provee todo el motor que ejecuta por debajo las interfaces de JPA y, además, ofrece su propia API nativa (<code>SessionFactory</code>, <code>Session</code>, <code>Transaction</code> en el paquete <code>org.hibernate.*</code>) con funcionalidades adicionales avanzadas.</li>
+</ul>
+
+<h2>Dependencias necesarias</h2>
+
+<h3>1. En un proyecto Java estándar (Hibernate puro)</h3>
+<p>En <b>Maven (<code>pom.xml</code>)</b> se añade <code>hibernate-core</code> junto con el driver JDBC de la base de datos (por ejemplo MySQL o PostgreSQL):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependencies&gt;
+	&lt;!-- Motor principal de Hibernate ORM --&gt;
+	&lt;dependency&gt;
+		&lt;groupId&gt;org.hibernate.orm&lt;/groupId&gt;
+		&lt;artifactId&gt;hibernate-core&lt;/artifactId&gt;
+		&lt;version&gt;6.2.7.Final&lt;/version&gt;
+	&lt;/dependency&gt;
+
+	&lt;!-- Driver JDBC (Ejemplo con MySQL) --&gt;
+	&lt;dependency&gt;
+		&lt;groupId&gt;com.mysql&lt;/groupId&gt;
+		&lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;
+		&lt;version&gt;8.0.33&lt;/version&gt;
+	&lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<p>En <b>Gradle (<code>build.gradle</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+	implementation 'org.hibernate.orm:hibernate-core:6.2.7.Final'
+	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
+}
+</code></pre>
+</div>
+
+<h3>2. En un proyecto Spring Boot</h3>
+<p>En <b>Spring Boot</b> se utiliza el starter <code>spring-boot-starter-data-jpa</code>, el cual ya incluye transitivamente <b>Hibernate ORM</b> como proveedor de persistencia por defecto, además de Spring Data JPA y el pool de conexiones HikariCP:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+	&lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Diagrama de componentes</h2>
+
+<img class="center-horizontal" src="components/librerias/hibernate/introduccion/assets/img/hibernate-componentes.svg">
+<span class="center-horizontal caption">Figura 1: Componentes principales de Hibernate y su relación</span>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Elemento</th>
+			<th scope="col">Tipo</th>
+			<th scope="col">Responsabilidad</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><code>hibernate.cfg.xml</code> / <code>persistence.xml</code></td>
+			<td>Archivo de configuración</td>
+			<td>Define conexión, dialecto y entidades mapeadas.</td>
+		</tr>
+		<tr>
+			<td><code>SessionFactory</code></td>
+			<td>Interfaz</td>
+			<td>Se crea una vez (singleton, <i>thread-safe</i>) y fabrica sesiones.</td>
+		</tr>
+		<tr>
+			<td><code>Session</code></td>
+			<td>Interfaz</td>
+			<td>Unidad de trabajo con la BD y contexto de persistencia (caché de primer nivel).</td>
+		</tr>
+		<tr>
+			<td><code>Transaction</code></td>
+			<td>Interfaz</td>
+			<td>Agrupa operaciones de escritura con <code>commit()</code> / <code>rollback()</code>.</td>
+		</tr>
+		<tr>
+			<td><code>Pet</code></td>
+			<td>Clase (entidad JPA)</td>
+			<td>Se traduce a una fila de la tabla <code>pet</code>.</td>
+		</tr>
+		<tr>
+			<td>PostgreSQL / MySQL</td>
+			<td>Base de datos</td>
+			<td>Recibe el SQL generado por Hibernate.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del diagrama de componentes de Hibernate</span>
+
+<h2>Componentes Principales de la Arquitectura</h2>
+
+<ul>
+	<li><b>SessionFactory (Hibernate) / EntityManagerFactory (JPA):</b>
+		Ubicados en <code>org.hibernate.SessionFactory</code> y <code>javax.persistence.EntityManagerFactory</code>. Es un objeto pesado e inmutable (<i>thread-safe</i>) que se crea <b>una única vez al arrancar la aplicación</b> (patrón Singleton) tras leer el archivo de configuración (<code>hibernate.cfg.xml</code> o <code>persistence.xml</code>). Contiene los metadatos de todas las entidades mapeadas, la configuración del dialecto SQL, el pool de conexiones y la caché de segundo nivel.
+	</li>
+
+	<li><b>Session (Hibernate) / EntityManager (JPA):</b>
+		Ubicados en <code>org.hibernate.Session</code> y <code>javax.persistence.EntityManager</code>. Es un objeto ligero y de corta vida (<b>no</b> es <i>thread-safe</i>) que se abre por cada petición o unidad de trabajo a partir de la factoría. Representa una conexión activa con la base de datos y mantiene la <b>caché de primer nivel (Contexto de Persistencia)</b> donde residen las entidades gestionadas.
+	</li>
+
+	<li><b>Transaction (Hibernate) / EntityTransaction (JPA):</b>
+		Ubicados en <code>org.hibernate.Transaction</code> y <code>javax.persistence.EntityTransaction</code>. Agrupa un conjunto de operaciones de escritura (inserciones, actualizaciones, borrados) para que se ejecuten de forma atómica mediante <code>begin()</code>, <code>commit()</code> y, en caso de fallo, <code>rollback()</code>.
+	</li>
+</ul>
+
+<h2>Estados del Ciclo de Vida de una Entidad</h2>
+
+<img class="center-horizontal" src="components/librerias/hibernate/introduccion/assets/img/hibernate-estados.svg">
+<span class="center-horizontal caption">Figura 2: Estados de una entidad y métodos que provocan cada transición</span>
+
+<p>Cualquier instancia de una clase anotada con <code>@Entity</code> (como <code>Pet</code>) pasa por cuatro posibles estados respecto al contexto de persistencia (<code>Session</code> / <code>EntityManager</code>):</p>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Estado</th>
+			<th scope="col">¿Está en el Contexto de Persistencia (Session)?</th>
+			<th scope="col">¿Tiene fila asociada en Base de Datos?</th>
+			<th scope="col">Cómo llega a este estado y comportamiento</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>1. Transient (Transitorio)</b></td>
+			<td>No</td>
+			<td>No</td>
+			<td>Objeto recién instanciado con <code>new Pet()</code>. Hibernate aún no sabe nada de él; si no se guarda, el recolector de basura lo eliminará.</td>
+		</tr>
+		<tr>
+			<td><b>2. Persistent / Managed (Persistente)</b></td>
+			<td>Sí</td>
+			<td>Sí (o se insertará al hacer <code>commit</code>)</td>
+			<td>Tras llamar a <code>persist()</code> / <code>save()</code> o al recuperarlo con <code>find()</code> / <code>get()</code>. Cualquier cambio en sus atributos con <code>set...()</code> es detectado automáticamente por Hibernate (<i>Dirty Checking</i>) y sincronizado con la BD al cerrar la transacción.</td>
+		</tr>
+		<tr>
+			<td><b>3. Detached (Separado)</b></td>
+			<td>No</td>
+			<td>Sí</td>
+			<td>Cuando se cierra la sesión (<code>session.close()</code>) o se llama a <code>detach()</code> / <code>evict()</code>. El objeto sigue existiendo en memoria con su ID, pero los cambios que se le hagan no se guardarán en BD a menos que se vuelva a asociar con <code>merge()</code> o <code>update()</code>.</td>
+		</tr>
+		<tr>
+			<td><b>4. Removed (Eliminado)</b></td>
+			<td>Sí (marcado para borrado)</td>
+			<td>Se borrará al hacer <code>commit</code></td>
+			<td>Tras invocar <code>remove()</code> o <code>delete()</code> sobre una entidad persistente. Al confirmar la transacción se ejecutará la sentencia <code>DELETE FROM ...</code>.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Estados del ciclo de vida de una entidad en Hibernate y JPA</span>
+
+<h2>Propiedades Clave de Configuración (<code>hibernate.cfg.xml</code>)</h2>
+
+<ul>
+	<li><b><code>hibernate.connection.driver_class</code>, <code>url</code>, <code>username</code>, <code>password</code>:</b> Datos de conexión JDBC hacia el motor de base de datos.</li>
+	<li><b><code>hibernate.dialect</code>:</b> Clase del paquete <code>org.hibernate.dialect.*</code> (ej. <code>MySQLDialect</code>, <code>PostgreSQLDialect</code>) que indica a Hibernate cómo generar el SQL específico de ese fabricante (paginación, tipos de datos, secuencias).</li>
+	<li><b><code>hibernate.show_sql</code> y <code>hibernate.format_sql</code>:</b> Si están a <code>true</code>, muestran por consola las consultas SQL que Hibernate genera y ejecuta internamente.</li>
+	<li><b><code>hibernate.hbm2ddl.auto</code>:</b> Controla cómo actúa Hibernate sobre el esquema DDL de la base de datos al arrancar la <code>SessionFactory</code>:
+		<ul>
+			<li><b><code>none</code>:</b> No realiza ninguna acción ni validación sobre el esquema.</li>
+			<li><b><code>validate</code>:</b> Valida que las tablas y columnas existentes en la base de datos coincidan con las clases <code>@Entity</code>; si falta algo, lanza una excepción al arrancar (opción recomendada en producción junto con Flyway).</li>
+			<li><b><code>update</code>:</b> Añade automáticamente tablas o columnas nuevas si se han añadido en las entidades Java, sin borrar los datos existentes (útil en desarrollo rápido, desaconsejado en producción).</li>
+			<li><b><code>create</code>:</b> Elimina las tablas existentes al arrancar y las vuelve a crear desde cero limpias.</li>
+			<li><b><code>create-drop</code>:</b> Crea las tablas al arrancar la aplicación y las elimina automáticamente al cerrar la <code>SessionFactory</code> (ideal para tests de integración con bases de datos en memoria como H2).</li>
+		</ul>
+	</li>
+</ul>
+
+<h2>¿Cuándo usar Hibernate ORM y cuándo NO usarlo?</h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Escenario</th>
+			<th scope="col">¿Cuándo SÍ usarlo? (Recomendado)</th>
+			<th scope="col">¿Cuándo NO usarlo? (Desaconsejado / Alternativas)</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Aplicaciones de Negocio y Dominio Rico</b></td>
+			<td>Cuando se trabaja con un modelo de dominio orientado a objetos con relaciones entre entidades (1:1, 1:N, N:M), operaciones transaccionales CRUD y se busca independencia del motor SQL.</td>
+			<td>En procesos de extracción y carga masiva de millones de filas (<b>ETL / Batch pesado</b>) o generación de informes analíticos con decenas de subconsultas y funciones ventana, donde el contexto de persistencia de Hibernate consumiría demasiada memoria RAM (allí es mejor usar <b>Spring JDBC / JdbcTemplate</b>, <b>jOOQ</b> o <b>MyBatis</b>).</td>
+		</tr>
+		<tr>
+			<td><b>Carga de Relaciones (FetchType)</b></td>
+			<td>Configurar las relaciones como <b><code>FetchType.LAZY</code></b> para cargar los objetos hijos únicamente cuando se necesiten, o traerlos en una sola consulta con <code>JOIN FETCH</code>.</td>
+			<td><b>No usar <code>FetchType.EAGER</code> en todas las relaciones</b>: provoca que una simple consulta de una entidad dispare decenas de <code>JOIN</code> o consultas secundarias innecesarias (el problema de las <b><i>N+1 queries</i></b>).</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Cuándo utilizar Hibernate ORM y cuándo optar por alternativas SQL directas</span>
+
+<h2>Ejemplo y Contraejemplo: Creación de <code>SessionFactory</code> y Ciclo de Vida de <code>Session</code></h2>
+
+<h3>Contraejemplo (Mala práctica): Crear un <code>SessionFactory</code> en cada método y no cerrar la <code>Session</code> en caso de error</h3>
+<p>Construir una <code>SessionFactory</code> requiere parsear el XML, inspeccionar todas las clases <code>@Entity</code> por reflexión y abrir el pool de conexiones. Si se crea dentro de un método de negocio o si no se hace <code>rollback()</code> ni se cierra la <code>Session</code> dentro de un bloque <code>try-with-resources</code> / <code>finally</code>, la aplicación agotará todas las conexiones disponibles de la base de datos en pocos segundos:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Crea una SessionFactory por llamada y deja la conexión abierta si salta una excepción
+public void savePetBad(Pet pet) 
+{
+	// ¡Error grave! Crear SessionFactory aquí tarda segundos y abre un nuevo pool entero
+	SessionFactory sf = new Configuration().configure().buildSessionFactory();
+	Session session = sf.openSession();
+	session.beginTransaction();
+
+	session.persist(pet); // Si aquí lanza ConstraintViolationException, nunca se llega al close()
+	session.getTransaction().commit();
+	session.close();
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Reutilizar el Singleton <code>SessionFactory</code> y gestionar transacciones con <code>try-with-resources</code></h3>
+<p>La <code>SessionFactory</code> se instancia una sola vez para toda la aplicación, mientras que cada operación abre una <code>Session</code> ligera dentro de un bloque <code>try-with-resources</code> garantizando el <code>rollback</code> en caso de error y el cierre automático de la sesión:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Reutiliza el Singleton SessionFactory, hace rollback si falla y cierra siempre la Session
+public void savePetGood(Pet pet) 
+{
+	Transaction tx = null;
+	try (Session session = HibernateUtil.getSessionFactory().openSession()) 
+	{
+		tx = session.beginTransaction();
+		session.persist(pet);
+		tx.commit();
+	} 
+	catch (Exception ex) 
+	{
+		if (tx != null &amp;&amp; tx.isActive()) 
+		{
+			tx.rollback();
+		}
+		throw ex;
+	}
+}
+</code></pre>
+</div>

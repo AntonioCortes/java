@@ -1,7 +1,15 @@
-<h1 class="title">Inserción</h1>
+<h1 class="title">Inserción de Entidades en Hibernate y JPA</h1>
+
+<p>Para insertar un nuevo registro en la base de datos utilizando <b>Hibernate</b>, primero se instancia el objeto entidad en memoria (estado <i>Transient</i>), se abre una sesión y una transacción activa, se pasa el objeto al contexto de persistencia mediante <code>persist()</code> o <code>save()</code> (pasando a estado <i>Persistent</i>), y finalmente se confirma la transacción con <code>commit()</code> para que Hibernate ejecute el <code>INSERT INTO</code> en la base de datos.</p>
+
+<p>Existen dos formas de realizar este proceso: utilizando la <b>interfaz estándar de JPA (<code>EntityManager</code>)</b> o utilizando la <b>API nativa de Hibernate (<code>Session</code>)</b>.</p>
+
+<h2>1. Inserción mediante el estándar JPA (<code>EntityManager</code>)</h2>
+
+<p>Cuando se trabaja a través de la especificación estándar <b>JPA</b> (paquete <code>javax.persistence.*</code> o <code>jakarta.persistence.*</code>), se utiliza la clase <code>Persistence</code> para levantar la factoría a partir del archivo <code>META-INF/persistence.xml</code> y se emplea el método <b><code>entityManager.persist(entidad)</code></b>:</p>
 
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
 EntityManagerFactory emfactory = Persistence.createEntityManagerFactory("Hibernate");
 
 EntityManager entitymanager = emfactory.createEntityManager();
@@ -17,35 +25,92 @@ emfactory.close();
 </code></pre>
 </div>
 
-<h2>Todo el proceso:</h2>
+<p><b>Explicación paso a paso del fragmento anterior:</b></p>
+<ul>
+	<li><b><code>Persistence.createEntityManagerFactory("Hibernate")</code>:</b> Busca en el archivo <code>persistence.xml</code> la unidad de persistencia llamada <code>"Hibernate"</code> y construye la factoría de conexiones.</li>
+	<li><b><code>emfactory.createEntityManager()</code>:</b> Abre un nuevo contexto de persistencia (equivalente a una sesión).</li>
+	<li><b><code>entitymanager.getTransaction().begin()</code>:</b> Inicia una transacción de base de datos. En JPA todas las operaciones de escritura (inserción, modificación o borrado) requieren obligatoriamente una transacción activa.</li>
+	<li><b><code>entitymanager.persist(author)</code>:</b> Registra la instancia <code>author</code> dentro del contexto de persistencia para que sea insertada.</li>
+	<li><b><code>entitymanager.getTransaction().commit()</code>:</b> Vuelca los cambios pendientes (<i>flush</i>), ejecuta la sentencia SQL <code>INSERT</code> y confirma la transacción en la base de datos.</li>
+	<li><b><code>close()</code>:</b> Libera la conexión y cierra los recursos.</li>
+</ul>
 
-<h3>Creación del archivo de configuración</h3>
+<h2>2. Todo el proceso con la API nativa de Hibernate (<code>SessionFactory</code> y <code>Session</code>)</h2>
+
+<p>Cuando se utiliza directamente la API nativa de <b>Hibernate</b> sin intermediarios, el flujo completo consta de: definir el archivo XML de configuración (<code>hibernate.cfg.xml</code>), mapear la clase entidad, construir el singleton <code>SessionFactory</code> y abrir una <code>Session</code> para guardar el objeto.</p>
+
+<h3>Paso 1: Creación del archivo de configuración (<code>hibernate.cfg.xml</code>)</h3>
+
+<p>El archivo <code>hibernate.cfg.xml</code> se ubica en la raíz de recursos (<code>src/main/resources/</code>) y define los parámetros de conexión JDBC, el dialecto SQL, el comportamiento de creación de tablas (<code>hbm2ddl.auto</code>) y las clases de entidad registradas mediante la etiqueta <code>&lt;mapping&gt;</code>:</p>
 
 <div class="center-horizontal">
-<pre class="language-xml"><code>
-< ?xml version="1.0" encoding="utf-8"?>
-< !DOCTYPE hibernate-configuration PUBLIC 
+<pre><code class="language-xml">
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!DOCTYPE hibernate-configuration PUBLIC 
 "-//Hibernate/Hibernate Configuration DTD 3.0//EN" 
-"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
-< hibernate-configuration>
-    < session-factory>
-        < property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</>
-        < property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hibernatedemo</>
-        < property name="hibernate.connection.password">password</>
-        < property name="hibernate.connection.username">root</>
-        < property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</>
-        < property name="show_sql">true</>
-        < property name="hbm2ddl.auto">create</>
-        < mapping class="hibernate.test.dto.EmployeeEntity"></>
-    < />
-< />
+"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd"&gt;
+&lt;hibernate-configuration&gt;
+    &lt;session-factory&gt;
+        &lt;property name="hibernate.connection.driver_class"&gt;com.mysql.jdbc.Driver&lt;/property&gt;
+        &lt;property name="hibernate.connection.url"&gt;jdbc:mysql://localhost:3306/hibernatedemo&lt;/property&gt;
+        &lt;property name="hibernate.connection.password"&gt;password&lt;/property&gt;
+        &lt;property name="hibernate.connection.username"&gt;root&lt;/property&gt;
+        &lt;property name="hibernate.dialect"&gt;org.hibernate.dialect.MySQLDialect&lt;/property&gt;
+        &lt;property name="show_sql"&gt;true&lt;/property&gt;
+        &lt;property name="hbm2ddl.auto"&gt;create&lt;/property&gt;
+        &lt;mapping class="hibernate.test.dto.EmployeeEntity"&gt;&lt;/mapping&gt;
+    &lt;/session-factory&gt;
+&lt;/hibernate-configuration&gt;
 </code></pre>
 </div>
 
-<h3>Creación de una session factory</h3>
+<h3>Paso 2: Definición de la Entidad mapeada (<code>EmployeeEntity</code>)</h3>
+
+<p>La clase indicada en <code>&lt;mapping class="..."&gt;</code> se anota con las anotaciones de persistencia (<code>@Entity</code>, <code>@Table</code>, <code>@Id</code>, <code>@GeneratedValue</code> y <code>@Column</code>) para vincular cada atributo con su columna en la tabla:</p>
 
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
+package hibernate.test.dto;
+
+import java.io.Serializable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import lombok.Data;
+
+@Data
+@Entity
+@Table(name = "EMPLOYEE")
+public class EmployeeEntity implements Serializable 
+{
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID", unique = true, nullable = false)
+    private Integer employeeId;
+
+    @Column(name = "EMAIL", unique = true, nullable = false, length = 100)
+    private String email;
+
+    @Column(name = "FIRST_NAME", nullable = false, length = 100)
+    private String firstName;
+
+    @Column(name = "LAST_NAME", nullable = false, length = 100)
+    private String lastName;
+}
+</code></pre>
+</div>
+
+<h3>Paso 3: Creación de una <code>SessionFactory</code> (<code>HibernateUtil</code>)</h3>
+
+<p>Como crear la instancia de <code>SessionFactory</code> es una operación muy costosa, se encapsula en una clase de utilidad (<code>HibernateUtil</code>) siguiendo el patrón <b>Singleton</b> para inicializarla una única vez al cargar la clase en memoria y reutilizarla durante toda la ejecución de la aplicación:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
 public class HibernateUtil 
 {
     private static final SessionFactory sessionFactory = buildSessionFactory();
@@ -76,10 +141,14 @@ public class HibernateUtil
 </code></pre>
 </div>
 
-<h3>Ejemplo de inserción</h3>
+<p><i>Nota sobre versiones modernas de Hibernate (Hibernate 4.3 / 5 / 6):</i> La clase <code>AnnotationConfiguration</code> se fusionó dentro de <code>org.hibernate.cfg.Configuration</code>, por lo que en versiones actuales basta con invocar <code>new Configuration().configure().buildSessionFactory()</code>.</p>
+
+<h3>Paso 4: Ejemplo de inserción con <code>Session.save()</code></h3>
+
+<p>Una vez lista la clase <code>HibernateUtil</code>, se abre una sesión mediante <code>openSession()</code>, se inicia la transacción con <code>beginTransaction()</code>, se instancia y rellena el objeto <code>EmployeeEntity</code>, y se guarda con <code>session.save(emp)</code> antes de confirmar la transacción:</p>
 
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
 public class TestHibernateInsert 
 {
 
@@ -101,6 +170,104 @@ public class TestHibernateInsert
         session.getTransaction().commit();
         HibernateUtil.shutdown();
     }
+}
+</code></pre>
+</div>
+
+<h2>Diferencia entre <code>persist()</code> y <code>save()</code></h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Característica</th>
+			<th scope="col"><code>persist(Object entity)</code></th>
+			<th scope="col"><code>save(Object entity)</code></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Especificación</b></td>
+			<td>Estándar <b>JPA</b> (presente tanto en <code>EntityManager</code> como en <code>Session</code>).</td>
+			<td>Propio de la API nativa de <b>Hibernate</b> (deprecado en Hibernate 6 en favor de <code>persist</code>).</td>
+		</tr>
+		<tr>
+			<td><b>Tipo de retorno</b></td>
+			<td><code>void</code> (modifica directamente la instancia pasada por parámetro asignándole su ID).</td>
+			<td><code>Serializable</code> (devuelve el identificador generado para la entidad).</td>
+		</tr>
+		<tr>
+			<td><b>Comportamiento con entidades <i>Detached</i></b></td>
+			<td>Lanza una excepción <code>PersistentObjectException</code> si se intenta pasar una entidad que ya estaba separada.</td>
+			<td>Puede llegar a insertar un registro duplicado en la base de datos.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Comparativa entre los métodos persist() de JPA y save() de Hibernate</span>
+
+<h2>Anotaciones de JPA usadas en la entidad</h2>
+
+<ul>
+	<li><b>@Entity:</b> Pertenece a JPA, se encuentra en <code>javax.persistence.Entity</code> (<code>jakarta.persistence.Entity</code> desde JPA 3 / Spring Boot 3). Se coloca sobre la clase e indica que se mapea a una tabla. Por defecto la tabla se llama como la clase. Requiere un constructor sin argumentos y un atributo <code>@Id</code>.</li>
+	<li><b>@Table:</b> Pertenece a JPA, <code>javax.persistence.Table</code>. Se coloca sobre la clase. Parámetro <code>name</code>: nombre de la tabla (si no se indica, usa el nombre de la clase). Otros parámetros: <code>schema</code> y <code>uniqueConstraints</code>.</li>
+	<li><b>@Id:</b> Pertenece a JPA, <code>javax.persistence.Id</code>. Se coloca sobre el atributo que es la clave primaria.</li>
+	<li><b>@GeneratedValue:</b> Pertenece a JPA, <code>javax.persistence.GeneratedValue</code>. Se coloca junto a <code>@Id</code> para que la clave se genere automáticamente. Parámetro <code>strategy</code> (enum <code>GenerationType</code>):
+		<ul>
+			<li><b>IDENTITY:</b> Usa una columna autoincremental de la base de datos (MySQL, SQL Server, PostgreSQL con <code>SERIAL</code>).</li>
+			<li><b>SEQUENCE:</b> Usa una secuencia de la base de datos (Oracle, PostgreSQL); permite agrupar inserciones en lote.</li>
+			<li><b>TABLE:</b> Usa una tabla auxiliar para simular la secuencia; es el más lento y está en desuso.</li>
+			<li><b>AUTO:</b> Valor por defecto; el proveedor (Hibernate) elige la estrategia según el dialecto.</li>
+		</ul>
+	</li>
+	<li><b>@Column:</b> Pertenece a JPA, <code>javax.persistence.Column</code>. Se coloca sobre un atributo. Sin ella, la columna se llama como el atributo. Parámetros: <code>name</code> (nombre de columna), <code>nullable</code> (por defecto <code>true</code>), <code>unique</code> (por defecto <code>false</code>) y <code>length</code> (por defecto 255 en <code>String</code>).</li>
+</ul>
+
+<h2>¿Cuándo usar <code>persist()</code> / <code>save()</code> y cuándo NO usarlos?</h2>
+
+<ul>
+	<li><b>Cuándo usarlos:</b> Para insertar una entidad <i>Transient</i> nueva dentro de una transacción activa. Se prefiere <code>persist()</code> (estándar JPA) por ser portable.</li>
+	<li><b>Cuándo NO usarlos:</b> Para actualizar una entidad ya existente y separada de la sesión (<i>Detached</i>): ahí se usa <code>merge()</code>. Tampoco si la entidad ya está en estado <i>Persistent</i>: los cambios se guardan solos por <i>Dirty Checking</i>.</li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo al Insertar Entidades</h2>
+
+<h3>Contraejemplo (Mala práctica): Llamar a <code>persist()</code> sin una transacción activa o asignando manualmente un ID autogenerado</h3>
+<p>Si una entidad tiene su clave primaria anotada con <code>@GeneratedValue(strategy = GenerationType.IDENTITY)</code> y le asignamos manualmente un ID antes de llamar a <code>persist()</code>, Hibernate creerá que la entidad ya existía en base de datos (estado <i>Detached</i>) y lanzará una excepción <code>PersistentObjectException: detached entity passed to persist</code>. Además, si olvidamos abrir y confirmar la transacción, el registro jamás se escribirá en la tabla:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Asignar ID manual a un campo @GeneratedValue y olvidar la transacción
+try (Session session = HibernateUtil.getSessionFactory().openSession()) 
+{
+	EmployeeEntity emp = new EmployeeEntity();
+	emp.setEmployeeId(99); // ¡Error! Al tener @GeneratedValue, Hibernate lo rechaza en persist()
+	emp.setEmail("lokesh@mail.com");
+
+	// Sin beginTransaction() ni commit(), el INSERT nunca se confirma en la base de datos
+	session.persist(emp);
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Dejar que la base de datos genere el <code>@Id</code> dentro de una transacción</h3>
+<p>Cuando el campo <code>@Id</code> usa <code>@GeneratedValue</code>, se deja a <code>null</code> al instanciar el objeto y se ejecuta <code>persist()</code> dentro de una transacción activa; tras el <code>commit()</code>, Hibernate rellena automáticamente el ID generado en el propio objeto:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Sin asignar el ID autogenerado y confirmando la transacción
+try (Session session = HibernateUtil.getSessionFactory().openSession()) 
+{
+	session.beginTransaction();
+
+	EmployeeEntity emp = new EmployeeEntity();
+	emp.setEmail("lokesh@mail.com");
+	emp.setFirstName("lokesh");
+	emp.setLastName("gupta");
+
+	session.persist(emp);
+	session.getTransaction().commit();
+
+	// Hibernate ya ha asignado automáticamente el ID generado por la BD
+	System.out.println("ID asignado: " + emp.getEmployeeId());
 }
 </code></pre>
 </div>

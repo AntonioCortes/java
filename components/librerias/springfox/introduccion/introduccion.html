@@ -1,0 +1,315 @@
+<h1 class="title">SpringFox y Swagger (OpenAPI) - Introducción y Configuración</h1>
+
+<p><b>Swagger</b> (actualmente estandarizado bajo el nombre <b>OpenAPI Specification</b>) es el estándar de la industria para describir, documentar y consumir APIs RESTful. Por su parte, <b>SpringFox</b> es la librería que se integra con <b>Spring Boot</b> para inspeccionar en tiempo de ejecución todos los controladores (<code>@RestController</code>), métodos HTTP y DTOs del proyecto y generar automáticamente tanto el descriptor JSON de la API como la interfaz gráfica web <b>Swagger UI</b>.</p>
+
+<p>Gracias a Swagger UI, cualquier desarrollador front-end, tester o consumidor del microservicio puede consultar en el navegador todos los endpoints disponibles, qué parámetros reciben, cómo son los esquemas JSON de entrada/salida y <b>ejecutar peticiones de prueba directamente desde el navegador</b> sin necesidad de herramientas externas como Postman.</p>
+
+<h2>Evolución: SpringFox (Swagger 2) frente a SpringDoc (OpenAPI 3)</h2>
+
+<ul>
+	<li><b>SpringFox (Swagger 2 / OpenAPI 3):</b> Basado en las anotaciones clásicas del paquete <code>io.swagger.annotations.*</code> (como <code>@Api</code>, <code>@ApiOperation</code>, <code>@ApiParam</code>, <code>@ApiModel</code>, <code>@ApiModelProperty</code>). Fue el estándar de facto en proyectos <b>Spring Boot 2.x</b> (con <code>javax.*</code>).</li>
+	<li><b>SpringDoc OpenAPI (OpenAPI 3):</b> Librería moderna basada en las anotaciones de <code>io.swagger.v3.oas.annotations.*</code> (como <code>@Tag</code>, <code>@Operation</code>, <code>@Parameter</code>, <code>@Schema</code>). Es la opción recomendada para proyectos nuevos en <b>Spring Boot 3.x</b> (basados en <code>jakarta.*</code> y Java 17+).</li>
+</ul>
+
+<h2>Diagrama de arquitectura</h2>
+
+<img class="center-horizontal" src="components/librerias/springfox/introduccion/assets/img/springfox-arquitectura.svg">
+<span class="center-horizontal caption">Figura 1: Cómo se genera y consulta la documentación de la API con SpringFox</span>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Elemento</th>
+			<th scope="col">Tipo</th>
+			<th scope="col">Responsabilidad</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Desarrollador / tester</td>
+			<td>Cliente / navegador</td>
+			<td>Abre Swagger UI para consultar y probar los endpoints.</td>
+		</tr>
+		<tr>
+			<td>Swagger UI</td>
+			<td>Interfaz web</td>
+			<td>Pinta la documentación y permite ejecutar peticiones de prueba.</td>
+		</tr>
+		<tr>
+			<td><code>/v2/api-docs</code></td>
+			<td>Endpoint JSON</td>
+			<td>Descriptor de la API que Swagger UI lee por HTTP.</td>
+		</tr>
+		<tr>
+			<td><code>SwaggerConfig</code></td>
+			<td>Clase de configuración</td>
+			<td>Define el <code>Docket</code>: qué paquetes y rutas se documentan.</td>
+		</tr>
+		<tr>
+			<td><code>PetController</code></td>
+			<td>Capa de controladores</td>
+			<td>Sus anotaciones (<code>@Api</code>, <code>@ApiOperation</code>...) alimentan la documentación.</td>
+		</tr>
+		<tr>
+			<td><code>PetDTO</code></td>
+			<td>Clase (DTO)</td>
+			<td>Sus anotaciones (<code>@ApiModel</code>, <code>@ApiModelProperty</code>) describen el esquema JSON.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del diagrama de SpringFox</span>
+
+<h2>Dependencias necesarias</h2>
+
+<h3>1. Con SpringFox 3.0.0 (Starter unificado)</h3>
+<p>En <b>SpringFox 3.0.0</b> basta con añadir una única dependencia (<code>springfox-boot-starter</code>) que ya incluye tanto el generador de especificaciones Swagger 2 / OpenAPI 3 como la interfaz visual Swagger UI.</p>
+
+<p>En <b>Maven (<code>pom.xml</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+	&lt;groupId&gt;io.springfox&lt;/groupId&gt;
+	&lt;artifactId&gt;springfox-boot-starter&lt;/artifactId&gt;
+	&lt;version&gt;3.0.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<p>En <b>Gradle (<code>build.gradle</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+	implementation 'io.springfox:springfox-boot-starter:3.0.0'
+}
+</code></pre>
+</div>
+
+<h3>2. Con SpringFox 2.9.2 (Artefactos separados clásicos)</h3>
+<p>En versiones anteriores de SpringFox era necesario declarar por separado el motor <code>springfox-swagger2</code> y la interfaz <code>springfox-swagger-ui</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+	&lt;groupId&gt;io.springfox&lt;/groupId&gt;
+	&lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;
+	&lt;version&gt;2.9.2&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+	&lt;groupId&gt;io.springfox&lt;/groupId&gt;
+	&lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;
+	&lt;version&gt;2.9.2&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>3. Alternativa actual en Spring Boot 3 (SpringDoc OpenAPI)</h3>
+<p>Si el proyecto utiliza Spring Boot 3, la dependencia equivalente en <b>Maven (<code>pom.xml</code>)</b> es:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+	&lt;groupId&gt;org.springdoc&lt;/groupId&gt;
+	&lt;artifactId&gt;springdoc-openapi-starter-webmvc-ui&lt;/artifactId&gt;
+	&lt;version&gt;2.2.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Configuración del Bean <code>Docket</code> en SpringFox</h2>
+
+<p>Para activar y personalizar la generación de documentación en SpringFox, se crea una clase de configuración de Spring anotada con <code>@Configuration</code> que expone un bean de tipo <b><code>Docket</code></b>.</p>
+
+<h3>Clases y Anotaciones de Configuración</h3>
+
+<ul>
+	<li><b>@EnableSwagger2:</b> Anotación perteneciente a SpringFox, ubicada en el paquete <code>springfox.documentation.swagger2.annotations.EnableSwagger2</code>. Habilita el soporte de Swagger 2 en el proyecto (en SpringFox 3.0 con <code>springfox-boot-starter</code> ya no es obligatoria o se sustituye por <code>@EnableOpenApi</code>).</li>
+	<li><b>Docket:</b> Clase principal de configuración de SpringFox, ubicada en el paquete <code>springfox.documentation.spring.web.plugins.Docket</code>. Implementa el patrón Builder para definir qué controladores y rutas se van a documentar y qué metadatos generales tendrá la API.
+		<p>Sus métodos principales son:</p>
+		<ul>
+			<li><b><code>new Docket(DocumentationType.SWAGGER_2)</code>:</b> Inicializa el configurador indicando la versión del estándar de documentación (<code>SWAGGER_2</code> o <code>OAS_30</code>).</li>
+			<li><b><code>.select()</code>:</b> Devuelve una instancia de <code>ApiSelectorBuilder</code> para filtrar qué controladores y qué rutas se expondrán en Swagger.</li>
+			<li><b><code>.apis(Predicate&lt;RequestHandler&gt;)</code>:</b> Se utiliza junto con la clase de utilidad <b><code>RequestHandlerSelectors</code></b> (en <code>springfox.documentation.builders.RequestHandlerSelectors</code>):
+				<ul>
+					<li><code>RequestHandlerSelectors.basePackage("com.petshop.controller")</code>: Documenta únicamente los controladores dentro de ese paquete (opción recomendada para no mostrar endpoints internos de Spring Boot como <code>basic-error-controller</code>).</li>
+					<li><code>RequestHandlerSelectors.any()</code>: Documenta todos los controladores del classpath.</li>
+					<li><code>RequestHandlerSelectors.withClassAnnotation(RestController.class)</code>: Documenta solo las clases que tengan una anotación específica.</li>
+				</ul>
+			</li>
+			<li><b><code>.paths(Predicate&lt;String&gt;)</code>:</b> Se utiliza junto con la clase <b><code>PathSelectors</code></b> (en <code>springfox.documentation.builders.PathSelectors</code>) para filtrar por la URL del endpoint:
+				<ul>
+					<li><code>PathSelectors.any()</code>: Incluye todas las rutas de los controladores seleccionados.</li>
+					<li><code>PathSelectors.ant("/petshop/**")</code>: Incluye solo las rutas que coincidan con el patrón Ant.</li>
+					<li><code>PathSelectors.regex("/petshop/.*")</code>: Filtra las rutas mediante una expresión regular.</li>
+				</ul>
+			</li>
+			<li><b><code>.useDefaultResponseMessages(boolean)</code>:</b> Si se establece a <code>false</code>, desactiva los códigos de estado genéricos que SpringFox añade por defecto a todos los métodos (200, 201, 401, 403, 404) para que solo se muestren los que el desarrollador haya documentado explícitamente con <code>@ApiResponses</code>.</li>
+			<li><b><code>.apiInfo(ApiInfo)</code>:</b> Asocia la información descriptiva de cabecera de la API (título, descripción, versión, contacto y licencia) construida mediante <code>ApiInfoBuilder</code>.</li>
+		</ul>
+	</li>
+</ul>
+
+<h3>Ejemplo completo de clase <code>SwaggerConfig</code></h3>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.petshop.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig 
+{
+	@Bean
+	public Docket apiDocket() 
+	{
+		return new Docket(DocumentationType.SWAGGER_2)
+				.select()
+				.apis(RequestHandlerSelectors.basePackage("com.petshop.controller"))
+				.paths(PathSelectors.any())
+				.build()
+				.useDefaultResponseMessages(false)
+				.apiInfo(getApiInfo());
+	}
+
+	private ApiInfo getApiInfo() 
+	{
+		return new ApiInfoBuilder()
+				.title("PetShop REST API")
+				.description("API REST para la gestión del catálogo de mascotas de la tienda PetShop")
+				.version("1.0.0")
+				.license("Apache 2.0")
+				.licenseUrl("https://www.apache.org/licenses/LICENSE-2.0")
+				.contact(new Contact("Equipo PetShop", "https://petshop.com", "soporte@petshop.com"))
+				.build();
+	}
+}
+</code></pre>
+</div>
+
+<h2>Acceso a Swagger UI y al JSON de la API</h2>
+
+<p>Una vez arrancado el microservicio de Spring Boot (por defecto en el puerto <code>8080</code>), se puede acceder a la documentación generada a través de las siguientes rutas según la versión empleada:</p>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Librería / Versión</th>
+			<th scope="col">URL de la interfaz web (Swagger UI)</th>
+			<th scope="col">URL del documento JSON generado</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>SpringFox 2.x</b></td>
+			<td><code>http://localhost:8080/swagger-ui.html</code></td>
+			<td><code>http://localhost:8080/v2/api-docs</code></td>
+		</tr>
+		<tr>
+			<td><b>SpringFox 3.0.0</b></td>
+			<td><code>http://localhost:8080/swagger-ui/</code> (o <code>/swagger-ui/index.html</code>)</td>
+			<td><code>http://localhost:8080/v2/api-docs</code> (o <code>/v3/api-docs</code>)</td>
+		</tr>
+		<tr>
+			<td><b>SpringDoc OpenAPI</b></td>
+			<td><code>http://localhost:8080/swagger-ui.html</code></td>
+			<td><code>http://localhost:8080/v3/api-docs</code></td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Rutas por defecto para consultar Swagger UI y el descriptor JSON de la API</span>
+
+<h3>Nota de compatibilidad en Spring Boot 2.6+ y SpringFox 3</h3>
+<p>A partir de Spring Boot 2.6, la estrategia por defecto para emparejar rutas en Spring MVC cambió de <code>AntPathMatcher</code> a <code>PathPatternParser</code>, lo que puede provocar un <code>NullPointerException</code> al arrancar SpringFox 3.0.0. Para solucionarlo basta con añadir la siguiente propiedad en <code>application.properties</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-properties">
+spring.mvc.pathmatch.matching-strategy=ant_path_matcher
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar SpringFox / Swagger y cuándo NO usarlo?</h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Escenario</th>
+			<th scope="col">¿Cuándo SÍ usarlo? (Recomendado)</th>
+			<th scope="col">¿Cuándo NO usarlo? (Desaconsejado / Alternativas)</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Versión de Spring Boot</b></td>
+			<td>Usar <b>SpringFox</b> en proyectos existentes basados en <b>Spring Boot 2.x</b> (<code>javax.*</code>) que ya emplean las anotaciones <code>io.swagger.annotations.*</code>.</td>
+			<td><b>No usar SpringFox en proyectos con Spring Boot 3.x (Java 17+ / Jakarta EE)</b>, ya que SpringFox no tiene soporte para el espacio de nombres <code>jakarta.servlet.*</code>. En Spring Boot 3 se debe usar siempre <b>SpringDoc OpenAPI (<code>springdoc-openapi-starter-webmvc-ui</code>)</b>.</td>
+		</tr>
+		<tr>
+			<td><b>Entornos de Despliegue</b></td>
+			<td>Activar Swagger UI en entornos de <b>desarrollo, local, integración y preproducción (QA)</b> para facilitar las pruebas y la integración con otros equipos.</td>
+			<td><b>No exponer Swagger UI públicamente en Producción sin autenticación</b>: revela toda la superficie de ataque, rutas internas y estructura de datos del servidor a terceros.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Cuándo utilizar SpringFox / Swagger y precauciones en producción</span>
+
+<h2>Ejemplo y Contraejemplo en la configuración de <code>Docket</code></h2>
+
+<h3>Contraejemplo (Mala práctica): Usar <code>RequestHandlerSelectors.any()</code> y exponerlo en todos los entornos</h3>
+<p>Si en la configuración del <code>Docket</code> se deja <code>RequestHandlerSelectors.any()</code> y no se restringe el perfil de ejecución, Swagger documentará controladores internos de Spring Boot (como <code>basic-error-controller</code> o endpoints de Actuator) ensuciando la documentación y dejando la consola interactiva abierta en producción:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Expone endpoints internos de Spring y permanece activo en producción
+@Configuration
+@EnableSwagger2
+public class BadSwaggerConfig 
+{
+	@Bean
+	public Docket api() 
+	{
+		return new Docket(DocumentationType.SWAGGER_2)
+				.select()
+				.apis(RequestHandlerSelectors.any()) // ¡Mala práctica! Incluye basic-error-controller
+				.paths(PathSelectors.any())
+				.build();
+	}
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Filtrar por paquete base y restringir en producción con <code>@Profile</code></h3>
+<p>Anotando la configuración con <code>@Profile("!prod")</code> (o mediante una propiedad <code>springfox.documentation.enabled</code>) y acotando el paquete con <code>basePackage</code>, nos aseguramos de publicar únicamente nuestros controladores de negocio y solo en entornos autorizados:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Solo documenta el paquete de controladores del proyecto y se desactiva en el perfil 'prod'
+@Configuration
+@EnableSwagger2
+@Profile("!prod")
+public class GoodSwaggerConfig 
+{
+	@Bean
+	public Docket apiDocket() 
+	{
+		return new Docket(DocumentationType.SWAGGER_2)
+				.select()
+				.apis(RequestHandlerSelectors.basePackage("com.petshop.controller"))
+				.paths(PathSelectors.any())
+				.build()
+				.useDefaultResponseMessages(false);
+	}
+}
+</code></pre>
+</div>

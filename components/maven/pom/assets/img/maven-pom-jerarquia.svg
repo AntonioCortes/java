@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.15" />
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1E293B" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669" />
+    </marker>
+  </defs>
+
+  <rect width="920" height="480" fill="#F8FAFC" rx="10" />
+
+  <text x="460" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1E293B">Jerarquía del POM y Cálculo del POM Efectivo</text>
+  <text x="460" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#64748B">Herencia en cascada: Super POM de Maven &rarr; POM Padre corporativo/Spring &rarr; POM del Proyecto</text>
+
+  <!-- Super POM -->
+  <g transform="translate(40, 100)" filter="url(#shadow)">
+    <rect width="230" height="130" rx="8" fill="#FFFFFF" stroke="#64748B" stroke-width="2"/>
+    <rect width="230" height="28" rx="8" fill="#64748B" />
+    <rect width="230" height="8" y="20" fill="#64748B" />
+    <text x="115" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#F1F5F9">&lt;&lt;pom base del sistema&gt;&gt;</text>
+    <text x="115" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E293B">Super POM (Maven Core)</text>
+    <text x="115" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Estructura src/main/java</text>
+    <text x="115" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Plugins por defecto</text>
+    <text x="115" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Repositorio Central oficial</text>
+  </g>
+
+  <!-- Parent POM -->
+  <g transform="translate(340, 100)" filter="url(#shadow)">
+    <rect width="240" height="130" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+    <rect width="240" height="28" rx="8" fill="#3B82F6" />
+    <rect width="240" height="8" y="20" fill="#3B82F6" />
+    <text x="120" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#DBEAFE">&lt;&lt;pom padre / starter-parent&gt;&gt;</text>
+    <text x="120" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E3A8A">spring-boot-starter-parent</text>
+    <text x="120" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Fija Java 17/21 y codificación</text>
+    <text x="120" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">&lt;dependencyManagement&gt;</text>
+    <text x="120" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Configuración de plugins</text>
+  </g>
+
+  <!-- Project Child POM -->
+  <g transform="translate(650, 100)" filter="url(#shadow)">
+    <rect width="230" height="130" rx="8" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2"/>
+    <rect width="230" height="28" rx="8" fill="#8B5CF6" />
+    <rect width="230" height="8" y="20" fill="#8B5CF6" />
+    <text x="115" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#EDE9FE">&lt;&lt;pom del microservicio&gt;&gt;</text>
+    <text x="115" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#5B21B6">pom.xml Local</text>
+    <text x="115" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">groupId, artifactId propio</text>
+    <text x="115" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">&lt;dependencies&gt; concretas</text>
+    <text x="115" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Sobrescribe propiedades</text>
+  </g>
+
+  <!-- Arrows inheritance -->
+  <path d="M 270 165 L 340 165" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="305" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">hereda</text>
+
+  <path d="M 580 165 L 650 165" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="615" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">extiende</text>
+
+  <!-- Result: Effective POM -->
+  <g transform="translate(230, 290)" filter="url(#shadow)">
+    <rect width="460" height="120" rx="8" fill="#FFFFFF" stroke="#059669" stroke-width="2"/>
+    <rect width="460" height="28" rx="8" fill="#059669" />
+    <rect width="460" height="8" y="20" fill="#059669" />
+    <text x="230" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#D1FAE5">&lt;&lt;pom efectivo resultante en memoria&gt;&gt;</text>
+    <text x="230" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#065F46">POM Efectivo (mvn help:effective-pom)</text>
+    <text x="230" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Fusión total de las 3 capas: versiones resueltas, plugins preconfigurados</text>
+    <text x="230" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#047857">Es el XML real con el que Maven ejecuta cualquier fase</text>
+  </g>
+
+  <path d="M 460 230 L 460 290" stroke="#059669" stroke-width="2.5" marker-end="url(#arrow-green)"/>
+  <text x="495" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#059669">fusión final</text>
+
+  <!-- Legend -->
+  <g transform="translate(200, 435)">
+    <rect width="520" height="30" rx="5" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="20" y="20" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#334155">Leyenda:</text>
+    <line x1="80" y1="15" x2="110" y2="15" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="120" y="19" font-family="Arial, sans-serif" font-size="11" fill="#475569">Herencia de POMs</text>
+    <line x1="250" y1="15" x2="280" y2="15" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <text x="290" y="19" font-family="Arial, sans-serif" font-size="11" fill="#059669">Fusión en memoria (Effective POM)</text>
+  </g>
+</svg>

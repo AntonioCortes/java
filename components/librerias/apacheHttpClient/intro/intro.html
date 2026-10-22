@@ -1,13 +1,237 @@
-<h1 class="title">Introducción</h1>
-TODO:  https://mkyong.com/tag/httpclient/
-<p>Dependencia en Maven POM:</p>
+<h1 class="title">Apache HttpClient - Introducción y Configuración</h1>
+
+<p><b>Apache HttpClient</b> (parte del proyecto <b>Apache HttpComponents</b>) es una de las librerías más robustas, completas y utilizadas en Java para actuar como cliente HTTP y consumir servicios web o APIs REST externas desde una aplicación backend.</p>
+
+<p>A diferencia de la clase básica <code>HttpURLConnection</code> de versiones antiguas del JDK, <b>Apache HttpClient</b> proporciona gestión automática de pools de conexiones persistentes (<i>Keep-Alive</i>), configuración granular de timeouts, redirecciones automáticas, manejo de cookies, soporte de proxies, subida de archivos <i>multipart</i> y distintos esquemas de autenticación (Basic, Digest, NTLM, Bearer Token).</p>
+
+<h2>Dependencias necesarias</h2>
+
+<p>Existen dos ramas principales de la librería en los repositorios de Maven:</p>
+<ul>
+	<li><b>Rama clásica 4.x (<code>org.apache.httpcomponents:httpclient</code>):</b> Es la versión más extendida en proyectos empresariales (con paquetes bajo <code>org.apache.http.*</code>).</li>
+	<li><b>Rama moderna 5.x (<code>org.apache.httpcomponents.client5:httpclient5</code>):</b> Evolución con soporte nativo para HTTP/2 y programación reactiva/asíncrona (con paquetes bajo <code>org.apache.hc.client5.*</code>).</li>
+</ul>
+
+<p>Dependencia en <b>Maven (<code>pom.xml</code>)</b>:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
+&lt;!-- Versión clásica original --&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt;
     &lt;artifactId&gt;httpclient&lt;/artifactId&gt;
     &lt;version&gt;4.1.1&lt;/version&gt;
 &lt;/dependency&gt;
-</code></pre>	
+
+&lt;!-- Versión 4.5.x estable recomendada (incluye CloseableHttpClient y HttpClients) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt;
+    &lt;artifactId&gt;httpclient&lt;/artifactId&gt;
+    &lt;version&gt;4.5.14&lt;/version&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Opcional: Para envío de formularios con ficheros (MultipartEntityBuilder) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt;
+    &lt;artifactId&gt;httpmime&lt;/artifactId&gt;
+    &lt;version&gt;4.5.14&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<p>Equivalente en <b>Gradle (<code>build.gradle</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+    implementation 'org.apache.httpcomponents:httpmime:4.5.14'
+}
+</code></pre>
+</div>
+
+<h2>Diagrama de clases y participantes</h2>
+
+<img class="center-horizontal" src="components/librerias/apacheHttpClient/intro/assets/img/httpclient-clases.svg">
+<span class="center-horizontal caption">Figura 1: Diagrama de clases de las piezas principales de Apache HttpClient</span>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Elemento</th>
+			<th scope="col">Tipo</th>
+			<th scope="col">Responsabilidad</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><code>HttpClients</code></td>
+			<td>Clase (factoría)</td>
+			<td>Crea clientes HTTP con configuración por defecto (<code>createDefault()</code>) o personalizada (<code>custom()</code>).</td>
+		</tr>
+		<tr>
+			<td><code>CloseableHttpClient</code></td>
+			<td>Clase abstracta</td>
+			<td>Ejecuta las peticiones con <code>execute()</code>; hay que cerrarlo para liberar el pool de conexiones.</td>
+		</tr>
+		<tr>
+			<td><code>HttpUriRequest</code></td>
+			<td>Interfaz</td>
+			<td>Contrato de cualquier petición (método HTTP + URI).</td>
+		</tr>
+		<tr>
+			<td><code>HttpGet</code>, <code>HttpPost</code></td>
+			<td>Clases concretas</td>
+			<td>Peticiones <code>GET</code> y <code>POST</code>; implementan <code>HttpUriRequest</code> (a través de la clase base <code>HttpRequestBase</code>, omitida en el diagrama).</td>
+		</tr>
+		<tr>
+			<td><code>CloseableHttpResponse</code></td>
+			<td>Interfaz</td>
+			<td>Respuesta del servidor; debe cerrarse siempre.</td>
+		</tr>
+		<tr>
+			<td><code>HttpEntity</code></td>
+			<td>Interfaz</td>
+			<td>Representa el cuerpo del mensaje HTTP.</td>
+		</tr>
+		<tr>
+			<td><code>EntityUtils</code></td>
+			<td>Clase de utilidades</td>
+			<td>Lee y consume el cuerpo de un <code>HttpEntity</code> de forma segura.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del diagrama de Apache HttpClient</span>
+
+<h2>Clases e Interfaces Principales de Apache HttpClient</h2>
+
+<ul>
+	<li><b>CloseableHttpClient:</b> Clase abstracta ubicada en el paquete <code>org.apache.http.impl.client.CloseableHttpClient</code>. Es el motor principal encargado de ejecutar las peticiones HTTP mediante su método <code>execute()</code>. Implementa la interfaz <code>AutoCloseable</code> de Java, lo que permite cerrarlo automáticamente dentro de un bloque <code>try-with-resources</code>. Es un objeto <i>thread-safe</i>.</li>
+
+	<li><b>HttpClients y HttpClientBuilder:</b> Clases de factoría ubicadas en <code>org.apache.http.impl.client.HttpClients</code> y <code>org.apache.http.impl.client.HttpClientBuilder</code>. Permiten instanciar un cliente HTTP con la configuración por defecto o personalizada:
+		<ul>
+			<li><b><code>HttpClients.createDefault()</code>:</b> Crea un <code>CloseableHttpClient</code> con pool de conexiones estándar y gestión de redirecciones y cookies por defecto.</li>
+			<li><b><code>HttpClients.custom()</code>:</b> Devuelve un <code>HttpClientBuilder</code> para configurar timeouts por defecto, credenciales de proxy, certificados SSL o tamaño del pool de conexiones antes de llamar a <code>.build()</code>.</li>
+		</ul>
+	</li>
+
+	<li><b>CloseableHttpResponse:</b> Interfaz ubicada en el paquete <code>org.apache.http.client.methods.CloseableHttpResponse</code>. Representa la respuesta devuelta por el servidor tras ejecutar una petición. Es fundamental cerrarla siempre (con <code>try-with-resources</code>) o usar un <code>ResponseHandler</code> para que el socket subyacente se libere y vuelva al pool de conexiones.
+		<p>Sus métodos más utilizados son:</p>
+		<ul>
+			<li><b><code>getStatusLine()</code>:</b> Devuelve un objeto <code>StatusLine</code> del que se obtiene el código numérico HTTP con <code>getStatusCode()</code> (ej. <code>200</code>, <code>201</code>, <code>404</code>) y la frase descriptiva con <code>getReasonPhrase()</code> (ej. <code>"OK"</code>).</li>
+			<li><b><code>getEntity()</code>:</b> Devuelve el cuerpo (<i>payload</i>) de la respuesta encapsulado en un objeto <code>HttpEntity</code> (o <code>null</code> si la respuesta no tiene cuerpo, como en un <code>204 No Content</code>).</li>
+			<li><b><code>getAllHeaders()</code> / <code>getFirstHeader(String name)</code>:</b> Permiten inspeccionar las cabeceras HTTP devueltas por el servidor.</li>
+		</ul>
+	</li>
+
+	<li><b>HttpEntity:</b> Interfaz ubicada en el paquete <code>org.apache.http.HttpEntity</code>. Representa el contenido de un mensaje HTTP tanto al enviar datos en el body de una petición (<code>POST</code>, <code>PUT</code>, <code>PATCH</code>) como al recibir datos en la respuesta.</li>
+
+	<li><b>EntityUtils:</b> Clase de utilidades estáticas ubicada en el paquete <code>org.apache.http.util.EntityUtils</code>. Facilita la lectura y el consumo seguro del flujo de bytes de un <code>HttpEntity</code>:
+		<ul>
+			<li><b><code>EntityUtils.toString(HttpEntity entity, Charset defaultCharset)</code>:</b> Lee todo el flujo de la respuesta y lo convierte en un <code>String</code> (por ejemplo con <code>StandardCharsets.UTF_8</code> para obtener el JSON devuelto por el servidor).</li>
+			<li><b><code>EntityUtils.toByteArray(HttpEntity entity)</code>:</b> Lee el cuerpo de la respuesta y lo devuelve como <code>byte[]</code> (útil al descargar imágenes o archivos PDF).</li>
+			<li><b><code>EntityUtils.consume(HttpEntity entity)</code>:</b> Asegura que el stream de la entidad se haya leído hasta el final y se cierre para liberar la conexión inmediatamente.</li>
+		</ul>
+	</li>
+</ul>
+
+<h2>Flujo Básico de Ejecución y Gestión de Recursos</h2>
+
+<p>El ciclo de vida estándar de una llamada con Apache HttpClient sigue siempre estos cuatro pasos dentro de un bloque <code>try-with-resources</code> para evitar fugas de conexiones:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import java.nio.charset.StandardCharsets;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
+// 1. Crear el cliente HTTP
+try (CloseableHttpClient httpClient = HttpClients.createDefault()) 
+{
+	// 2. Definir el método y la URL de la petición
+	HttpGet request = new HttpGet("http://localhost:8080/petshop/pet/15");
+
+	// 3. Ejecutar la petición y obtener la respuesta (también dentro de try-with-resources)
+	try (CloseableHttpResponse response = httpClient.execute(request)) 
+	{
+		// 4. Comprobar el código de estado HTTP y consumir el cuerpo con EntityUtils
+		int statusCode = response.getStatusLine().getStatusCode();
+		System.out.println("Código HTTP: " + statusCode);
+
+		HttpEntity entity = response.getEntity();
+		if (entity != null) 
+		{
+			String responseBody = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+			System.out.println("Respuesta JSON: " + responseBody);
+		}
+	}
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar Apache HttpClient y cuándo NO usarlo?</h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Escenario</th>
+			<th scope="col">¿Cuándo SÍ usarlo? (Recomendado)</th>
+			<th scope="col">¿Cuándo NO usarlo? (Desaconsejado / Alternativas)</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Control de bajo nivel HTTP y Pools de Conexiones</b></td>
+			<td>Cuando se requiere configurar al milímetro pools de conexiones con <code>PoolingHttpClientConnectionManager</code>, proxies corporativos, certificados SSL mutuos (mTLS), cookies, reintentos automáticos o formularios <i>multipart</i> complejos.</td>
+			<td>En microservicios con <b>Spring Cloud</b> donde se quiere invocar otro microservicio declarando simplemente una interfaz Java anotada: ahí es mucho más limpio usar <b>Spring Cloud OpenFeign</b> (que por debajo puede usar Apache HttpClient como motor) o <b>RestTemplate / WebClient / RestClient</b>.</td>
+		</tr>
+		<tr>
+			<td><b>Proyectos sin dependencias externas</b></td>
+			<td>En proyectos Java 8 o aplicaciones empresariales que ya incluyen Apache HttpComponents en su stack.</td>
+			<td>En aplicaciones ligeras con <b>Java 11+</b> que solo necesitan hacer un par de llamadas HTTP sencillas sin añadir librerías externas al <code>pom.xml</code>: se puede usar el cliente nativo <code>java.net.http.HttpClient</code> del JDK.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Cuándo elegir Apache HttpClient frente a otros clientes HTTP del ecosistema Java</span>
+
+<h2>Ejemplo y Contraejemplo: Gestión de Recursos y Fugas de Conexiones</h2>
+
+<h3>Contraejemplo (Mala práctica): No cerrar <code>CloseableHttpResponse</code> ni consumir el <code>HttpEntity</code></h3>
+<p>Uno de los fallos más graves en producción con Apache HttpClient es ejecutar una petición sin cerrar el <code>CloseableHttpResponse</code> ni consumir su <code>HttpEntity</code>. Esto mantiene el socket TCP bloqueado permanentemente hasta agotar el pool de conexiones, provocando que las siguientes peticiones se queden colgadas indefinidamente lanzando <code>ConnectionPoolTimeoutException</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Fuga de memoria y de sockets por no cerrar la respuesta ni el cliente
+public int checkServerStatusBad() throws Exception 
+{
+	CloseableHttpClient client = HttpClients.createDefault();
+	CloseableHttpResponse response = client.execute(new HttpGet("http://localhost:8080/petshop/pet/15"));
+
+	// ¡Error! Nos quedamos solo con el statusCode y salimos del método sin cerrar 'response' ni consumir el body.
+	// La conexión queda bloqueada y nunca vuelve a estar disponible en el pool.
+	return response.getStatusLine().getStatusCode();
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Uso de <code>try-with-resources</code> o <code>ResponseHandler</code></h3>
+<p>Al envolver la respuesta en un bloque <code>try-with-resources</code> y consumir la entidad con <code>EntityUtils</code>, Java garantiza que el flujo y la conexión se liberen siempre, incluso si ocurre una excepción:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Cierre automático garantizado mediante try-with-resources y EntityUtils.consume()
+public int checkServerStatusGood(CloseableHttpClient sharedClient) throws Exception 
+{
+	HttpGet request = new HttpGet("http://localhost:8080/petshop/pet/15");
+	try (CloseableHttpResponse response = sharedClient.execute(request)) 
+	{
+		EntityUtils.consume(response.getEntity());
+		return response.getStatusLine().getStatusCode();
+	}
+}
+</code></pre>
 </div>

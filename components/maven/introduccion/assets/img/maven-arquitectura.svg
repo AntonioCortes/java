@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.15" />
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2B3A42" />
+    </marker>
+    <marker id="arrow-dash" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#E65100" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="480" fill="#F8FAFC" rx="10" />
+
+  <!-- Title -->
+  <text x="450" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1E293B">Arquitectura y Componentes Clave de Apache Maven</text>
+  <text x="450" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#64748B">Flujo de resolución de dependencias, lectura del POM y ejecución de plugins</text>
+
+  <!-- Box 1: pom.xml -->
+  <g transform="translate(40, 100)" filter="url(#shadow)">
+    <rect width="200" height="130" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+    <rect width="200" height="32" rx="8" fill="#3B82F6" />
+    <rect width="200" height="10" y="22" fill="#3B82F6" />
+    <text x="100" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#DBEAFE">&lt;&lt;archivo declarativo&gt;&gt;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#1E3A8A">pom.xml</text>
+    <text x="100" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Coordenadas GAV</text>
+    <text x="100" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">&lt;dependencies&gt;</text>
+    <text x="100" y="111" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">&lt;plugins&gt; y Goals</text>
+  </g>
+
+  <!-- Box 2: Maven Core Engine -->
+  <g transform="translate(350, 100)" filter="url(#shadow)">
+    <rect width="220" height="130" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+    <rect width="220" height="32" rx="8" fill="#10B981" />
+    <rect width="220" height="10" y="22" fill="#10B981" />
+    <text x="110" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#D1FAE5">&lt;&lt;motor de construccion&gt;&gt;</text>
+    <text x="110" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#065F46">Maven Core Engine</text>
+    <text x="110" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Calcula el POM Efectivo</text>
+    <text x="110" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Gestor de Ciclo de Vida</text>
+    <text x="110" y="111" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Orquestador de Plugins</text>
+  </g>
+
+  <!-- Box 3: Repositorio Remoto (Maven Central / Nexus) -->
+  <g transform="translate(670, 100)" filter="url(#shadow)">
+    <rect width="190" height="130" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+    <rect width="190" height="32" rx="8" fill="#F59E0B" />
+    <rect width="190" height="10" y="22" fill="#F59E0B" />
+    <text x="95" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#FEF3C7">&lt;&lt;servidor remoto&gt;&gt;</text>
+    <text x="95" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#92400E">Maven Central / Nexus</text>
+    <text x="95" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Librerías públicas y privadas</text>
+    <text x="95" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Archivos JAR, POMs</text>
+    <text x="95" y="111" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Descarga HTTP/HTTPS</text>
+  </g>
+
+  <!-- Box 4: Repositorio Local (~/.m2/repository) -->
+  <g transform="translate(670, 290)" filter="url(#shadow)">
+    <rect width="190" height="120" rx="8" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2"/>
+    <rect width="190" height="32" rx="8" fill="#8B5CF6" />
+    <rect width="190" height="10" y="22" fill="#8B5CF6" />
+    <text x="95" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#EDE9FE">&lt;&lt;cache local en disco&gt;&gt;</text>
+    <text x="95" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#5B21B6">~/.m2/repository</text>
+    <text x="95" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Caché local del equipo</text>
+    <text x="95" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Evita descargas duplicadas</text>
+  </g>
+
+  <!-- Box 5: Plugins de Maven -->
+  <g transform="translate(350, 290)" filter="url(#shadow)">
+    <rect width="220" height="120" rx="8" fill="#FFFFFF" stroke="#EC4899" stroke-width="2"/>
+    <rect width="220" height="32" rx="8" fill="#EC4899" />
+    <rect width="220" height="10" y="22" fill="#EC4899" />
+    <text x="110" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#FCE7F3">&lt;&lt;ejecutores de tareas&gt;&gt;</text>
+    <text x="110" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#9D174D">Plugins de Maven</text>
+    <text x="110" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">maven-compiler-plugin</text>
+    <text x="110" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">maven-surefire-plugin</text>
+    <text x="110" y="111" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">spring-boot-maven-plugin</text>
+  </g>
+
+  <!-- Box 6: Artefacto Final (target/) -->
+  <g transform="translate(40, 290)" filter="url(#shadow)">
+    <rect width="200" height="120" rx="8" fill="#FFFFFF" stroke="#0EA5E9" stroke-width="2"/>
+    <rect width="200" height="32" rx="8" fill="#0EA5E9" />
+    <rect width="200" height="10" y="22" fill="#0EA5E9" />
+    <text x="100" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#E0F2FE">&lt;&lt;artefacto generado&gt;&gt;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#0369A1">Carpeta target/</text>
+    <text x="100" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">clases (.class)</text>
+    <text x="100" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">artefacto final (.jar/.war)</text>
+    <text x="100" y="111" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">surefire-reports</text>
+  </g>
+
+  <!-- Arrows -->
+  <!-- pom.xml -> Maven Core -->
+  <path d="M 240 165 L 350 165" stroke="#2B3A42" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="295" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">lee config</text>
+
+  <!-- Maven Core -> Repositorio Local (comprueba primero) -->
+  <path d="M 570 190 L 670 310" stroke="#2B3A42" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="635" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">1. busca local</text>
+
+  <!-- Repositorio Central -> Repositorio Local (descarga si falta) -->
+  <path d="M 765 230 L 765 290" stroke="#E65100" stroke-dasharray="4" stroke-width="2" marker-end="url(#arrow-dash)" />
+  <text x="815" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#E65100">2. descarga</text>
+
+  <!-- Maven Core -> Plugins -->
+  <path d="M 460 230 L 460 290" stroke="#2B3A42" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="495" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">invoca goals</text>
+
+  <!-- Plugins -> target/ -->
+  <path d="M 350 350 L 240 350" stroke="#2B3A42" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="295" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">genera salida</text>
+
+  <!-- Legend -->
+  <g transform="translate(140, 440)">
+    <rect width="620" height="30" rx="5" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="20" y="20" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#334155">Leyenda:</text>
+    <line x1="80" y1="15" x2="110" y2="15" stroke="#2B3A42" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="120" y="19" font-family="Arial, sans-serif" font-size="11" fill="#475569">Flujo directo de control</text>
+    <line x1="270" y1="15" x2="300" y2="15" stroke="#E65100" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow-dash)"/>
+    <text x="310" y="19" font-family="Arial, sans-serif" font-size="11" fill="#475569">Descarga remota bajo demanda</text>
+    <text x="500" y="19" font-family="Arial, sans-serif" font-size="11" fill="#64748B">&lt;&lt;estereotipo&gt;&gt; Rol del componente</text>
+  </g>
+</svg>

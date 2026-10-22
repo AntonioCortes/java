@@ -1,13 +1,189 @@
-<h1 class="title">Plugins</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Plugins en Apache Maven</h1>
+
 <p class="center-horizontal">
-    <b>Maven es por definición un framework de ejecución de plugins. Todo cuanto ocurre en Maven es realizado por estos.</b>
+    <b>Maven es, por definición estricta, un framework de ejecución de plugins. Todo cuanto ocurre en Maven es realizado por plugins.</b>
 </p>
-<p>
-    Los plugins en Maven son bloques de código que se utilizan para ejecutar tareas específicas durante el ciclo de vida de construcción de un proyecto. Un plugin puede ser una tarea como compilar el código fuente, ejecutar pruebas, generar documentación, empaquetar el proyecto en un archivo JAR o WAR, etc.
-</p>
-<p>
-    Los plugins en Maven son configurables y se pueden agregar al archivo pom.xml del proyecto, lo que permite a los desarrolladores personalizar el proceso de construcción para satisfacer las necesidades específicas de su proyecto. Además, Maven tiene una amplia biblioteca de plugins disponibles para su uso, que se pueden descargar e incorporar en el proyecto con facilidad.
-</p>
-<p>
-    Los plugins son una característica clave de Maven, ya que permiten a los desarrolladores extender la funcionalidad de Maven y personalizar el proceso de construcción de su proyecto sin tener que escribir scripts de construcción personalizados complejos.
-</p>
+
+<p>El núcleo de Maven (<em>Maven Core</em>) es un motor muy ligero que apenas pesa unos pocos megabytes. Por sí solo, Maven no sabe compilar código Java, no sabe pasar tests ni sabe crear un archivo <code>.jar</code>. Toda esa funcionalidad real está delegada en pequeños módulos llamados <strong>Plugins</strong>, que contienen una o varias tareas ejecutables llamadas <strong>Metas (Goals o Mojos)</strong> vinculadas a las distintas fases del ciclo de vida.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: Los Robots Especializados de una Cadena de Montaje</h2>
+<p>Imagina una cinta transportadora vacía (el ciclo de vida de Maven). La cinta se divide en estaciones: estación 1 (compilar), estación 2 (probar) y estación 3 (empaquetar):</p>
+<ul>
+    <li>En la estación 1 se coloca un <strong>robot soldador</strong> (el plugin <code>maven-compiler-plugin</code>), cuya meta concreta es transformar láminas de metal en el chasis (código <code>.java</code> a <code>.class</code>).</li>
+    <li>En la estación 2 trabaja un <strong>robot de control de calidad</strong> (el plugin <code>maven-surefire-plugin</code>), cuya meta es pulsar todos los botones del vehículo para comprobar que los frenos funcionan (ejecutar tests de JUnit).</li>
+    <li>En la estación 3 trabaja un <strong>robot embalador</strong> (el plugin <code>spring-boot-maven-plugin</code>), cuya meta es meter el coche y su motor en un contenedor listo para transportar (crear el Fat JAR ejecutable).</li>
+</ul>
+
+<h2 class="subtitle">Vinculación de Fases y Goals (Metas)</h2>
+<p>Cada vez que una fase del ciclo de vida se dispara, Maven ejecuta las metas asociadas a dicha fase:</p>
+
+<img class="center-horizontal" src="components/maven/plugins/assets/img/maven-plugins-fases.svg">
+<span class="center-horizontal caption">Figura 1: Mapeo entre fases abstractas del ciclo de vida y los Goals ejecutables de los plugins</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Fase del Ciclo</th>
+            <th scope="col">Plugin Responsable</th>
+            <th scope="col">Goal (Meta) Ejecutada</th>
+            <th scope="col">Responsabilidad en la Construcción</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><code>compile</code></th>
+            <td><code>maven-compiler-plugin</code></td>
+            <td><code>compiler:compile</code></td>
+            <td>Invoca al compilador <code>javac</code> con la versión configurada de Java.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code>test</code></th>
+            <td><code>maven-surefire-plugin</code></td>
+            <td><code>surefire:test</code></td>
+            <td>Descubre y ejecuta las clases de prueba que terminen en <code>*Test.java</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code>package</code></th>
+            <td><code>maven-jar-plugin</code></td>
+            <td><code>jar:jar</code></td>
+            <td>Comprime el código compilado y recursos en un archivo <code>.jar</code> estándar.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code>package</code> (Spring Boot)</th>
+            <td><code>spring-boot-maven-plugin</code></td>
+            <td><code>spring-boot:repackage</code></td>
+            <td>Convierte el JAR plano en un <b>Fat JAR ejecutable autónomo</b> con Tomcat embebido.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Plugins estándar de Maven y sus metas vinculadas</span>
+
+<h2 class="subtitle">Los 5 Plugins Esenciales en Proyectos Java y Spring Boot</h2>
+
+<h3>1. maven-compiler-plugin (Compilador de Java y Procesadores de Anotaciones)</h3>
+<p>Permite configurar la versión de JDK deseada y registrar procesadores de anotaciones en tiempo de compilación (como <strong>Lombok</strong> o <strong>MapStruct</strong>):</p>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.13.0&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;source&gt;21&lt;/source&gt;
+        &lt;target&gt;21&lt;/target&gt;
+        &lt;encoding&gt;UTF-8&lt;/encoding&gt;
+        &lt;annotationProcessorPaths&gt;
+            &lt;path&gt;
+                &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+                &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+                &lt;version&gt;1.18.34&lt;/version&gt;
+            &lt;/path&gt;
+        &lt;/annotationProcessorPaths&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Configuración completa de maven-compiler-plugin para Java 21 con Lombok</span>
+
+<h3>2. spring-boot-maven-plugin (El Motor de Empaquetado y Ejecución Local)</h3>
+<p>Añade dos funciones indispensables en cualquier microservicio Spring Boot:</p>
+<ul>
+    <li><strong><code>mvn spring-boot:run</code>:</strong> Arranca el servidor web local directamente desde la consola sin empaquetar antes.</li>
+    <li><strong>Meta <code>repackage</code>:</strong> Re-empaqueta el JAR para incluir todas las librerías dependientes dentro de <code>BOOT-INF/lib/</code>, permitiendo arrancarlo con <code>java -jar app.jar</code> en cualquier máquina o contenedor Docker.</li>
+</ul>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;plugin&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+    &lt;configuration&gt;
+        &lt;excludes&gt;
+            &lt;exclude&gt;
+                &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+                &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+            &lt;/exclude&gt;
+        &lt;/excludes&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Configuración recomendada de spring-boot-maven-plugin excluyendo Lombok del empaquetado final</span>
+
+<h3>3. jacoco-maven-plugin (Medición de Cobertura de Código de Tests)</h3>
+<p>Permite fijar umbrales mínimos de cobertura de tests (por ejemplo, exigir al menos un 80% de líneas probadas para que el build apruebe en CI/CD):</p>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;plugin&gt;
+    &lt;groupId&gt;org.jacoco&lt;/groupId&gt;
+    &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;0.8.12&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;prepare-agent&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+        &lt;execution&gt;
+            &lt;id&gt;report&lt;/id&gt;
+            &lt;phase&gt;test&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;report&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Configuración de JaCoCo para generar reportes de cobertura tras pasar los tests</span>
+
+<h2 class="subtitle">¿Cuándo Usar Plugins Específicos y Cuándo NO?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Plugin</th>
+            <th scope="col">¿Cuándo Usarlo?</th>
+            <th scope="col">¿Cuándo NO Usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>spring-boot-maven-plugin</code></td>
+            <td>Microservicios y aplicaciones completas que requieren servidor Tomcat o Jetty embebido.</td>
+            <td>En bibliotecas JAR comunes que se publican para que otros proyectos las importen como dependencia.</td>
+        </tr>
+        <tr>
+            <td><code>maven-failsafe-plugin</code></td>
+            <td>Para tests de integración lentos que levantan base de datos o Docker (<code>*IT.java</code>).</td>
+            <td>Para tests unitarios rápidos que usan mocks (usar <code>maven-surefire-plugin</code>).</td>
+        </tr>
+        <tr>
+            <td><code>maven-shade-plugin</code></td>
+            <td>Para crear Fat JARs en aplicaciones que no usan Spring Boot (ej. frameworks Spark, Flink o apps Java SE).</td>
+            <td>Si ya usas Spring Boot (<code>spring-boot-maven-plugin</code> ya gestiona el empaquetado de forma superior).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios para incorporar plugins en el POM</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en la Configuración de Plugins</h2>
+
+<h3>Ejemplo (Buena Práctica): Invocación directa de Goals desde terminal</h3>
+<p>No siempre es necesario ejecutar un ciclo completo; puedes llamar directamente a la meta de un plugin:</p>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Arranca la aplicación Spring Boot en local de inmediato
+mvn spring-boot:run
+
+# Genera un reporte web de dependencias desactualizadas
+mvn versions:display-dependency-updates
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejecución directa de metas de plugins sin pasar por fases intermedias</span>
+
+<h3>Contraejemplo (Mala Práctica): Duplicar plugins en &lt;build&gt; y &lt;pluginManagement&gt;</h3>
+<p>Colocar la configuración completa de un plugin dentro de <code>&lt;pluginManagement&gt;</code> en un POM hijo no lo ejecuta: <code>&lt;pluginManagement&gt;</code> solo sirve para definir versiones y plantillas en POMs padre. Para que el plugin actúe en el proyecto actual, <strong>debe declararse dentro de la etiqueta <code>&lt;plugins&gt;</code></strong>.</p>

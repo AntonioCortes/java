@@ -1,84 +1,94 @@
-<h1 class="title">Entidad</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Capa de Entidad (@Entity / JPA)</h1>
 
-<h2>Anotaciones Javax persistance</h2>
+<p>Una <strong>Entidad (@Entity)</strong> en Spring Boot representa una <strong>tabla física en la base de datos relacional</strong> dentro del estándar <strong>JPA (Java Persistence API / Jakarta Persistence)</strong>, habitualmente implementado por el motor <strong>Hibernate</strong>. Cada instancia de una clase Entidad corresponde a una fila (registro) de la tabla, y cada uno de sus atributos mapea a una columna de dicha tabla.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: El Registro de la Propiedad</h2>
+<p>Imagina el archivo físico del Registro de la Propiedad de una ciudad:</p>
 <ul>
-    <li>
-        <b>@Entity:</b> Colocar al inicio de la definición de clase. La clase será una tabla en la BD.
-    </li>
-    <li>
-        <b>@Table:</b> Para dar nombre especifico a la tabla con el argumento name y si no se pone usará el nombre de la clase.
-    </li>
-    <li>
-        <b>@Id:</b> Representa la clave primaria de la entidad.
-    </li>
-    <li>
-        <b>@GeneratedValue:</b> Para que la clave se genere de forma automática.
-    </li>
-    <li>
-        TODO:<b>@SequenceGenerator:</b>
-    </li>
-    <li>
-        <b>@Column:</b> Para dar el nombre de la columna o campo y si no se pone será el nombre de la variable.
-    </li>
-    <li>
-        <b>@Transient:</b> Anotación que indica que atributos de la clase tienen que ser ignorados a la hora de crear los campos en base de datos, etc.
-    </li>
-    <li>
-        <b>@NotEmpty:</b> La longitud no puede ser menor de 0.
-    </li>
-    <li>
-        <b>@NotNull:</b> El campo no puede ser nulo, pero puede estar vacío sin restricción de tamaño.
-    </li>
-    <li>
-        <b>@NotBlank:</b> Los tipos String no pueden ser nulos y su tamaño debe ser mayor que 0.
-    </li>
-    <li>
-        <b>@OnetoOne:</b> Para relaciones de campos uno a uno. Sus argumentos son: 
-        mappedBy="nombreDelAtributoDeLaClase"
-    </li>
-    <li>
-        <b>@ManyToOne:</b> Para relaiones de campos uno a muchos. Sus argumentos son:
-        mappedBy="nombreDelAtributoDeLaClase"
-    </li>
-    <h3>Relación muchos a muchos</h3>
-    <li>
-        TODO:<b>@ManyToMany:</b> Para relaciones de muchos a muchos. Sus argumentos son:
-        <ul>
-            <li>
-                mappedBy: Para referenciar el atributo de la entidad con la que se quiere relacionar
-                mappedBy="nombreDelAtributoDeLaClase"
-            </li>
-            <li>
-                Cascade: Cuando borramos una entidad relacionada con otra, la entidad con la que se relaciona también debe ser eliminada.
-                Cascading es la forma de realizar esta tarea.
-                
-                It is used in the @OneToMany, @ManyToOne, @ManyToMany and @OneToOne annotations.
-                
-                CascadeType.PERSIST: Persist the child entity when the parent is persisted.
-                CascadeType.MERGE: Merge the child entity when the parent is merged.
-                CascadeType.REFRESH: Refresh the child entity when the parent is refreshed.
-                CascadeType.REMOVE: Remove the child entity when the parent is removed.
-                CascadeType.DETACH: Detach the child entity when the parent is detached.
-                CascadeType.ALL: Apply all cascading options (equivalent to specifying PERSIST, MERGE, REFRESH, REMOVE and DETACH).
+    <li>En el sótano hay archivadores metálicos con miles de fichas impresas (las tablas y filas de la base de datos SQL).</li>
+    <li>Para no tener que viajar físicamente al sótano con una linterna cada vez que alguien pregunta por una vivienda (escribir sentencias SQL manuales <code>SELECT * FROM casa</code>), existe una <strong>maqueta tridimensional en miniatura (@Entity)</strong> en el despacho.</li>
+    <li>Cuando el arquitecto cambia el color de una pared en la maqueta Java, el sistema <strong>ORM (Hibernate)</strong> sincroniza automáticamente ese cambio en la ficha del archivador metálico de base de datos sin que el programador tenga que redactar un <code>UPDATE</code> a mano.</li>
+</ul>
 
-                cascade={CascadeType.PERSIST, CascadeType.MERGE}
-            </li>
+<h2 class="subtitle">Anotaciones Fundamentales de JPA / Jakarta Persistence</h2>
+<p>Ubicadas en el paquete <code>jakarta.persistence.*</code> (o <code>javax.persistence.*</code> en versiones previas a Spring Boot 3):</p>
+
+<ul>
+    <li><b>@Entity:</b> Se coloca obligatoriamente en la cabecera de la clase. Informa al proveedor JPA (Hibernate) de que esta clase es una entidad gestionable por el contexto de persistencia y representa una tabla en la base de datos.</li>
+    <li><b>@Table:</b> Opcional. Permite especificar el nombre exacto de la tabla en base de datos mediante <code>@Table(name = "pet")</code>, además de esquemas, catálogos y restricciones de unicidad compuestas (<code>@UniqueConstraint</code>). Si no se indica, JPA asume por defecto el nombre de la clase Java.</li>
+    <li><b>@Id:</b> Marca el atributo que actúa como <strong>clave primaria (Primary Key)</strong> de la entidad. Toda entidad JPA debe tener obligatoriamente un <code>@Id</code>.</li>
+    <li><b>@GeneratedValue:</b> Define la estrategia para que la base de datos genere automáticamente el valor de la clave primaria. Sus estrategias son:
+        <ul>
+            <li><code>GenerationType.IDENTITY</code>: Utiliza columnas autoincrementales nativas de la base de datos (como <code>AUTO_INCREMENT</code> en MySQL o <code>SERIAL</code> en PostgreSQL).</li>
+            <li><code>GenerationType.SEQUENCE</code>: Utiliza una secuencia de base de datos (habitual y óptimo en Oracle y PostgreSQL).</li>
+            <li><code>GenerationType.AUTO</code>: Deja que Hibernate elija la mejor estrategia según el dialecto de la base de datos configurada.</li>
+            <li><code>GenerationType.TABLE</code>: Simula una secuencia utilizando una tabla auxiliar de contadores (la más lenta, desaconsejada).</li>
         </ul>
     </li>
-    <li>
-        TODO:<b>@JoinTable:</b> Nombra la tabla nueva del mapeo.
-    </li>
-    <li>
-     TODO:   <b>@JoinColumns:</b> Apunta a la tabla propietaria.
-    </li>
-    <li>
-        TODO:<b>@InverseJoinTable:</b> Nombra la tabla nueva del mapeo.
+    <li><b>@SequenceGenerator:</b> Define y personaliza los parámetros de una secuencia de base de datos (nombre de la secuencia en BD, valor inicial y tamaño de asignación <code>allocationSize</code>) para usarla en conjunto con <code>@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pet_seq")</code>.</li>
+    <li><b>@Column:</b> Mapea el atributo a una columna específica mediante <code>name = "birth_date"</code>. Permite fijar restricciones como <code>nullable = false</code>, longitud <code>length = 50</code> o unicidad <code>unique = true</code>. Si se omite, JPA genera el nombre de columna convirtiendo camelCase a snake_case.</li>
+    <li><b>@Transient:</b> Indica a JPA que ese atributo <strong>NO debe persistirse</strong> en ninguna columna de la base de datos (es un campo calculado en memoria o transitorio).</li>
+</ul>
+
+<h2 class="subtitle">Anotaciones de Relaciones entre Tablas</h2>
+
+<ul>
+    <li><b>@OneToOne:</b> Define una relación uno a uno (ej. un usuario y su perfil). Si la relación es bidireccional, el lado no propietario debe incluir <code>mappedBy = "nombreAtributoEnLaOtraClase"</code>.</li>
+    <li><b>@ManyToOne:</b> Define una relación muchos a uno (ej. muchos pedidos pertenecen a un cliente). Es siempre el lado propietario de la relación y se acompaña de <code>@JoinColumn(name = "cliente_id")</code> para indicar la clave foránea.</li>
+    <li><b>@OneToMany:</b> Define una relación uno a muchos (ej. un cliente tiene muchos pedidos). Generalmente se combina con una colección (<code>List&lt;Pedido&gt;</code>) y debe llevar <code>mappedBy</code> para no generar tablas intermedias duplicadas.</li>
+    <li><b>@ManyToMany:</b> Define una relación muchos a muchos (ej. estudiantes y cursos). Requiere una tabla intermedia que se configura mediante <code>@JoinTable</code>:
+        <ul>
+            <li><b>mappedBy:</b> Se coloca en el lado secundario para apuntar al atributo del lado propietario.</li>
+            <li><b>@JoinTable:</b> Nombra la tabla intermedia física en base de datos mediante <code>name = "pet_veterinarian"</code>.</li>
+            <li><b>@JoinColumn:</b> Apunta a la columna de clave foránea que referencia a la entidad propietaria actual.</li>
+            <li><b>@InverseJoinColumn:</b> Apunta a la columna de clave foránea que referencia a la entidad destino relacionada.</li>
+        </ul>
     </li>
 </ul>
 
+<h2 class="subtitle">Propagación en Cascada (CascadeType) y Eliminación de Huérfanos</h2>
+<p>Cuando se realiza una operación sobre una entidad padre (como guardar o borrar), el atributo <code>cascade</code> indica si esa operación debe propagarse automáticamente a las entidades hijas vinculadas:</p>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">CascadeType</th>
+            <th scope="col">Comportamiento en Base de Datos</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>CascadeType.PERSIST</code></td>
+            <td>Al hacer <code>save()</code> o <code>persist()</code> sobre el padre, guarda automáticamente los hijos nuevos.</td>
+        </tr>
+        <tr>
+            <td><code>CascadeType.MERGE</code></td>
+            <td>Al actualizar el padre, sincroniza y actualiza los hijos modificados.</td>
+        </tr>
+        <tr>
+            <td><code>CascadeType.REMOVE</code></td>
+            <td>Al borrar el padre, <strong>elimina físicamente en cascada</strong> todos sus hijos asociados.</td>
+        </tr>
+        <tr>
+            <td><code>CascadeType.ALL</code></td>
+            <td>Aplica todas las opciones anteriores (PERSIST, MERGE, REMOVE, REFRESH y DETACH).</td>
+        </tr>
+        <tr>
+            <td><code>orphanRemoval = true</code></td>
+            <td>Si un elemento hijo se elimina de la lista Java del padre (<code>lista.remove(0)</code>), JPA borra automáticamente esa fila de la base de datos al hacer commit.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Modos de propagación en cascada en relaciones JPA</span>
+
+<h2 class="subtitle">Ejemplo 1: Entidad Pet (Tienda de Mascotas)</h2>
 
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
 @Data
 @Accessors(chain = true)
 @Entity
@@ -106,16 +116,50 @@ public class Pet implements Serializable
 }
 </code></pre>    
 </div>
+<span class="center-horizontal caption">Entidad simple Pet mapeada a la tabla física 'pet' con clave primaria id</span>
 
-<h2>Ejemplo entidades relacionadas entre si</h2>
+<h2 class="subtitle">Ejemplo 2: Entidades Relacionadas entre Sí (Call, Message, Row, ProcessedJSON)</h2>
+<p>El siguiente modelo de datos empresarial ilustra relaciones <code>@OneToMany</code>, <code>@ManyToOne</code> y <code>@OneToOne</code> en un sistema de procesamiento de JSON y registro de eventos de telecomunicaciones:</p>
 
-<img class="center-horizontal" src="components/springboot/entidad/assets/img/bbdd.png"/>
-<span class="center-horizontal caption">Base de datos de ejemplo</span>
+<img class="center-horizontal" src="components/springboot/capas-principales/entidad/assets/img/bbdd.png"/>
+<span class="center-horizontal caption">Figura 1: Esquema de base de datos relacional para el sistema de procesamiento de llamadas y mensajes</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Entidad / Tabla</th>
+            <th scope="col">Tipo de Relación</th>
+            <th scope="col">Responsabilidad en el Esquema</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">ProcessedJSON (processed_json)</th>
+            <td>Padre Raíz (@OneToMany)</td>
+            <td>Registra la ejecución del lote global y contiene la lista de filas (<code>List&lt;Row&gt;</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Row (json_row)</th>
+            <td>Intermedia (@ManyToOne y @OneToOne)</td>
+            <td>Representa cada fila individual procesada; se vincula 1:1 con un <code>Call</code> o un <code>Message</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Call (call)</th>
+            <td>Hija (@OneToOne)</td>
+            <td>Contiene metadatos de llamadas telefónicas (duración, códigos de estado).</td>
+        </tr>
+        <tr>
+            <th scope="row">Message (message)</th>
+            <td>Hija (@OneToOne)</td>
+            <td>Contiene el contenido y estado de entrega de mensajes de texto.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes y relaciones del modelo de telecomunicaciones</span>
 
 <h3>Tabla call</h3>
-
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
 @Entity
 @Table(name = "call")
 @Data
@@ -146,9 +190,8 @@ public class Call implements Serializable
 </div>
 
 <h3>Tabla message</h3>
-
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
 @Entity
 @Table(name = "message")
 @Data
@@ -176,9 +219,8 @@ public class Message implements Serializable
 </div>
 
 <h3>Tabla json_row</h3>
-
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
 @Entity
 @Table(name = "json_row")
 @Data
@@ -224,9 +266,8 @@ public class Row implements Serializable
 </div>
 
 <h3>Tabla processed_json</h3>
-
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
 @Entity
 @Table(name = "processed_json")
 @Data
@@ -247,7 +288,53 @@ public class ProcessedJSON implements Serializable
     private Long processDuration;
 
     @OneToMany(mappedBy = "processedJSON", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Row> rowList;
+    private List&lt;Row&gt; rowList;
 }
 </code></pre>    
 </div>
+
+<h2 class="subtitle">¿Cuándo Usar FetchType.LAZY frente a FetchType.EAGER?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Estrategia</th>
+            <th scope="col">Comportamiento en Base de Datos</th>
+            <th scope="col">Buenas Prácticas</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>FetchType.LAZY</code> (Carga Perezosa)</td>
+            <td>No descarga los registros hijos hasta que se invoque explícitamente el método <code>row.getProcessedJSON()</code> dentro de una transacción activa.</td>
+            <td><b>Recomendado siempre por defecto</b> en todas las relaciones <code>@OneToMany</code> y <code>@ManyToOne</code> para no penalizar memoria ni tiempos de respuesta.</td>
+        </tr>
+        <tr>
+            <td><code>FetchType.EAGER</code> (Carga Ansiosa)</td>
+            <td>Ejecuta un <code>JOIN</code> inmediato en la primera consulta para traer todos los objetos vinculados a la vez.</td>
+            <td>Usar con extrema precaución: en tablas grandes puede provocar la descarga involuntaria de miles de registros relacionados.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Comparativa entre carga diferida (LAZY) y carga inmediata (EAGER)</span>
+
+<h2 class="subtitle">Contraejemplo (Mala Práctica): El Peligro de @Data en Relaciones Bidireccionales</h2>
+<p>La anotación <code>@Data</code> de Lombok genera automáticamente los métodos <code>toString()</code> y <code>hashCode()</code> incluyendo todos los campos de la clase. Si dos entidades tienen una relación bidireccional (como <code>ProcessedJSON</code> que apunta a <code>Row</code>, y <code>Row</code> que apunta de vuelta a <code>ProcessedJSON</code>):</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ¡ERROR CLÁSICO EN JPA CON LOMBOK!
+// ProcessedJSON.toString() llama a Row.toString(), que a su vez llama a ProcessedJSON.toString()...
+// Provoca: java.lang.StackOverflowError instantáneo al hacer logging o inspeccionar objetos
+
+// LA SOLUCIÓN CORRECTA:
+// En lugar de @Data, usar @Getter y @Setter, y excluir explícitamente la relación en @ToString:
+@Getter
+@Setter
+@ToString(exclude = "rowList")
+@EqualsAndHashCode(of = "id")
+@Entity
+public class SafeProcessedJSON {
+    // ...
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Bucle infinito StackOverflowError provocado por @Data en relaciones bidireccionales</span>

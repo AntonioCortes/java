@@ -1,22 +1,192 @@
 <h1 class="title">Data</h1>
 
 <p>
-    <b>@Data</b> es la anotación de acceso directo que agrupa las características de @ToString, @EqualsAndHashCode, @Getter/@Setter y @RequiredArgsConstructor juntas: en otras palabras, @Data genera todos los estándares que normalmente se asocian con POJOS y beans:
+    <b>@Data</b> es la anotación de acceso directo que agrupa las características de <code>@ToString</code>, <code>@EqualsAndHashCode</code>, <code>@Getter</code> / <code>@Setter</code> y <code>@RequiredArgsConstructor</code> juntas: en otras palabras, <code>@Data</code> genera todos los estándares que normalmente se asocian con POJOs y beans:
 </p>
 <ul>
     <li>
         Getters para todos los campos.
     </li>
     <li>
-        Setters para todos los campos no finales y las implementaciones toString.
+        Setters para todos los campos no finales y las implementaciones <code>toString</code>.
     </li>
     <li>
-        Equals y hashCode que involucran los campos de la clase.
+        <code>equals</code> y <code>hashCode</code> que involucran los campos de la clase.
     </li>
     <li>
         Un constructor que inicializa todos los campos finales.
     </li>
     <li>
-        Así como todos los campos no finales sin inicializador que haya sido marcado con @NonNull, para garantizar que el campo nunca sea nulo.
+        Así como todos los campos no finales sin inicializador que hayan sido marcados con <code>@NonNull</code>, para garantizar que el campo nunca sea nulo.
     </li>
 </ul>
+
+<h2>Detalle de la anotación @Data</h2>
+
+<ul>
+    <li><b>@Data:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.Data</code> y se coloca exclusivamente a nivel de clase. Anotar una clase con <code>@Data</code> es funcionalmente equivalente a anotarla con las siguientes cinco anotaciones simultáneamente:
+        <ul>
+            <li><b>@Getter (<code>lombok.Getter</code>):</b> Genera los métodos <code>getCampo()</code> (o <code>isCampo()</code> para booleanos primitivos) de todos los atributos no estáticos.</li>
+            <li><b>@Setter (<code>lombok.Setter</code>):</b> Genera los métodos <code>setCampo(...)</code> de todos los atributos no estáticos que no sean <code>final</code>.</li>
+            <li><b>@RequiredArgsConstructor (<code>lombok.RequiredArgsConstructor</code>):</b> Genera un constructor con los campos obligatorios (<code>final</code> o <code>@NonNull</code> sin valor inicial). Si la clase no tiene ningún campo obligatorio ni otros constructores explícitos, el constructor resultante será un constructor vacío sin argumentos.</li>
+            <li><b>@ToString (<code>lombok.ToString</code>):</b> Genera el método <code>toString()</code> incluyendo todos los atributos no estáticos.</li>
+            <li><b>@EqualsAndHashCode (<code>lombok.EqualsAndHashCode</code>):</b> Genera los métodos <code>equals(Object)</code> y <code>hashCode()</code> evaluando todos los atributos no estáticos ni transitorios.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Parámetros y personalización de @Data</h2>
+
+<ul>
+    <li><b>staticConstructor:</b> Es el único parámetro directo que recibe <code>@Data</code> (por defecto <code>""</code>). Si se especifica un nombre, como por ejemplo <code>@Data(staticConstructor = "of")</code>, el constructor generado por <code>@RequiredArgsConstructor</code> pasa a ser <code>private</code> y se crea un método factoría estático público con ese nombre (por ejemplo, <code>PetDTO.of(...)</code>) que devuelve una nueva instancia de la clase.</li>
+
+    <li><b>Sobrescritura de comportamientos individuales:</b> Aunque <code>@Data</code> no expone directamente todos los parámetros de las anotaciones que engloba (como <code>callSuper</code> o <code>includeFieldNames</code>), es totalmente válido añadir explícitamente cualquiera de esas anotaciones sobre la clase o sobre un atributo para afinar su comportamiento. Por ejemplo:
+        <ul>
+            <li>Colocar <code>@Setter(AccessLevel.NONE)</code> sobre un atributo concreto dentro de una clase <code>@Data</code> evitará que se genere el setter de ese atributo.</li>
+            <li>Añadir <code>@EqualsAndHashCode(callSuper = true)</code> o <code>@ToString(onlyExplicitlyIncluded = true)</code> junto a <code>@Data</code> en la cabecera de la clase aplicará esa configuración específica sin perder el resto de ventajas de <code>@Data</code>.</li>
+        </ul>
+    </li>
+
+    <li><b>Combinación con @Accessors y @Builder:</b>
+        <ul>
+            <li>En DTOs es muy habitual combinar <code>@Data</code> con <code>@Accessors(chain = true)</code> para permitir el encadenamiento de métodos <code>set</code>.</li>
+            <li><b>Precaución al combinar <code>@Data</code> con <code>@Builder</code>:</b> Cuando se añade <code>@Builder</code> a una clase sin constructores explícitos, <code>@Builder</code> genera internamente un constructor con todos los argumentos de visibilidad de paquete, lo cual anula el constructor vacío que generaría <code>@Data</code>. Si la clase va a ser deserializada por librerías como <b>Jackson</b> (en un controlador REST) o gestionada por <b>JPA/Hibernate</b>, es necesario añadir explícitamente <code>@NoArgsConstructor</code> y <code>@AllArgsConstructor</code> junto a <code>@Data</code> y <code>@Builder</code>.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Ejemplos prácticos con @Data</h2>
+
+<h3>1. Uso de @Data en un DTO de Spring Boot (PetDTO)</h3>
+
+<p>En el siguiente ejemplo se define la clase <code>PetDTO</code> combinando <code>@Data</code> y <code>@Accessors(chain = true)</code>. Con solo dos anotaciones de Lombok, la clase dispone de todos los getters, setters encadenables, constructor vacío, <code>equals</code>, <code>hashCode</code> y <code>toString</code> listos para trabajar con Jackson y Spring Validation:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+@Data
+@Accessors(chain = true)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class PetDTO {
+
+    @JsonProperty("petId")
+    private Integer id;
+
+    @JsonProperty("petName")
+    private String name;
+
+    @JsonProperty("age")
+    private Short age;
+}
+</code></pre>
+</div>
+
+<h3>2. Uso de staticConstructor en @Data</h3>
+
+<p>Si una clase tiene campos obligatorios (declarados como <code>final</code> o anotados con <code>@NonNull</code>) y utilizamos el parámetro <code>staticConstructor = "of"</code>, podemos instanciar objetos de forma muy concisa mediante su método factoría estático:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Data;
+import lombok.NonNull;
+
+@Data(staticConstructor = "of")
+public class PetSummary {
+
+    private final Integer id;
+
+    @NonNull
+    private String name;
+
+    private Short age;
+}
+
+// Instanciación mediante el método factoría estático generado:
+PetSummary summary = PetSummary.of(1, "Joe");
+summary.setAge((short) 4);
+</code></pre>
+</div>
+
+<h2>Variante inmutable: @Value</h2>
+
+<p>Cuando se necesita diseñar objetos de transferencia o de dominio completamente <b>inmutables</b>, Lombok ofrece la anotación <b><code>@Value</code></b>:</p>
+
+<ul>
+    <li><b>@Value:</b> Pertenece a la librería <b>Project Lombok</b> y se encuentra dentro del paquete <code>lombok.Value</code> (no debe confundirse con <code>@Value</code> de Spring Framework para inyectar propiedades). Es la variante inmutable de <code>@Data</code>:
+        <ul>
+            <li>Convierte automáticamente la clase en <b><code>final</code></b> (no se puede heredar de ella).</li>
+            <li>Convierte automáticamente todos los atributos no estáticos en <b><code>private final</code></b> (salvo que un atributo concreto se anote con <code>@NonFinal</code> del paquete <code>lombok.experimental.NonFinal</code>).</li>
+            <li>Genera un constructor público con <b>todos los argumentos</b> (equivalente a <code>@AllArgsConstructor</code>).</li>
+            <li>Genera métodos <code>@Getter</code>, <code>@ToString</code> y <code>@EqualsAndHashCode</code>, pero <b>no genera ningún método <i>setter</i></b>.</li>
+        </ul>
+    </li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Value;
+
+@Value
+public class ImmutablePet {
+    Integer id;
+    String name;
+    Short age;
+}
+
+// Todos los campos son private final y se inicializan por constructor:
+ImmutablePet pet = new ImmutablePet(1, "Joe", (short) 2);
+String petName = pet.getName();
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar @Data y cuándo NO usarlo?</h2>
+
+<ul>
+    <li><b>Cuándo usarlo:</b> En <b>DTOs</b> (como <code>PetDTO</code> o <code>PetPatchDTO</code>), objetos de configuración, comandos de petición/respuesta o POJOs simples en memoria que no tienen ciclo de vida gestionado por un ORM ni relaciones circulares.</li>
+    <li><b>Cuándo NO usarlo:</b>
+        <ul>
+            <li><b>En Entidades JPA / Hibernate (<code>@Entity</code>):</b> Porque <code>@Data</code> genera <code>hashCode()</code> y <code>equals()</code> usando todos los campos mutables (lo que rompe las colecciones <code>Set</code> cuando Hibernate asigna el ID al persistir) y genera <code>toString()</code> sobre asociaciones <code>@OneToMany</code> / <code>@ManyToOne</code>. En entidades usa siempre <code>@Getter</code> y <code>@Setter</code>.</li>
+            <li><b>En clases con herencia sin configurar <code>callSuper</code>:</b> Por defecto el <code>equals</code> y <code>hashCode</code> generado por <code>@Data</code> ignora los atributos de la clase padre (<code>callSuper = false</code>), pudiendo considerar iguales dos objetos que tienen distinto ID en la superclase.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo: Combinar @Data con @Builder para Jackson</h2>
+
+<h3>Contraejemplo (Mala práctica): Poner solo <code>@Data</code> y <code>@Builder</code> en un DTO recibido por REST</h3>
+<p>Si anotamos un DTO únicamente con <code>@Data</code> y <code>@Builder</code>, el código compilará pero <b>fallará en tiempo de ejecución</b> cuando Spring Boot / Jackson intente convertir el JSON de una petición <code>POST</code> en un objeto <code>PetDTO</code> (lanzando <code>InvalidDefinitionException: Cannot construct instance of PetDTO</code>). Esto ocurre porque <code>@Builder</code> crea un constructor con todos los parámetros y desactiva el constructor vacío que Jackson necesita:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Jackson fallará al deserializar el JSON porque no existe constructor vacío
+@Data
+@Builder
+public class PetDTO {
+    private Integer id;
+    private String name;
+    private Short age;
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Añadir <code>@NoArgsConstructor</code> y <code>@AllArgsConstructor</code></h3>
+<p>Para que una clase tenga simultáneamente las ventajas de <code>@Data</code>, el patrón <code>@Builder</code> y el constructor vacío requerido por Jackson y ModelMapper, se deben declarar explícitamente los dos constructores:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Dispone de constructor vacío para Jackson y constructor completo para @Builder
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PetDTO {
+    private Integer id;
+    private String name;
+    private Short age;
+}
+</code></pre>
+</div>

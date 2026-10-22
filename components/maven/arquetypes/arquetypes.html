@@ -1,5 +1,149 @@
-<h1 class="title">Arquetipos</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Arquetipos en Apache Maven (Archetypes)</h1>
 
-<p class="center-horizontal"><b>Los Arquetipos en Maven son plantillas predefinidas para proyectos</b></p>
+<p class="center-horizontal">
+    <b>Un Arquetipo en Maven es un sistema de plantillas estandarizadas para generar proyectos completos desde cero con un solo comando.</b>
+</p>
 
-TODO:<p>Para crear un proyecto usando un arquetipo se utiliza el comando: <b>mvn archetype:generate</b> seguido del atributo que especifica el arquetipo concreto</p>
+<p>En el desarrollo de software, iniciar un proyecto nuevo desde un lienzo en blanco suele requerir crear manualmente la jerarquía de carpetas (<code>src/main/java</code>, <code>src/main/resources</code>, <code>src/test/java</code>), redactar la cabecera XML del <code>pom.xml</code>, buscar las versiones de los plugins de compilación y escribir una clase <code>Main</code> con su test unitario de prueba. Un <strong>Arquetipo (Archetype)</strong> automatiza todo este proceso en cuestión de segundos, generando una estructura lista para compilar.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: Moldes de Fundición Industrial</h2>
+<p>Imagina un fabricante de piezas cerámicas o de metal. Cuando un cliente encarga 1.000 tazas, el artesano no modela cada taza a mano desde cero con arcilla: introduce el material en un <strong>molde de fundición prefabricado</strong>. El molde define la forma, las proporciones y el asa exactamente como marca el estándar, ahorrando días de trabajo repetitivo y asegurando que todas las piezas sean idénticas.</p>
+
+<h2 class="subtitle">Flujo de Generación de un Proyecto con Arquetipos</h2>
+<p>Al invocar el plugin <code>archetype:generate</code>, Maven consulta un catálogo de plantillas registradas (en Maven Central o en un repositorio corporativo interno) y materializa el árbol de archivos en el disco:</p>
+
+<img class="center-horizontal" src="components/maven/arquetypes/assets/img/maven-arquetipos.svg">
+<span class="center-horizontal caption">Figura 1: Flujo de instanciación de un nuevo proyecto a partir de un arquetipo de Maven</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Responsabilidad en el Proceso</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Catálogo de Arquetipos</th>
+            <td>«catálogo de plantillas»</td>
+            <td>Índice centralizado de cientos de plantillas mantenidas por Apache y por la comunidad de software libre.</td>
+        </tr>
+        <tr>
+            <th scope="row">mvn archetype:generate</th>
+            <td>«comando de consola»</td>
+            <td>Recibe los parámetros de negocio (<code>groupId</code>, <code>artifactId</code>, versión de Java) y sustituye las variables del molde.</td>
+        </tr>
+        <tr>
+            <th scope="row">Proyecto Generado</th>
+            <td>«proyecto generado en disco»</td>
+            <td>Árbol de directorios con <code>pom.xml</code> preconfigurado y clases Java iniciales compilables de inmediato con <code>mvn test</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del sistema de arquetipos de Maven</span>
+
+<h2 class="subtitle">Los Arquetipos Más Utilizados de Maven</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Arquetipo</th>
+            <th scope="col">ArtifactId del Arquetipo</th>
+            <th scope="col">¿Qué estructura genera?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Quickstart</b></td>
+            <td><code>maven-archetype-quickstart</code></td>
+            <td>Aplicación Java de consola estándar con una clase <code>App.java</code> y un test unitario JUnit en <code>AppTest.java</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Webapp</b></td>
+            <td><code>maven-archetype-webapp</code></td>
+            <td>Aplicación web tradicional empaquetada en <code>.war</code> con carpeta <code>src/main/webapp/WEB-INF/web.xml</code> e <code>index.jsp</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Mojo / Plugin</b></td>
+            <td><code>maven-archetype-plugin</code></td>
+            <td>Estructura base para programar y publicar un nuevo plugin personalizado de Maven.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Catálogo de arquetipos estándar de Apache</span>
+
+<h2 class="subtitle">Modo Interactivo vs Modo Desatendido (Batch)</h2>
+
+<h3>Opción 1: Modo Desatendido (Recomendado para Scripts y Automatización)</h3>
+<p>Pasando todas las variables como parámetros <code>-D</code> en una sola línea y desactivando el modo interactivo con <code>-DinteractiveMode=false</code>, el proyecto se genera instantáneamente:</p>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+mvn archetype:generate \
+  -DgroupId=com.petshop \
+  -DartifactId=pet-service \
+  -DarchetypeArtifactId=maven-archetype-quickstart \
+  -DarchetypeVersion=1.4 \
+  -DinteractiveMode=false
+</code></pre>
+</div>
+<span class="center-horizontal caption">Generación automática en un solo comando sin preguntas interactivas</span>
+
+<h3>Opción 2: Modo Interactivo (Asistente por Preguntas)</h3>
+<p>Si solo escribes <code>mvn archetype:generate</code> en tu terminal, Maven descargará el catálogo completo de más de 3.000 arquetipos y te pedirá elegir un número en un menú interactivo en consola, solicitando sucesivamente el grupo, artefacto y paquete.</p>
+
+<h2 class="subtitle">¿Cuándo Usar Arquetipos y Cuándo NO Usarlos?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Cuándo SÍ Usar Arquetipos</th>
+            <th scope="col">Cuándo NO Usar Arquetipos</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Microservicios Spring Boot</th>
+            <td>Si tu empresa ha publicado un arquetipo propio con su seguridad corporativa ya integrada.</td>
+            <td>En proyectos estándar de Spring Boot suele preferirse el asistente web oficial <b>Spring Initializr</b> (<a href="https://start.spring.io" target="_blank">start.spring.io</a>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Librerías o Proyectos Java Básicos</th>
+            <td>Ideal: genera en 2 segundos la carpeta <code>src/main/java</code> y el <code>pom.xml</code> limpio sin abrir un IDE.</td>
+            <td>Si vas a clonar una plantilla ya existente de tu repositorio de Git con Dockerfile y CI/CD configurados.</td>
+        </tr>
+        <tr>
+            <th scope="row">Estandarización Corporativa</th>
+            <td>Excelente: las grandes compañías crean sus propios arquetipos (ej. <code>banco-archetype-microservice</code>) para que ningún desarrollador empiece con dependencias no homologadas.</td>
+            <td>Para proyectos personales de prueba de una sola clase donde un simple <code>pom.xml</code> de 15 líneas es suficiente.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Criterios para la adopción de arquetipos</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en la Creación de Proyectos</h2>
+
+<h3>Ejemplo (Buena Práctica): Verificar el proyecto generado inmediatamente</h3>
+<p>Nada más generar el proyecto con el arquetipo, entra a la carpeta y verifica que compile y pase los tests:</p>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+cd pet-service
+mvn test
+
+# Salida esperada:
+[INFO] Scanning for projects...
+[INFO] Building pet-service 1.0-SNAPSHOT
+[INFO] --- maven-surefire-plugin:2.22.1:test (default-test) ---
+[INFO] Running com.petshop.AppTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+</code></pre>
+</div>
+<span class="center-horizontal caption">Verificación exitosa del esqueleto del proyecto</span>
+
+<h3>Contraejemplo (Mala Práctica): Usar arquetipos obsoletos que configuran Java 5 o 7</h3>
+<p>Arquetipos viejos de <code>maven-archetype-quickstart</code> sin especificar versión (o versiones anteriores a la 1.4) generan un <code>pom.xml</code> con <code>&lt;maven.compiler.source&gt;1.5&lt;/maven.compiler.source&gt;</code> y JUnit 3.8.1. Si no revisas el <code>pom.xml</code> tras generarlo, tu proyecto fallará al intentar usar lambdas, records o características de Java moderno.</p>

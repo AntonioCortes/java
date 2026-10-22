@@ -10,6 +10,39 @@
 <img class="center-horizontal" src="components/gradle/plugins/assets/img/gradle-plugins-diagram.png">
 <span class="center-horizontal caption">Figura 1: Cómo los plugins inyectan nuevas tareas ejecutables dentro del motor de Gradle</span>
 
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento del Diagrama</th>
+            <th scope="col">Origen</th>
+            <th scope="col">Aportación al Ciclo de Construcción</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Motor Base de Gradle</th>
+            <td>Core Engine</td>
+            <td>Proporciona el ciclo de vida, resolución de dependencias y ejecución de tareas.</td>
+        </tr>
+        <tr>
+            <th scope="row">Plugin Java</th>
+            <td>Core Plugin</td>
+            <td>Inyecta el grafo de compilación Java estándar (<code>compileJava</code>, <code>test</code>, <code>jar</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">Plugin Spring Boot</th>
+            <td>Comunidad (Spring)</td>
+            <td>Agrega <code>bootJar</code> (empaquetado Fat JAR con Tomcat embebido) y <code>bootRun</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Plugins de Calidad (JaCoCo / Sonar)</th>
+            <td>Herramientas QA</td>
+            <td>Calculan métricas de cobertura de tests e inspeccionan vulnerabilidades estáticas de código.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del ecosistema de plugins de Gradle</span>
+
 <h2 class="subtitle">1. Plugins Oficiales Incluidos en Gradle (Core Plugins)</h2>
 <p>Estos plugins vienen integrados de fábrica dentro de Gradle, por lo que <strong>no necesitan número de versión</strong> al declararlos:</p>
 
@@ -54,7 +87,36 @@
         </tr>
     </tbody>
 </table>
-<span class="center-horizontal caption">Tabla 1: Plugins oficiales de Gradle que no requieren indicar versión</span>
+<span class="center-horizontal caption">Tabla 2: Plugins oficiales de Gradle que no requieren indicar versión</span>
+
+<h2 class="subtitle">¿Cuándo Usar Plugins Externos y Cuándo NO?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Necesidad</th>
+            <th scope="col">Plugin Adecuado</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Empaquetar microservicio auto-ejecutable</td>
+            <td><code>org.springframework.boot</code></td>
+            <td>Si estás creando una biblioteca JAR compartida para otros desarrolladores (usar <code>java-library</code>).</td>
+        </tr>
+        <tr>
+            <td>Medir cobertura de tests</td>
+            <td><code>jacoco</code> (Core Plugin)</td>
+            <td>No mezclar con plugins obsoletos de cobertura como Cobertura.</td>
+        </tr>
+        <tr>
+            <td>Migración de Base de Datos en CI/CD</td>
+            <td><code>org.flywaydb.flyway</code></td>
+            <td>Si la aplicación ya aplica migraciones automáticamente al arrancar con Spring Boot.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Criterios para seleccionar plugins</span>
 
 <h2 class="subtitle">2. Plugins de Comunidad y Empresa (Spring Boot, SonarQube, Flyway, Avro)</h2>
 <p>Los plugins creados por terceros se descargan automáticamente del <a href="https://plugins.gradle.org/" target="_blank">Gradle Plugin Portal</a> y <strong>sí requieren indicar su versión</strong>:</p>
@@ -113,3 +175,32 @@ jacocoTestReport {
     <li><strong>Forma antigua (Legacy):</strong> Un bloque <code class="language-groovy">buildscript { dependencies { classpath ... } }</code> seguido más abajo de <code class="language-groovy">apply plugin: 'eclipse'</code>. Sigue funcionando por compatibilidad, pero en proyectos nuevos debes usar siempre el bloque <code class="language-groovy">plugins { ... }</code>.</li>
     <li><strong>Dividir configuración en varios archivos (<code class="language-groovy">apply from:</code>):</strong> Cuando un <code class="language-bash">build.gradle</code> crece mucho, las empresas suelen separar la configuración de SonarQube o Artifactory en archivos aparte (por ejemplo, <code class="language-bash">gradle/sonar.gradle</code>) y los importan en el archivo principal escribiendo <code class="language-groovy">apply from: "gradle/sonar.gradle"</code>.</li>
 </ul>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en el uso del plugin Spring Boot</h2>
+
+<h3>Ejemplo (Buena Práctica): Dejar que bootJar genere el artefacto ejecutable</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Al aplicar el plugin de Spring Boot, la tarea jar estándar se deshabilita para evitar confusión
+tasks.named('jar') {
+    enabled = false
+}
+// bootJar genera el fat-jar completo con Tomcat y todas las dependencias
+tasks.named('bootJar') {
+    archiveFileName = 'pet-service.jar'
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Despliegue unívoco de un único ejecutable Fat JAR</span>
+
+<h3>Contraejemplo (Mala Práctica): Usar el JAR estándar de java en lugar de bootJar</h3>
+<p>Si se fuerza la creación del <code>jar</code> normal sin el empaquetado de Spring Boot, el archivo solo contendrá tus clases y al intentar arrancarlo en un contenedor Docker con <code>java -jar app.jar</code> fallará inmediatamente:</p>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+java -jar build/libs/pet-service.jar
+# Error fatal:
+Error: A JNI error has occurred, please check your installation and try again
+Exception in thread "main" java.lang.NoClassDefFoundError: org/springframework/boot/SpringApplication
+</code></pre>
+</div>
+<span class="center-horizontal caption">Fallo en tiempo de ejecución por no empaquetar dependencias con bootJar</span>

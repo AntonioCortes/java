@@ -1,0 +1,252 @@
+<h1 class="title">Anotaciones de Swagger (SpringFox)</h1>
+
+<p>Aunque <b>SpringFox</b> es capaz de descubrir automáticamente las rutas, métodos HTTP y tipos de retorno leyendo las anotaciones nativas de Spring (<code>@RestController</code>, <code>@GetMapping</code>, <code>@RequestParam</code>, <code>@RequestBody</code>), el uso de las anotaciones de <b>Swagger Annotations</b> (ubicadas en el paquete <code>io.swagger.annotations.*</code>) permite enriquecer la documentación con descripciones funcionales, valores de ejemplo, restricciones y posibles códigos de respuesta HTTP.</p>
+
+<h2>1. Anotaciones para Controladores y Endpoints</h2>
+
+<ul>
+	<li><b>@Api:</b> Pertenece a Swagger Annotations (usada por SpringFox), se encuentra en el paquete <code>io.swagger.annotations.Api</code> y se coloca <b>a nivel de clase</b> sobre un controlador (<code>@RestController</code>). Sirve para agrupar y describir la función general del controlador dentro de Swagger UI.
+		<p>Sus parámetros más utilizados son:</p>
+		<ul>
+			<li><b><code>tags</code>:</b> Array de Strings con el nombre o nombres de las secciones bajo las cuales se agruparán los endpoints de este controlador en Swagger UI (ej. <code>@Api(tags = "Pet")</code>).</li>
+			<li><b><code>produces</code> / <code>consumes</code>:</b> Especifica el tipo MIME que produce o consume el controlador (ej. <code>"application/json"</code>).</li>
+		</ul>
+	</li>
+
+	<li><b>@ApiOperation:</b> Pertenece a Swagger Annotations, se encuentra en el paquete <code>io.swagger.annotations.ApiOperation</code> y se coloca <b>sobre cada método del controlador</b> (endpoint). Sirve para describir qué hace exactamente esa operación HTTP.
+		<p>Sus parámetros principales son:</p>
+		<ul>
+			<li><b><code>value</code>:</b> Resumen breve de lo que hace el endpoint (aparece al lado de la ruta en la vista plegada de Swagger UI).</li>
+			<li><b><code>notes</code>:</b> Descripción detallada y extendida sobre el funcionamiento o reglas de negocio del endpoint (aparece al desplegar el endpoint).</li>
+			<li><b><code>response</code>:</b> Clase Java que representa el cuerpo de la respuesta (ej. <code>PetDTO.class</code>).</li>
+			<li><b><code>responseContainer</code>:</b> Si el endpoint devuelve una colección de objetos, permite indicarlo con valores como <code>"List"</code>, <code>"Set"</code> o <code>"Map"</code>.</li>
+		</ul>
+	</li>
+
+	<li><b>@ApiResponses:</b> Pertenece a Swagger Annotations, se encuentra en el paquete <code>io.swagger.annotations.ApiResponses</code> y se puede colocar tanto <b>a nivel de clase</b> (para respuestas comunes a todos los métodos del controlador, como los errores 400 o 500) como <b>a nivel de método</b>. Actúa como contenedor de un array de anotaciones <code>@ApiResponse</code>.</li>
+
+	<li><b>@ApiResponse:</b> Pertenece a Swagger Annotations, se encuentra en el paquete <code>io.swagger.annotations.ApiResponse</code> y se utiliza dentro de <code>@ApiResponses</code> para documentar un código de estado HTTP concreto que puede devolver el endpoint.
+		<p>Sus parámetros principales son:</p>
+		<ul>
+			<li><b><code>code</code>:</b> Número entero del código de estado HTTP (ej. <code>200</code>, <code>201</code>, <code>204</code>, <code>400</code>, <code>404</code>, <code>500</code>).</li>
+			<li><b><code>message</code>:</b> Explicación legible de qué significa ese código en el contexto del endpoint (ej. <code>"OK"</code>, <code>"Created"</code>, <code>"Pet not found"</code>).</li>
+			<li><b><code>response</code>:</b> Clase del objeto devuelto en caso de producirse esa respuesta (ej. <code>response = PetDTO.class</code> o una clase de error <code>ErrorResponseDTO.class</code>).</li>
+			<li><b><code>responseContainer</code>:</b> Contenedor cuando la respuesta es una colección (ej. <code>responseContainer = "List"</code>).</li>
+		</ul>
+	</li>
+
+	<li><b>@ApiParam:</b> Pertenece a Swagger Annotations, se encuentra en el paquete <code>io.swagger.annotations.ApiParam</code> y se coloca <b>sobre los parámetros de entrada de un método</b> del controlador (junto a <code>@PathVariable</code>, <code>@RequestParam</code> o <code>@RequestHeader</code>).
+		<p>Sus parámetros principales son:</p>
+		<ul>
+			<li><b><code>value</code>:</b> Descripción del parámetro (ej. <code>"Pet ID"</code> o <code>"Pet age"</code>).</li>
+			<li><b><code>example</code>:</b> Valor de ejemplo que aparecerá pre-rellenado en el formulario de Swagger UI para facilitar las pruebas (ej. <code>example = "1"</code>).</li>
+			<li><b><code>required</code>:</b> Booleano (<code>true</code> / <code>false</code>) que indica en la documentación si el parámetro es obligatorio.</li>
+			<li><b><code>defaultValue</code>:</b> Valor por defecto si el cliente no envía el parámetro.</li>
+			<li><b><code>allowableValues</code>:</b> Restringe los valores aceptados (por ejemplo, una lista separada por comas <code>"DOG, CAT, BIRD"</code> o un rango <code>"range[1, 30]"</code>).</li>
+		</ul>
+	</li>
+
+	<li><b>@ApiIgnore:</b> Pertenece a SpringFox, se encuentra en el paquete <code>springfox.documentation.annotations.ApiIgnore</code>. Se puede colocar sobre un controlador entero, un método o un parámetro concreto para que SpringFox lo ignore y <b>no aparezca</b> en la documentación pública de Swagger UI.</li>
+</ul>
+
+<h2>2. Anotaciones para Modelos y DTOs</h2>
+
+<p>Para documentar la estructura de los objetos JSON que se envían en el body de las peticiones o se reciben en las respuestas, se anotan las clases DTO (como <code>PetDTO</code> y <code>PetPatchDTO</code>) con las siguientes anotaciones:</p>
+
+<ul>
+	<li><b>@ApiModel:</b> Se encuentra en el paquete <code>io.swagger.annotations.ApiModel</code> y se coloca <b>sobre la declaración de la clase DTO</b>. Permite darle un nombre personalizado y una descripción general al esquema JSON que aparece en la sección <i>Models</i> de Swagger UI.
+		<p>Sus parámetros principales son:</p>
+		<ul>
+			<li><b><code>value</code>:</b> Nombre alternativo del modelo (por defecto toma el nombre de la clase Java, como <code>PetDTO</code>).</li>
+			<li><b><code>description</code>:</b> Explicación del propósito del DTO (ej. <code>@ApiModel(description = "Pet DTO")</code>).</li>
+		</ul>
+	</li>
+
+	<li><b>@ApiModelProperty:</b> Se encuentra en el paquete <code>io.swagger.annotations.ApiModelProperty</code> y se coloca <b>sobre los atributos (o getters) de la clase DTO</b>. Documenta cada propiedad individual del JSON.
+		<p>Sus parámetros principales son:</p>
+		<ul>
+			<li><b><code>notes</code> / <code>value</code>:</b> Descripción funcional del campo (ej. <code>notes = "Picture of the pet in base64"</code>).</li>
+			<li><b><code>example</code>:</b> Valor de ejemplo realista que Swagger UI utilizará para generar automáticamente el JSON de muestra en las peticiones <code>POST</code>, <code>PUT</code> y <code>PATCH</code> (ej. <code>example = "Joe"</code> o <code>example = "1/2/2021"</code>).</li>
+			<li><b><code>required</code>:</b> Indica si el atributo es obligatorio en el JSON (<code>true</code>) u opcional (<code>false</code>).</li>
+			<li><b><code>allowEmptyValue</code>:</b> Booleano que especifica si se permite enviar el campo vacío.</li>
+			<li><b><code>allowableValues</code>:</b> Lista de valores permitidos separados por comas (ej. <code>allowableValues = "image/jpeg, image/jpg, image/gif"</code>).</li>
+			<li><b><code>position</code>:</b> Número entero para ordenar en qué posición aparece el campo dentro del JSON de ejemplo en Swagger UI.</li>
+			<li><b><code>hidden</code>:</b> Si es <code>true</code>, oculta el atributo en la documentación de Swagger.</li>
+		</ul>
+	</li>
+</ul>
+
+<h2>Equivalencia entre Swagger 2 (SpringFox) y OpenAPI 3 (SpringDoc)</h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Elemento</th>
+			<th scope="col">Swagger 2 (<code>io.swagger.annotations.*</code>)</th>
+			<th scope="col">OpenAPI 3 (<code>io.swagger.v3.oas.annotations.*</code>)</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Clase Controlador</b></td>
+			<td><code>@Api(tags = "Pet")</code></td>
+			<td><code>@Tag(name = "Pet", description = "...")</code></td>
+		</tr>
+		<tr>
+			<td><b>Método / Endpoint</b></td>
+			<td><code>@ApiOperation(value = "...", notes = "...")</code></td>
+			<td><code>@Operation(summary = "...", description = "...")</code></td>
+		</tr>
+		<tr>
+			<td><b>Grupo de Respuestas</b></td>
+			<td><code>@ApiResponses({ ... })</code></td>
+			<td><code>@ApiResponses({ ... })</code></td>
+		</tr>
+		<tr>
+			<td><b>Respuesta Individual</b></td>
+			<td><code>@ApiResponse(code = 200, message = "OK")</code></td>
+			<td><code>@ApiResponse(responseCode = "200", description = "OK")</code></td>
+		</tr>
+		<tr>
+			<td><b>Parámetro de Entrada</b></td>
+			<td><code>@ApiParam(value = "pet Id", example = "1", required = true)</code></td>
+			<td><code>@Parameter(description = "pet Id", example = "1", required = true)</code></td>
+		</tr>
+		<tr>
+			<td><b>Ocultar Elemento</b></td>
+			<td><code>@ApiIgnore</code></td>
+			<td><code>@Hidden</code></td>
+		</tr>
+		<tr>
+			<td><b>Clase DTO / Modelo</b></td>
+			<td><code>@ApiModel(description = "Pet DTO")</code></td>
+			<td><code>@Schema(description = "Pet DTO")</code></td>
+		</tr>
+		<tr>
+			<td><b>Atributo del DTO</b></td>
+			<td><code>@ApiModelProperty(notes = "Pet Name", example = "Joe")</code></td>
+			<td><code>@Schema(description = "Pet Name", example = "Joe")</code></td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tabla de equivalencias entre anotaciones de Swagger 2 (SpringFox) y OpenAPI 3 (SpringDoc)</span>
+
+<h2>Ejemplo Completo Integrado: <code>PetDTO</code> y <code>PetController</code></h2>
+
+<h3>1. DTO documentado con <code>@ApiModel</code> y <code>@ApiModelProperty</code></h3>
+<p>En <code>PetDTO</code> cada campo define su descripción, si es obligatorio, un ejemplo realista para el generador JSON de Swagger UI y los valores MIME permitidos para la imagen:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@ApiModel(description = "Pet DTO")
+@Data
+@Accessors(chain = true)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class PetDTO 
+{   
+	@ApiModelProperty(notes = "Pet ID", example = "1", required = true)
+	@NotNull(message = ConstantMessages.FIELD_MANDATORY)
+	@JsonProperty("petId")
+	private Integer id;
+
+	@ApiModelProperty(notes = "Pet Name", example = "Joe", required = true)
+	@NotBlank(message = ConstantMessages.FIELD_MANDATORY)
+	@JsonProperty("petName")
+	private String name;
+	
+	@ApiModelProperty(notes = "Pet age", example = "1", required = true)
+	@NotNull(message = ConstantMessages.FIELD_MANDATORY)
+	@JsonProperty("age")
+	private Short age;
+
+	@ApiModelProperty(notes = "Date of birth", example = "1/2/2021", required = false)
+	@JsonFormat(pattern = "dd/MM/yyyy", timezone = "Europe/Madrid")
+	@JsonProperty("birthDate")
+	private Date birthDate;
+
+	@ApiModelProperty(notes = "Picture media type", example = "image/jpeg", required = true, allowEmptyValue = false, allowableValues = "image/jpeg, image/jpg, image/gif")
+	@NotBlank(message = ConstantMessages.FIELD_MANDATORY)
+	@Pattern(regexp = "^(image/jpeg|image/jpg|image/gif)$")
+	@JsonProperty("pictureMediaType")
+	private String pictureMediaType;
+}
+</code></pre>
+</div>
+
+<h3>2. Controlador documentado con <code>@Api</code>, <code>@ApiOperation</code>, <code>@ApiResponses</code> y <code>@ApiParam</code></h3>
+<p>En <code>PetController</code> se documenta tanto la cabecera de la clase como cada endpoint y sus parámetros de ruta o consulta:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@RestController
+@RequestMapping("/petshop/pet")
+@CrossOrigin
+@Api(tags = "Pet")
+@ApiResponses({
+		@ApiResponse(code = 400, message = "Bad Request"),
+		@ApiResponse(code = 500, message = "Internal server error")
+})
+public class PetController 
+{
+	@ApiOperation(value = "View a pet data", notes = "Retrieves a single pet from the database by its unique identifier")
+	@ApiResponses({
+			@ApiResponse(code = 200, message = "OK", response = PetDTO.class),
+			@ApiResponse(code = 404, message = "Not found")
+	})
+	@GetMapping("/{id}")
+	public ResponseEntity&lt;PetDTO&gt; get(
+			@PathVariable(value = "id") 
+			@ApiParam(value = "Pet Id", example = "1", required = true) final Integer pId) 
+	{
+		// Lógica de consulta y mapeo a PetDTO...
+	}
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar estas anotaciones y cuándo NO usarlas?</h2>
+
+<ul>
+	<li><b>Cuándo usarlas:</b> En APIs REST consumidas por otros equipos o por un front-end, para que Swagger UI muestre descripciones, ejemplos válidos y todos los códigos de respuesta posibles de cada endpoint.</li>
+	<li><b>Cuándo NO usarlas:</b>
+		<ul>
+			<li>En proyectos con <b>Spring Boot 3</b>: allí se usan las anotaciones de OpenAPI 3 (<code>@Tag</code>, <code>@Operation</code>, <code>@Parameter</code>, <code>@Schema</code>) de SpringDoc, no las de <code>io.swagger.annotations.*</code>.</li>
+			<li>Para documentar la entidad JPA directamente: se documenta siempre el DTO.</li>
+			<li>Como sustituto de las validaciones: <code>required = true</code> solo documenta, no valida; la validación real se hace con <code>@Valid</code> y las constraints del DTO.</li>
+		</ul>
+	</li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo al documentar Endpoints y Modelos</h2>
+
+<h3>Contraejemplo (Mala práctica): Documentar la Entidad de base de datos o usar anotaciones sin ejemplos</h3>
+<p>Un error grave al documentar un controlador es referenciar directamente la entidad JPA (<code>response = Pet.class</code>) o no especificar el atributo <code>example</code> en <code>@ApiModelProperty</code>. Esto provoca que Swagger UI muestre campos internos de base de datos, falle al intentar generar el esquema JSON si la entidad tiene relaciones circulares, y rellene el JSON de prueba con textos genéricos inútiles como <code>"string"</code> o <code>0</code> que no pasan las validaciones <code>@Pattern</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Expone la entidad JPA Pet.class y no define valores 'example' válidos
+@ApiOperation(value = "Get pet")
+@ApiResponses({ @ApiResponse(code = 200, message = "OK", response = Pet.class) }) // ¡No usar la Entidad!
+@GetMapping("/{id}")
+public ResponseEntity&lt;Pet&gt; getBad(@PathVariable Integer id) { ... }
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Documentar siempre con DTOs e incluir ejemplos realistas y códigos de error</h3>
+<p>Documentando el <code>PetDTO.class</code> con valores <code>example</code> que cumplan las expresiones regulares de validación y detallando tanto el código de éxito (<code>200</code>) como el de error (<code>404</code>), cualquier usuario podrá pulsar el botón <i>"Try it out"</i> en Swagger UI y ejecutar una petición válida al instante:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Usa PetDTO, documenta el 200 y el 404, y proporciona un ejemplo válido para el parámetro
+@ApiOperation(value = "View a pet data", notes = "View a pet data")
+@ApiResponses({
+		@ApiResponse(code = 200, message = "OK", response = PetDTO.class),
+		@ApiResponse(code = 404, message = "Not found")
+})
+@GetMapping("/{id}")
+public ResponseEntity&lt;PetDTO&gt; getGood(
+		@PathVariable(value = "id")
+		@ApiParam(value = "pet Id", example = "1", required = true) final Integer pId) { ... }
+</code></pre>
+</div>

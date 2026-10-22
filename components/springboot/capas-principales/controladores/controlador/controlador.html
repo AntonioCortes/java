@@ -1,12 +1,29 @@
-<h1 class="title">Controlador</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Controlador Tradicional (@Controller)</h1>
 
-<p>Para definir una clase como controlador debe tener una serie de anotaciones que son las siguientes:</p>
+<p>En el framework <strong>Spring MVC</strong>, un <strong>Controlador (@Controller)</strong> es el componente de la capa web encargado de recibir las peticiones HTTP del navegador, coordinar la lógica con la capa de servicio y <strong>devolver una vista HTML renderizada en el servidor</strong> (usando motores de plantillas como <em>Thymeleaf</em> o <em>JSP</em>) o redirigir el navegador hacia otra URL (mediante <code>redirect:</code>).</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: El Maître del Restaurante</h2>
+<p>Imagina que entras en un restaurante clásico:</p>
+<ul>
+    <li>El <strong>Maître (@Controller tradicional)</strong> te recibe en la puerta, comprueba tu reserva en el libro de reservas (el modelo de datos), te acompaña personalmente a una mesa decorada con mantel y cubiertos físicos (renderiza la página HTML completa) o te indica que el comedor principal está lleno y debes pasar a la terraza (hace una redirección con <code>redirect:/terraza</code>).</li>
+    <li>En cambio, una <strong>ventanilla de comida rápida para llevar (@RestController)</strong> no te pone mesa ni decoración: solo te entrega la comida empaquetada en una bolsa con un ticket de datos planos (el JSON puro).</li>
+</ul>
+
+<h2 class="subtitle">Anotaciones de Spring Framework para Controladores Web</h2>
 
 <ul>
-	<li><b>@Controller:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RestController y sirve para registrar la clase como controlador.</li>
-	<li><b>@ResponseBody:</b> Le dice a un controlador que el objeto devuelto se serializa automáticamente en JSON y se devuelve al objeto HttpResponse.</li>
-	<li><b>@RequestMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestMapping y sirve para asignar al cuerpo de HttpRequest un objeto de transferencia o de dominio, lo que permite la deserialización automática del cuerpo de HttpRequest entrante en un objeto Java.</li>
+	<li><b>@Controller:</b> Pertenece a Spring Framework, se encuentra en el paquete <code>org.springframework.stereotype.Controller</code> y sirve para registrar la clase como un Spring Bean dentro del contexto de Spring MVC. A diferencia de <code>@RestController</code>, los métodos de una clase <code>@Controller</code> interpretan las cadenas de texto devueltas (<code>String</code>) como el <strong>nombre de una plantilla HTML</strong> que el motor de vistas debe resolver y renderizar.</li>
+	<li><b>@ResponseBody:</b> Pertenece a Spring Framework (paquete <code>org.springframework.web.bind.annotation.ResponseBody</code>). Le indica a Spring que el valor devuelto por un método específico NO debe interpretarse como el nombre de una vista HTML, sino que debe serializarse directamente en el cuerpo de la respuesta HTTP (habitualmente como JSON o XML).</li>
+	<li><b>@RequestMapping:</b> Pertenece a Spring Framework (paquete <code>org.springframework.web.bind.annotation.RequestMapping</code>). Se coloca a nivel de clase o método para mapear la ruta URL base y los métodos HTTP admitidos por el controlador.</li>
 </ul>
+
+<h2 class="subtitle">Ejemplo: Gestión de Películas con Subida de Archivos y Redirección</h2>
+<p>El siguiente ejemplo muestra un controlador web tradicional que procesa un formulario con subida de imagen de portada (<code>MultipartFile</code>), persiste el archivo en el disco del servidor, almacena la película y redirige al listado visual:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -46,3 +63,92 @@ public class FilmController {
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">FilmController procesando formularios, subida de archivos Multipart y redirección</span>
+
+<h2 class="subtitle">Explicación Paso a Paso de los Elementos del Ejemplo</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento / Parámetro</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Propósito en el Controlador</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><code>@Secured({"ROLE_USER","ROLE_ADMIN"})</code></th>
+            <td>Seguridad Spring</td>
+            <td>Restringe la ejecución del endpoint únicamente a usuarios autenticados con los roles indicados.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code>BindingResult result</code></th>
+            <td>Validación Web</td>
+            <td>Captura posibles errores de conversión o validación del formulario sin lanzar una excepción abrupta.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code>MultipartFile cover</code></th>
+            <td>Gestión de Archivos</td>
+            <td>Representa el archivo binario subido desde el formulario HTML (<code>&lt;input type="file" name="cover"&gt;</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row"><code>Model model</code></th>
+            <td>Contenedor de Datos</td>
+            <td>Mapa que transporta atributos desde el controlador Java hacia la plantilla HTML para pintarlos en pantalla.</td>
+        </tr>
+        <tr>
+            <th scope="row"><code>return "redirect:/film/list"</code></th>
+            <td>Patrón Post-Redirect-Get</td>
+            <td>Instruye al navegador a emitir un nuevo GET hacia <code>/film/list</code>, evitando que el usuario reenvíe el formulario al pulsar F5.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Desglose de componentes del controlador tradicional</span>
+
+<h2 class="subtitle">¿Cuándo Usar @Controller y Cuándo @RestController?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">@Controller Tradicional</th>
+            <th scope="col">@RestController</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Tipo de Salida</th>
+            <td>Vistas HTML completas (Thymeleaf, JSP) renderizadas en el servidor.</td>
+            <td>Datos estructurados crudos (JSON o XML) en el cuerpo de la respuesta.</td>
+        </tr>
+        <tr>
+            <th scope="row">Cliente Destino</th>
+            <td>Navegadores web clásicos con formularios HTML tradicionales.</td>
+            <td>SPAs (React, Angular, Vue), aplicaciones móviles iOS/Android o microservicios externos.</td>
+        </tr>
+        <tr>
+            <th scope="row">Redirecciones</th>
+            <td>Uso frecuente de <code>return "redirect:/..."</code> o <code>"forward:/..."</code>.</td>
+            <td>Se devuelven cabeceras HTTP como <code>Location</code> con códigos 201 Created o 302 Found.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Diferencias entre controladores de servidor y controladores REST</span>
+
+<h2 class="subtitle">Contraejemplo (Mala Práctica): Devolver objetos sin @ResponseBody en @Controller</h2>
+<p>Si defines una clase con <code>@Controller</code> y devuelves un objeto Java o una cadena esperando que el cliente reciba un JSON, Spring asumirá que el texto devuelto es el nombre de una plantilla HTML:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ¡ERROR COMÚN! Usar @Controller para una API REST
+@Controller
+@RequestMapping("/api/pets")
+public class BrokenPetController {
+
+    @GetMapping("/{id}")
+    public PetDTO getPet(@PathVariable Integer id) {
+        // ERROR: Spring MVC intentará buscar una plantilla llamada "PetDTO.html"
+        // Provoca error HTTP 404 Not Found o "Circular view path [pet]"
+        return new PetDTO().setId(id);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Olvidar @ResponseBody o usar @Controller en lugar de @RestController para APIs</span>

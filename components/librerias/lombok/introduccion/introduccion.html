@@ -1,3 +1,303 @@
 <h1 class="title">Introducción</h1>
 
-<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores, libero laboriosam non reiciendis ab quis earum officia deleniti quia illum rem sunt quos sed ipsa corrupti repudiandae qui nostrum aperiam?</p> 
+<p><b>Project Lombok</b> es una librería de Java que se integra de forma automática en el editor (IDE) y en las herramientas de construcción (Maven, Gradle) para eliminar el código repetitivo (conocido como <i>boilerplate code</i>) típico de las clases Java.</p>
+
+<p>En el desarrollo tradicional con Java, al crear modelos de datos, entidades JPA, DTOs o servicios, es habitual escribir decenas o cientos de líneas de código rutinario: métodos <code>get</code> y <code>set</code> para cada atributo, múltiples constructores, implementaciones de <code>toString()</code>, <code>equals()</code> y <code>hashCode()</code>, patrones de diseño como <i>Builder</i> o la declaración manual de instancias de <i>Logger</i> en cada clase. Esto ensucia el código fuente y dificulta su lectura y mantenimiento.</p>
+
+<p>Lombok resuelve este problema mediante el uso de <b>anotaciones</b>. Al anotar una clase o sus atributos, Lombok genera automáticamente todo ese código repetitivo sin que tengamos que escribirlo ni mantenerlo manualmente en el archivo <code>.java</code>.</p>
+
+<h2>¿Cómo funciona internamente?</h2>
+
+<p>A diferencia de otros frameworks que utilizan reflexión en tiempo de ejecución (lo que penaliza el rendimiento), Lombok actúa exclusivamente en <b>tiempo de compilación</b>:</p>
+
+<ul>
+    <li>Utiliza la API de procesamiento de anotaciones de Java (<b>JSR 269 - Pluggable Annotation Processing API</b>).</li>
+    <li>Cuando el compilador (<code>javac</code>) analiza el código fuente y construye el <b>Árbol de Sintaxis Abstracta (AST - Abstract Syntax Tree)</b>, el procesador de Lombok intercepta ese árbol en memoria e inyecta directamente los nuevos nodos (métodos getters, setters, constructores, loggers, etc.).</li>
+    <li>Posteriormente, el compilador genera el archivo de bytecode (<code>.class</code>) final como si el programador hubiera escrito todos esos métodos a mano.</li>
+    <li><b>Coste cero en tiempo de ejecución:</b> Como el código ya queda compilado de forma nativa dentro del archivo <code>.class</code>, no existe ninguna penalización de rendimiento en ejecución ni es necesario empaquetar el JAR de Lombok en producción.</li>
+</ul>
+
+<p>Para que el entorno de desarrollo (IntelliJ IDEA, Eclipse, Spring Tool Suite o VS Code) reconozca los métodos generados mientras se escribe código sin marcar errores de compilación, es necesario tener instalado el plugin oficial de Lombok en el IDE (en las versiones recientes de IntelliJ IDEA ya viene integrado de serie).</p>
+
+<h2>Dependencias necesarias</h2>
+
+<p>Dado que Lombok solo actúa durante la fase de compilación del proyecto, la dependencia <code>org.projectlombok:lombok</code> se configura con ámbito de compilación (<code>provided</code> en Maven o <code>compileOnly</code> en Gradle) junto con el procesador de anotaciones correspondiente.</p>
+
+<h3>Maven en un proyecto Java estándar (pom.xml)</h3>
+
+<p>En un proyecto Maven estándar se declara la dependencia con <code>&lt;scope&gt;provided&lt;/scope&gt;</code> y se registra como procesador de anotaciones en el <code>maven-compiler-plugin</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+        &lt;version&gt;1.18.30&lt;/version&gt;
+        &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+
+&lt;build&gt;
+    &lt;plugins&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+            &lt;version&gt;3.11.0&lt;/version&gt;
+            &lt;configuration&gt;
+                &lt;annotationProcessorPaths&gt;
+                    &lt;path&gt;
+                        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+                        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+                        &lt;version&gt;1.18.30&lt;/version&gt;
+                    &lt;/path&gt;
+                &lt;/annotationProcessorPaths&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;
+</code></pre>
+</div>
+
+<h3>Maven en un proyecto Spring Boot (pom.xml)</h3>
+
+<p>Si el proyecto utiliza el padre <code>spring-boot-starter-parent</code>, Spring Boot ya gestiona automáticamente la versión compatible de Lombok, por lo que basta con añadir la dependencia marcándola como <code>&lt;optional&gt;true&lt;/optional&gt;</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+    &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+    &lt;optional&gt;true&lt;/optional&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>Gradle (build.gradle)</h3>
+
+<p>En proyectos con Gradle se debe añadir tanto en <code>compileOnly</code> como en <code>annotationProcessor</code> (y sus equivalentes de test si se utilizan anotaciones de Lombok dentro de las clases de pruebas):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+</code></pre>
+</div>
+
+<h2>Resumen de las principales anotaciones de Lombok</h2>
+
+<p>En la siguiente tabla se resumen las anotaciones más utilizadas de la librería junto con el paquete donde se encuentran y el código que generan en tiempo de compilación:</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Paquete</th>
+            <th scope="col">Propósito y código generado</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@Getter</code> / <code>@Setter</code></td>
+            <td><code>lombok.Getter</code> / <code>lombok.Setter</code></td>
+            <td>Genera los métodos de lectura (<code>getCampo()</code> / <code>isCampo()</code>) y escritura (<code>setCampo(...)</code>) para los atributos de la clase.</td>
+        </tr>
+        <tr>
+            <td><code>@NoArgsConstructor</code></td>
+            <td><code>lombok.NoArgsConstructor</code></td>
+            <td>Genera un constructor vacío (sin parámetros).</td>
+        </tr>
+        <tr>
+            <td><code>@AllArgsConstructor</code></td>
+            <td><code>lombok.AllArgsConstructor</code></td>
+            <td>Genera un constructor que recibe un parámetro por cada atributo definido en la clase.</td>
+        </tr>
+        <tr>
+            <td><code>@RequiredArgsConstructor</code></td>
+            <td><code>lombok.RequiredArgsConstructor</code></td>
+            <td>Genera un constructor exclusivamente para los atributos obligatorios (declarados como <code>final</code> o anotados con <code>@NonNull</code>). Muy utilizado para inyección de dependencias en Spring Boot.</td>
+        </tr>
+        <tr>
+            <td><code>@ToString</code></td>
+            <td><code>lombok.ToString</code></td>
+            <td>Genera una implementación legible del método <code>toString()</code> mostrando el nombre de la clase y el valor de sus atributos.</td>
+        </tr>
+        <tr>
+            <td><code>@EqualsAndHashCode</code></td>
+            <td><code>lombok.EqualsAndHashCode</code></td>
+            <td>Genera las implementaciones de los métodos <code>equals(Object)</code> y <code>hashCode()</code> cumpliendo el contrato oficial de Java.</td>
+        </tr>
+        <tr>
+            <td><code>@Data</code></td>
+            <td><code>lombok.Data</code></td>
+            <td>Anotación envolvente que combina <code>@Getter</code>, <code>@Setter</code>, <code>@ToString</code>, <code>@EqualsAndHashCode</code> y <code>@RequiredArgsConstructor</code> en una sola línea.</td>
+        </tr>
+        <tr>
+            <td><code>@Value</code></td>
+            <td><code>lombok.Value</code></td>
+            <td>Variante inmutable de <code>@Data</code>: convierte la clase y todos sus campos en <code>final</code> y no genera métodos <i>setter</i>.</td>
+        </tr>
+        <tr>
+            <td><code>@Builder</code> / <code>@SuperBuilder</code></td>
+            <td><code>lombok.Builder</code> / <code>lombok.experimental.SuperBuilder</code></td>
+            <td>Implementa el patrón de diseño creacional <i>Builder</i> para instanciar objetos de forma fluida y segura (incluyendo soporte de herencia con <code>@SuperBuilder</code>).</td>
+        </tr>
+        <tr>
+            <td><code>@Accessors</code></td>
+            <td><code>lombok.experimental.Accessors</code></td>
+            <td>Personaliza la generación de getters y setters (por ejemplo, encadenamiento de setters con <code>chain = true</code> o estilo fluido sin prefijos con <code>fluent = true</code>).</td>
+        </tr>
+        <tr>
+            <td><code>@Slf4j</code> / <code>@Log4j2</code> / <code>@Log</code></td>
+            <td><code>lombok.extern.*</code></td>
+            <td>Genera automáticamente la constante estática <code>log</code> del framework de registro correspondiente.</td>
+        </tr>
+        <tr>
+            <td><code>@NonNull</code></td>
+            <td><code>lombok.NonNull</code></td>
+            <td>Genera una comprobación automática de nulidad (lanzando <code>NullPointerException</code> si el valor recibido es <code>null</code>) en métodos y constructores.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla resumen de las principales anotaciones de Project Lombok</span>
+
+<h2>Diagrama del proceso de compilación</h2>
+
+<p>El siguiente diagrama muestra en qué momento actúa Lombok: antes de que se genere el bytecode, ampliando el árbol de sintaxis (AST) que construye <code>javac</code>.</p>
+
+<img class="center-horizontal" src="components/librerias/lombok/introduccion/assets/img/lombok-compilacion.svg">
+<span class="center-horizontal caption">Figura 1: Lombok como procesador de anotaciones durante la compilación</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>Pet.java</code></td>
+            <td>Archivo fuente</td>
+            <td>Contiene solo los atributos y las anotaciones (<code>@Data</code>, <code>@Builder</code>), sin el código repetitivo.</td>
+        </tr>
+        <tr>
+            <td><code>javac</code></td>
+            <td>Compilador del JDK</td>
+            <td>Lee el código, construye el AST e invoca a los procesadores de anotaciones registrados.</td>
+        </tr>
+        <tr>
+            <td>Lombok (JSR 269)</td>
+            <td>Procesador de anotaciones</td>
+            <td>Inyecta en el AST los getters, setters, constructores, <code>toString</code>, etc., y lo devuelve al compilador.</td>
+        </tr>
+        <tr>
+            <td><code>Pet.class</code></td>
+            <td>Bytecode</td>
+            <td>Resultado final con todos los métodos ya generados y sin coste en ejecución.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del proceso de compilación con Lombok</span>
+
+<h2>¿Cuándo usar Project Lombok y cuándo NO usarlo?</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">¿Cuándo SÍ usarlo? (Recomendado)</th>
+            <th scope="col">¿Cuándo NO usarlo? (Desaconsejado / Alternativas)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>DTOs y Modelos de Petición/Respuesta</b></td>
+            <td>Ideal usar <code>@Data</code>, <code>@Builder</code> y <code>@Accessors(chain = true)</code> para mapear JSONs limpiamente sin escribir decenas de getters y setters.</td>
+            <td>En proyectos con <b>Java 16 o superior</b> donde el DTO sea puramente inmutable y no requiera herencia ni setters, es preferible usar un <b><code>record</code> nativo de Java</b> en lugar de <code>@Value</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Servicios, Controladores y Componentes de Spring</b></td>
+            <td>Muy recomendable combinar <code>@RequiredArgsConstructor</code> (para inyección de dependencias por constructor en campos <code>private final</code>) y <code>@Slf4j</code> (para trazas de log).</td>
+            <td>Cuando el constructor requiere lógica de inicialización personalizada compleja o cuando es necesario desambiguar múltiples beans del mismo tipo con <code>@Qualifier</code> sin configuración adicional de Lombok.</td>
+        </tr>
+        <tr>
+            <td><b>Entidades de Base de Datos (JPA / Hibernate)</b></td>
+            <td>Usar de forma selectiva únicamente <code>@Getter</code>, <code>@Setter</code> y <code>@NoArgsConstructor</code>, controlando manualmente qué campos entran en <code>equals</code> y <code>toString</code>.</td>
+            <td><b>Nunca usar <code>@Data</code> ni <code>@Value</code> a ciegas sobre una <code>@Entity</code> JPA</b>: genera <code>equals/hashCode</code> sobre campos mutables y <code>toString()</code> sobre relaciones perezosas (<code>LAZY</code>), provocando <code>LazyInitializationException</code> o <code>StackOverflowError</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Guía de decisión: cuándo utilizar Project Lombok y cuándo optar por alternativas</span>
+
+<h2>Ejemplo y Contraejemplo: Uso de Lombok en Entidades y DTOs</h2>
+
+<h3>Contraejemplo (Mala práctica): Usar <code>@Data</code> y <code>@Builder</code> sin control en una Entidad JPA</h3>
+<p>Uno de los errores más frecuentes al empezar con Lombok es colocar <code>@Data</code> y <code>@Builder</code> directamente sobre una entidad JPA con relaciones bidireccionales. Este código tiene <b>tres fallos graves</b>:</p>
+<ol>
+    <li>Al poner <code>@Builder</code> sin constructores explícitos, Lombok solo genera un constructor con todos los argumentos y <b>elimina el constructor vacío</b>, por lo que Hibernate y Jackson lanzarán una excepción de instanciación al intentar leer de la base de datos o deserializar un JSON.</li>
+    <li>El <code>@ToString</code> y <code>@EqualsAndHashCode</code> incluidos dentro de <code>@Data</code> recorrerán la lista <code>pets</code> de <code>Owner</code>, y cada <code>Pet</code> volverá a imprimir a su <code>Owner</code>, provocando un bucle infinito (<b><code>StackOverflowError</code></b>).</li>
+    <li>Si la relación es <code>FetchType.LAZY</code>, invocar <code>toString()</code> fuera de una transacción disparará una <b><code>LazyInitializationException</code></b>.</li>
+</ol>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Provoca StackOverflowError y fallo por falta de constructor vacío
+@Data
+@Builder
+@Entity
+public class Pet {
+    @Id
+    private Integer id;
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Owner owner; // Ciclo infinito si Owner también tiene @Data y List&lt;Pet&gt;
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Configuración segura y explícita con Lombok</h3>
+<p>La forma correcta consiste en usar <code>@Data</code> (junto con <code>@NoArgsConstructor</code> y <code>@AllArgsConstructor</code> si se usa <code>@Builder</code>) en los <b>DTOs</b>, mientras que en las <b>Entidades JPA</b> se emplean <code>@Getter</code> y <code>@Setter</code> por separado, excluyendo las relaciones perezosas de <code>@ToString</code> y basando la igualdad únicamente en la clave primaria (<code>@Id</code>):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Entidad JPA segura, compatible con Hibernate y Jackson
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+public class Pet {
+
+    @Id
+    @EqualsAndHashCode.Include
+    private Integer id;
+
+    private String name;
+    private Short age;
+
+    // Se excluye la relación LAZY del toString() para evitar bucles infinitos y consultas no deseadas
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Owner owner;
+}
+</code></pre>
+</div>

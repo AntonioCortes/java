@@ -47,7 +47,7 @@ Enter selection (default: Java) [1..2] 1
 # 1. Descargar dependencias, compilar todo el código, pasar los tests y crear el .jar
 ./gradlew build
 
-# 2. Compilar rápido y crear el .jar SALTÁNDOSE los tests (muy útil cuando tienes prisa)
+# 2. Compilar rápido y crear el .jar SALTÁNDOSE los tests (muy útil en local cuando tienes prisa)
 ./gradlew build -x test
 
 # 3. Arrancar la aplicación en local (si usas el plugin 'application' o 'spring-boot')
@@ -122,6 +122,40 @@ Enter selection (default: Java) [1..2] 1
 </table>
 <span class="center-horizontal caption">Tabla 1: Comandos imprescindibles de Gradle para el trabajo diario</span>
 
+<h2 class="subtitle">¿Cuándo Usar Flags Avanzados de Diagnóstico?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Flag</th>
+            <th scope="col">Propósito</th>
+            <th scope="col">¿Cuándo conviene usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>--scan</code></td>
+            <td>Auditoría cloud visual de la compilación</td>
+            <td>Cuando un build tarda demasiado y quieres ver qué tarea concreta consume los segundos.</td>
+        </tr>
+        <tr>
+            <td><code>--dry-run</code> (o <code>-m</code>)</td>
+            <td>Simulación del DAG sin ejecutar código</td>
+            <td>Para comprobar qué tareas se ejecutarían y en qué orden sin compilar nada.</td>
+        </tr>
+        <tr>
+            <td><code>--no-daemon</code></td>
+            <td>Apaga el proceso background tras finalizar</td>
+            <td>Obligatorio en runners efímeros de CI/CD (Docker containers) para no dejar procesos zombi.</td>
+        </tr>
+        <tr>
+            <td><code>--parallel</code></td>
+            <td>Compilación simultánea de módulos</td>
+            <td>En proyectos multi-módulo para aprovechar todos los núcleos del procesador.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Flags de diagnóstico y optimización en terminal</span>
+
 <h2 class="subtitle">4. Preguntas Frecuentes cuando Empiezas con Gradle</h2>
 <ul>
     <li>
@@ -144,3 +178,23 @@ processResources {
 </code></pre>
 </div>
 <span class="center-horizontal caption">Expansión automática de propiedades de Gradle dentro de application.yml</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en el flujo de Integración Continua (CI/CD)</h2>
+
+<h3>Ejemplo (Buena Práctica): Pipeline seguro con verificación completa</h3>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# En el runner de GitHub Actions / GitLab CI:
+./gradlew --no-daemon check
+</code></pre>
+</div>
+<span class="center-horizontal caption">Pasa todos los tests unitarios, de integración y análisis estático sin dejar demonios residentes</span>
+
+<h3>Contraejemplo (Mala Práctica): Saltar tests en pipelines con -x test</h3>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# ¡GRAVE ERROR en CI/CD! Genera el artefacto aunque los tests fallen
+./gradlew bootJar -x test
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Despliega binarios corruptos o con regresiones en producción por ahorrar tiempo</span>

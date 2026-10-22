@@ -1,42 +1,60 @@
-<h1 class="title">Controladores REST</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Controlador REST (@RestController)</h1>
 
-<h1>Controlador</h1>
+<p>Un <strong>Controlador REST (@RestController)</strong> es el componente de la capa web de Spring Boot encargado de exponer los <strong>endpoints de una API RESTful</strong>. Su responsabilidad exclusiva es recibir peticiones HTTP (GET, POST, PUT, PATCH, DELETE), deserializar los payloads JSON entrantes en objetos DTO, delegar la lógica en la capa de Servicio y devolver los resultados directamente serializados en JSON acompañados de los <strong>códigos de estado HTTP semánticos</strong> adecuados (200 OK, 201 Created, 204 No Content, 400 Bad Request, 404 Not Found).</p>
 
-<p>Para definir una clase como controlador REST debe tener una serie de anotaciones que son las siguientes:</p>
-
+<h2 class="subtitle">Analogía del Mundo Real: La Ventanilla Automatizada de Mensajería</h2>
+<p>Imagina una ventanilla de paquetería express:</p>
 <ul>
-	<li><b>@RestController:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RestController y sirve para registrar la clase como controlador, en la dirección indicada en la anotacion @RequestMapping. @RestController es añadida a partir de Spring 4.0 para mejorar la creación de RESTful web services y simplifica el uso de las anotaciones @Controller y @ResponseBody.</li>
-	<li><b>@RequestMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestMapping y sirve para definir la dirección para acceder al controlador.</li>
+    <li>El cliente no entra al almacén ni ve las estanterías (la base de datos). Llega a la ventanilla con una solicitud estructurada en papel (el JSON).</li>
+    <li>El operario de la ventanilla (<strong>@RestController</strong>) no cocina ni repara paquetes (esa es la lógica del <strong>@Service</strong>): únicamente comprueba que el formulario esté bien rellenado (validaciones con <code>@Valid</code>), le pasa la orden al departamento de almacén y entrega al cliente un resguardo con un sello oficial estandarizado (código HTTP 201 con la URL del nuevo recurso creado).</li>
 </ul>
 
-<p>Una vez definidas las anotaciones anteriores la clase ya funcionará como un controlador, adicionalmente se le pueden añadir más anotaciones con distintas funcionalidades como las siguientes:</p>
+<h2 class="subtitle">Flujo de Ejecución del Controlador REST en la Arquitectura</h2>
+<img class="center-horizontal" src="components/springboot/capas-principales/assets/img/capas-arquitectura.svg">
+<span class="center-horizontal caption">Figura 1: El Controlador REST es el punto de entrada que transforma HTTP/JSON en llamadas a la capa de Servicio</span>
 
-<h2>Anotaciones propias de Spring Framework</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Participante</th>
+            <th scope="col">Rol en el Flujo REST</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Cliente HTTP</th>
+            <td>Emisor de la Petición</td>
+            <td>Envía peticiones con verbos semánticos (GET, POST, PATCH, DELETE) y cabeceras (<code>Content-Type: application/json</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">@RestController</th>
+            <td>Punto de Entrada Web</td>
+            <td>Enruta URLs, mapea cabeceras/parámetros, valida DTOs de entrada y construye <code>ResponseEntity</code> con cabeceras y códigos de estado.</td>
+        </tr>
+        <tr>
+            <th scope="row">@Service</th>
+            <td>Capa de Negocio</td>
+            <td>Ejecuta validaciones complejas de negocio, transformaciones entre DTO y Entidad y transacciones con la base de datos.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del flujo de atención de peticiones REST</span>
+
+<h2 class="subtitle">1. Definición a Nivel de Clase</h2>
+<p>Para definir una clase como controlador REST se aplican las siguientes anotaciones estructurales:</p>
 
 <ul>
-	<li><b>@CrossOrigin:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.CrossOrigin.<br>
-		Por defecto springboot bloquea los intentos de acceso a los controladores a no ser que se permitan esos accesos específicamente, para permitir dichos accesos se utiliza la anotacion @CrossOrigin. 
-		Si la anotación se pone sobre la definición de una clase se podrá acceder desde cualquier dirección a todos los métodos de la clase, si se coloca sobre un método se podrá acceder desde cualquier dirección a ese método. <br> 
-		También se puede especificar que solo se pueda acceder a un método o a todos los métodos de la clase desde una dirección en concreto (por ejemplo desde la dirección desde donde esté servido el front-end, 
-		de esta manera solo dicho front-end podrá acceder al controlador) especificándolo de la siguiente manera: @CrossOrigin(origin="http://dominio-permitido.com")
-	</li>
-
+	<li><b>@RestController:</b> Pertenece a Spring Framework, se encuentra en el paquete <code>org.springframework.web.bind.annotation.RestController</code> y registra la clase como controlador web. Introducida en Spring 4.0, es una anotación compuesta que combina <code>@Controller</code> y <code>@ResponseBody</code>. Gracias a ella, todos los métodos serializan automáticamente el objeto devuelto a JSON en el cuerpo de la respuesta HTTP sin tener que añadir <code>@ResponseBody</code> en cada método.</li>
+	<li><b>@RequestMapping:</b> Pertenece a Spring Framework (paquete <code>org.springframework.web.bind.annotation.RequestMapping</code>). Define la ruta base URL (ej. <code>/petshop/pet</code>) para acceder a todos los endpoints de este controlador.</li>
+	<li><b>@CrossOrigin:</b> Pertenece a Spring Framework (paquete <code>org.springframework.web.bind.annotation.CrossOrigin</code>). Por defecto, los navegadores bloquean peticiones AJAX de orígenes cruzados (CORS). Esta anotación permite autorizar peticiones desde aplicaciones front-end alojadas en otros dominios o puertos (ej. <code>@CrossOrigin(origins = "http://localhost:4200")</code>). Se puede aplicar a nivel de clase o sobre métodos concretos.</li>
+	<li><b>@Api, @ApiResponses, @ApiResponse:</b> Pertenecen a SpringFox / Swagger (paquete <code>io.swagger.annotations.*</code>) y permiten documentar la etiqueta del recurso, las descripciones y los posibles códigos de error para que aparezcan automáticamente en Swagger UI.</li>
 </ul>
-
-<h2>Anotaciones para documentación Swagger con la librería SpringFox</h2>
-
-<ul>
-	<li><b>@Api:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.Api y sirve para documentar lo que hace un controlador y que posteriormente se muestre en el Swagger ui si el proyecto está correctamente configurado para ello</li>
-
-	<li><b>@ApiResponses:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponses y sirve para documentar las posibles respuestas que puede devolver un controlador o un método del controlador. Cada posible respuesta se definirá mediante la anotación @ApiResponse. <br>
-		Dicha documentación podrá mostrarse posteriormente en Swagger ui.
-	</li>
-
-	<li><b>@ApiResponse:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponse y sirve para especificar como va a ser una respuesta de las que se estén documentando con la anotación @ApiResponses</li>
-</ul>
-
-<h2>Ejemplo:</h2>
-
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -44,39 +62,30 @@
 @RequestMapping("/petshop/pet")
 @CrossOrigin
 @Api(tags = "Pet")
-@ApiResponses({ @ApiResponse(code = 200, message = "OK", response = PetDTO.class),
-		@ApiResponse(code = 201, message = "Created"),
-		@ApiResponse(code = 204, message = "No content")
-		@ApiResponse(code = 400, message = "Bad Request"),
-		@ApiResponse(code = 404, message = "Not found"), 
-		@ApiResponse(code = 500, message = "Internal server error") })
+@ApiResponses({ 
+    @ApiResponse(code = 200, message = "OK", response = PetDTO.class),
+    @ApiResponse(code = 201, message = "Created"),
+    @ApiResponse(code = 204, message = "No content"),
+    @ApiResponse(code = 400, message = "Bad Request"),
+    @ApiResponse(code = 404, message = "Not found"), 
+    @ApiResponse(code = 500, message = "Internal server error") 
+})
 public class PetController 
 {
-	//...Controller global attributes
-	//...Controller methods
+    //...Controller global attributes
+    //...Controller methods
 }	
 </code></pre>	
 </div>
+<span class="center-horizontal caption">Cabecera de la clase PetController con rutas, CORS y documentación Swagger</span>
 
-<h1>Atributos globales del controlador</h1>
-
-<h2>Anotaciones pertenecientes a Spring Framework</h2>
+<h2 class="subtitle">2. Atributos Globales y Dependencias del Controlador</h2>
+<p>El controlador REST delega la lógica de negocio en la capa de servicio y la conversión de objetos en mapeadores (como ModelMapper o MapStruct):</p>
 
 <ul>
-	<li><b>@Autowired:</b> Esta anotación pertenece a Spring Framework, se encuentra en el paquete org.springframework.beans.factory.annotation.Autowired y sirve para inyectar una dependencia.
-		En Spring algunas clases pueden ser declaradas como Spring Beans utilizando las anotaciones @Component, @Controller, @Service o @Repository entre otras, cuando se arranca una aplicación de Spring,
-		el contenedor de Spring busca las Spring Beans y crea una instancia de ellas como objeto singleton y estas instancias posteriormente se pueden inyectar utilizando la anotación @Autowired.
-		Solo se puede inyectar dependencias dentro de un Spring Bean. <br>
-		Esta anotación se puede utilizar sobre un atributo de la clase, sobre un método o sobre el constructor. Se recomienda hacer la inyección de dependencias mediante constructor en lugar de sobre atributos.
-		A partir de la versión 4.3 de Spring Framework, ya no es necesario utilizar la anotación autowired cuando se inyecta mediante constructor, se hace automáticamente.
-	</li>
-
-	<li><b>@Qualifier:</b> Esta anotación pertenece a Spring Framework, se encuentra en el paquete org.springframework.beans.factory.annotation.Qualifier y sirve especificar qué dependencia se quiere inyectar
-		cuando el tipo de la dependencia es ambiguo y hay dos posibles dependencias a inyectar con el mismo tipo.
-	</li>
+	<li><b>@Autowired:</b> Pertenece a Spring Framework (paquete <code>org.springframework.beans.factory.annotation.Autowired</code>). Inyecta las dependencias gestionadas por el contenedor de Spring. En Spring moderno se recomienda inyectar mediante constructor final en lugar de sobre atributos directos.</li>
+	<li><b>@Qualifier:</b> Pertenece a Spring Framework (paquete <code>org.springframework.beans.factory.annotation.Qualifier</code>). Permite desambiguar qué bean inyectar cuando existen dos o más beans del mismo tipo registrados en el contexto (por ejemplo, dos instancias distintas de <code>ModelMapper</code>).</li>
 </ul>
-
-<h2>Ejemplo:</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -84,166 +93,55 @@ public class PetController
 @RestController
 public class PetController
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PetController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PetController.class);
 
-	@Autowired
-	private final PetService petService;
+    @Autowired
+    private final PetService petService;
 
-	@Autowired
-	@Qualifier("modelMapper")
-	private final ModelMapper mapper;
+    @Autowired
+    @Qualifier("modelMapper")
+    private final ModelMapper mapper;
 
-	@Autowired
-	@Qualifier("patchModelMapper")
-	private final ModelMapper patchMapper;
+    @Autowired
+    @Qualifier("patchModelMapper")
+    private final ModelMapper patchMapper;
 
-	//...Controller methods
+    //...Controller methods
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">Inyección de servicios y mappers desambiguados con @Qualifier</span>
 
-<h1>Métodos del controlador</h1>
+<h2 class="subtitle">3. Anotaciones a Nivel de Método y Parámetros</h2>
 
-<p>Las anotaciones necesarias para los métodos del controlador son las siguientes:</p>
-
-<h2>Anotaciones propias de Spring Framework</h2>
-
+<h3>Anotaciones de Verbos HTTP de Spring Framework</h3>
 <ul>
-	<li><b>@GetMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.GetMapping y sirve para permitir que se acceda a un método de un controlador 
-		mediante el método GET de http.<br>
-		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
-		Ejemplo: @GetMapping("/ruta/al/recurso/{variable}").<br>	
-	</li>
-
-	<li><b>@PostMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PostMapping y sirve para permitir que se acceda a un método de un controlador 
-		mediante el método POST de http.<br>
-		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
-		Ejemplo: @PostMapping("/ruta/al/recurso/{variable}").<br>
-	</li>
-
-	<li><b>@PutMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PutMapping y sirve para permitir que se acceda a un método de un controlador 
-		mediante el método PUT de http.<br>
-		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
-		Ejemplo: @PutMapping("/ruta/al/recurso/{variable}").<br>
-	</li>
-
-	<li><b>@PatchMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PatchMapping y sirve para permitir que se acceda a un método de un controlador 
-		mediante el método Patch de http.<br>
-		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
-		Ejemplo: @PatchMapping("/ruta/al/recurso/{variable}").<br>
-	</li>
-
-	<li><b>@DeleteMapping:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.DeleteMapping y sirve para permitir que se acceda a un método de un controlador 
-		mediante el método DELETE de http.<br>
-		Se puede establecer la ruta para acceder a dicho método pasando la ruta por parámetro a la anotación. También se puede utilizar parte de la ruta como variable.<br>
-		Ejemplo: @DeleteMapping("/ruta/al/recurso/{variable}").<br>
-	</li>
-
-	<li><b>@PathVariable:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PathVariable y sirve para recibir una variable de la ruta 
-		de la llamada al método y asignarsela a una variable de java, para hacer esto se debe haber especificado previamente la variable en alguna de las anotaciones de tipo @MetodoMapping anteriores. 
-		Si la variable java se llama igual que la variable de la ruta no hace falta especificar en la anotación cómo se llama la variable, si no se le debe indiciar por parámetro a la anotación. 
-		Ejemplo: 
-		
-		<ul>
-			<li>Anotacion previa: @GetMapping("/ruta/al/recurso/{variable}")</li>
-			<li>Ruta: "/ruta/al/recurso/variable"</li>
-			<li>Anotación: @PathVariable("variable")</li>
-		</ul>
-	</li>
-	<li><b>@RequestHeader:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.PathVariable y sirve para recibir una variable de la ruta 
-		de la llamada al método y asignarsela a una variable de java, para hacer esto se debe haber especificado previamente la variable en alguna de las anotaciones de tipo @MetodoMapping anteriores. 
-		Si la variable java se llama igual que la variable de la ruta no hace falta especificar en la anotación cómo se llama la variable, si no se le debe indiciar por parámetro a la anotación. 
-		Ejemplo: 
-		
-		<ul>
-			<li>Anotacion previa: @GetMapping("/ruta/al/recurso/{variable}")</li>
-			<li>Ruta: "/ruta/al/recurso/variable"</li>
-			<li>Anotación: @PathVariable("variable")</li>
-		</ul>
-	</li>
-
-	<li><b>@RequestParam:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestParam y sirve para recibir un parámetro de la ruta
-		de la llamada al método y asignársela a una variable java. Si la variable java se llama igual que el parámetro de la ruta no hace falta especificar en la anotación cómo se llama el parámetro,
-		si no se le debe indiciar por parámetro a la anotación. También se le puede especificar a la anotación si es obligatorio que el parámetro esté en la ruta o no con el parámetro required. 
-		Ejemplo:
-
-		<ul>
-			<li>Ruta: "/ruta/al/recurso?parametro"</li>
-			<li>Anotación: @RequestParam(value = "parametro", required = true)</li>
-		</ul>
-	</li>
-
-	<li><b>@RequestBody:</b> Esta anotación es propia de Spring Framework, se encuentra en el paquete org.springframework.web.bind.annotation.RequestBody y sirve para recibir algo del body de la 
-		llamada http y asignárselo a una variable java, típicamente lo que se recibirá será un json y se le asignará a un DTO.
-	</li>
+	<li><b>@GetMapping:</b> Mapea peticiones HTTP GET para recuperación y consulta de recursos. No debe alterar el estado del sistema (operación segura e idempotente).</li>
+	<li><b>@PostMapping:</b> Mapea peticiones HTTP POST para crear nuevos recursos en el servidor.</li>
+	<li><b>@PutMapping:</b> Mapea peticiones HTTP PUT para sustituir o reemplazar un recurso existente por completo (idempotente).</li>
+	<li><b>@PatchMapping:</b> Mapea peticiones HTTP PATCH para aplicar modificaciones parciales sobre un recurso existente (solo los campos enviados en el payload).</li>
+	<li><b>@DeleteMapping:</b> Mapea peticiones HTTP DELETE para eliminar un recurso identificado por su ID.</li>
 </ul>
 
-<h2>Anotaciones para validaciónes</h2>
-
+<h3>Anotaciones para Parámetros de Entrada</h3>
 <ul>
-	<li>
-		<b>@Valid:</b> Sirve para validar, normalmente se usa para validar el json que se recibe en la llamada, si el json recibido no cumple con las constraints establecidas en el DTO, no se llegará
-		a ejecutar el método y se devolverá una respuesta de error, típicamente un 400 bad request.
-	</li>
-</ul>
-<p>
-	<b>hasHerrors():</b> Permite comprobar si existe algún error en la validación.
-</p>
-<p>
-	<b>BindingResults:</b> Clase que se gestiona la vinculación de datos entre la entrada de datos y la clase.
-</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-@PostMapping("/")
-public String checkForm(@Valid UserForm userForm, BindingResult bindingResult,
-	RedirectAttributes atts) {
-		
-	if (bindingResult.hasErrors()) {
-		return "form";
-	}
-		
-	atts.addAttribute("name", userForm.getName());
-	atts.addAttribute("email", userForm.getEmail());
-		
-	return "redirect:/showInfo";
-}	
-</code></pre>	
-</div>
-
-<h2>Anotaciones para documentación Swagger con la librería SpringFox</h2>
-
-<ul>
-	<li><b>@ApiOperation:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiOperation y sirve para documentar lo que hace cada endpoint (cada método del controlador) y que posteriormente se muestre en la Swagger ui si el proyecto está correctamente configurado para ello.</li>
-
-	<li><b>@ApiResponses:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponses y sirve para documentar las posibles respuestas que puede devolver un controlador o un método del controlador. Cada posible respuesta se definirá mediante la anotación @ApiResponse. <br>
-		Dicha documentación podrá mostrarse posteriormente en Swagger ui.
-	</li>
-
-	<li><b>@ApiResponse:</b> Esta anotación pertenece a SpringFox Framework, se encuentra en el paquete io.swagger.annotations.ApiResponse y sirve para especificar como va a ser una respuesta de las que se estén documentando con la anotación @ApiResponses</li>
-
-	<li><b>@ApiParam:</b> Esta anotación pertenece a Springfox Framework, se encuentra en el paquete io.swagger.annotations.ApiParam y sirve para documentar cada uno de los parámetros de cada endpoint (cada método del controlador) y que posteriormente se muestre en la Swagger ui si el proyecto está correctamente configurado para ello.</li>
+	<li><b>@PathVariable:</b> Extrae variables incrustadas en el path de la URL (ej. en <code>@GetMapping("/{id}")</code>, extrae el valor de <code>{id}</code> en un parámetro Java <code>@PathVariable("id") Integer pId</code>).</li>
+	<li><b>@RequestParam:</b> Extrae parámetros de consulta (query parameters) pasados tras el interrogante en la URL (ej. <code>/petshop/pet/all?age=4</code> se captura con <code>@RequestParam("age") Integer pAge</code>). Permite el atributo <code>required = true/false</code> y valores por defecto con <code>defaultValue</code>.</li>
+	<li><b>@RequestHeader:</b> Pertenece a <code>org.springframework.web.bind.annotation.RequestHeader</code>. Permite capturar cabeceras de la petición HTTP (como <code>Authorization</code>, <code>Accept-Language</code> o cabeceras de trazabilidad <code>X-Request-Id</code>).</li>
+	<li><b>@RequestBody:</b> Deserializa el JSON enviado en el cuerpo de la llamada HTTP en un objeto Java DTO.</li>
+	<li><b>@Valid:</b> Activa la validación automática de las restricciones del Bean Validation (<code>@NotNull</code>, <code>@NotBlank</code>, <code>@Min</code>, etc.) declaradas en el DTO. Si alguna regla falla, Spring lanza una excepción <code>MethodArgumentNotValidException</code> antes de ejecutar el código del método.</li>
 </ul>
 
-<h3>GET</h3>
+<h2 class="subtitle">4. Casos de Uso y Métodos de PetController (Explicados Paso a Paso)</h2>
 
-<p> El método GET se debe utilizar para obtener un recurso, normalmente de una base de datos. La llamada al método se hará a través de una ruta que puede tener unos parámetros, 
-dicha ruta debe ser representativa del recurso al que se quiere acceder y los parámetros se suelen utilizar para hacer algún tipo de filtro, por ejemplo:
+<h3>A. Método GET (Consultas y Filtros)</h3>
+<p>El método GET se utiliza para recuperar información sin modificar la base de datos:</p>
+<ul>
+    <li><strong>Recuperar un recurso concreto por ID:</strong> Se define la variable en el path: <code>/petshop/pet/{id}</code> (ej. <code>/petshop/pet/15</code>). Si existe devuelve <code>200 OK</code> con el <code>PetDTO</code>; si no existe devuelve <code>404 NOT_FOUND</code>.</li>
+    <li><strong>Filtrar colecciones:</strong> Se usa query param: <code>/petshop/pet/all?age=4</code>. Devuelve <code>200 OK</code> con la lista de <code>PetDTO</code>.</li>
+</ul>
 
-	<ul>
-		<li>Dentro de la tienda de animales se quieren buscar todos los animales que tengan 4 años: El recurso a buscar son todos los animales y el filtro que se quiere aplicar es que la edad sea 4. <br>
-			La ruta será "/petshop/pet/all?age=4".
-		</li>
-
-		<li>
-			Dentro de la tienda de animales se quiere buscar a un animal concreto cuyo id es 15: El recurso a buscar es el animal con id 15.<br>
-			La ruta será "/petshop/pet/15".
-		</li>
-	</ul>
-</p>
-
-<h4>Ejemplo obtener una mascota:</h4>
-
+<h4>Ejemplo obtener una mascota por ID:</h4>
 <div class="center-horizontal">
 <pre><code class="language-java">
 @ApiOperation(value = "View a pet data", notes = "View a pet data")
@@ -265,30 +163,32 @@ public ResponseEntity&lt;PetDTO&gt; get(@PathVariable(value = "id") @ApiParam(va
 }
 </code></pre>	
 </div>
+<span class="center-horizontal caption">GET por identificador devolviendo 200 OK con el DTO o 404 NOT FOUND</span>
 
-<h4>Ejemplo obtener todas las mascotas con una edad en concreto:</h4>
-
+<h4>Ejemplo obtener mascotas filtradas por edad:</h4>
 <div class="center-horizontal">
 <pre><code class="language-java">
 @ApiOperation(value = "View all pets with a certain age data", notes = "View all pets with a certain age data")
 @ApiResponses({ @ApiResponse(code = 200, message = "OK", response = PetDTO.class, responseContainer = "List") })
 @GetMapping("/all")
-public ResponseEntity< List< PetDTO>> getByAge(@RequestParam(value = "age", required = true) @ApiParam(value = "pet age", example = "1", required = true) final Integer pAge) 
+public ResponseEntity&lt;List&lt;PetDTO&gt;&gt; getByAge(@RequestParam(value = "age", required = true) @ApiParam(value = "pet age", example = "1", required = true) final Integer pAge) 
 {
 	LOGGER.debug("Getting all pets with age {}", pAge);
 
-	List< Pet> petList = petService.findByAge(pAge);
+	List&lt;Pet&gt; petList = petService.findByAge(pAge);
 
-	return new ResponseEntity<>(
+	return new ResponseEntity&lt;&gt;(
 		petList.stream()
-			.map(pet -> mapper.map(pet, petDTO.class))
-			.collect(Collector.toList()), 
+			.map(pet -> mapper.map(pet, PetDTO.class))
+			.collect(Collectors.toList()), 
 		HttpStatus.OK);
 }
 </code></pre>	
 </div>
+<span class="center-horizontal caption">GET con @RequestParam filtrando por edad y mapeando a lista de DTOs</span>
 
-<h3>PATCH</h3>
+<h3>B. Método PATCH (Actualización Parcial)</h3>
+<p>Permite modificar únicamente los atributos enviados por el cliente sin obligar a re-enviar la foto o datos inalterados. Utiliza un <code>patchMapper</code> configurado con <code>skipNullEnabled(true)</code> para no sobreescribir con <code>null</code> los campos no enviados, y devuelve un <code>204 NO_CONTENT</code> junto con la cabecera <code>Location</code> que apunta al recurso actualizado:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -296,16 +196,15 @@ public ResponseEntity< List< PetDTO>> getByAge(@RequestParam(value = "age", requ
 @ApiResponses({ @ApiResponse(code = 204, message = "No content"),
 		@ApiResponse(code = 404, message = "Not found") })
 @PatchMapping("/{id}")
-public ResponseEntity< HttpStatus> patch(
+public ResponseEntity&lt;HttpStatus&gt; patch(
 		@PathVariable(value = "id") @ApiParam(value = "Pet id", example = "1", required = true) final Integer pId,
 		@Valid @RequestBody final PetPatchDTO pPetPatchDTO) 
 {
-
-	Optional< Pet> pet = petService.findById(pId);
+	Optional&lt;Pet&gt; pet = petService.findById(pId);
 	if (pet.isEmpty()) 
 	{
 		LOGGER.error("Pet {} not found", pId);
-		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);
 	}
 
 	patchMapper.map(pPetPatchDTO, pet.get());
@@ -317,21 +216,23 @@ public ResponseEntity< HttpStatus> patch(
 	HttpHeaders headers = new HttpHeaders();
 	headers.setLocation(uri);
 
-	return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+	return new ResponseEntity&lt;&gt;(headers, HttpStatus.NO_CONTENT);
 }	
 </code></pre>	
 </div>
+<span class="center-horizontal caption">PATCH aplicando actualización parcial y devolviendo 204 NO CONTENT con cabecera Location</span>
 
-<h3>POST</h3>
+<h3>C. Método POST (Creación de Nuevos Recursos)</h3>
+<p>Crea un nuevo registro en el sistema. Comprueba que no exista previamente, mapea el <code>PetDTO</code> recibido a la entidad <code>Pet</code>, la guarda en la base de datos y construye la cabecera <code>Location</code> con <code>ServletUriComponentsBuilder</code> apuntando a la URL del nuevo recurso creado (ej. <code>/petshop/pet/15</code>), devolviendo un código <strong>201 CREATED</strong> según la especificación HTTP:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 @ApiOperation(value = "Add a new pet", notes = "Add a new pet")
 @ApiResponses({ @ApiResponse(code = 201, message = "Created") })
 @PostMapping
-public ResponseEntity< Object> post(@RequestBody @Valid final PetDTO pPetDTO) 
+public ResponseEntity&lt;Object&gt; post(@RequestBody @Valid final PetDTO pPetDTO) 
 {
-	Optional< Pet> petOp = petService.findById(pPetDTO.getId());
+	Optional&lt;Pet&gt; petOp = petService.findById(pPetDTO.getId());
 	if(petOp.isPresent())
 	{
 		LOGGER.error("Pet {} already exists", pPetDTO.getId());
@@ -340,18 +241,20 @@ public ResponseEntity< Object> post(@RequestBody @Valid final PetDTO pPetDTO)
 	
 	Pet pet = mapper.map(pPetDTO, Pet.class);
 	pet = petService.save(pet);
-	LOGGER.debug("Pet whith id {} saved correctly", pet.getId());
+	LOGGER.debug("Pet with id {} saved correctly", pet.getId());
 		
 	URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().pathSegment(String.format("%s", pet.getId())).build().toUri();
 	HttpHeaders headers = new HttpHeaders();
 	headers.setLocation(uri);
 
-	return new ResponseEntity<>(headers, HttpStatus.CREATED);
+	return new ResponseEntity&lt;&gt;(headers, HttpStatus.CREATED);
 }
 </code></pre>	
 </div>
+<span class="center-horizontal caption">POST creando un nuevo recurso y devolviendo 201 CREATED con la cabecera Location</span>
 
-<h3>DELETE</h3>
+<h3>D. Método DELETE (Eliminación)</h3>
+<p>Elimina el recurso identificado por su ID. Si la mascota existe, la borra y devuelve un código <strong>204 NO_CONTENT</strong> (éxito sin cuerpo de respuesta); si no existe, devuelve <strong>404 NOT_FOUND</strong>:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -359,23 +262,71 @@ public ResponseEntity< Object> post(@RequestBody @Valid final PetDTO pPetDTO)
 @ApiResponses({ @ApiResponse(code = 204, message = "No content"), 
 		@ApiResponse(code = 404, message = "Not found") })
 @DeleteMapping("/{id}")
-public ResponseEntity< HttpStatus> delete(@PathVariable(value = "id") @ApiParam(value = "Pet id", example = "1", required = true) final Integer pId)
+public ResponseEntity&lt;HttpStatus&gt; delete(@PathVariable(value = "id") @ApiParam(value = "Pet id", example = "1", required = true) final Integer pId)
 {		
-	Optional< Pet> pet = petService.findById(pId);
+	Optional&lt;Pet&gt; pet = petService.findById(pId);
 	
 	if(pet.isPresent())
 	{		
 		petService.delete(pet.get());
 		LOGGER.debug("Pet with id {} deleted correctly", pId);
 
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);	
+		return new ResponseEntity&lt;&gt;(HttpStatus.NO_CONTENT);	
 	}
 	else
 	{
-		LOGGER.error("Pet with id {} don't exist", pId);
+		LOGGER.error("Pet with id {} doesn't exist", pId);
 
-		return new ResponseEntity<>(HttpStatus.NOT_FOUND);	
+		return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);	
 	}
 }
 </code></pre>
 </div>
+<span class="center-horizontal caption">DELETE devolviendo 204 NO CONTENT si se eliminó con éxito o 404 NOT FOUND</span>
+
+<h2 class="subtitle">¿Cuándo Usar @RestController y Cuándo NO?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Cuándo SÍ Usar @RestController</th>
+            <th scope="col">Alternativa Recomendada</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">APIs REST y Microservicios</th>
+            <td>Ideal para aplicaciones cliente-servidor desacopladas (Angular, React, Vue, Apps móviles).</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <th scope="row">Vistas HTML con Thymeleaf / JSP</th>
+            <td>No adecuado: @RestController serializa a JSON y no busca plantillas HTML.</td>
+            <td>Usar <b>@Controller</b> tradicional.</td>
+        </tr>
+        <tr>
+            <th scope="row">Altísima Concurrencia y Streaming Reactivo</th>
+            <td>Spring MVC usa un modelo de 1 hilo por petición (thread-per-request bloqueante).</td>
+            <td>Usar <b>Spring WebFlux</b> con programación reactiva no bloqueante.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios de adopción de @RestController</span>
+
+<h2 class="subtitle">Contraejemplo (Mala Práctica): Devolver siempre 200 OK con mensajes de error en el JSON</h2>
+<p>Uno de los mayores antipatrones en APIs REST es capturar todos los errores y devolver un código HTTP <code>200 OK</code> con un objeto JSON tipo <code>{"success": false, "error": "Not found"}</code>. Esto rompe la semántica HTTP, confunde a los balanceadores de carga, a las herramientas de monitorización y a los clientes HTTP:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ¡ANTIPATRÓN REST! Rompe los estándares de códigos HTTP
+@GetMapping("/{id}")
+public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; badGetPet(@PathVariable Integer id) {
+    Optional&lt;Pet&gt; pet = petService.findById(id);
+    if (pet.isEmpty()) {
+        // ERROR: Devuelve 200 OK cuando el recurso NO EXISTE
+        return ResponseEntity.ok(Map.of("success", false, "error", "Pet not found"));
+    }
+    return ResponseEntity.ok(Map.of("success", true, "data", pet.get()));
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Devolver 200 OK en lugar de 404 NOT FOUND para recursos inexistentes</span>

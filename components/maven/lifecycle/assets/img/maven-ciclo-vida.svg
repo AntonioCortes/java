@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.15" />
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1E293B" />
+    </marker>
+  </defs>
+
+  <rect width="920" height="480" fill="#F8FAFC" rx="10" />
+
+  <text x="460" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1E293B">Los 3 Ciclos de Vida y Fases Principales de Apache Maven</text>
+  <text x="460" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#64748B">Cada fase invoca plugins vinculados en estricto orden secuencial acumulativo</text>
+
+  <!-- Cycle 1: clean -->
+  <g transform="translate(30, 95)" filter="url(#shadow)">
+    <rect width="260" height="110" rx="8" fill="#FFFFFF" stroke="#EF4444" stroke-width="2"/>
+    <rect width="260" height="28" rx="8" fill="#EF4444" />
+    <rect width="260" height="8" y="20" fill="#EF4444" />
+    <text x="130" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#FEE2E2">&lt;&lt;ciclo de vida: clean&gt;&gt;</text>
+    <text x="130" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#991B1B">Ciclo de Limpieza (clean)</text>
+    <text x="130" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">pre-clean &rarr; <b>clean</b> &rarr; post-clean</text>
+    <text x="130" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#64748B">Borra el directorio target/</text>
+  </g>
+
+  <!-- Cycle 3: site -->
+  <g transform="translate(630, 95)" filter="url(#shadow)">
+    <rect width="260" height="110" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+    <rect width="260" height="28" rx="8" fill="#3B82F6" />
+    <rect width="260" height="8" y="20" fill="#3B82F6" />
+    <text x="130" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#DBEAFE">&lt;&lt;ciclo de vida: site&gt;&gt;</text>
+    <text x="130" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E3A8A">Ciclo de Documentación (site)</text>
+    <text x="130" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">pre-site &rarr; <b>site</b> &rarr; post-site &rarr; site-deploy</text>
+    <text x="130" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#64748B">Genera portal web y reportes HTML</text>
+  </g>
+
+  <!-- Cycle 2: default (El más importante) -->
+  <g transform="translate(30, 230)" filter="url(#shadow)">
+    <rect width="860" height="180" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+    <rect width="860" height="28" rx="8" fill="#10B981" />
+    <rect width="860" height="8" y="20" fill="#10B981" />
+    <text x="430" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#D1FAE5">&lt;&lt;ciclo de vida: default / build&gt;&gt;</text>
+    <text x="430" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#065F46">Ciclo Principal de Construcción (Default Build Lifecycle)</text>
+
+    <!-- Phase boxes -->
+    <!-- Validate -->
+    <g transform="translate(15, 68)">
+      <rect width="105" height="85" rx="5" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5"/>
+      <text x="52" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#15803D">&lt;&lt;fase 1&gt;&gt;</text>
+      <text x="52" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">validate</text>
+      <text x="52" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">Comprueba</text>
+      <text x="52" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">pom.xml</text>
+    </g>
+    <line x1="120" y1="110" x2="135" y2="110" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- Compile -->
+    <g transform="translate(138, 68)">
+      <rect width="105" height="85" rx="5" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5"/>
+      <text x="52" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#15803D">&lt;&lt;fase 2&gt;&gt;</text>
+      <text x="52" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">compile</text>
+      <text x="52" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">Genera los</text>
+      <text x="52" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">.class en target</text>
+    </g>
+    <line x1="243" y1="110" x2="258" y2="110" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- Test -->
+    <g transform="translate(261, 68)">
+      <rect width="105" height="85" rx="5" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5"/>
+      <text x="52" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#15803D">&lt;&lt;fase 3&gt;&gt;</text>
+      <text x="52" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">test</text>
+      <text x="52" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">Ejecuta JUnit</text>
+      <text x="52" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">con Surefire</text>
+    </g>
+    <line x1="366" y1="110" x2="381" y2="110" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- Package -->
+    <g transform="translate(384, 68)">
+      <rect width="105" height="85" rx="5" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+      <text x="52" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#B45309">&lt;&lt;fase 4&gt;&gt;</text>
+      <text x="52" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#92400E">package</text>
+      <text x="52" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">Crea el archivo</text>
+      <text x="52" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">.jar o .war</text>
+    </g>
+    <line x1="489" y1="110" x2="504" y2="110" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- Verify -->
+    <g transform="translate(507, 68)">
+      <rect width="105" height="85" rx="5" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5"/>
+      <text x="52" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#15803D">&lt;&lt;fase 5&gt;&gt;</text>
+      <text x="52" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">verify</text>
+      <text x="52" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">Tests integrac.</text>
+      <text x="52" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">(Failsafe)</text>
+    </g>
+    <line x1="612" y1="110" x2="627" y2="110" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- Install -->
+    <g transform="translate(630, 68)">
+      <rect width="105" height="85" rx="5" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5"/>
+      <text x="52" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#15803D">&lt;&lt;fase 6&gt;&gt;</text>
+      <text x="52" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">install</text>
+      <text x="52" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">Copia el JAR en</text>
+      <text x="52" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">~/.m2/repository</text>
+    </g>
+    <line x1="735" y1="110" x2="750" y2="110" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- Deploy -->
+    <g transform="translate(753, 68)">
+      <rect width="95" height="85" rx="5" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="1.5"/>
+      <text x="47" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6D28D9">&lt;&lt;fase 7&gt;&gt;</text>
+      <text x="47" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#4C1D95">deploy</text>
+      <text x="47" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">Publica en</text>
+      <text x="47" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">Nexus / Artif.</text>
+    </g>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(180, 430)">
+    <rect width="560" height="30" rx="5" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="20" y="20" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#334155">Leyenda:</text>
+    <rect x="80" y="10" width="12" height="12" fill="#F0FDF4" stroke="#86EFAC"/>
+    <text x="98" y="20" font-family="Arial, sans-serif" font-size="11" fill="#475569">Fase intermedia</text>
+    <rect x="200" y="10" width="12" height="12" fill="#FEF3C7" stroke="#F59E0B"/>
+    <text x="218" y="20" font-family="Arial, sans-serif" font-size="11" fill="#475569">Empaquetado (package)</text>
+    <rect x="370" y="10" width="12" height="12" fill="#EDE9FE" stroke="#8B5CF6"/>
+    <text x="388" y="20" font-family="Arial, sans-serif" font-size="11" fill="#475569">Publicación remota (deploy)</text>
+  </g>
+</svg>

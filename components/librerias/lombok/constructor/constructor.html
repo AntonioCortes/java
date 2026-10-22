@@ -1,13 +1,188 @@
 <h1 class="title">Constructor</h1>
 
-<h2>@NoArgsConstructor</h2>
+<p>En Java, la definición y el mantenimiento de constructores resulta tedioso cuando una clase cambia de atributos con frecuencia. Además, frameworks como JPA/Hibernate o librerías de serialización como Jackson exigen la presencia de un constructor vacío, mientras que los tests o la inyección de dependencias en Spring Boot requieren constructores parametrizados.</p>
 
-<p>Genera un contrustor sin parámetros</p>
+<p><b>Project Lombok</b> proporciona tres anotaciones a nivel de clase para automatizar por completo la generación de constructores en tiempo de compilación: <code>@NoArgsConstructor</code>, <code>@AllArgsConstructor</code> y <code>@RequiredArgsConstructor</code>. En todas ellas los atributos estáticos (<code>static</code>) se ignoran automáticamente, ya que pertenecen a la clase y no a la instancia.</p>
 
-<h2>@AllArgsConstructor</h2>
+<h2>Anotaciones de generación de constructores</h2>
 
-<p> generates a constructor with 1 parameter for each field in your class. Fields marked with @NonNull result in null checks on those parameters.</p>
-TODO:<p>Genera un constructor con un parametro por cada campo en la clase. Los campos marcados con <b>&lt;@NonNull&gt;</b>  </p>
+<ul>
+    <li><b>@NoArgsConstructor:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.NoArgsConstructor</code> y se coloca sobre la definición de la clase para generar automáticamente un <b>constructor sin parámetros</b> (constructor vacío).<br>
+    Si la clase contiene campos declarados como <code>final</code> que no han sido inicializados en su declaración, el compilador mostrará un error porque un constructor vacío no podría inicializarlos. Para resolver este caso (muy habitual en entidades JPA o clases inmutables deserializadas por Jackson), permite usar el parámetro <code>force = true</code>, que inicializa todos los campos <code>final</code> a su valor por defecto (<code>null</code> para objetos, <code>0</code> para números y <code>false</code> para booleanos).</li>
 
-<h2>@RequiredArgsConstructor</h2>
-TODO:
+    <li><b>@AllArgsConstructor:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.AllArgsConstructor</code> y se coloca sobre la clase para generar un constructor con <b>un parámetro por cada atributo no estático</b> de la clase.<br>
+    El orden de los parámetros en el constructor generado sigue estrictamente el orden en que los atributos han sido declarados de arriba a abajo dentro de la clase. Si algún atributo está anotado con <code>@NonNull</code>, Lombok incluye automáticamente una validación explícita de nulidad al inicio del constructor para ese parámetro.</li>
+
+    <li><b>@RequiredArgsConstructor:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.RequiredArgsConstructor</code> y genera un constructor que incluye únicamente un parámetro por cada atributo que requiera un tratamiento especial de inicialización (atributos obligatorios):
+        <ul>
+            <li>Atributos declarados como <b><code>final</code></b> que no hayan sido inicializados en el momento de su declaración.</li>
+            <li>Atributos marcados con la anotación <b><code>@NonNull</code></b> (<code>lombok.NonNull</code>) que no hayan sido inicializados en su declaración (incluyendo además una comprobación de nulidad que lanza un <code>NullPointerException</code> si se recibe <code>null</code>).</li>
+        </ul>
+    Si la clase no tiene ningún atributo <code>final</code> ni <code>@NonNull</code> sin inicializar, <code>@RequiredArgsConstructor</code> generará un constructor sin argumentos equivalente a <code>@NoArgsConstructor</code>.</li>
+</ul>
+
+<h2>Parámetros de configuración de los constructores</h2>
+
+<p>Las tres anotaciones anteriores comparten una serie de parámetros opcionales que permiten personalizar la visibilidad, la forma de invocación y las anotaciones del constructor generado:</p>
+
+<ul>
+    <li><b>access:</b> Permite definir el modificador de acceso (visibilidad) del constructor generado mediante el enumerado <code>lombok.AccessLevel</code>. Por defecto su valor es <code>AccessLevel.PUBLIC</code>. Sus posibles valores son:
+        <ul>
+            <li><b>AccessLevel.PUBLIC:</b> El constructor generado será <code>public</code> (valor por defecto).</li>
+            <li><b>AccessLevel.PROTECTED:</b> El constructor generado será <code>protected</code> (muy útil en clases base o entidades JPA donde no se quiere permitir la instanciación directa desde fuera del paquete).</li>
+            <li><b>AccessLevel.PACKAGE:</b> El constructor tendrá visibilidad de paquete (<i>package-private</i>, sin palabra clave de modificador).</li>
+            <li><b>AccessLevel.PRIVATE:</b> El constructor generado será <code>private</code> (habitual en clases de utilidades o cuando se combina con métodos factoría estáticos).</li>
+            <li><b>AccessLevel.NONE:</b> Desactiva la generación manual del constructor.</li>
+        </ul>
+    </li>
+
+    <li><b>staticName:</b> Recibe un <code>String</code> con el nombre de un método factoría estático. Al especificar este parámetro (por ejemplo, <code>@RequiredArgsConstructor(staticName = "of")</code>), Lombok convierte el constructor generado en <b><code>private</code></b> y crea en su lugar un método estático público con el nombre indicado que invoca internamente a dicho constructor privado.</li>
+
+    <li><b>force (exclusivo de @NoArgsConstructor):</b> Recibe un booleano (por defecto <code>false</code>). Cuando se establece a <code>@NoArgsConstructor(force = true)</code>, fuerza la inicialización de todos los campos <code>final</code> no inicializados con sus valores por defecto (<code>0</code>, <code>false</code> o <code>null</code>) y evita errores de compilación cuando los atributos están marcados con <code>@NonNull</code>.</li>
+
+    <li><b>onConstructor_:</b> Permite añadir anotaciones adicionales directamente sobre el constructor generado (por ejemplo, <code>@AllArgsConstructor(onConstructor_ = @Autowired)</code> en versiones antiguas de Spring).</li>
+</ul>
+
+<h2>Interacción con @NonNull</h2>
+
+<p>La anotación <b><code>@NonNull</code></b> pertenece a <b>Project Lombok</b> y se encuentra en el paquete <code>lombok.NonNull</code>. Cuando se coloca sobre un atributo de la clase y se utiliza junto con <code>@RequiredArgsConstructor</code> o <code>@AllArgsConstructor</code>, produce dos efectos:</p>
+
+<ul>
+    <li>Hace que dicho atributo sea considerado obligatorio por <code>@RequiredArgsConstructor</code> aunque no sea <code>final</code>.</li>
+    <li>Genera al principio del constructor una comprobación explícita de nulidad (<code>if (campo == null) throw new NullPointerException("campo is marked non-null but is null");</code>) antes de asignar el valor al atributo.</li>
+</ul>
+
+<h2>Ejemplo comparativo: Vanilla Java vs Lombok</h2>
+
+<p>A continuación se muestra cómo se traduce una clase <code>Pet</code> que combina las tres anotaciones de constructor, un método factoría estático y campos obligatorios:</p>
+
+<p>Con Lombok:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+@NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
+@RequiredArgsConstructor(staticName = "of")
+@AllArgsConstructor
+public class Pet {
+
+    private final Integer id;
+
+    @NonNull
+    private String name;
+
+    private Short age;
+}
+</code></pre>
+</div>
+
+<p>Código equivalente en Vanilla Java que Lombok genera automáticamente:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class Pet {
+
+    private final Integer id;
+    private String name;
+    private Short age;
+
+    // Generado por @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
+    protected Pet() {
+        this.id = null;
+    }
+
+    // Constructor privado generado por @RequiredArgsConstructor(staticName = "of")
+    private Pet(final Integer id, final String name) {
+        if (name == null) {
+            throw new NullPointerException("name is marked non-null but is null");
+        }
+        this.id = id;
+        this.name = name;
+    }
+
+    // Método factoría estático generado por staticName = "of"
+    public static Pet of(final Integer id, final String name) {
+        return new Pet(id, name);
+    }
+
+    // Generado por @AllArgsConstructor
+    public Pet(final Integer id, final String name, final Short age) {
+        if (name == null) {
+            throw new NullPointerException("name is marked non-null but is null");
+        }
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+}
+</code></pre>
+</div>
+
+<h2>Inyección de dependencias en Spring Boot con @RequiredArgsConstructor</h2>
+
+<p>En aplicaciones con <b>Spring Boot</b>, la práctica recomendada por el equipo de Spring es realizar la <b>inyección de dependencias por constructor</b> en lugar de utilizar <code>@Autowired</code> directamente sobre los atributos de la clase. Esto presenta grandes ventajas de diseño:</p>
+
+<ul>
+    <li><b>Inmutabilidad:</b> Permite declarar todas las dependencias (servicios, repositorios, mappers) como atributos <code>private final</code>, garantizando que no puedan ser reasignadas una vez construido el componente.</li>
+    <li><b>Seguridad frente a nulos:</b> Evita que el bean pueda instanciarse en un estado incompleto con dependencias en <code>null</code>.</li>
+    <li><b>Facilidad para pruebas unitarias (Testing):</b> Permite instanciar el servicio o controlador directamente con <code>new PetService(...)</code> en los tests de JUnit y Mockito sin necesidad de levantar el contexto de Spring ni usar reflexión.</li>
+</ul>
+
+<p>Dado que a partir de <b>Spring Framework 4.3</b> no es necesario anotar el constructor con <code>@Autowired</code> cuando la clase tiene un único constructor, combinar atributos <code>private final</code> con <code>@RequiredArgsConstructor</code> se ha convertido en el estándar de facto para inyectar dependencias en controladores y servicios de Spring Boot:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class PetService {
+
+    // Al ser final y no estar inicializados, @RequiredArgsConstructor
+    // crea el constructor PetService(PetRepository, ModelMapper)
+    // y Spring Boot inyecta ambos beans automáticamente.
+    private final PetRepository petRepository;
+    private final ModelMapper mapper;
+
+    public Optional&lt;Pet&gt; findById(final Integer id) {
+        return petRepository.findById(id);
+    }
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar cada constructor de Lombok y cuándo NO usarlo?</h2>
+
+<ul>
+    <li><b>Cuándo usar <code>@RequiredArgsConstructor</code>:</b> En todos los <code>@Service</code>, <code>@RestController</code> y <code>@Component</code> de Spring Boot cuyos atributos inyectados sean <code>private final</code>.</li>
+    <li><b>Cuándo usar <code>@NoArgsConstructor</code> y <code>@AllArgsConstructor</code>:</b> En entidades JPA (que exigen un constructor sin parámetros por especificación) y en clases que usen <code>@Builder</code> junto con serialización JSON (Jackson).</li>
+    <li><b>Cuándo NO usar <code>@AllArgsConstructor</code>:</b> En clases con muchos atributos del mismo tipo (por ejemplo, cuatro campos <code>String</code> seguidos: <code>firstName</code>, <code>lastName</code>, <code>email</code>, <code>phone</code>). Si alguien reordena los atributos en la clase, el orden de los parámetros de <code>@AllArgsConstructor</code> cambiará silenciosamente sin dar error de compilación, intercambiando los datos por error. En esos casos es mucho más seguro usar <code>@Builder</code>.</li>
+</ul>
+
+<h2>Contraejemplo: Peligro de reordenar campos con <code>@AllArgsConstructor</code></h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (PELIGROSO): Si mañana alguien mueve 'breed' antes de 'name',
+// todas las llamadas new Pet("Joe", "Bulldog") asignarán la raza como nombre sin dar error de compilación
+@AllArgsConstructor
+public class Pet {
+    private String name;
+    private String breed;
+}
+
+// EJEMPLO (SEGURO): Usar @Builder evita depender del orden posicional de los atributos
+@Builder
+public class SafePet {
+    private String name;
+    private String breed;
+}
+</code></pre>
+</div>

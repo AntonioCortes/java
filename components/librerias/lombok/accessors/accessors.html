@@ -1,1 +1,192 @@
-<h1 class="title">Accesors</h1>
+<h1 class="title">Accessors</h1>
+
+<p>Por defecto, cuando utilizamos <code>@Getter</code>, <code>@Setter</code> o <code>@Data</code>, Lombok genera los métodos de lectura y escritura siguiendo estrictamente el estándar tradicional de JavaBeans: los métodos llevan los prefijos <code>get</code>/<code>is</code> y <code>set</code>, y los setters devuelven <code>void</code>. Sin embargo, en el diseño de APIs modernas, DTOs y entidades es muy común preferir un estilo de invocación encadenado o fluido.</p>
+
+<p>Para personalizar este comportamiento existe la anotación <b><code>@Accessors</code></b>.</p>
+
+<h2>Anotación @Accessors</h2>
+
+<ul>
+    <li><b>@Accessors:</b> Esta anotación pertenece al módulo experimental de <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.experimental.Accessors</code> y sirve para configurar cómo Lombok genera y nombra los métodos <i>getter</i> y <i>setter</i>.<br>
+    <b>Importante:</b> Por sí sola, <code>@Accessors</code> no genera ningún método; únicamente modifica el comportamiento de las anotaciones <code>@Getter</code>, <code>@Setter</code> o <code>@Data</code> que estén presentes en la misma clase o atributo.<br>
+    Se puede colocar tanto a nivel de clase (afectando a todos los campos de la clase) como sobre un atributo concreto (sobrescribiendo la configuración de la clase para ese campo específico).</li>
+</ul>
+
+<h2>Parámetros de configuración de @Accessors</h2>
+
+<p>La anotación <code>@Accessors</code> dispone de cuatro opciones configurables que pueden combinarse entre sí:</p>
+
+<ul>
+    <li><b>chain:</b> Recibe un valor booleano (por defecto <code>false</code>, salvo que se active <code>fluent = true</code>). Cuando se configura como <code>@Accessors(chain = true)</code>, todos los métodos <i>setter</i> generados dejan de devolver <code>void</code> y pasan a devolver <b><code>this</code></b> (la propia instancia del objeto). Esto permite encadenar múltiples llamadas a setters en una sola sentencia: <code>new PetDTO().setId(1).setName("Joe").setAge((short) 2)</code>. Es una de las opciones más utilizadas en DTOs y modelos de dominio en Spring Boot.</li>
+
+    <li><b>fluent:</b> Recibe un valor booleano (por defecto <code>false</code>). Cuando se configura como <code>@Accessors(fluent = true)</code>, los métodos <i>getter</i> y <i>setter</i> se generan <b>sin los prefijos <code>get</code>, <code>is</code> ni <code>set</code></b>, utilizando como nombre del método exactamente el mismo nombre del atributo (por ejemplo, el getter es <code>pet.name()</code> y el setter es <code>pet.name("Joe")</code>). Además, activar <code>fluent = true</code> activa implícitamente <code>chain = true</code> a menos que se indique explícitamente <code>chain = false</code>.</li>
+
+    <li><b>prefix:</b> Recibe una lista de cadenas de texto (por defecto vacía <code>{}</code>). Sirve para trabajar con convenciones de nomenclatura en las que los nombres de los atributos privados empiezan por un prefijo identificativo (como <code>f</code>, <code>p</code>, <code>m_</code> o <code>_</code>). Al indicar <code>@Accessors(prefix = {"p", "m_"})</code>, Lombok omite dichos prefijos al construir el nombre de los getters y setters (por ejemplo, el atributo <code>private String pName;</code> generará <code>getName()</code> y <code>setName()</code> en lugar de <code>getPName()</code>).</li>
+
+    <li><b>makeFinal:</b> Recibe un valor booleano (por defecto <code>false</code>). Si se establece a <code>@Accessors(makeFinal = true)</code>, los métodos <i>getter</i> y <i>setter</i> generados incluirán el modificador <code>final</code> en su firma para impedir que las subclases puedan sobrescribirlos.</li>
+</ul>
+
+<h2>Ejemplos prácticos de uso</h2>
+
+<h3>1. Encadenamiento de setters con @Accessors(chain = true)</h3>
+
+<p>En la capa de DTOs (como <code>PetDTO</code> o <code>PetPatchDTO</code>) es muy habitual combinar <code>@Data</code> con <code>@Accessors(chain = true)</code>. De esta forma se mantienen los nombres estándar <code>getNombre()</code> y <code>setNombre()</code> (necesarios para que librerías como Jackson o ModelMapper funcionen sin configuraciones adicionales), pero se gana la comodidad de instanciar y poblar el objeto encadenando llamadas:</p>
+
+<p>Con Lombok:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+@Data
+@Accessors(chain = true)
+public class PetDTO {
+    private Integer id;
+    private String name;
+    private Short age;
+}
+</code></pre>
+</div>
+
+<p>Código equivalente en Vanilla Java para los getters y setters generados:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class PetDTO {
+    private Integer id;
+    private String name;
+    private Short age;
+
+    public Integer getId() {
+        return this.id;
+    }
+
+    public PetDTO setId(Integer id) {
+        this.id = id;
+        return this;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public PetDTO setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public Short getAge() {
+        return this.age;
+    }
+
+    public PetDTO setAge(Short age) {
+        this.age = age;
+        return this;
+    }
+}
+</code></pre>
+</div>
+
+<p>Uso del encadenamiento al instanciar el DTO:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+PetDTO petDTO = new PetDTO()
+        .setId(1)
+        .setName("Joe")
+        .setAge((short) 3);
+</code></pre>
+</div>
+
+<h3>2. Estilo fluido sin prefijos con @Accessors(fluent = true)</h3>
+
+<p>Cuando se utiliza <code>@Accessors(fluent = true)</code>, tanto la asignación como la lectura de propiedades se realizan invocando métodos con el nombre exacto del atributo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+@Getter
+@Setter
+@Accessors(fluent = true)
+public class PetFilter {
+    private String name;
+    private Short minAge;
+}
+
+// Uso de los métodos generados con fluent = true:
+PetFilter filter = new PetFilter()
+        .name("Joe")
+        .minAge((short) 1);
+
+String searchedName = filter.name();
+</code></pre>
+</div>
+
+<h3>3. Eliminación de prefijos de atributos con @Accessors(prefix = ...)</h3>
+
+<p>Si el estándar de codificación del proyecto exige que los atributos de clase lleven un prefijo como <code>p</code> o <code>m_</code>, el parámetro <code>prefix</code> evita que esos prefijos se filtren a la firma pública de los métodos <code>get</code> y <code>set</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+@Getter
+@Setter
+@Accessors(prefix = {"p", "m_"})
+public class PetEntity {
+
+    // Genera getId() y setId(Integer id)
+    private Integer m_id;
+
+    // Genera getName() y setName(String name)
+    private String pName;
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar @Accessors y cuándo NO usarlo?</h2>
+
+<ul>
+    <li><b>Cuándo usar <code>@Accessors(chain = true)</code>:</b> Muy recomendable en <b>DTOs, Entidades y objetos de configuración</b> porque mantiene los nombres estándar <code>getX()</code> y <code>setX()</code> (siendo 100% compatible con Jackson, ModelMapper, Hibernate y Spring) mientras permite encadenar asignaciones fluidamente.</li>
+    <li><b>Cuándo NO usar <code>@Accessors(fluent = true)</code>:</b> <b>Nunca debe usarse en clases que dependan del estándar JavaBeans</b> (como DTOs serializados por Jackson sin anotaciones extras, formularios de Spring MVC, beans mapeados por ModelMapper o entidades JPA con acceso por propiedades), ya que estas librerías buscan métodos que empiecen estrictamente por <code>get</code> y <code>set</code>.</li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo: <code>fluent = true</code> frente a <code>chain = true</code> en DTOs</h2>
+
+<h3>Contraejemplo (Mala práctica): Usar <code>fluent = true</code> en un DTO de un Controlador REST</h3>
+<p>Al activar <code>fluent = true</code>, el método generado se llama <code>name()</code> en lugar de <code>getName()</code>. Cuando el controlador devuelva este DTO, Jackson no encontrará ningún getter estándar y devolverá un JSON vacío o lanzará una excepción <code>InvalidDefinitionException: No serializer found</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Jackson y ModelMapper no reconocerán los getters ni setters sin prefijo get/set
+@Data
+@Accessors(fluent = true)
+public class PetDTO {
+    private Integer id;
+    private String name;
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Usar <code>chain = true</code> en DTOs</h3>
+<p>Con <code>chain = true</code> se conservan los nombres estándar <code>getId()</code> / <code>setId()</code> requeridos por todos los frameworks del ecosistema Spring y además se pueden encadenar las llamadas en una sola línea:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): 100% compatible con Jackson y ModelMapper y permite encadenar setters
+@Data
+@Accessors(chain = true)
+public class PetDTO {
+    private Integer id;
+    private String name;
+}
+
+PetDTO dto = new PetDTO().setId(1).setName("Joe");
+</code></pre>
+</div>

@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.15" />
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1E293B" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669" />
+    </marker>
+  </defs>
+
+  <rect width="960" height="480" fill="#F8FAFC" rx="10" />
+
+  <text x="480" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1E293B">Arquitectura por Capas Principales en Spring Boot</text>
+  <text x="480" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#64748B">Flujo de una petición HTTP: Controladores &rarr; DTOs &rarr; Servicios &rarr; Repositorios &rarr; Entidades</text>
+
+  <!-- Box 1: Cliente HTTP -->
+  <g transform="translate(20, 110)" filter="url(#shadow)">
+    <rect width="130" height="130" rx="8" fill="#FFFFFF" stroke="#64748B" stroke-width="2"/>
+    <rect width="130" height="28" rx="8" fill="#64748B" />
+    <rect width="130" height="8" y="20" fill="#64748B" />
+    <text x="65" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#F1F5F9">&lt;&lt;cliente&gt;&gt;</text>
+    <text x="65" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1E293B">Front-End / App</text>
+    <text x="65" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Navegador Web</text>
+    <text x="65" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Postman / Móvil</text>
+    <text x="65" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2563EB">JSON sobre HTTP</text>
+  </g>
+
+  <!-- Arrow 1: HTTP -> Controller -->
+  <path d="M 150 175 L 180 175" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="165" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">REST</text>
+
+  <!-- Box 2: Controlador REST -->
+  <g transform="translate(180, 110)" filter="url(#shadow)">
+    <rect width="160" height="130" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+    <rect width="160" height="28" rx="8" fill="#3B82F6" />
+    <rect width="160" height="8" y="20" fill="#3B82F6" />
+    <text x="80" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#DBEAFE">&lt;&lt;controlador rest&gt;&gt;</text>
+    <text x="80" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1E3A8A">PetController</text>
+    <text x="80" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">@RestController</text>
+    <text x="80" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Valida @Valid</text>
+    <text x="80" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2563EB">Devuelve ResponseEntity</text>
+  </g>
+
+  <!-- Arrow 2: Controller -> Service -->
+  <path d="M 340 175 L 390 175" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="365" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">llama</text>
+
+  <!-- Box 3: Servicio -->
+  <g transform="translate(390, 110)" filter="url(#shadow)">
+    <rect width="160" height="130" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+    <rect width="160" height="28" rx="8" fill="#10B981" />
+    <rect width="160" height="8" y="20" fill="#10B981" />
+    <text x="80" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#D1FAE5">&lt;&lt;capa de servicio&gt;&gt;</text>
+    <text x="80" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#065F46">PetService</text>
+    <text x="80" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">@Service</text>
+    <text x="80" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Lógica de Negocio</text>
+    <text x="80" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#059669">@Transactional</text>
+  </g>
+
+  <!-- Arrow 3: Service -> Repository -->
+  <path d="M 550 175 L 600 175" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="575" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">persiste</text>
+
+  <!-- Box 4: Repositorio -->
+  <g transform="translate(600, 110)" filter="url(#shadow)">
+    <rect width="160" height="130" rx="8" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2"/>
+    <rect width="160" height="28" rx="8" fill="#8B5CF6" />
+    <rect width="160" height="8" y="20" fill="#8B5CF6" />
+    <text x="80" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#EDE9FE">&lt;&lt;repositorio / dao&gt;&gt;</text>
+    <text x="80" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#5B21B6">PetRepository</text>
+    <text x="80" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">@Repository</text>
+    <text x="80" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">JpaRepository</text>
+    <text x="80" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6D28D9">CRUD &amp; @Query</text>
+  </g>
+
+  <!-- Arrow 4: Repository -> DB -->
+  <path d="M 760 175 L 800 175" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="780" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#475569">SQL</text>
+
+  <!-- Box 5: Base de Datos -->
+  <g transform="translate(800, 110)" filter="url(#shadow)">
+    <rect width="140" height="130" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+    <rect width="140" height="28" rx="8" fill="#F59E0B" />
+    <rect width="140" height="8" y="20" fill="#F59E0B" />
+    <text x="70" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#FEF3C7">&lt;&lt;base de datos&gt;&gt;</text>
+    <text x="70" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#92400E">PostgreSQL</text>
+    <text x="70" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Tabla: pet</text>
+    <text x="70" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Filas y Claves FK</text>
+    <text x="70" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#B45309">Motor JDBC/SQL</text>
+  </g>
+
+  <!-- Bottom Objects: DTO and Entity -->
+  <!-- DTO (under Controller/Service) -->
+  <g transform="translate(230, 280)" filter="url(#shadow)">
+    <rect width="220" height="100" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="4"/>
+    <text x="110" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1E40AF">&lt;&lt;objeto de transferencia&gt;&gt; PetDTO</text>
+    <text x="110" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Expuesto a la API / Red</text>
+    <text x="110" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Anotaciones Jackson &amp; Bean Validation</text>
+    <text x="110" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2563EB">Oculta estructura interna de BD</text>
+  </g>
+  <path d="M 270 240 L 270 280" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="3"/>
+  <path d="M 430 240 L 390 280" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="3"/>
+
+  <!-- Entity (under Service/Repository) -->
+  <g transform="translate(510, 280)" filter="url(#shadow)">
+    <rect width="220" height="100" rx="8" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5" stroke-dasharray="4"/>
+    <text x="110" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#5B21B6">&lt;&lt;entidad jpa&gt;&gt; Pet</text>
+    <text x="110" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Mapeo Objeto-Relacional (ORM)</text>
+    <text x="110" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#475569">Anotaciones @Entity, @Table, @Id</text>
+    <text x="110" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6D28D9">Aislada del cliente por el Servicio</text>
+  </g>
+  <path d="M 500 240 L 540 280" stroke="#8B5CF6" stroke-width="1.5" stroke-dasharray="3"/>
+  <path d="M 670 240 L 670 280" stroke="#8B5CF6" stroke-width="1.5" stroke-dasharray="3"/>
+
+  <!-- Mapping link between DTO and Entity -->
+  <path d="M 450 330 L 510 330" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+  <text x="480" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#059669">Mapeo</text>
+
+  <!-- Legend -->
+  <g transform="translate(180, 425)">
+    <rect width="600" height="30" rx="5" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="20" y="20" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#334155">Leyenda:</text>
+    <line x1="80" y1="15" x2="110" y2="15" stroke="#1E293B" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="120" y="19" font-family="Arial, sans-serif" font-size="11" fill="#475569">Flujo de llamada entre capas</text>
+    <line x1="310" y1="15" x2="340" y2="15" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <text x="350" y="19" font-family="Arial, sans-serif" font-size="11" fill="#059669">Transformación DTO &harr; Entidad (Mappers)</text>
+  </g>
+</svg>

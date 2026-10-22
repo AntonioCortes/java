@@ -1,1 +1,270 @@
-<h1 class="title">Introducción a librerias</h1>
+<h1 class="title">Introducción a las Librerías en Java</h1>
+
+<p>En el ecosistema de <b>Java</b> y <b>Spring Boot</b>, el uso de librerías de terceros es fundamental para evitar reinventar la rueda, reducir el código repetitivo (<i>boilerplate</i>), estandarizar el acceso a datos, automatizar la documentación de APIs y facilitar la comunicación entre servicios.</p>
+
+<p>En este apartado se documentan en detalle las librerías más utilizadas en proyectos empresariales y microservicios Java, abarcando desde su configuración e instalación en <b>Maven (<code>pom.xml</code>)</b> y <b>Gradle (<code>build.gradle</code>)</b> hasta el desglose de sus anotaciones, clases principales y ejemplos prácticos.</p>
+
+<h2>Resumen de Librerías Documentadas</h2>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Librería</th>
+			<th scope="col">Propósito Principal</th>
+			<th scope="col">Artefacto Maven Habitual</th>
+			<th scope="col">Cuándo utilizarla</th>
+			<th scope="col">Cuándo NO utilizarla</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><b>Project Lombok</b></td>
+			<td>Generación automática de código repetitivo en tiempo de compilación (getters, setters, constructores, <code>toString</code>, <code>equals/hashCode</code>, patrones <code>Builder</code> y loggers).</td>
+			<td><code>org.projectlombok:lombok</code></td>
+			<td>En prácticamente cualquier proyecto Java o Spring Boot para mantener las clases (DTOs, Entidades, Servicios) limpias, legibles y fáciles de mantener.</td>
+			<td>No usar <code>@Data</code> sobre entidades JPA con relaciones perezosas (usar <code>@Getter/@Setter</code>); en Java 16+ para DTOs inmutables simples es preferible usar un <code>record</code> nativo.</td>
+		</tr>
+		<tr>
+			<td><b>ModelMapper</b></td>
+			<td>Mapeo automático e inteligente de objetos entre distintas capas de la aplicación (por ejemplo, convertir entre una entidad JPA <code>Pet</code> y un <code>PetDTO</code> o <code>PetPatchDTO</code>).</td>
+			<td><code>org.modelmapper:modelmapper</code></td>
+			<td>Cuando se necesita desacoplar la capa de persistencia (Entidades) de la capa de exposición (DTOs) o aplicar actualizaciones parciales (<code>PATCH</code>) sin escribir decenas de <code>get/set</code>.</td>
+			<td>En sistemas de ultra baja latencia o procesamientos batch de millones de objetos donde el coste de la reflexión importa (allí es mejor usar <b>MapStruct</b> en compilación).</td>
+		</tr>
+		<tr>
+			<td><b>Flyway</b></td>
+			<td>Control de versiones y migraciones incrementales de esquemas de bases de datos relacionales mediante scripts SQL o clases Java.</td>
+			<td><code>org.flywaydb:flyway-core</code></td>
+			<td>En cualquier aplicación con base de datos relacional para garantizar que todos los entornos (local, integración, producción) tengan exactamente la misma estructura de tablas y datos maestros.</td>
+			<td>En prototipos efímeros en memoria (H2 con <code>create-drop</code>), bases de datos NoSQL, o nunca combinado con <code>ddl-auto: update</code> en Hibernate.</td>
+		</tr>
+		<tr>
+			<td><b>SpringFox / Swagger (OpenAPI)</b></td>
+			<td>Generación automática de documentación técnica e interfaz web interactiva (<i>Swagger UI</i>) para APIs REST desarrolladas con Spring Boot.</td>
+			<td><code>io.springfox:springfox-boot-starter</code> / <code>org.springdoc:springdoc-openapi-starter-webmvc-ui</code></td>
+			<td>Al desarrollar microservicios o APIs REST para documentar cada endpoint, sus parámetros, modelos JSON y códigos de respuesta HTTP, permitiendo probar la API desde el navegador.</td>
+			<td>No usar SpringFox en proyectos con Spring Boot 3+ (usar <b>SpringDoc OpenAPI</b>), y no exponer Swagger UI públicamente en entornos de producción sin seguridad.</td>
+		</tr>
+		<tr>
+			<td><b>Hibernate ORM</b></td>
+			<td>Framework de Mapeo Objeto-Relacional (ORM) e implementación de referencia de la especificación <b>JPA</b> para persistir objetos Java en bases de datos relacionales.</td>
+			<td><code>org.hibernate.orm:hibernate-core</code> / <code>spring-boot-starter-data-jpa</code></td>
+			<td>Para gestionar la capa de persistencia, transacciones, relaciones entre tablas y consultas orientadas a objetos (HQL / JPQL / Criteria) sin escribir SQL manual acoplado al motor de base de datos.</td>
+			<td>En procesos ETL o cargas masivas de millones de registros en bloque donde la caché de primer nivel agote la memoria RAM (allí es preferible JDBC batch o <code>StatelessSession</code>).</td>
+		</tr>
+		<tr>
+			<td><b>Apache HttpClient</b></td>
+			<td>Cliente HTTP robusto y configurable para realizar llamadas a servidores externos o APIs REST desde código Java.</td>
+			<td><code>org.apache.httpcomponents:httpclient</code> / <code>httpclient5</code></td>
+			<td>Cuando una aplicación Java necesita consumir servicios HTTP externos con control avanzado sobre pools de conexiones, timeouts, cabeceras, proxies, autenticación o subida de ficheros multipart.</td>
+			<td>Cuando en microservicios Spring Cloud basta un cliente declarativo por interfaz como <b>OpenFeign</b>, o en llamadas triviales en Java 11+ donde basta <code>java.net.http.HttpClient</code>.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tabla comparativa de las principales librerías del ecosistema Java</span>
+
+<h2>Cómo se integran estas librerías en una Arquitectura por Capas</h2>
+
+<p>En un proyecto típico de microservicios (como el dominio de ejemplo de la tienda de mascotas <code>PetShop</code> utilizado a lo largo de esta web), todas estas librerías trabajan de forma conjunta y coordinada en cada petición:</p>
+
+<ul>
+	<li><b>Capa de Presentación / Controladores (<code>PetController</code>):</b>
+		<ul>
+			<li>Utiliza <b>SpringFox / Swagger</b> (<code>@Api</code>, <code>@ApiOperation</code>, <code>@ApiResponses</code>, <code>@ApiParam</code>) para documentar los endpoints REST (<code>GET</code>, <code>POST</code>, <code>PATCH</code>, <code>DELETE</code>).</li>
+			<li>Utiliza <b>Lombok</b> (<code>@Slf4j</code>, <code>@RequiredArgsConstructor</code>) para registrar trazas de log e inyectar dependencias limpiamente por constructor.</li>
+			<li>Utiliza <b>ModelMapper</b> (<code>mapper</code> y <code>patchMapper</code>) para transformar las entidades recibidas del servicio en objetos <code>PetDTO</code> de respuesta o volcar los cambios parciales de un <code>PetPatchDTO</code> sobre la entidad existente.</li>
+		</ul>
+	</li>
+	<li><b>Objetos de Transferencia de Datos (<code>PetDTO</code>, <code>PetPatchDTO</code>):</b>
+		<ul>
+			<li>Utilizan <b>Lombok</b> (<code>@Data</code>, <code>@Accessors(chain = true)</code>, <code>@Builder</code>) para generar automáticamente los métodos de acceso y constructores fluidos.</li>
+			<li>Utilizan <b>Swagger</b> (<code>@ApiModel</code>, <code>@ApiModelProperty</code>) para describir cada propiedad del JSON y mostrar valores de ejemplo en Swagger UI.</li>
+		</ul>
+	</li>
+	<li><b>Capa de Negocio y Clientes Externos (<code>PetService</code>):</b>
+		<ul>
+			<li>Si el servicio necesita comunicarse con una pasarela externa o un servicio legado vía HTTP, puede apoyarse en <b>Apache HttpClient</b> para construir la petición (<code>HttpGet</code>, <code>HttpPost</code>, <code>URIBuilder</code>) y gestionar la respuesta de forma segura.</li>
+		</ul>
+	</li>
+	<li><b>Capa de Persistencia y Base de Datos (<code>Pet</code>, <code>PetRepository</code>):</b>
+		<ul>
+			<li>Al arrancar la aplicación, <b>Flyway</b> inspecciona la carpeta <code>db/migration</code> y ejecuta los scripts SQL pendientes (<code>V1__create_pet_table.sql</code>) registrándolos en la tabla <code>flyway_schema_history</code>.</li>
+			<li>A continuación, <b>Hibernate ORM</b> valida que la entidad Java <code>Pet</code> (anotada con <code>@Entity</code>, <code>@Table</code>, <code>@Id</code>, <code>@Column</code>) coincide con la tabla creada por Flyway y se encarga de ejecutar las inserciones, actualizaciones, borrados y consultas transaccionales.</li>
+		</ul>
+	</li>
+</ul>
+
+<img class="center-horizontal" src="components/librerias/introduccion/assets/img/librerias-arquitectura.svg">
+<span class="center-horizontal caption">Figura 1: Diagrama de arquitectura con las librerías integradas en cada capa de la aplicación</span>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th scope="col">Elemento</th>
+			<th scope="col">Tipo</th>
+			<th scope="col">Responsabilidad / librerías que intervienen</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Navegador / Postman / Swagger UI</td>
+			<td>Cliente / front-end</td>
+			<td>Lanza las peticiones HTTP/REST con cuerpo JSON contra la API.</td>
+		</tr>
+		<tr>
+			<td><code>PetController</code></td>
+			<td>Capa de controladores</td>
+			<td>Recibe las peticiones. Documentado con SpringFox, trazas con Lombok (<code>@Slf4j</code>) y conversión Entidad ↔ DTO con ModelMapper.</td>
+		</tr>
+		<tr>
+			<td><code>PetService</code></td>
+			<td>Capa de servicio</td>
+			<td>Lógica de negocio. Inyecta dependencias con <code>@RequiredArgsConstructor</code> (Lombok) y puede llamar a APIs externas con Apache HttpClient.</td>
+		</tr>
+		<tr>
+			<td><code>PetRepository</code></td>
+			<td>Capa de repositorio</td>
+			<td>Acceso a datos mediante Hibernate / JPA sobre la entidad <code>Pet</code>.</td>
+		</tr>
+		<tr>
+			<td>PostgreSQL / MySQL</td>
+			<td>Base de datos</td>
+			<td>Almacena las tablas; recibe consultas SQL de Hibernate y los scripts de Flyway.</td>
+		</tr>
+		<tr>
+			<td>Flyway</td>
+			<td>Herramienta de migración</td>
+			<td>Al arrancar, aplica los scripts SQL pendientes para que el esquema esté versionado.</td>
+		</tr>
+		<tr>
+			<td>Servicio HTTP de terceros</td>
+			<td>API externa</td>
+			<td>Sistema ajeno consumido desde <code>PetService</code> por HTTP.</td>
+		</tr>
+	</tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes del diagrama de arquitectura</span>
+
+<h2>Gestión Centralizada de Dependencias</h2>
+
+<p>Para incorporar cualquiera de estas librerías en un proyecto, se declara su coordenada (<code>groupId</code>, <code>artifactId</code> y <code>version</code>) en el gestor de construcción del proyecto. Si se utiliza el POM padre de Spring Boot (<code>spring-boot-starter-parent</code>) o el bloque <code>dependencyManagement</code> con <code>spring-boot-dependencies</code>, muchas de estas librerías (como Lombok, Hibernate o Flyway) ya tienen su versión gestionada automáticamente para asegurar la compatibilidad entre ellas, por lo que no es necesario indicar la etiqueta <code>&lt;version&gt;</code> manualmente.</p>
+
+<p>Ejemplo de declaración combinada en <b>Maven (<code>pom.xml</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependencies&gt;
+    &lt;!-- Lombok: Generación de código en compilación --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+        &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- ModelMapper: Conversión entre Entidades y DTOs --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.modelmapper&lt;/groupId&gt;
+        &lt;artifactId&gt;modelmapper&lt;/artifactId&gt;
+        &lt;version&gt;3.1.1&lt;/version&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- Flyway: Migraciones de Base de Datos --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+        &lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- SpringFox Swagger: Documentación de APIs REST --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+        &lt;artifactId&gt;springfox-boot-starter&lt;/artifactId&gt;
+        &lt;version&gt;3.0.0&lt;/version&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- Hibernate / JPA: Persistencia ORM --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- Apache HttpClient: Cliente HTTP --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt;
+        &lt;artifactId&gt;httpclient&lt;/artifactId&gt;
+        &lt;version&gt;4.5.14&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<p>Equivalente en <b>Gradle (<code>build.gradle</code>)</b>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // ModelMapper
+    implementation 'org.modelmapper:modelmapper:3.1.1'
+
+    // Flyway
+    implementation 'org.flywaydb:flyway-core'
+
+    // SpringFox Swagger
+    implementation 'io.springfox:springfox-boot-starter:3.0.0'
+
+    // Hibernate / JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Apache HttpClient
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo y Contraejemplo: Versiones de las dependencias</h2>
+
+<h3>Contraejemplo (Mala práctica): Fijar a mano la versión de una librería que ya gestiona Spring Boot</h3>
+<p>Cuando el proyecto hereda de <code>spring-boot-starter-parent</code>, Spring Boot ya elige versiones compatibles entre sí para Lombok, Hibernate o Flyway. Escribir una versión distinta en cada dependencia puede mezclar versiones incompatibles (por ejemplo, un Hibernate más nuevo que el que espera <code>spring-boot-starter-data-jpa</code>) y provocar errores como <code>NoSuchMethodError</code> al arrancar:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- CONTRAEJEMPLO (INCORRECTO): versiones manuales que chocan con las gestionadas por Spring Boot --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+    &lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+    &lt;version&gt;5.0.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.hibernate.orm&lt;/groupId&gt;
+    &lt;artifactId&gt;hibernate-core&lt;/artifactId&gt;
+    &lt;version&gt;4.3.11.Final&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Omitir la versión y dejar que la gestione el POM padre</h3>
+<p>Se omite la etiqueta <code>&lt;version&gt;</code> en las librerías gestionadas por Spring Boot y solo se indica explícitamente en las que no lo están (como <code>modelmapper</code> o <code>springfox</code>):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- EJEMPLO (CORRECTO): Spring Boot gestiona la versión de Flyway y Hibernate --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+    &lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- ModelMapper no está gestionado por Spring Boot: se indica su versión --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.modelmapper&lt;/groupId&gt;
+    &lt;artifactId&gt;modelmapper&lt;/artifactId&gt;
+    &lt;version&gt;3.1.1&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>

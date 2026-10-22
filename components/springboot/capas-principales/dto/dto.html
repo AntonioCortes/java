@@ -1,102 +1,138 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
 <h1 class="title">DTO - Data Transfer Object</h1>
 
-<p>Para definir un DTO basta con crear un bean (clase básica con atributos, getters y setters), esta clase se utilizará para crear un JSON y enviarlo como respuesta en el controlador o para mapear los datos en el DTO al recibir un JSON en el controlador.</p>
-<p>Los atributos del JSON tendrán los mismos nombres que los atributos de la clase de manera predefinida, en caso de que se quiera que los nombres de los atributos del JSON sean distinos a los de la clase, se debe usar la anotación @JsonProperty de la librería Jackson.</p>
-<p>Además de la anterior se pueden usar distintas anotaciones que facilitan la creación del DTO:</p>
+<p>Un <strong>DTO (Data Transfer Object)</strong> es un patrón de diseño arquitectónico y un objeto plano de Java (POJO o Bean) cuyo único propósito es <strong>transportar datos entre capas o a través de la red (HTTP/JSON)</strong> sin contener lógica de negocio. En Spring Boot, los DTOs definen el contrato exacto de entrada (petición) y salida (respuesta) de los controladores REST.</p>
 
-<h2>Anotaciones de Jackson</h2>
+<h2 class="subtitle">Analogía del Mundo Real: El Formulario de Aduanas</h2>
+<p>Imagina que compras un producto en otro país. Para enviar el paquete a través de la frontera internacional, la tienda no envía todo su libro contable, ni las contraseñas de su almacén, ni el historial completo de sus proveedores: rellena un <strong>formulario de aduanas</strong> con los datos estrictamente necesarios para el viaje (nombre del producto, peso, dirección y precio).</p>
+<p>El DTO es ese formulario de aduanas: viaja por la red con los datos públicos que el cliente necesita ver, protegiendo las entidades internas de base de datos de accesos no autorizados.</p>
 
-<p>La librería Jackson proporciona anotaciones que permiten modificar características del JSON al que representa la clase.</p>
+<h2 class="subtitle">Caso de Uso Real: ¿Por qué NO exponer Entidades de Base de Datos directamente?</h2>
+<ul>
+    <li><strong>Contexto:</strong> Una tienda de mascotas gestiona registros de animales en una base de datos con campos como <code>id</code>, <code>name</code>, <code>age</code>, <code>internalCost</code> (coste interno para la tienda) y relaciones con tablas de historial médico.</li>
+    <li><strong>El Problema (Sin DTO - Exponiendo @Entity):</strong> Si el controlador REST devuelve directamente la entidad <code>Pet</code> en formato JSON:
+        <ol>
+            <li><strong>Fuga de seguridad:</strong> El cliente puede ver campos privados como <code>internalCost</code> o datos confidenciales de auditoría.</li>
+            <li><strong>Ataque de Sobre-Asignación (Mass Assignment / Over-posting):</strong> Si un atacante envía un JSON con <code>{"id": 999, "role": "ADMIN"}</code> en una petición POST, Spring deserializará esos campos en la entidad y sobrescribirá datos protegidos de la base de datos.</li>
+            <li><strong>Error de recursión infinita (StackOverflowError):</strong> Si dos entidades JPA tienen relaciones bidireccionales (<code>@OneToMany</code> &harr; <code>@ManyToOne</code>), Jackson intentará serializar recursivamente los objetos hasta desbordar la pila de memoria.</li>
+        </ol>
+    </li>
+    <li><strong>La Solución (Con DTO):</strong> Se define un <code>PetDTO</code> con los campos públicos permitidos y validaciones estrictas. La capa de servicio transforma el DTO a Entidad antes de guardar, y la Entidad a DTO antes de responder.</li>
+</ul>
+
+<h2 class="subtitle">Flujo del DTO en la Arquitectura por Capas</h2>
+<img class="center-horizontal" src="components/springboot/capas-principales/assets/img/capas-arquitectura.svg">
+<span class="center-horizontal caption">Figura 1: El DTO desacopla la API HTTP de las Entidades JPA de persistencia</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Participante</th>
+            <th scope="col">Capa</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Cliente / Front-End</th>
+            <td>Externo</td>
+            <td>Envía y recibe datos exclusivamente en formato JSON estructurado según el contrato del DTO.</td>
+        </tr>
+        <tr>
+            <th scope="row">Controlador REST</th>
+            <td>Web / API</td>
+            <td>Deserializa el JSON en el DTO, valida restricciones con <code>@Valid</code> y devuelve <code>ResponseEntity&lt;PetDTO&gt;</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">DTO (PetDTO)</th>
+            <td>Transferencia</td>
+            <td>Clase Bean con anotaciones de Jackson (serialización), Validación y documentación Swagger.</td>
+        </tr>
+        <tr>
+            <th scope="row">Servicio y Mapper</th>
+            <td>Negocio</td>
+            <td>Mapea los datos del DTO a la Entidad JPA mediante ModelMapper, MapStruct o métodos de fábrica.</td>
+        </tr>
+        <tr>
+            <th scope="row">Entidad JPA (Pet)</th>
+            <td>Persistencia</td>
+            <td>Representa la tabla física en la base de datos con claves primarias y relaciones foráneas.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del flujo de datos con DTO</span>
+
+<h2 class="subtitle">Anotaciones de Jackson (Formato y Serialización JSON)</h2>
+<p>La librería <strong>Jackson</strong> (paquete <code>com.fasterxml.jackson.annotation.*</code>) permite personalizar cómo se convierten los atributos del DTO a JSON y viceversa:</p>
 
 <ul>
-    <li><b>@JsonInclude:</b> Esta anotación pertenece a la librería Jackson y se encuentra dentro del paquete com.fasterxml.jackson.annotation.jsoninclude y sirve para definir que atributos se van a incluir en el JSON final (los que no sean nulos, los que no sean nulos ni sean strings vacios etc.) 
-        esto sirve para crear JSON mas pequeños, por ejemplo en caso de que un atributo no tenga ningun valor asignado en vez de aparecer en el JSON sin ningún valor, directamente no aparecerá. 
-        Esta anotación se puede aplicar a un solo atributo, método o a toda la clase. Para establecer qué atributos se incluirán en el JSON final se hará de la siguiente manera: @JsonInclude(JsonInclude.Include.NON_EMPTY).
-        JsonInclude.Include es un enum que tiene los siguientes valores para incluir los distintos tipos de atributos en el JSON final:
-
+    <li><b>@JsonInclude:</b> Pertenece a la librería Jackson, se encuentra en el paquete <code>com.fasterxml.jackson.annotation.JsonInclude</code> y sirve para definir qué atributos se incluirán en el JSON final (por ejemplo, omitir valores nulos o cadenas vacías). Esto permite reducir el tamaño del payload HTTP y evitar transferir campos sin contenido.
+        <p>Se aplica a nivel de clase o sobre atributos individuales mediante <code>@JsonInclude(JsonInclude.Include.NON_EMPTY)</code>. Sus valores son:</p>
         <ul>
-            <li><b>ALWAYS:</b> Siempre incluye el atributo.</li>
-
+            <li><b>ALWAYS:</b> Siempre incluye el atributo, incluso si vale <code>null</code>.</li>
             <li><b>NON_NULL:</b> Solo incluye los atributos que no sean nulos.</li>
-
-            <li><b>NON_ABSENT:</b> Solo incluye atributos "no ausentes", que son atributos con valores no nulos y que además en caso de objetos Optional, AtomicReference etc. tengan dentro el objeto que deben tener, por ejemplo en el caso de un Optional
-                en el que optional.get() sea null, no lo incluiría.</li>
-
-            <li><b>NON_EMPTY:</b> Solo incluye valores no ausentes y no vacíos, se considera vacío a Collections y Maps cuyo método isEmpty() devulve true y Arrays y Strings cuya longitud sea 0.</li>
-
-            <li><b>NON_DEFAULT:</b> Solo incluye atributos con valores que no sean los valores por defecto, por ejemplo para un atributo global de tipo int el valor por defecto es 0, para un boolean es false etc.</li>
-
-            <li><b>CUSTOM:</b> Tiene un filtro customizado para exclusión especificado por JsonInclude.valueFilter().</li>
-
-            <li><b>USE_DEFAULTS:</b> Sirve para especificar que se debe usar el criterio de nivel superior que esté definido, por ejemplo si se tiene un método getAtributo() y el criterio para ese método es USE_DEFAULTS,
-                se mira que criterio se estableció para el atributo, si el atributo por ejemplo tiene un NON_NULL el método usará el criterio NON_NULL, si al atributo no se le ha especificado ningún criterio se mirará el criterio de la clase
-                y se aplicará ese, si no tiene ningún criterio definido, se usará el criterio que tenga ObjectMapper (de la librería Jackson) por defecto.</li>
+            <li><b>NON_ABSENT:</b> Solo incluye atributos no ausentes (en <code>Optional</code> o <code>AtomicReference</code>, comprueba además que contengan un valor interno).</li>
+            <li><b>NON_EMPTY:</b> Excluye <code>null</code>, colecciones/mapas con <code>isEmpty() == true</code> y arrays/strings con longitud 0.</li>
+            <li><b>NON_DEFAULT:</b> Solo incluye valores que difieran del valor primitivo por defecto (ej. 0 para <code>int</code>, <code>false</code> para <code>boolean</code>).</li>
+            <li><b>CUSTOM:</b> Aplica un filtro personalizado definido mediante <code>valueFilter()</code>.</li>
+            <li><b>USE_DEFAULTS:</b> Hereda el criterio del nivel superior o la configuración global de <code>ObjectMapper</code>.</li>
         </ul>
     </li>
 
-    <li><b>@JsonIgnoreProperties:</b> Esta anotación pertenece a la librería Jackson, se encuentra dentro del paquete com.fasterxml.jackson.annotation.JsonIgnoreProperties y sirve para ignorar campos del json, tanto campos que hay en el json y no 
-        se quiere que aparezcan en el DTO, como campos del DTO que no se quiere que aparezcan en el JSON. Si por ejemplo hay campos extra en el json que no los hay en el DTO, a la hora de mapear el json al DTO puede dar fallo, la manera de solucionarlo
-        es ignorar esos campos extra del json, esto se hace colocando la anotación @JsonIgnoreProperties(ignoreUnknown = true) a nivel de clase.
-    </li>
+    <li><b>@JsonIgnoreProperties:</b> Pertenece a Jackson (paquete <code>com.fasterxml.jackson.annotation.JsonIgnoreProperties</code>). Se coloca habitualmente sobre la clase con <code>@JsonIgnoreProperties(ignoreUnknown = true)</code> para indicar que si el cliente envía campos adicionales en el JSON que no existen en el DTO, Jackson no lance una excepción <code>UnrecognizedPropertyException</code> y los ignore pacíficamente.</li>
 
-TODO:    <li><b>@JsonProperty:</b></li>
+    <li><b>@JsonProperty:</b> Pertenece a Jackson (paquete <code>com.fasterxml.jackson.annotation.JsonProperty</code>). Se coloca sobre los atributos del DTO para especificar el nombre exacto de la clave en el JSON cuando difiere del nombre del atributo en Java (por ejemplo, mapear el atributo Java <code>private Integer id</code> a la clave JSON <code>"petId"</code>).</li>
 
-TODO:    <li><b>@JsonFormat:</b></li>
+    <li><b>@JsonFormat:</b> Pertenece a Jackson (paquete <code>com.fasterxml.jackson.annotation.JsonFormat</code>). Se coloca sobre atributos de tipo fecha (<code>Date</code>, <code>LocalDate</code>, <code>LocalDateTime</code>) para especificar el patrón exacto de formateo (ej. <code>pattern = "dd/MM/yyyy"</code>) y la zona horaria (<code>timezone = "Europe/Madrid"</code>).</li>
 </ul>
 
-<h2>Anotaciones de Javax Validation Constraints</h2>
+<h2 class="subtitle">Anotaciones de Jakarta / Javax Validation Constraints</h2>
+<p>Permiten validar los datos de entrada automáticamente en el controlador cuando se acompaña el parámetro con <code>@Valid</code> o <code>@Validated</code>:</p>
 
 <ul>
-    <li><b>@NotNull: </b>Para String, su valor no puede ser nulo, no obstante permite que esté el campo vacío</li>
-
-    <li><b>@NotBlank: </b>Para Strings, no puede ser nulo y la longitud recortada debe ser mayor que 0.</li>
-
-    <li><b>@Pattern: </b>Para Strings, comprueba que coincide con una expresion regular @Pattern(regexp = "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$")</li>
-
-    <li><b>@Email: </b>Verifica que le email introducido es correcto</li>
-
-    <li><b>@Max: </b>Valor máximo que puede tomar @Max(150)</li>
-
-    <li><b>@Min: </b>Valor mínimo que puede tomar @Min(value="15", message="Debe tener minimo {value} caracteres")</li>
-
-    <li><b>@Size: </b>Verifica la longitud de los campos de tipo string @Size(min=2, max=6)</li>
+    <li><b>@NotNull:</b> El valor no puede ser <code>null</code> (válido para cualquier tipo de objeto, como IDs o números). Permite strings vacíos.</li>
+    <li><b>@NotBlank:</b> Exclusivo para <code>String</code>. No puede ser <code>null</code> y su longitud tras eliminar espacios en blanco (<code>trim</code>) debe ser mayor que 0.</li>
+    <li><b>@NotEmpty:</b> Para cadenas, colecciones o arrays. No puede ser <code>null</code> y su tamaño debe ser superior a 0.</li>
+    <li><b>@Pattern:</b> Valida que un <code>String</code> cumpla una expresión regular: <code>@Pattern(regexp = "^(image/jpeg|image/jpg|image/gif)$")</code>.</li>
+    <li><b>@Email:</b> Verifica que la cadena cumpla la estructura estándar de una dirección de correo electrónico válida.</li>
+    <li><b>@Min y @Max:</b> Fijan límites numéricos mínimos y máximos: <code>@Min(1)</code>, <code>@Max(150)</code>.</li>
+    <li><b>@Size:</b> Limita la longitud mínima y máxima de un <code>String</code>, colección o array: <code>@Size(min = 2, max = 50)</code>.</li>
 </ul>
 
-<h2>Anotaciones de Spring Format</h2>
+<h2 class="subtitle">Anotaciones de Spring Format</h2>
 <ul>
-    <li><b>@DateTimeFormat:</b> Formatear la fecha por medio de un patrón definido</li>
+    <li><b>@DateTimeFormat:</b> Pertenece a Spring Framework (paquete <code>org.springframework.format.annotation.DateTimeFormat</code>). Sirve para parsear fechas pasadas por parámetro de consulta (query param) o formulario:
 <div class="center-horizontal">
 <pre><code class="language-java">
 @PostMapping("/date")
-public void date(@RequestParam("date") 
-    @DateTimeFormat(pattern = "dd.MM.yyyy") Date date) {
+public void date(@RequestParam("date") @DateTimeFormat(pattern = "dd.MM.yyyy") Date date) {
     // ...
 }
 </code></pre>	
 </div>
+    </li>
 </ul>
 
-<h2>Anotaciones de Swagger</h2>
-
-<p>Para la documentación se pueden usar anotaciones de Swagger con la librería Springfox</p>
-
+<h2 class="subtitle">Anotaciones para Documentación Swagger (SpringFox)</h2>
+<p>Permiten enriquecer la documentación interactiva en Swagger UI:</p>
 <ul>
-    <li><b>@ApiModel:</b></li>
-
-    <li><b>@ApiModelProperty:</b></li>
+    <li><b>@ApiModel:</b> Pertenece a Swagger (paquete <code>io.swagger.annotations.ApiModel</code>). Se coloca a nivel de clase para describir el propósito del esquema del DTO (ej. <code>@ApiModel(description = "Pet DTO")</code>).</li>
+    <li><b>@ApiModelProperty:</b> Pertenece a Swagger (paquete <code>io.swagger.annotations.ApiModelProperty</code>). Se coloca sobre los atributos para describir su significado, proporcionar valores de ejemplo visibles en Swagger UI e indicar si el campo es obligatorio (<code>notes = "Pet ID", example = "1", required = true</code>).</li>
 </ul>
 
-<h2>Anotaciones de Lombok</h2>
-
-<p>Para hacer mas legible la clase puede utilizar la librería Lombok que proporciona anotaciones para crear constructores, getters y setters entre otras cosas.</p>
-
+<h2 class="subtitle">Anotaciones de Lombok en DTOs</h2>
+<p>Ahorran código boilerplate repetitivo en la definición del POJO:</p>
 <ul>
-    <li><b>@Data:</b></li>
-
-    <li><b>@Accessors:</b></li>
+    <li><b>@Data:</b> Pertenece a Lombok (paquete <code>lombok.Data</code>). Genera automáticamente getters, setters, <code>equals()</code>, <code>hashCode()</code> y <code>toString()</code> para todos los atributos. En los DTOs es ideal y seguro porque no contienen relaciones JPA circulares.</li>
+    <li><b>@Accessors(chain = true):</b> Pertenece a Lombok (paquete <code>lombok.experimental.Accessors</code>). Modifica los setters para que devuelvan la propia instancia (<code>this</code>) en lugar de <code>void</code>, permitiendo encadenar asignaciones de forma fluida: <code>new PetDTO().setId(1).setName("Joe")</code>.</li>
 </ul>
 
-<h2>PetDTO</h2>
+<h2 class="subtitle">PetDTO: Ejemplo Completo de Creación y Consulta</h2>
+<p>Representa el contrato completo de una mascota para operaciones de lectura (GET), creación (POST) o reemplazo total (PUT), exigiendo que todos los campos requeridos estén presentes:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -140,8 +176,10 @@ public class PetDTO
 }
 </code></pre>	
 </div>
+<span class="center-horizontal caption">PetDTO con validaciones estrictas y nombres de atributos mapeados con @JsonProperty</span>
 
-<h2>PetPatchDTO</h2>
+<h2 class="subtitle">PetPatchDTO: Ejemplo para Actualizaciones Parciales (PATCH)</h2>
+<p>En el método HTTP <strong>PATCH</strong>, el cliente solo envía los campos concretos que desea modificar (por ejemplo, únicamente cambiar el nombre sin enviar la foto ni la fecha de nacimiento). Por ello, <code>PetPatchDTO</code> <strong>no incluye el ID</strong> (que viaja en la URL) y <strong>elimina las validaciones <code>@NotNull</code> y <code>@NotBlank</code></strong> para permitir que los campos no modificados lleguen como <code>null</code>:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -176,3 +214,57 @@ public class PetPatchDTO
 }
 </code></pre>	
 </div>
+<span class="center-horizontal caption">PetPatchDTO con atributos opcionales para modificaciones parciales</span>
+
+<h2 class="subtitle">¿Cuándo Usar DTO y Cuándo NO Usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Respuestas y peticiones de Controladores REST</td>
+            <td><b>SIEMPRE usar DTO</b></td>
+            <td>Aísla la API pública de los cambios de esquema en la base de datos y protege campos sensibles.</td>
+        </tr>
+        <tr>
+            <td>Operaciones parciales (PATCH) vs completas (POST/PUT)</td>
+            <td><b>Separar DTOs</b></td>
+            <td>Un DTO de creación exige todos los campos (<code>@NotNull</code>); un DTO de parcheo debe permitir campos nulos.</td>
+        </tr>
+        <tr>
+            <td>Llamadas internas entre métodos de la capa de Servicio</td>
+            <td><b>NO usar DTO</b></td>
+            <td>Dentro de la capa de negocio se trabaja directamente con las Entidades del dominio para aprovechar el estado de persistencia de JPA.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios de diseño para la adopción de DTOs</span>
+
+<h2 class="subtitle">Contraejemplo (Mala Práctica): Exponer la Entidad JPA directamente en el Controlador</h2>
+<p>Observa el grave problema que ocurre cuando un controlador devuelve la entidad <code>Pet</code> de base de datos directamente en lugar de un DTO:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ¡ERROR GRAVE DE DISEÑO Y SEGURIDAD!
+@RestController
+@RequestMapping("/pets")
+public class BadPetController {
+
+    @Autowired
+    private PetRepository petRepository;
+
+    // 1. Expone claves foráneas internas y campos de auditoría privados
+    // 2. Si Pet tiene relaciones @OneToMany con Owner, lanzará StackOverflowError por recursión cíclica
+    // 3. Cualquier cambio en las columnas de la tabla romperá los clientes front-end
+    @GetMapping("/{id}")
+    public Pet getPet(@PathVariable Integer id) {
+        return petRepository.findById(id).orElseThrow();
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Acoplamiento directo de la API a la base de datos sin capa DTO</span>

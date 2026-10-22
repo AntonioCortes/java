@@ -1,2 +1,264 @@
-<h1 class="title">Ejemplos</h1>
-TODO:
+<h1 class="title">Ejemplos Prácticos con Apache HttpClient</h1>
+
+<p>A continuación se muestran los casos de uso más habituales al consumir una API REST externa (como el microservicio <code>PetShop</code>) utilizando <b>Apache HttpClient</b> junto con la librería <b>Jackson (<code>ObjectMapper</code>)</b> para serializar y deserializar objetos <code>PetDTO</code>.</p>
+
+<h2>1. Petición GET con Query Params y conversión a DTO con Jackson</h2>
+
+<p>En este ejemplo se realiza una llamada HTTP <b>GET</b> al endpoint <code>/petshop/pet/all?age=4</code> construido con <code>URIBuilder</code>. Si el servidor responde con un código <code>200 OK</code>, se extrae el JSON del cuerpo de la respuesta con <code>EntityUtils.toString()</code> y se convierte en una lista de objetos <code>PetDTO</code> mediante <code>ObjectMapper</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
+public List&lt;PetDTO&gt; findPetsByAge(int age) throws Exception 
+{
+	URI uri = new URIBuilder("http://localhost:8080/petshop/pet/all")
+			.addParameter("age", String.valueOf(age))
+			.build();
+
+	HttpGet request = new HttpGet(uri);
+	request.setHeader(HttpHeaders.ACCEPT, "application/json");
+
+	try (CloseableHttpClient httpClient = HttpClients.createDefault();
+	     CloseableHttpResponse response = httpClient.execute(request)) 
+	{
+		int statusCode = response.getStatusLine().getStatusCode();
+		HttpEntity entity = response.getEntity();
+
+		if (statusCode == HttpStatus.SC_OK &amp;&amp; entity != null) 
+		{
+			String jsonResponse = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+			ObjectMapper objectMapper = new ObjectMapper();
+			return objectMapper.readValue(jsonResponse, new TypeReference&lt;List&lt;PetDTO&gt;&gt;() {});
+		}
+		return Collections.emptyList();
+	}
+}
+</code></pre>
+</div>
+
+<h2>2. Petición POST enviando un objeto JSON en el Body</h2>
+
+<p>Para dar de alta una nueva mascota llamando al endpoint <code>POST /petshop/pet</code>, se convierte la instancia de <code>PetDTO</code> a una cadena JSON con <code>objectMapper.writeValueAsString()</code>, se envuelve en un <code>StringEntity</code> con tipo <code>ContentType.APPLICATION_JSON</code> y se comprueba el código <code>201 Created</code> junto con la cabecera <code>Location</code> devuelta por el controlador:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
+public String createPet(PetDTO newPet) throws Exception 
+{
+	ObjectMapper objectMapper = new ObjectMapper();
+	String jsonPayload = objectMapper.writeValueAsString(newPet);
+
+	HttpPost postRequest = new HttpPost("http://localhost:8080/petshop/pet");
+	postRequest.setEntity(new StringEntity(jsonPayload, ContentType.APPLICATION_JSON));
+
+	try (CloseableHttpClient httpClient = HttpClients.createDefault();
+	     CloseableHttpResponse response = httpClient.execute(postRequest)) 
+	{
+		int statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode == HttpStatus.SC_CREATED) 
+		{
+			Header locationHeader = response.getFirstHeader(HttpHeaders.LOCATION);
+			return locationHeader != null ? locationHeader.getValue() : null;
+		} 
+		else 
+		{
+			throw new RuntimeException("Error al crear la mascota. Código HTTP: " + statusCode);
+		}
+	}
+}
+</code></pre>
+</div>
+
+<h2>3. Envío de un Formulario URL-Encoded (<code>UrlEncodedFormEntity</code>)</h2>
+
+<p>Cuando el servidor espera los datos como un formulario clásico (por ejemplo en un endpoint de login OAuth2 o un sistema legado), se construye una lista de objetos <code>NameValuePair</code> y se codifica mediante <code>UrlEncodedFormEntity</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+public String sendLoginForm(String username, String password) throws Exception 
+{
+	HttpPost post = new HttpPost("http://localhost:8080/login");
+
+	// Definir los campos del formulario
+	List&lt;NameValuePair&gt; urlParameters = new ArrayList&lt;&gt;();
+	urlParameters.add(new BasicNameValuePair("username", username));
+	urlParameters.add(new BasicNameValuePair("password", password));
+
+	post.setEntity(new UrlEncodedFormEntity(urlParameters, StandardCharsets.UTF_8));
+
+	try (CloseableHttpClient httpClient = HttpClients.createDefault();
+	     CloseableHttpResponse response = httpClient.execute(post)) 
+	{
+		return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+	}
+}
+</code></pre>
+</div>
+
+<h2>4. Peticiones con Autenticación (Bearer Token y Basic Auth)</h2>
+
+<h3>A. Autenticación mediante Token JWT (Bearer Token)</h3>
+<p>Se envía el token directamente en la cabecera estándar <code>Authorization</code> con el prefijo <code>"Bearer "</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+HttpGet request = new HttpGet("http://localhost:8080/petshop/pet/15");
+request.setHeader(HttpHeaders.AUTHORIZATION, "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...");
+</code></pre>
+</div>
+
+<h3>B. Autenticación Básica HTTP con <code>CredentialsProvider</code></h3>
+<p>Para configurar autenticación básica (usuario y contraseña) a nivel de cliente utilizando <b><code>BasicCredentialsProvider</code></b> y <b><code>UsernamePasswordCredentials</code></b> (paquete <code>org.apache.http.auth.*</code>):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
+CredentialsProvider provider = new BasicCredentialsProvider();
+provider.setCredentials(
+		AuthScope.ANY,
+		new UsernamePasswordCredentials("admin", "secretPassword")
+);
+
+try (CloseableHttpClient httpClient = HttpClients.custom()
+		.setDefaultCredentialsProvider(provider)
+		.build();
+     CloseableHttpResponse response = httpClient.execute(new HttpGet("http://localhost:8080/api/pet"))) 
+{
+	System.out.println("Código de estado con Basic Auth: " + response.getStatusLine().getStatusCode());
+}
+</code></pre>
+</div>
+
+<h2>5. Uso de <code>ResponseHandler</code> (Buenas Prácticas)</h2>
+
+<p>La documentación oficial de Apache recomienda utilizar la interfaz funcional <b><code>ResponseHandler&lt;T&gt;</code></b> (paquete <code>org.apache.http.client.ResponseHandler</code>) al llamar a <code>httpClient.execute(request, responseHandler)</code>. De esta forma, <b>Apache HttpClient se encarga automáticamente de consumir el stream y cerrar la respuesta y la conexión en todos los casos</b> (incluso si salta una excepción al transformar el JSON):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
+try (CloseableHttpClient httpClient = HttpClients.createDefault()) 
+{
+	HttpGet httpGet = new HttpGet("http://localhost:8080/petshop/pet/15");
+
+	// Definición del ResponseHandler mediante una expresión lambda
+	ResponseHandler&lt;PetDTO&gt; responseHandler = response -&gt; {
+		int status = response.getStatusLine().getStatusCode();
+		if (status &gt;= 200 &amp;&amp; status &lt; 300) 
+		{
+			HttpEntity entity = response.getEntity();
+			if (entity == null) 
+			{
+				return null;
+			}
+			String json = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+			return new ObjectMapper().readValue(json, PetDTO.class);
+		} 
+		else 
+		{
+			throw new ClientProtocolException("Estado de respuesta inesperado: " + status);
+		}
+	};
+
+	// Ejecución limpia: HttpClient gestiona y libera automáticamente el CloseableHttpResponse
+	PetDTO pet = httpClient.execute(httpGet, responseHandler);
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar cada patrón de ejecución y cuándo NO usarlo?</h2>
+
+<ul>
+	<li><b><code>try-with-resources</code> con <code>CloseableHttpResponse</code>:</b> Cuando se necesita inspeccionar cabeceras, el código de estado y el cuerpo con control total.</li>
+	<li><b><code>ResponseHandler</code>:</b> Cuando solo se quiere el resultado ya convertido y garantizar el cierre automático.</li>
+	<li><b>Un cliente nuevo por petición:</b> <b>No</b> hacerlo; se crea un único <code>CloseableHttpClient</code> compartido (es <i>thread-safe</i>) para reutilizar el pool de conexiones.</li>
+	<li><b>Credenciales en el código:</b> <b>No</b> escribir usuarios, contraseñas ni tokens a mano; se leen de configuración o de variables de entorno.</li>
+</ul>
+
+<h2>6. Ejemplo y Contraejemplo: Lectura del Cuerpo de la Respuesta (<code>HttpEntity</code>)</h2>
+
+<h3>Contraejemplo (Mala práctica): Intentar leer dos veces el flujo de <code>response.getEntity()</code></h3>
+<p>El contenido de <code>response.getEntity()</code> es un flujo de red de un solo uso (<i>non-repeatable stream</i>). Si llamamos una primera vez a <code>EntityUtils.toString(response.getEntity())</code> para imprimir la respuesta en el log y luego volvemos a llamar a <code>EntityUtils.toString(response.getEntity())</code> o <code>response.getEntity().getContent()</code> para parsear el JSON con Jackson, la segunda llamada lanzará una excepción <b><code>IOException: Attempted read from closed stream</code></b> porque el flujo ya se consumió y cerró en la primera lectura:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Consumir dos veces el stream de response.getEntity() lanza IOException
+try (CloseableHttpResponse response = httpClient.execute(httpGet)) 
+{
+	// 1ª lectura: consume y cierra el InputStream subyacente
+	log.debug("Respuesta recibida: {}", EntityUtils.toString(response.getEntity()));
+
+	// 2ª lectura: ¡FALLA! Lanza IOException: Attempted read from closed stream
+	PetDTO pet = objectMapper.readValue(EntityUtils.toString(response.getEntity()), PetDTO.class);
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo (Buena práctica): Guardar el resultado de <code>EntityUtils.toString()</code> en una variable</h3>
+<p>El flujo de la entidad debe leerse <b>una única vez</b> almacenando el texto resultante en una variable <code>String</code> en memoria, la cual ya puede reutilizarse tantas veces como sea necesario para logs y deserialización:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// EJEMPLO (CORRECTO): Se lee el stream una sola vez a un String y se reutiliza la variable
+try (CloseableHttpResponse response = httpClient.execute(httpGet)) 
+{
+	String jsonBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+
+	log.debug("Respuesta recibida: {}", jsonBody);
+	PetDTO pet = objectMapper.readValue(jsonBody, PetDTO.class);
+}
+</code></pre>
+</div>

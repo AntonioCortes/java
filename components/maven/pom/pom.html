@@ -1,96 +1,212 @@
-<h1 class="title">The POM basics</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">El Archivo POM (Project Object Model)</h1>
 
-<p>El documento POM tiene la extensión XML:</p>
+<p>El archivo <code>pom.xml</code> (<em>Project Object Model</em>) es la unidad fundamental y el cerebro de cualquier proyecto en <strong>Apache Maven</strong>. Es un archivo XML declarativo que contiene toda la configuración necesaria para compilar el software: quién lo construye (GAV), qué librerías necesita (<code>&lt;dependencies&gt;</code>), cómo debe empaquetarse (<code>&lt;packaging&gt;</code>) y qué herramientas adicionales intervienen (<code>&lt;plugins&gt;</code>).</p>
 
-<p><b>pom.xml</b></p>
+<h2 class="subtitle">Jerarquía del POM y el POM Efectivo (Effective POM)</h2>
+<p>Maven aplica herencia orientada a objetos a los archivos de configuración. Tu <code>pom.xml</code> nunca parte de cero; hereda configuraciones en cascada desde el <strong>Super POM</strong> interno de Maven y desde cualquier <strong>POM Padre</strong> corporativo:</p>
 
-<p>La primera línea del pom tiene que especificar que es un XML, la versión y la codificación.</p>
+<img class="center-horizontal" src="components/maven/pom/assets/img/maven-pom-jerarquia.svg">
+<span class="center-horizontal caption">Figura 1: Cascada de herencia de POMs y consolidación en el POM Efectivo</span>
 
-<p>El resto del las etiquetas del POM estarán contenidas en la etiqueta <b>&lt;project&gt;</b>.</p>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Capa del POM</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Responsabilidad y Aportación</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Super POM</th>
+            <td>«pom base del sistema»</td>
+            <td>Integrado dentro del JAR de Maven. Define la estructura <code>src/main/java</code>, la codificación por defecto y los plugins básicos.</td>
+        </tr>
+        <tr>
+            <th scope="row">POM Padre (&lt;parent&gt;)</th>
+            <td>«pom padre / starter-parent»</td>
+            <td>Proporcionado por frameworks (ej. <code>spring-boot-starter-parent</code>) o por la empresa. Fija versiones estables y reglas de calidad.</td>
+        </tr>
+        <tr>
+            <th scope="row">POM del Proyecto</th>
+            <td>«pom del microservicio»</td>
+            <td>El archivo <code>pom.xml</code> de tu repositorio. Define tu propio <code>groupId</code>, <code>artifactId</code> y dependencias específicas.</td>
+        </tr>
+        <tr>
+            <th scope="row">POM Efectivo</th>
+            <td>«pom resultante en memoria»</td>
+            <td>El XML final fusionado con el que Maven ejecuta las fases. Puede inspeccionarse con <code>mvn help:effective-pom</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes de la jerarquía de configuración en Maven</span>
 
-<p>Dentro de la etiqueta de <b>&lt;project&gt;</b> se deberá indicar la <b>versión del modelo</b>, además del grupo, artefacto, paquete y <b>versión del proyecto.</b></p>
-
-<ul>
-  <li>Un <b>grupo</b> es una colección de artefactos relacionados, generalmente producidos por un mismo equipo o proyecto.</li>
-  <li>Un <b>artefacto</b> es una unidad de distribución de software que generalmente toma la forma de un archivo JAR, WAR o ZIP, que se publica en un repositorio</li>
-  <li>Un <b>paquete</b> es una forma de organizar los archivos de un artefacto en una estructura predefinida y consistente, por ejemplo, para incluir recursos y clases compiladas en un archivo JAR.</li>
-</ul>
-<p>En resumen, un grupo es una colección de artefactos relacionados, un artefacto es la unidad más pequeña de distribución y un paquete es una forma de organizar los archivos dentro de un artefacto.</p>
-
-<p><b>&lt;modelVersion&gt;</b> es la versión del modelo de objetos de Maven que se utiliza para definir el proyecto. La versión actual del modelo de objetos de Maven es 4.0.0.  Es importante tener en cuenta que al actualizar la versión del modelo de objetos de Maven, puede haber cambios en la sintaxis y los elementos disponibles en el archivo pom.xml, por lo que es necesario revisar y actualizar el archivo en consecuencia.</p>
+<h2 class="subtitle">Estructura Canónica de un pom.xml</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
-
 &lt;project xmlns="http://maven.apache.org/POM/4.0.0"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         https://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
 
-  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
 
-  &lt;groupId&gt;org.company&lt;/groupId&gt;
-  &lt;artifactId&gt;PetShop&lt;/artifactId&gt;
-  &lt;packaging&gt;pom&lt;/packaging&gt;
-  &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+    &lt;!-- 1. POM Padre (Opcional, muy habitual en Spring Boot) --&gt;
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;3.3.4&lt;/version&gt;
+        &lt;relativePath/&gt;
+    &lt;/parent&gt;
 
+    &lt;!-- 2. Coordenadas GAV de nuestro proyecto --&gt;
+    &lt;groupId&gt;com.petshop&lt;/groupId&gt;
+    &lt;artifactId&gt;pet-service&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+
+    &lt;name&gt;pet-service&lt;/name&gt;
+    &lt;description&gt;Microservicio de gestión de mascotas con Spring Boot&lt;/description&gt;
+
+    &lt;!-- 3. Propiedades y Variables reutilizables --&gt;
+    &lt;properties&gt;
+        &lt;java.version&gt;21&lt;/java.version&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;lombok.version&gt;1.18.34&lt;/lombok.version&gt;
+    &lt;/properties&gt;
+
+    &lt;!-- 4. Dependencias del Microservicio --&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+            &lt;version&gt;${lombok.version}&lt;/version&gt;
+            &lt;scope&gt;provided&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;!-- 5. Plugins de Construcción --&gt;
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
 &lt;/project&gt;
 </code></pre>
 </div>
+<span class="center-horizontal caption">Estructura limpia y comentada de un pom.xml estándar para Spring Boot</span>
 
-<p><b>NOTA:</b> Las etiquetas de <b>&lt;project&gt;</b>, <b>&lt;modelVersion&gt;</b>, <b>&lt;groupId&gt;</b>, <b>&lt;artifactId&gt;</b>, <b>&lt;packaging&gt;</b> y <b>&lt;version&gt;</b>. Son los requisitos básicos que todo POM debe tener.</p>
+<h2 class="subtitle">Tipos de Empaquetado (<code>&lt;packaging&gt;</code>)</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Valor de <code>&lt;packaging&gt;</code></th>
+            <th scope="col">Artefacto Producido</th>
+            <th scope="col">¿Cuándo se usa?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>jar</code> (Por defecto)</td>
+            <td>Archivo <code>.jar</code></td>
+            <td>Microservicios ejecutables, librerías compartidas y utilidades Java.</td>
+        </tr>
+        <tr>
+            <td><code>war</code></td>
+            <td>Archivo <code>.war</code></td>
+            <td>Aplicaciones Web tradicionales que se despliegan en un servidor Tomcat o WildFly externo.</td>
+        </tr>
+        <tr>
+            <td><code>pom</code></td>
+            <td>Ningún binario (solo metadatos)</td>
+            <td>Proyectos multi-módulo raíz (agregadores) o BOMs de dependencias.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Opciones de empaquetado en Maven</span>
 
-<h2>Las propiedades</h2>
+<h2 class="subtitle">Herencia (<code>&lt;parent&gt;</code>) vs Agregación Multi-módulo (<code>&lt;modules&gt;</code>)</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Mecanismo</th>
+            <th scope="col">Etiqueta XML</th>
+            <th scope="col">Propósito y Cuándo Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Herencia</th>
+            <td><code>&lt;parent&gt;</code> (en el hijo)</td>
+            <td>Reutilizar versiones, propiedades y plugins comunes definidos en un POM superior. El hijo hereda del padre.</td>
+        </tr>
+        <tr>
+            <th scope="row">Agregación</th>
+            <td><code>&lt;modules&gt;</code> (en la raíz con packaging <code>pom</code>)</td>
+            <td>Compilar varios proyectos relacionados en un solo comando: al ejecutar <code>mvn install</code> en la raíz, Maven compila automáticamente todos los submódulos en el orden correcto.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Diferencia entre herencia de configuración y agregación de módulos</span>
 
-<p>Las <b>&lt;properties&gt;</b> en Maven son parametros con valores </p>
+<h2 class="subtitle">Ejemplo y Contraejemplo en el diseño del POM</h2>
 
+<h3>Ejemplo (Buena Práctica): Centralizar versiones con propiedades</h3>
 <div class="center-horizontal">
 <pre><code class="language-xml">
 &lt;properties&gt;
-  &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
-  &lt;maven.compiler.source&gt;1.7&lt;/maven.compiler.source&gt;
-  &lt;maven.compiler.target&gt;1.7&lt;/maven.compiler.target&gt;
-  &lt;spring.boot.maven.plugin.version&gt;2.6.7&lt;/spring.boot.maven.plugin.version&gt;
+    &lt;jackson.version&gt;2.17.2&lt;/jackson.version&gt;
 &lt;/properties&gt;
+
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+        &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+        &lt;version&gt;${jackson.version}&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.fasterxml.jackson.datatype&lt;/groupId&gt;
+        &lt;artifactId&gt;jackson-datatype-jsr310&lt;/artifactId&gt;
+        &lt;version&gt;${jackson.version}&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
 </code></pre>
 </div>
+<span class="center-horizontal caption">Garantiza que todas las sub-librerías compartan exactamente la misma versión</span>
 
-<p>Los valores son accessibles desde cualquier lugar del POM utilizando la notación <b>${X}</b>, donde X es la propiedad.</p>
-<p>Ejemplo:</p>
-
+<h3>Contraejemplo (Mala Práctica): Escribir versiones dispares a mano</h3>
 <div class="center-horizontal">
 <pre><code class="language-xml">
+&lt;!-- ¡ERROR PELIGROSO! Mezclar versiones de la misma familia de librerías --&gt;
 &lt;dependency&gt;
-  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-  &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
-  &lt;version&gt;${spring.boot.maven.plugin.version}&lt;/version&gt;
-  &lt;scope&gt;import&lt;/scope&gt;
-  &lt;type&gt;pom&lt;/type&gt;
+    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+    &lt;version&gt;2.14.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.fasterxml.jackson.datatype&lt;/groupId&gt;
+    &lt;artifactId&gt;jackson-datatype-jsr310&lt;/artifactId&gt;
+    &lt;version&gt;2.17.2&lt;/version&gt;
 &lt;/dependency&gt;
 </code></pre>
 </div>
-
-<h2>Agregación o Multi-Módulos</h2>
-
-<p>Maven permite dividir un proyecto en diversos modulos. La forma de hacerlo es mediante la etiqueta <b>&lt;modules&gt;</b>, donde se indica la lista de modulos junto a la ruta relativa de los distintos POM de los que esté compuesto el proyecto.</p>
-<p>Ejemplo:</p>
-
-<div class="center-horizontal">
-<pre><code class="language-xml">
-&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
-  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
- 
-  &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
-  &lt;artifactId&gt;my-parent&lt;/artifactId&gt;
-  &lt;version&gt;2.0&lt;/version&gt;
-  &lt;packaging&gt;pom&lt;/packaging&gt;
- 
-  &lt;modules&gt;
-    &lt;module&gt;my-project&lt;/module&gt;
-    &lt;module&gt;another-project&lt;/module&gt;
-    &lt;module&gt;third-project/pom-example.xml&lt;/module&gt;
-  &lt;/modules&gt;
-&lt;/project&gt;
-</code></pre>
-</div>
+<span class="center-horizontal caption">Antipatrón: Provoca errores NoSuchMethodError y ClassCastException en runtime</span>

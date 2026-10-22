@@ -1,13 +1,71 @@
-<h1 class="title">Servicio</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Capa de Servicio (@Service)</h1>
 
-TODO: @PRIMARY
+<p>La <strong>Capa de Servicio (@Service)</strong> es el corazón y el cerebro de una aplicación Spring Boot. En ella reside toda la <strong>lógica de negocio</strong>, las reglas de validación complejas, los cálculos, la coordinación de transacciones de base de datos (con <code>@Transactional</code>) y la comunicación con recursos externos (bases de datos a través de repositorios, otros microservicios REST o colas de mensajería como Apache Kafka o RabbitMQ).</p>
 
-<p>La capa de servicio se encargará de conectar con los recursos que estén fuera del microservicio, estos recursos pueden ser por ejemplo una base de datos, otro microservicio, una cola kafka, un bucket en la nube...</p>
-<p>Debe crearse un servicio para cada uno de estos recursos, por ejemplo no es adecuado un servicio que acceda a la base de datos y a la cola kafka si no que deberian ser dos servicios independientes aunque luego por ejemplo un servicio que accede a base de datos use otro servicio para acceder a la cola kafka</p>
+<h2 class="subtitle">Analogía del Mundo Real: El Director de Orquesta</h2>
+<p>Imagina una orquesta sinfónica:</p>
+<ul>
+    <li>El <strong>Controlador (@RestController)</strong> es el taquillero que recibe al público y revisa las entradas.</li>
+    <li>El <strong>Servicio (@Service)</strong> es el <strong>Director de Orquesta</strong>: no toca todos los instrumentos por sí mismo, pero conoce la partitura completa (las reglas de negocio). Le indica al violinista cuándo entrar (llama a <code>PetRepository</code> para persistir los datos en base de datos), le da la señal al trompetista (llama a <code>PetKafkaService</code> para avisar a otros microservicios por la cola de eventos) y coordina el ritmo para que todo suene de forma armoniosa y consistente.</li>
+    <li>Si un músico se equivoca gravemente a mitad del concierto, el director detiene la actuación y reinicia el compás (hace un <code>rollback</code> de la transacción con <code>@Transactional</code>).</li>
+</ul>
 
-<h2>Ejemplo</h2>
+<h2 class="subtitle">Responsabilidades y Separación de Recursos Externos</h2>
+<p>La capa de servicio se encarga de conectar con todos los recursos que se encuentren fuera del microservicio (bases de datos, otros microservicios, colas Kafka, buckets en la nube S3, etc.).</p>
+<p><strong>Principio de Responsabilidad Única (SRP):</strong> Debe crearse un servicio especializado para cada recurso externo. Por ejemplo, no es adecuado que un único servicio contenga a la vez el código de base de datos y la configuración del productor de Kafka: deben ser dos servicios independientes (ej. <code>PetService</code> y <code>PetKafkaService</code>), donde el servicio principal orquestador inyecta y utiliza al servicio secundario especializado.</p>
 
-TODO: Meter comunicación de servicios
+<h2 class="subtitle">Anotaciones Fundamentales de la Capa de Servicio</h2>
+
+<ul>
+    <li><b>@Service:</b> Pertenece a Spring Framework (paquete <code>org.springframework.stereotype.Service</code>). Es una especialización de <code>@Component</code> que marca la clase como un bean de servicio dentro del contenedor de Inyección de Dependencias, permitiendo su descubrimiento automático mediante escaneo de componentes (<em>component scanning</em>).</li>
+    <li><b>@Transactional:</b> Pertenece a Spring Framework (paquete <code>org.springframework.transaction.annotation.Transactional</code>). Delimita el inicio y fin de una transacción de base de datos. Si el método finaliza sin errores, Spring hace <code>commit</code>; si salta una <code>RuntimeException</code> o excepción configurada en <code>rollbackFor = Exception.class</code>, Spring revierte automáticamente (<code>rollback</code>) todos los cambios realizados en la base de datos durante ese método.</li>
+    <li><b>@Primary:</b> Pertenece a Spring Framework (paquete <code>org.springframework.context.annotation.Primary</code>). Se coloca sobre una clase que implementa una interfaz cuando existen <strong>múltiples implementaciones</strong> de esa misma interfaz registradas como beans (por ejemplo, <code>PetServiceImpl</code> y <code>PetServiceMockImpl</code>). Indica a Spring que esta implementación tiene preferencia por defecto al inyectar con <code>@Autowired</code> a menos que el cliente use explícitamente <code>@Qualifier</code>.</li>
+</ul>
+
+<h2 class="subtitle">Flujo de Comunicación entre Capas</h2>
+<img class="center-horizontal" src="components/springboot/capas-principales/assets/img/capas-arquitectura.svg">
+<span class="center-horizontal caption">Figura 1: El Servicio coordina la lógica entre controladores, persistencia y eventos asíncronos</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Participante</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Responsabilidad en el Servicio</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">PetService (Interfaz)</th>
+            <td>«interfaz»</td>
+            <td>Contrato abstracto de los casos de uso disponibles (<code>findById</code>, <code>save</code>, <code>delete</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row">PetServiceImpl</th>
+            <td>«servicio orquestador»</td>
+            <td>Implementación que coordina el guardado en base de datos con la emisión de eventos de negocio en Kafka.</td>
+        </tr>
+        <tr>
+            <th scope="row">PetRepository</th>
+            <td>«repositorio / dao»</td>
+            <td>Persiste las entidades <code>Pet</code> mediante Spring Data JPA.</td>
+        </tr>
+        <tr>
+            <th scope="row">PetKafkaService</th>
+            <td>«servicio de mensajería»</td>
+            <td>Publica mensajes asíncronos en el topic de Kafka correspondiente.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del servicio orquestador PetService</span>
+
+<h2 class="subtitle">Ejemplo 1: Servicio Orquestador con Persistencia y Kafka</h2>
+<p>El siguiente ejemplo muestra cómo <code>PetServiceImpl</code> implementa el contrato <code>PetService</code> e interactúa tanto con la base de datos relacional (<code>PetRepository</code>) como con el bus de eventos distribuido (<code>PetKafkaService</code>):</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -21,7 +79,7 @@ public class PetServiceImpl implements PetService
     PetRepository petRepository;
 
     @Override
-    public Optional< Pet> findById(Integer pId) 
+    public Optional&lt;Pet&gt; findById(Integer pId) 
     {
         return petRepository.findById(pId);
     }
@@ -30,21 +88,23 @@ public class PetServiceImpl implements PetService
     public Pet save(Pet pPet)
     {
         Pet savedPet = petRepository.save(pPet);
-        petKafkaService.sendKafkaMessage(savedPet,KafkaAction.INSERT.value);
+        petKafkaService.sendKafkaMessage(savedPet, KafkaAction.INSERT.value);
         return savedPet;
     } 
 
     @Override
     public void delete(Pet pPet) 
     {
-        PetRepository.delete(pPet);
-        PetKafkaService.sendKafkaMessage(pPet, KafkaAction.DELETE.value);
+        petRepository.delete(pPet);
+        petKafkaService.sendKafkaMessage(pPet, KafkaAction.DELETE.value);
     }
 }
 </code></pre>	
 </div>
+<span class="center-horizontal caption">PetServiceImpl coordinando persistencia en JPA y notificación asíncrona en Kafka</span>
 
-<h2>Ejemplo de servicio para llamar a otro microservicio</h2>
+<h2 class="subtitle">Ejemplo 2: Servicio para Llamar a Otro Microservicio (Consumo REST)</h2>
+<p>En arquitecturas de microservicios distribuidos, un servicio de negocio frecuentemente necesita consultar información alojada en otro microservicio. El siguiente ejemplo muestra <code>StoreServiceImpl</code>, que utiliza <strong>RestTemplate</strong> y <strong>URIBuilder</strong> para invocar endpoints remotos, gestionar códigos de estado HTTP y transformar respuestas dinámicas con control exhaustivo de excepciones:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -95,7 +155,6 @@ public class StoreServiceImpl implements StoreService {
             LOGGER.error("URL {}, error:{}", commConfig.getStoresUrl(), e);
         }
         return null;
-
     }
 
     private String makeStoreURL(Integer pStoreId) {
@@ -111,12 +170,12 @@ public class StoreServiceImpl implements StoreService {
         String storesMicroServiceURL = makeStoreURL(idStore);
 
         try {
-            ResponseEntity< LinkedHashMap> storeResponse = restTemplate.getForEntity(storesMicroServiceURL, LinkedHashMap.class);
+            ResponseEntity&lt;LinkedHashMap&gt; storeResponse = restTemplate.getForEntity(storesMicroServiceURL, LinkedHashMap.class);
             if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
-                LinkedHashMap< Object, Object> store = (LinkedHashMap< Object, Object>) storeResponse.getBody();
+                LinkedHashMap&lt;Object, Object&gt; store = (LinkedHashMap&lt;Object, Object&gt;) storeResponse.getBody();
                 return (String) store.get(Constants.WERKS);
             } else {
-                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,	storeResponse.getStatusCode(), storeResponse.getBody());
+                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL, storeResponse.getStatusCode(), storeResponse.getBody());
                 throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG);
             }
         } catch (RestClientException e) {
@@ -127,13 +186,12 @@ public class StoreServiceImpl implements StoreService {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    public List< Integer> getStoreIds(String pRegion, String pProvince, String pBusiness,
+    public List&lt;Integer&gt; getStoreIds(String pRegion, String pProvince, String pBusiness,
             String pStoreType) {
         String storesMicroServiceURL = makeStoreURL(pRegion, pProvince, pBusiness, pStoreType);
         try {
-            ResponseEntity< List> storeResponse = restTemplate.getForEntity(storesMicroServiceURL,List.class);
+            ResponseEntity&lt;List&gt; storeResponse = restTemplate.getForEntity(storesMicroServiceURL, List.class);
             if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
-
                 return processResponse(storeResponse.getBody());
             } else {
                 LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,
@@ -144,16 +202,15 @@ public class StoreServiceImpl implements StoreService {
             LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_EXCEPTION, storesMicroServiceURL, e);
             throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG, e);
         }
-
     }
 
-    private List< Integer> processResponse(List< LinkedHashMap< Object, Object>> pResponse) {
-        List< LinkedHashMap< Object, Object>> remoteStoreList = pResponse;
-        List< Integer> remoteStoreIdList = new ArrayList<>();
+    private List&lt;Integer&gt; processResponse(List&lt;LinkedHashMap&lt;Object, Object&gt;&gt; pResponse) {
+        List&lt;LinkedHashMap&lt;Object, Object&gt;&gt; remoteStoreList = pResponse;
+        List&lt;Integer&gt; remoteStoreIdList = new ArrayList&lt;&gt;();
 
         if (remoteStoreList != null) {
             Integer idStore;
-            for (LinkedHashMap< Object, Object> store : remoteStoreList) {
+            for (LinkedHashMap&lt;Object, Object&gt; store : remoteStoreList) {
                 idStore = (Integer) store.get(Constants.ID_STORE);
                 remoteStoreIdList.add(idStore);
             }
@@ -179,12 +236,12 @@ public class StoreServiceImpl implements StoreService {
         String storesMicroServiceURL = makeFindStoreURL(werks);
 
         try {
-            ResponseEntity< LinkedHashMap> storeResponse = restTemplate.getForEntity(storesMicroServiceURL, LinkedHashMap.class);
+            ResponseEntity&lt;LinkedHashMap&gt; storeResponse = restTemplate.getForEntity(storesMicroServiceURL, LinkedHashMap.class);
             if (storeResponse.getStatusCode().equals(HttpStatus.OK)) {
-                LinkedHashMap< Object, Object> store = (LinkedHashMap< Object, Object>) storeResponse.getBody();
+                LinkedHashMap&lt;Object, Object&gt; store = (LinkedHashMap&lt;Object, Object&gt;) storeResponse.getBody();
                 return (Integer) store.get(Constants.ID_STORE);
             } else {
-                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL,	storeResponse.getStatusCode(), storeResponse.getBody());
+                LOGGER.error(ERROR_REST_SERVICE_STORES_LOG_MSG, storesMicroServiceURL, storeResponse.getStatusCode(), storeResponse.getBody());
                 throw new RestDependencyException(ERROR_REST_SERVICE_STORES_MSG);
             }
         } catch (RestClientException e) {
@@ -195,3 +252,68 @@ public class StoreServiceImpl implements StoreService {
 }
 </code></pre>	
 </div>
+<span class="center-horizontal caption">StoreServiceImpl consumiendo servicios REST externos mediante RestTemplate</span>
+
+<h2 class="subtitle">¿Cuándo Usar la Capa de Servicio y Cuándo NO?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Buenas Prácticas</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Validaciones de negocio y transformaciones DTO &harr; Entidad</td>
+            <td><b>SIEMPRE en el @Service</b></td>
+            <td>Mantiene los controladores limpios y delgados (<em>Skinny Controllers</em>).</td>
+        </tr>
+        <tr>
+            <td>Transacciones que tocan varias tablas o publican eventos</td>
+            <td><b>Usar @Transactional</b></td>
+            <td>Garantiza la consistencia atómica: si falla la inserción, no se envía el evento o se revierte la transacción.</td>
+        </tr>
+        <tr>
+            <td>Validaciones de formato simple (campos no nulos, emails válidos)</td>
+            <td><b>NO en el servicio</b></td>
+            <td>Hacerlo en el DTO con anotaciones Bean Validation (<code>@NotNull</code>, <code>@Email</code>) para rechazar en la puerta de entrada.</td>
+        </tr>
+        <tr>
+            <td>Consultas SQL y queries directas a la base de datos</td>
+            <td><b>NO en el servicio</b></td>
+            <td>Delegar en la capa de <b>Repositorio</b> (Spring Data JPA) mediante métodos o <code>@Query</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios de diseño para la capa de servicio</span>
+
+<h2 class="subtitle">Contraejemplo (Mala Práctica): El Antipatrón "Fat Controller"</h2>
+<p>Colocar lógica de negocio, cálculos de comisiones o llamadas directas a Kafka dentro de un método de controlador REST rompe la arquitectura por capas, imposibilita la reutilización de la lógica en otros controladores y hace inviables los tests unitarios aislados:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ¡ANTIPATRÓN FAT CONTROLLER! El controlador hace de todo
+@RestController
+@RequestMapping("/pets")
+public class BadFatPetController {
+
+    @Autowired
+    private PetRepository petRepository;
+    
+    @Autowired
+    private KafkaTemplate&lt;String, String&gt; kafkaTemplate;
+
+    @PostMapping
+    public ResponseEntity&lt;?&gt; create(@RequestBody Pet pet) {
+        // ERROR: Lógica de negocio y persistencia mezcladas en la capa web
+        if (pet.getAge() &lt; 0) {
+            return ResponseEntity.badRequest().body("Edad inválida");
+        }
+        petRepository.save(pet);
+        kafkaTemplate.send("pet-topic", "Pet created: " + pet.getId());
+        return ResponseEntity.ok(pet);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Fat Controller asumiendo responsabilidades de la capa de servicio</span>

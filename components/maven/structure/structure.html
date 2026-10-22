@@ -1,82 +1,119 @@
-<h1 class="title">Estructura estandar de los directorios</h1>
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Estructura Estándar de Directorios en Maven</h1>
 
-<p>En el nivel superior, archivos descriptivos del proyecto: un archivo pom.xml. Además, existen documentos de texto destinados a que el usuario pueda leer inmediatamente al recibir la fuente: <b>README.txt</b>, <b>LICENSE.txt</b>, etc.</p>
-
-<p>Solo hay dos subdirectorios de esta estructura: <b>"src"</b> y <b>"target"</b>. Los únicos otros directorios que se esperarían aquí son metadatos como CVS, .git o .svn, y cualquier subproyecto en una compilación multiproyecto (cada uno de los cuales se distribuiría como se indicó anteriormente).</p>
-
-<p>El directorio <b>"target"</b> se utiliza para albergar todos los resultados de la compilación.</p>
-
-<p>El directorio <b>"src"</b> contiene todo el material fuente para construir el proyecto, su sitio, etc. Contiene un subdirectorio para cada tipo: <b>"main"</b> para el artefacto de compilación principal, <b>"test"</b> para el código de prueba de unidad y recursos, sitio, etc.</p>
+<p>Una de las mayores fortalezas de <strong>Apache Maven</strong> es la estandarización universal de su estructura de archivos. Gracias al principio de <em>Convención sobre Configuración</em>, Maven asume por defecto dónde se encuentra el código Java, dónde residen los recursos de configuración y dónde deben generarse los binarios sin necesidad de escribir cientos de rutas en el <code>pom.xml</code>.</p>
 
 <div class="center-horizontal">
-    <img src=".\components\maven\structure\assets\fileStructure.svg">
+    <img class="center-horizontal" src="components/maven/structure/assets/fileStructure.svg">
 </div>
-
-<p style="margin-top: 1rem;"><b>NOTA: </b>Se recomienda ajustarse a esta estructura tanto como sea posible. Sin embargo, de no ser posible, esta configuración se puede anular a través del descriptor del proyecto.</p>
-      
-<p><b>NOTA:</b> Si hay otras fuentes que contribuyen a la construcción del artefacto, estarían en otros subdirectorios. Por ejemplo, src/main/antlr contendría archivos de definición de gramática Antlr.</p>
+<span class="center-horizontal caption">Figura 1: Árbol canónico de directorios según el Standard Directory Layout de Maven</span>
 
 <table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Ruta del Directorio</th>
+            <th scope="col">Rol y Contenido</th>
+            <th scope="col">¿Se empaqueta en el JAR final?</th>
+        </tr>
+    </thead>
     <tbody>
         <tr>
-            <td>src/main/java</td>
-            <td>Application/Library sources</td>
+            <th scope="row"><code>src/main/java</code></th>
+            <td>Paquetes y clases Java reales de la aplicación (producción).</td>
+            <td><b>SÍ:</b> Se compila a <code>.class</code> y forma el núcleo del paquete.</td>
         </tr>
         <tr>
-            <td>src/main/resources</td>
-            <td>Application/Library resources</td>
+            <th scope="row"><code>src/main/resources</code></th>
+            <td>Archivos de configuración (<code>application.properties</code>, <code>.yml</code>, esquemas SQL).</td>
+            <td><b>SÍ:</b> Se copian directamente a la raíz del <code>.jar</code> (classpath).</td>
         </tr>
         <tr>
-            <td>src/main/filters</td>
-            <td>Resource filter files</td>
+            <th scope="row"><code>src/main/webapp</code></th>
+            <td>Vistas JSP, CSS, JS e imágenes para aplicaciones Web clásicas empaquetadas en <code>.war</code>.</td>
+            <td><b>SÍ:</b> Solo en proyectos con <code>&lt;packaging&gt;war&lt;/packaging&gt;</code>.</td>
         </tr>
         <tr>
-            <td>src/main/webapp</td>
-            <td>Web application sources</td>
+            <th scope="row"><code>src/test/java</code></th>
+            <td>Clases de pruebas unitarias y de integración (JUnit, Mockito).</td>
+            <td><b>NO:</b> Solo se usan al ejecutar <code>mvn test</code>; nunca viajan al cliente.</td>
         </tr>
         <tr>
-            <td>src/test/java</td>
-            <td>Test sources</td>
+            <th scope="row"><code>src/test/resources</code></th>
+            <td>Archivos de configuración exclusivos para tests (ej. BD en memoria H2).</td>
+            <td><b>NO:</b> Se aíslan exclusivamente para la fase de pruebas.</td>
         </tr>
         <tr>
-            <td>src/test/resources</td>
-            <td>Test resources</td>
+            <th scope="row"><code>target/</code></th>
+            <td>Directorio de salida: clases compiladas, reportes y el archivo <code>.jar</code> o <code>.war</code> final.</td>
+            <td><b>NO:</b> Se borra por completo al ejecutar <code>mvn clean</code> (excluir de Git).</td>
         </tr>
         <tr>
-            <td>src/test/filters</td>
-            <td>Test resource filter files</td>
-        </tr>
-        <tr>
-            <td>src/it	</td>
-            <td>Integration Tests (primarily for plugins)</td>
-        </tr>
-        <tr>
-            <td>src/assembly</td>
-            <td>Assembly descriptors</td>
-        </tr>
-        <tr>
-            <td>src/site</td>
-            <td>Site</td>
-        </tr>
-        <tr>
-            <td>target/</td>
-            <td>Output of the build</td>
-        </tr>
-        <tr>
-            <td>LICENSE.txt</td>
-            <td>Project's license</td>
-        </tr>
-        <tr>
-            <td>NOTICE.txt</td>
-            <td>Notices and attributions required by libraries that the project depends on</td>
-        </tr>
-        <tr>
-            <td>README.txt</td>
-            <td>Project's readme</td>
+            <th scope="row"><code>pom.xml</code></th>
+            <td>Descriptor del Proyecto (Project Object Model): librerías, plugins y configuración.</td>
+            <td><b>SÍ:</b> Se incluye dentro de <code>META-INF/maven/</code> para trazabilidad.</td>
         </tr>
     </tbody>
 </table>
+<span class="center-horizontal caption">Tabla 1: Desglose y responsabilidades de las carpetas estándar de Maven</span>
 
-<p class="center-horizontal">
-    <a href="https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html">https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html</a>
-</p>
+<h2 class="subtitle">¿Cuándo Modificar la Estructura Estándar y Cuándo NO?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Situación</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Explicación</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Proyectos nuevos o microservicios modernos</td>
+            <td><b>NUNCA alterar</b></td>
+            <td>Respetar <code>src/main/java</code> permite compilar sin configurar ninguna etiqueta <code>&lt;sourceDirectory&gt;</code>.</td>
+        </tr>
+        <tr>
+            <td>Proyectos heredados (Legacy) con carpetas antiguas</td>
+            <td><b>SÍ redefinir</b> en <code>&lt;build&gt;</code></td>
+            <td>Maven permite anular rutas con <code>&lt;sourceDirectory&gt;</code> o <code>&lt;testSourceDirectory&gt;</code> si no es posible mover archivos.</td>
+        </tr>
+        <tr>
+            <td>Generación automática de código (Avro, OpenAPI, WSDL)</td>
+            <td><b>Usar target/generated-sources/</b></td>
+            <td>Los plugins deben depositar el código generado en <code>target/generated-sources/</code> para que <code>mvn clean</code> pueda regenerarlo limpiamente sin ensuciar <code>src/</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios sobre la modificación del layout estándar</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en el Control de Versiones (.gitignore)</h2>
+
+<h3>Ejemplo (Buena Práctica): Ignorar siempre la carpeta target/</h3>
+<p>La carpeta <code>target/</code> contiene binarios transitorios específicos de la compilación y nunca debe subirse al repositorio de código:</p>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# .gitignore para proyectos Maven
+target/
+*.class
+*.jar
+*.war
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+</code></pre>
+</div>
+<span class="center-horizontal caption">Reglas indispensables en .gitignore para proyectos Maven</span>
+
+<h3>Contraejemplo (Mala Práctica): Mezclar recursos de configuración dentro de src/main/java</h3>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# ¡ERROR COMÚN!
+src/main/java/com/petshop/application.properties
+</code></pre>
+</div>
+<p>Por defecto, el compilador de Maven (<code>maven-compiler-plugin</code>) solo copia archivos que terminan en <code>.java</code> dentro de <code>src/main/java</code>. Si colocas un archivo <code>.properties</code>, <code>.xml</code> o <code>.json</code> dentro de <code>src/main/java</code>, Maven <strong>lo ignorará</strong> y no lo copiará a <code>target/classes</code>, provocando un error <code>FileNotFoundException</code> al arrancar tu aplicación en producción.</p>

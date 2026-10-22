@@ -1,48 +1,209 @@
 <h1 class="title">Getter y Setter</h1>
-<p>Con estas anotaciones Lombok genera automaticamente los Getters y Setters.</p>
+
+<p>En Java, el principio de encapsulación aconseja declarar los atributos de una clase como privados (<code>private</code>) y exponer su lectura y modificación a través de métodos públicos conocidos como <b>Getters</b> y <b>Setters</b>. Con las anotaciones <code>@Getter</code> y <code>@Setter</code>, <b>Project Lombok</b> genera automáticamente estos métodos en tiempo de compilación siguiendo la convención estándar de JavaBeans.</p>
+
+<h2>Anotaciones @Getter y @Setter</h2>
+
+<ul>
+    <li><b>@Getter:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.Getter</code> y sirve para generar automáticamente el método de lectura (<i>getter</i>) de un atributo. Por defecto el método generado es <code>public</code>, devuelve el mismo tipo de dato que el atributo y su nombre se forma con el prefijo <code>get</code> seguido del nombre del atributo en <i>PascalCase</i> (por ejemplo, para <code>private String name;</code> genera <code>public String getName()</code>).</li>
+
+    <li><b>@Setter:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.Setter</code> y sirve para generar automáticamente el método de escritura (<i>setter</i>) de un atributo no final. Por defecto el método generado es <code>public</code>, devuelve <code>void</code>, recibe un parámetro del mismo tipo y nombre que el atributo, y su nombre se forma con el prefijo <code>set</code> seguido del nombre del atributo en <i>PascalCase</i> (por ejemplo, para <code>private int age;</code> genera <code>public void setAge(int age)</code>). Si el atributo está marcado con <code>@NonNull</code>, el setter generado incluirá también una validación contra valores nulos.</li>
+</ul>
+
+<h2>Dónde se aplican y comportamiento con booleanos</h2>
+
+<ul>
+    <li><b>A nivel de atributo:</b> Si se coloca <code>@Getter</code> o <code>@Setter</code> sobre un atributo concreto, Lombok solo generará el método correspondiente para ese atributo.</li>
+    <li><b>A nivel de clase:</b> Si se coloca <code>@Getter</code> sobre la declaración de la clase, Lombok generará los métodos <i>getter</i> para <b>todos los atributos no estáticos</b> de esa clase. De igual modo, si se coloca <code>@Setter</code> sobre la clase, generará los métodos <i>setter</i> para <b>todos los atributos no estáticos y no finales (no <code>final</code>)</b>.</li>
+    <li><b>Comportamiento con tipos booleanos (<code>boolean</code> vs <code>Boolean</code>):</b>
+        <ul>
+            <li>Si el atributo es de tipo primitivo <code>boolean</code> (por ejemplo, <code>private boolean vaccinated;</code>), el método getter generado utiliza el prefijo <b><code>is</code></b> en lugar de <code>get</code>: <code>public boolean isVaccinated()</code>.</li>
+            <li>Si el atributo es de tipo envoltorio <code>java.lang.Boolean</code> (por ejemplo, <code>private Boolean vaccinated;</code>), al tratarse de un objeto que puede ser <code>null</code>, Lombok genera el prefijo estándar <b><code>get</code></b>: <code>public Boolean getVaccinated()</code>.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Parámetros y opciones de configuración</h2>
+
+<ul>
+    <li><b>value (AccessLevel):</b> Permite cambiar el nivel de visibilidad del método getter o setter generado utilizando el enumerado <code>lombok.AccessLevel</code>. Sus valores posibles son:
+        <ul>
+            <li><b>AccessLevel.PUBLIC:</b> El método generado es <code>public</code> (comportamiento por defecto si no se indica nada).</li>
+            <li><b>AccessLevel.PROTECTED:</b> El método generado es <code>protected</code>, accesible únicamente desde la misma clase, subclases o clases del mismo paquete.</li>
+            <li><b>AccessLevel.PACKAGE:</b> El método se genera sin modificador explícito (<i>package-private</i>), accesible solo dentro del mismo paquete.</li>
+            <li><b>AccessLevel.PRIVATE:</b> El método generado es <code>private</code>, accesible únicamente dentro de la propia clase.</li>
+            <li><b>AccessLevel.NONE:</b> Desactiva la generación del getter o setter para ese atributo. Es especialmente útil cuando hemos anotado toda la clase con <code>@Getter</code>, <code>@Setter</code> o <code>@Data</code> pero queremos impedir que se genere el getter o el setter de un atributo específico.</li>
+        </ul>
+    </li>
+
+    <li><b>lazy (exclusivo de @Getter):</b> Recibe un booleano (por defecto <code>false</code>). Al establecer <code>@Getter(lazy = true)</code> sobre un atributo <code>private final</code> cuya inicialización sea costosa (por ejemplo, un cálculo matemático pesado o la carga de un archivo grande en memoria), Lombok no calcula el valor al instanciar la clase, sino la primera vez que se invoca el método getter. A partir de esa primera llamada, el resultado queda almacenado en caché utilizando bloqueo de doble comprobación (<i>Double-Checked Locking</i> con <code>AtomicReference</code>), siendo completamente seguro en entornos multihilo (<i>thread-safe</i>).</li>
+
+    <li><b>onMethod_:</b> Permite añadir una o varias anotaciones directamente sobre el método getter o setter que Lombok va a generar (por ejemplo, <code>@Getter(onMethod_ = @JsonIgnore)</code>).</li>
+
+    <li><b>onParam_ (exclusivo de @Setter):</b> Permite añadir anotaciones sobre el parámetro de entrada del método setter generado.</li>
+</ul>
+
+<h2>Ejemplo comparativo a nivel de atributo</h2>
+
+<p>En el siguiente ejemplo se observa cómo se reducen las líneas de código de la clase <code>GetterSetterExample</code> al sustituir los métodos manuales por las anotaciones <code>@Getter</code> y <code>@Setter</code>, incluyendo la personalización del nivel de acceso <code>AccessLevel.PROTECTED</code> en el setter del atributo <code>name</code>:</p>
 
 <p>Vanilla Java:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 public class GetterSetterExample {
-    
+
     private int age = 10;
 
     private String name;
 
-    @Override public String toString() {
-    return String.format("%s (age: %d)", name, age);
+    @Override
+    public String toString() {
+        return String.format("%s (age: %d)", name, age);
     }
 
     public int getAge() {
-    return age;
+        return age;
     }
 
     public void setAge(int age) {
-    this.age = age;
+        this.age = age;
     }
 
     protected void setName(String name) {
-    this.name = name;
+        this.name = name;
     }
 }
-</code></pre>	
+</code></pre>
 </div>
 
 <p>Con Lombok:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
 public class GetterSetterExample {
-   
-  @Getter @Setter private int age = 10;
-  
-  @Setter(AccessLevel.PROTECTED) private String name;
-  
-  @Override public String toString() {
-    return String.format("%s (age: %d)", name, age);
-  }
+
+    @Getter @Setter private int age = 10;
+
+    @Setter(AccessLevel.PROTECTED) private String name;
+
+    @Override
+    public String toString() {
+        return String.format("%s (age: %d)", name, age);
+    }
 }
-</code></pre>	
+</code></pre>
+</div>
+
+<h2>Ejemplo a nivel de clase y exclusión con AccessLevel.NONE</h2>
+
+<p>Cuando una clase tiene muchos atributos, es mucho más limpio colocar <code>@Getter</code> y <code>@Setter</code> sobre la cabecera de la clase y utilizar <code>AccessLevel.NONE</code> únicamente en aquellos campos cuyo acceso queramos restringir (por ejemplo, impedir que el identificador <code>id</code> se modifique con un setter o que un código interno se exponga mediante un getter):</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class Pet {
+
+    // Tendrá getId(), pero NO tendrá setId()
+    @Setter(AccessLevel.NONE)
+    private Integer id;
+
+    // Tendrá getName() y setName()
+    private String name;
+
+    // Tendrá getAge() y setAge()
+    private Short age;
+
+    // Al ser boolean primitivo, tendrá isVaccinated() y setVaccinated()
+    private boolean vaccinated;
+
+    // No tendrá ni getInternalToken() ni setInternalToken()
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private String internalToken;
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo de inicialización perezosa con @Getter(lazy = true)</h2>
+
+<p>Si una clase posee un atributo <code>private final</code> que requiere ejecutar un método costoso para obtener su valor pero no siempre se va a consultar, podemos anotarlo con <code>@Getter(lazy = true)</code>. Lombok ocultará el atributo dentro de un contenedor atómico y solo ejecutará el método <code>loadMedicalHistory()</code> la primera vez que alguien llame a <code>getMedicalHistory()</code>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.Getter;
+import java.util.List;
+
+public class PetMedicalRecord {
+
+    @Getter(lazy = true)
+    private final List&lt;String&gt; medicalHistory = loadMedicalHistory();
+
+    private List&lt;String&gt; loadMedicalHistory() {
+        // Simulación de una consulta pesada o cálculo costoso
+        return List.of("Vacuna rabia - 2022", "Desparasitación - 2023", "Revisión anual - 2024");
+    }
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar @Getter / @Setter y cuándo NO usarlos?</h2>
+
+<ul>
+    <li><b>Cuándo usarlos:</b> En prácticamente cualquier entidad JPA, DTO o modelo de datos donde se necesite exponer la lectura o escritura de propiedades sin lógica adicional.</li>
+    <li><b>Cuándo NO usar <code>@Setter</code> indiscriminadamente:</b>
+        <ul>
+            <li>En objetos que deban ser <b>inmutables</b> (donde ningún estado debe cambiar tras el constructor).</li>
+            <li>En campos cuyo cambio requiera mantener invariantes de negocio o validaciones cruzadas (por ejemplo, no permitir cambiar el saldo de una cuenta con <code>setBalance()</code>, sino mediante un método de negocio <code>withdraw(amount)</code>).</li>
+            <li>Sobre colecciones en entidades JPA si reemplazar la lista entera rompe el seguimiento de <code>orphanRemoval = true</code> de Hibernate.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo: Modificación de colecciones con <code>orphanRemoval</code> en Hibernate</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Reemplazar la lista con un setter generado por @Setter
+// hace que Hibernate pierda la referencia a su PersistentBag y lance HibernateException
+@Getter
+@Setter
+@Entity
+public class Owner {
+    @Id
+    private Integer id;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List&lt;Pet&gt; pets = new ArrayList&lt;&gt;();
+}
+
+// EJEMPLO (CORRECTO): Desactivar el setter en la colección y limpiar/añadir elementos sobre la instancia existente
+@Getter
+@Setter
+@Entity
+public class SafeOwner {
+    @Id
+    private Integer id;
+
+    @Setter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List&lt;Pet&gt; pets = new ArrayList&lt;&gt;();
+
+    public void updatePets(List&lt;Pet&gt; newPets) {
+        this.pets.clear();
+        if (newPets != null) {
+            this.pets.addAll(newPets);
+        }
+    }
+}
+</code></pre>
 </div>

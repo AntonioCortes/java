@@ -10,6 +10,44 @@
 <img class="center-horizontal" src="components/gradle/build-gradle/assets/img/gradle-build-diagram.png">
 <span class="center-horizontal caption">Figura 1: Relación entre settings.gradle, gradle.properties y los 4 bloques principales de build.gradle</span>
 
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Archivo / Bloque</th>
+            <th scope="col">Momento de Lectura</th>
+            <th scope="col">Responsabilidad y Propósito</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">settings.gradle</th>
+            <td>Fase de Inicialización</td>
+            <td>Define la identidad del proyecto raíz (<code>rootProject.name</code>) y los módulos hijos con <code>include</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row">gradle.properties</th>
+            <td>Antes de Configuración</td>
+            <td>Inyecta propiedades de la JVM (<code>-Xmx</code>, paralelismo, daemon) y constantes reutilizables de versiones.</td>
+        </tr>
+        <tr>
+            <th scope="row">plugins { ... }</th>
+            <td>Cabecera de build.gradle</td>
+            <td>Extiende las capacidades de Gradle agregando tareas preconfiguradas (Java, Spring Boot, etc.).</td>
+        </tr>
+        <tr>
+            <th scope="row">repositories { ... }</th>
+            <td>Fase de Configuración</td>
+            <td>Indica los servidores remotos autorizados para descargar dependencias binarias (Maven Central, Nexus).</td>
+        </tr>
+        <tr>
+            <th scope="row">dependencies { ... }</th>
+            <td>Fase de Configuración</td>
+            <td>Declara qué paquetes externos requiere el proyecto para compilar, probar o ejecutarse.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Participantes del modelo de configuración de Gradle</span>
+
 <h2 class="subtitle">Un archivo <code class="language-bash">build.gradle</code> Completo y Limpio Explicado por Bloques</h2>
 <p>Veamos primero cómo luce un archivo <code class="language-bash">build.gradle</code> estándar para un proyecto Java moderno y analicemos cada uno de sus 5 bloques numerados:</p>
 
@@ -103,7 +141,7 @@ tasks.named('test') {
         </tr>
     </tbody>
 </table>
-<span class="center-horizontal caption">Tabla 1: Tipos de repositorios donde Gradle busca las librerías</span>
+<span class="center-horizontal caption">Tabla 2: Tipos de repositorios donde Gradle busca las librerías</span>
 
 <h2 class="subtitle">¿Para qué sirve el archivo <code class="language-bash">settings.gradle</code>?</h2>
 <p>Mientras que <code class="language-bash">build.gradle</code> define <em>cómo</em> se compila el proyecto, <code class="language-bash">settings.gradle</code> define <strong>cómo se llama el proyecto y qué subcarpetas lo componen</strong>:</p>
@@ -138,3 +176,60 @@ springBootVersion=3.3.4
 </code></pre>
 </div>
 <span class="center-horizontal caption">Ejemplo de archivo gradle.properties optimizado</span>
+
+<h2 class="subtitle">¿Cuándo Usar Cada Archivo de Configuración?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Archivo</th>
+            <th scope="col">¿Cuándo modificarlo?</th>
+            <th scope="col">¿Qué NUNCA debe ir aquí?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>build.gradle</code></td>
+            <td>Al añadir dependencias, configurar plugins o definir tareas de compilación/empaquetado.</td>
+            <td>Secretos o contraseñas en texto plano, ni lógica imperativa pesada fuera de tareas.</td>
+        </tr>
+        <tr>
+            <td><code>settings.gradle</code></td>
+            <td>Al renombrar el proyecto o al añadir/quitar submódulos en proyectos multi-módulo.</td>
+            <td>Declaración de dependencias de las aplicaciones.</td>
+        </tr>
+        <tr>
+            <td><code>gradle.properties</code></td>
+            <td>Para tunear la memoria de la JVM de compilación o centralizar números de versión.</td>
+            <td>Lógica condicional (es un archivo plano key-value).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Distribución de responsabilidades entre archivos de configuración</span>
+
+<h2 class="subtitle">Ejemplo y Contraejemplo en el diseño de build.gradle</h2>
+
+<h3>Ejemplo (Buena Práctica): Configuración Declarativa con Toolchain</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// La forma moderna y desacoplada de fijar la versión de Java:
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Gradle descarga y usa automáticamente el JDK indicado sin depender del JAVA_HOME del usuario</span>
+
+<h3>Contraejemplo (Mala Práctica): Ejecutar código pesado en el cuerpo de build.gradle</h3>
+<p>Cualquier instrucción escrita suelta en <code>build.gradle</code> se ejecuta inmediatamente durante la fase de evaluación, incluso si el usuario solo quería listar las tareas con <code>./gradlew tasks</code>:</p>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// ¡ERROR GRAVE! Esto hace una petición HTTP lenta en CADA ejecución de Gradle
+def versionRemota = new URL("https://api.empresa.com/version-actual").text
+version = versionRemota
+println "Versión calculada: ${version}"
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Bloquear la fase de configuración con llamadas de red o E/S pesadas</span>

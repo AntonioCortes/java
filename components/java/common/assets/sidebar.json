@@ -20,19 +20,19 @@
                     "content": [
                         {
                             "text": "Introducción",
-                            "content": "component-java-tiposDeDatos-introduccion"
+                            "content": "component-java-tipos-de-datos-introduccion"
                         },
                         {
                             "text": "Tipos primitivos",
-                            "content": "component-java-tiposDeDatos-tiposPrimitivos"
+                            "content": "component-java-tipos-de-datos-tipos-primitivos"
                         },
                         {
                             "text": "Texto",
-                            "content": "component-java-tiposDeDatos-texto"
+                            "content": "component-java-tipos-de-datos-texto"
                         },
                         {
                             "text": "Fecha",
-                            "content": "component-java-tiposDeDatos-fecha"
+                            "content": "component-java-tipos-de-datos-fecha"
                         }
                     ]
                 },
@@ -148,19 +148,19 @@
                     "content": [
                         {
                             "text": "Interfaces Funcionales",
-                            "content": "component-java-programacionFuncional-functionalInterface"
+                            "content": "component-java-programacion-funcional-functional-interface"
                         },
                         {
                             "text": "Expresiones Lambda",
-                            "content": "component-java-programacionFuncional-lambda"
+                            "content": "component-java-programacion-funcional-lambda"
                         },
                         {
                             "text": "Streams",
-                            "content": "component-java-programacionFuncional-streams"
+                            "content": "component-java-programacion-funcional-streams"
                         },
                         {
                             "text": "Métodos Streams",
-                            "content": "component-java-programacionFuncional-metodosStreams"
+                            "content": "component-java-programacion-funcional-metodos-streams"
                         }
                     ]
                 },
@@ -190,19 +190,19 @@
             "content": [
                 {
                     "text": "Anotaciones",
-                    "content": "component-java-anotaciones"
+                    "content": "component-java-otros-anotaciones"
                 },
                 {
                     "text": "Localización",
-                    "content": "component-java-localizacion"
+                    "content": "component-java-otros-localizacion"
                 },
                 {
                     "text": "Seguridad",
-                    "content": "component-java-seguridad"
+                    "content": "component-java-otros-seguridad"
                 },
                 {
                     "text": "Matemáticas",
-                    "content": "component-java-matematicas"
+                    "content": "component-java-otros-matematicas"
                 }
             ]
         }

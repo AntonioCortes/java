@@ -1,69 +1,192 @@
 <h1 class="title">ToString</h1>
 
-<h2>@ToString</h2>
-<p>Genera los métodos <b>toString</b> de una clase.</p>
+<p>En Java, todas las clases heredan de <code>java.lang.Object</code>, cuya implementación por defecto del método <code>toString()</code> devuelve únicamente el nombre de la clase seguido de la arroba (<code>@</code>) y el código hash en hexadecimal (por ejemplo, <code>Pet@15db9742</code>). Sobrescribir manualmente <code>toString()</code> para mostrar el estado real del objeto en trazas de log o depuración resulta repetitivo y propenso a quedar desactualizado cuando se añaden nuevos campos a la clase.</p>
+
+<h2>Anotación @ToString</h2>
+
+<ul>
+    <li><b>@ToString:</b> Esta anotación pertenece a la librería <b>Project Lombok</b>, se encuentra dentro del paquete <code>lombok.ToString</code> y se coloca sobre la definición de una clase para generar automáticamente una implementación del método <code>public String toString()</code>.<br>
+    <b>Comportamiento por defecto:</b>
+        <ul>
+            <li>Imprime el nombre de la clase seguido entre paréntesis de cada atributo no estático en pares <code>nombreCampo=valor</code> separados por comas: <code>Pet(id=1, name=Joe, age=3)</code>.</li>
+            <li>Ignora todos los atributos estáticos (<code>static</code>), ya que no forman parte del estado particular de la instancia.</li>
+            <li>Si la clase dispone de un método <i>getter</i> para un atributo, Lombok invoca al método getter (<code>this.getName()</code>) en lugar de acceder directamente al atributo privado.</li>
+            <li>Si un atributo es un array, utiliza <code>Arrays.deepToString()</code> o <code>Arrays.toString()</code> para imprimir el contenido real del array en lugar de su dirección de memoria.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Parámetros de configuración y anotaciones internas de @ToString</h2>
+
+<p>El comportamiento de <code>@ToString</code> se puede ajustar mediante sus parámetros a nivel de clase y sus anotaciones internas a nivel de atributo o método:</p>
+
+<ul>
+    <li><b>includeFieldNames:</b> Recibe un booleano (por defecto <code>true</code>). Si se establece a <code>@ToString(includeFieldNames = false)</code>, omite el nombre de los campos e imprime únicamente sus valores separados por comas: <code>Pet(1, Joe, 3)</code>.</li>
+
+    <li><b>callSuper:</b> Recibe un booleano (por defecto <code>false</code>). Cuando se configura como <code>@ToString(callSuper = true)</code> en una clase hija, incluye el resultado de llamar a <code>super.toString()</code> como primer elemento de la cadena generada.</li>
+
+    <li><b>doNotUseGetters:</b> Recibe un booleano (por defecto <code>false</code>). Si se establece a <code>true</code>, Lombok accederá siempre directamente a los atributos (<code>this.name</code>) aunque existan métodos getter en la clase.</li>
+
+    <li><b>onlyExplicitlyIncluded:</b> Recibe un booleano (por defecto <code>false</code>). Si es <code>true</code>, Lombok no incluirá ningún atributo por defecto, sino únicamente aquellos que estén marcados explícitamente con <code>@ToString.Include</code>.</li>
+
+    <li><b>@ToString.Exclude:</b> Se coloca sobre un atributo concreto para excluirlo de la cadena generada por <code>toString()</code>. Es fundamental para ocultar datos sensibles (contraseñas, tokens) o para evitar bucles infinitos (<code>StackOverflowError</code>) en relaciones bidireccionales de entidades JPA/Hibernate.</li>
+
+    <li><b>@ToString.Include:</b> Se coloca sobre un atributo o sobre un método sin parámetros para incluir su valor en el <code>toString()</code> (muy útil junto con <code>onlyExplicitlyIncluded = true</code>). Acepta los parámetros:
+        <ul>
+            <li><b>name:</b> Cambia el nombre que se muestra para ese campo en el texto resultante.</li>
+            <li><b>rank:</b> Entero (por defecto <code>0</code>) que altera el orden de impresión; los campos con mayor <code>rank</code> se imprimen primero.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Ejemplo comparativo: Vanilla Java vs Con Lombok</h2>
+
+<p>En el siguiente ejemplo de la clase <code>ToStringExample</code> se aprecia cómo Lombok ignora automáticamente la constante estática <code>STATIC_VAR</code>, excluye el atributo <code>id</code> anotado con <code>@ToString.Exclude</code>, invoca el getter <code>getName()</code>, formatea el array <code>tags</code> con <code>Arrays.deepToString()</code> e incluye la llamada a la clase padre en la subclase <code>Square</code> mediante <code>callSuper = true</code>:</p>
+
 <p>Vanilla Java:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+import java.util.Arrays;
+
 public class ToStringExample {
     private static final int STATIC_VAR = 10;
     private String name;
     private Shape shape = new Square(5, 10);
     private String[] tags;
     private int id;
-        
+
     public String getName() {
         return this.name;
     }
-        
+
     public static class Square extends Shape {
         private final int width, height;
-          
+
         public Square(int width, int height) {
             this.width = width;
             this.height = height;
         }
-          
-        @Override public String toString() {
-        return "Square(super=" + super.toString() + ", width=" + this.width + ", height=" + this.height + ")";
+
+        @Override
+        public String toString() {
+            return "Square(super=" + super.toString() + ", width=" + this.width + ", height=" + this.height + ")";
         }
     }
-        
-        @Override public String toString() {
-        return "ToStringExample(" + this.getName() + ", " + this.shape + ", " + Arrays.deepToString(this.tags) + ")";
+
+    @Override
+    public String toString() {
+        return "ToStringExample(name=" + this.getName() + ", shape=" + this.shape + ", tags=" + Arrays.deepToString(this.tags) + ")";
     }
 }
-</code></pre>	
+</code></pre>
 </div>
 
 <p>Con Lombok:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+import lombok.ToString;
+
 @ToString
 public class ToStringExample {
-    
+
     private static final int STATIC_VAR = 10;
     private String name;
     private Shape shape = new Square(5, 10);
     private String[] tags;
     @ToString.Exclude private int id;
- 
+
     public String getName() {
         return this.name;
     }
-  
-    @ToString(callSuper=true, includeFieldNames=true)
+
+    @ToString(callSuper = true, includeFieldNames = true)
     public static class Square extends Shape {
-        
+
         private final int width, height;
-    
+
         public Square(int width, int height) {
-        this.width = width;
-        this.height = height;
+            this.width = width;
+            this.height = height;
         }
     }
 }
-</code></pre>	
+</code></pre>
+</div>
+
+<h2>Anotación complementaria: @EqualsAndHashCode</h2>
+
+<p>Estrechamente relacionada con <code>@ToString</code> se encuentra la anotación <b><code>@EqualsAndHashCode</code></b>, que pertenece a <b>Project Lombok</b> y se ubica en el paquete <code>lombok.EqualsAndHashCode</code>. Su función es generar conjuntamente los métodos <code>equals(Object)</code> y <code>hashCode()</code> cumpliendo todas las reglas del contrato de igualdad en Java:</p>
+
+<ul>
+    <li>Por defecto utiliza todos los atributos no estáticos y no transitorios (<code>transient</code>) de la clase para comparar dos instancias y calcular su código hash.</li>
+    <li>Dispone de las mismas anotaciones internas de filtrado que <code>@ToString</code>:
+        <ul>
+            <li><b>@EqualsAndHashCode.Exclude:</b> Excluye un campo del cálculo de igualdad y hash.</li>
+            <li><b>@EqualsAndHashCode.Include:</b> Incluye explícitamente un campo o método (habitual cuando se configura <code>@EqualsAndHashCode(onlyExplicitlyIncluded = true)</code> para comparar entidades únicamente por su clave primaria <code>id</code>).</li>
+            <li><b>callSuper:</b> Permite incluir el resultado de <code>super.equals()</code> y <code>super.hashCode()</code> cuando la clase extiende de otra clase con estado propio.</li>
+        </ul>
+    </li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Pet {
+
+    // Dos instancias de Pet se considerarán iguales si tienen el mismo id
+    @EqualsAndHashCode.Include
+    private Integer id;
+
+    private String name;
+
+    // Se excluye la imagen en bytes del toString() para no saturar los logs
+    @ToString.Exclude
+    private byte[] picture;
+}
+</code></pre>
+</div>
+
+<h2>¿Cuándo usar @ToString y cuándo NO usarlo (o excluir campos)?</h2>
+
+<ul>
+    <li><b>Cuándo usarlo:</b> En DTOs, objetos de dominio y respuestas para facilitar la depuración y la lectura de logs.</li>
+    <li><b>Cuándo NO usarlo sin <code>@ToString.Exclude</code>:</b>
+        <ul>
+            <li><b>Datos confidenciales (Contraseñas, Tokens, Tarjetas, DNI):</b> Si se incluye un campo <code>password</code> en el <code>toString()</code>, quedará expuesto en texto plano en los ficheros de log del servidor, incumpliendo normativas de seguridad.</li>
+            <li><b>Arrays binarios pesados (<code>byte[]</code>):</b> Imágenes o ficheros en memoria generarán líneas de log de miles de caracteres.</li>
+            <li><b>Relaciones bidireccionales o perezosas (<code>FetchType.LAZY</code>) en JPA:</b> Provocan bucles infinitos (<code>StackOverflowError</code>) o consultas SQL adicionales no deseadas.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Ejemplo y Contraejemplo: Seguridad y Recursión en <code>@ToString</code></h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (INCORRECTO): Expone la contraseña en los logs y provoca StackOverflowError con Owner
+@ToString
+public class UserAccount {
+    private String username;
+    private String password; // ¡Peligro! Se imprimirá en los logs al hacer log.info("User: {}", user)
+    private Owner owner;     // Si Owner también imprime UserAccount, revienta la pila de llamadas
+}
+
+// EJEMPLO (CORRECTO): Exclusión explícita de campos sensibles y relaciones circulares
+@ToString
+public class SafeUserAccount {
+    private String username;
+
+    @ToString.Exclude
+    private String password;
+
+    @ToString.Exclude
+    private Owner owner;
+}
+</code></pre>
 </div>

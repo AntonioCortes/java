@@ -2,7 +2,6 @@
     "pageContent": [
         {
             "text": "Introducción",
-            "contentId": "lombok",
             "content": "component-librerias-introduccion"
         },
         {
@@ -46,22 +45,53 @@
         {
             "text": "ModelMapper",
             "contentId": "modelMapper",
-            "content": []
+            "content": [
+                {
+                    "text": "Introducción y Configuración",
+                    "content": "component-librerias-modelmapper-introduccion"
+                },
+                {
+                    "text": "Mapeo y Personalización",
+                    "content": "component-librerias-modelmapper-mapeo-y-ejemplos"
+                }
+            ]
         },
         {
             "text": "Flyway",
             "contentId": "flyway",
-            "content": []
+            "content": [
+                {
+                    "text": "Introducción y Configuración",
+                    "content": "component-librerias-flyway-introduccion"
+                },
+                {
+                    "text": "Migraciones SQL y Comandos",
+                    "content": "component-librerias-flyway-migraciones-y-uso"
+                }
+            ]
         },
         {
             "text": "SpringFox",
             "contentId": "springfox",
-            "content": []
+            "content": [
+                {
+                    "text": "Introducción y Configuración",
+                    "content": "component-librerias-springfox-introduccion"
+                },
+                {
+                    "text": "Anotaciones y Ejemplos",
+                    "content": "component-librerias-springfox-anotaciones-y-ejemplos"
+                }
+            ]
         },
         {
             "text": "Hibernate",
             "contentId": "hibernate",
             "content": [
+                {
+                    "text": "Introducción y Arquitectura",
+                    "content": "component-librerias-hibernate-introduccion"
+                },
                 {
                     "text": "Conceptos Básicos",
                     "contentId": "hibernate-insertion",
@@ -69,6 +99,10 @@
                         {
                             "text": "Inserción",
                             "content": "component-librerias-hibernate-conceptos-basicos-insercion"
+                        },
+                        {
+                            "text": "Operaciones CRUD y Consultas",
+                            "content": "component-librerias-hibernate-conceptos-basicos-consultas-crud"
                         }
                     ]
                 }
@@ -99,8 +133,24 @@
             "href": "https://projectlombok.org/"
         },
         {
+            "text": "ModelMapper",
+            "href": "https://modelmapper.org/"
+        },
+        {
+            "text": "Flyway",
+            "href": "https://documentation.red-gate.com/fd"
+        },
+        {
+            "text": "SpringFox / Swagger",
+            "href": "https://springfox.github.io/springfox/docs/current/"
+        },
+        {
             "text": "Hibernate",
             "href": "https://hibernate.org/"
+        },
+        {
+            "text": "Apache HttpComponents",
+            "href": "https://hc.apache.org/"
         }
     ]
 }
