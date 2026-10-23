@@ -375,9 +375,152 @@ public class BadPetEntity {
     @Id
     private Long id;
     
-    // Impide índices eficientes, validaciones de esquema y comprobaciones de integridad
+    // Impide índices eficientes, validaciones de esquema y consultas sobre campos anidados
     @Column(name = "extra_data_json", length = 4000)
     private String rawJsonPayload;
+}
+</code></pre>
+</div>
+
+---
+
+<h2>6. Tipos Avanzados de PostgreSQL con Hypersistence Utils (Hibernate Types)</h2>
+<p>
+    Bases de datos avanzadas como <b>PostgreSQL</b> ofrecen tipos de datos nativos extraordinariamente potentes que no existen en el estándar ANSI SQL básico ni en la especificación genérica de JPA:
+</p>
+<ul>
+    <li><b>Tipo <code>inet</code> / <code>cidr</code>:</b> Diseñado específicamente para almacenar y validar direcciones de red IPv4 e IPv6 con operadores nativos de contención de subredes.</li>
+    <li><b>Tipo <code>jsonb</code>:</b> Formato JSON binario descompuesto que soporta indexación avanzada (índices GIN) y consultas ultra-rápidas sobre campos internos sin parsear el texto completo.</li>
+    <li><b>Arrays SQL nativos (<code>integer[]</code>, <code>varchar[]</code>, <code>short[]</code>):</b> Almacenan colecciones simples en una sola columna sin necesidad de crear tablas secundarias ni joins adicionales.</li>
+</ul>
+
+<p>
+    Por defecto, Hibernate estándar no reconoce estos tipos nativos y lanza errores de mapeo o intenta serializarlos como BLOBs binarios opacos de Java. La solución estándar en el ecosistema Java es la librería <b>Hypersistence Utils</b> (antiguamente conocida como <code>hibernate-types</code>, creada por Vlad Mihalcea).
+</p>
+
+<h3>6.1. Analogía del Mundo Real: El Adaptador Trifásico Industrial</h3>
+<p>
+    Imaginemos un taller donde la red eléctrica doméstica proporciona enchufes normales de 220V (los tipos SQL estándar: VARCHAR, INTEGER, TIMESTAMP). Para conectar una máquina de corte por plasma industrial (el tipo <code>jsonb</code> o <code>inet</code> nativo de PostgreSQL), no puedes forzar la clavija en un enchufe estándar; necesitas un <b>adaptador trifásico industrial de alta precisión (Hypersistence Utils)</b> que conecte la máquina directamente a la potencia del cuadro sin recalentar la instalación ni perder rendimiento.
+</p>
+
+<h3>6.2. Dependencias del Proyecto</h3>
+<p>
+    Para proyectos con <b>Spring Boot 3.x (Hibernate 6.x)</b>:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml: Hypersistence Utils para Hibernate 6 / Spring Boot 3 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.hypersistence&lt;/groupId&gt;
+    &lt;artifactId&gt;hypersistence-utils-hibernate-63&lt;/artifactId&gt;
+    &lt;version&gt;3.9.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle: Hypersistence Utils para Hibernate 6 / Spring Boot 3
+implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.9.0'
+</code></pre>
+</div>
+
+<p>
+    <i>Nota de retrocompatibilidad (Spring Boot 2.x / Hibernate 5.x):</i> En proyectos legados se utilizaba el artefacto:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle (Legacy Spring Boot 2.x):
+implementation 'com.vladmihalcea:hibernate-types-52:2.21.1'
+</code></pre>
+</div>
+
+<h3>6.3. Ejemplo de Entidad con Tipos Avanzados de PostgreSQL</h3>
+<p>
+    A continuación se ilustra una entidad de dispositivo collar IoT de monitorización veterinaria para mascotas que almacena la dirección IP del dispositivo en una columna <code>inet</code>, un array nativo de banderas de alerta biomédica y un payload <code>jsonb</code> con la telemetría y calibración de sensores:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.device;
+
+import io.hypersistence.utils.hibernate.type.array.ShortArrayType;
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLInet;
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLInetType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.Type;
+
+import java.io.Serializable;
+import java.util.Map;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "pet_health_devices")
+public class PetHealthDeviceEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    @Column(name = "pet_id", nullable = false)
+    private Long petId;
+
+    @Column(name = "device_serial", nullable = false, length = 50)
+    private String deviceSerial;
+
+    // Columna nativa de tipo 'inet' de PostgreSQL para la IP del collar inteligente
+    @Type(PostgreSQLInetType.class)
+    @Column(name = "ip_address", columnDefinition = "inet")
+    private PostgreSQLInet ipAddress;
+
+    // Columna de tipo array SQL nativo 'smallint[]' de PostgreSQL para códigos de alerta cardíaca/térmica
+    @Type(ShortArrayType.class)
+    @Column(name = "alert_flags", columnDefinition = "smallint[]")
+    private short[] alertFlags;
+
+    // Columna binaria 'jsonb' con índice GIN en PostgreSQL para parámetros de calibración de sensores
+    @Type(JsonType.class)
+    @Column(name = "telemetry_settings", columnDefinition = "jsonb")
+    private Map&lt;String, Object&gt; telemetrySettings;
+}
+</code></pre>
+</div>
+
+<h3>6.4. Consultas en Spring Data JPA con Claves Compuestas</h3>
+<p>
+    Cuando se define un repositorio para una entidad con <code>@EmbeddedId</code> (como la pauta de vacunación <code>PetVaccinationScheduleEntity</code>), la clave primaria se parametriza con el tipo de la clase embebida:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository;
+
+import com.example.petshop.model.PetVaccinationScheduleEntity;
+import com.example.petshop.model.PetVaccinationScheduleId;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PetVaccinationScheduleRepository extends JpaRepository&lt;PetVaccinationScheduleEntity, PetVaccinationScheduleId&gt; {
+
+    // Navegación dentro del objeto embebido @EmbeddedId (id.petId)
+    List&lt;PetVaccinationScheduleEntity&gt; findByIdPetId(Long petId);
+
+    // Consulta por mascota y vacuna concreta (id.petId e id.vaccineCode)
+    List&lt;PetVaccinationScheduleEntity&gt; findByIdPetIdAndIdVaccineCode(Long petId, String vaccineCode);
 }
 </code></pre>
 </div>

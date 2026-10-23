@@ -1,0 +1,305 @@
+<h1 class="title">Spring Cloud Config: Servidor y Cliente de Configuración Centralizada</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    En una arquitectura de microservicios distribuida con decenas de aplicaciones independientes y múltiples entornos (desarrollo local, pruebas, preproducción y producción), gestionar archivos de configuración (<code>application.yml</code> o <code>application.properties</code>) empaquetados dentro del propio archivo JAR genera un grave acoplamiento operativo:
+</p>
+<ul>
+    <li>Cualquier cambio en una URL de base de datos, credencial, nivel de logging o parámetro de timeout exige recompilar el microservicio, generar una nueva imagen Docker y reiniciar el contenedor.</li>
+    <li>Es extremadamente difícil auditar quién cambió un parámetro, cuándo se modificó o volver a una versión previa sin recurrir a un despliegue completo de código.</li>
+</ul>
+
+<p>
+    <b>Spring Cloud Config</b> proporciona soporte cliente-servidor para almacenar y gestionar de forma centralizada la configuración externa de todas las aplicaciones de un sistema distribuido, desacoplando completamente el ciclo de vida del código del ciclo de vida de la configuración.
+</p>
+
+<h3>Analogía del mundo real: La Torre de Control y la Señal Horaria Central</h3>
+<p>
+    Imaginemos una flota de 50 barcos navegando por el océano:
+</p>
+<ul>
+    <li><b>Sin Config Server:</b> Cada barco tiene un reloj mecánico independiente dentro de la cabina. Si el almirantazgo decide cambiar la hora o la frecuencia de radio de auxilio, debe enviar una lancha a cada barco en alta mar para desmontar el panel de mandos y ajustar el reloj manualmente.</li>
+    <li><b>Con Spring Cloud Config:</b> Hay un faro central (el <b>Config Server</b>) con una antena de radio. Cada barco (el <b>Config Client</b>), al zarpar, sintoniza la frecuencia del faro y sincroniza su hora y coordenadas. Si el faro emite una actualización, todos los barcos la reciben en directo sin detener su marcha.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una plataforma de gestión de tiendas de mascotas y clínicas veterinarias compuesta por microservicios (<code>pet-service</code>, <code>adoption-service</code>, <code>billing-service</code>) desplegados en 4 entornos: <code>local</code>, <code>dev</code>, <code>uat</code> y <code>prod</code>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema</div>
+            <div class="card-body">
+                <p>Modificar las tarifas de adopción o ajustar los límites de tiempo de reserva de mascotas requiere modificar el código fuente, pasar la batería completa de tests en CI/CD y redesplegar los servicios uno por uno.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución</div>
+            <div class="card-body">
+                <p>Todas las configuraciones residen en un repositorio Git centralizado. El administrador hace un <code>git commit</code> y <code>git push</code> con las nuevas tarifas y lanza un <code>POST /actuator/refresh</code>: la configuración se actualiza en memoria en milisegundos sin reiniciar.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar Spring Cloud Config vs Alternativas?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Solución</th>
+            <th scope="col">Ventajas</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Spring Cloud Config</b></td>
+            <td>Control de versiones Git nativo, cifrado simétrico/asimétrico, refresco dinámico con <code>@RefreshScope</code> y soporte multicapa.</td>
+            <td>Ecosistemas basados fuertemente en Spring Boot, entornos híbridos (on-premise + cloud) o cuando se exige auditoría Git estricta de cambios de configuración.</td>
+            <td>Monolitos simples con una sola instancia o cuando el equipo prefiere no mantener un microservicio adicional.</td>
+        </tr>
+        <tr>
+            <td><b>Kubernetes ConfigMaps y Secrets</b></td>
+            <td>Nativo en la infraestructura del orquestador, agnóstico del lenguaje de programación.</td>
+            <td>Plataformas 100% nativas en clústeres Kubernetes con servicios políglotas (Java, Go, Python, Node).</td>
+            <td>Desarrollo local en máquina de desarrollador (difícil de simular sin clúster) o cuando se requiere refresco dinámico de Beans Java sin reiniciar pods.</td>
+        </tr>
+        <tr>
+            <td><b>HashiCorp Consul / Vault</b></td>
+            <td>Alta disponibilidad distribuida, rotación automática de claves secretas y KV Store en memoria ultrarrápido.</td>
+            <td>Sistemas con altos requerimientos de seguridad bancaria, rotación periódica de credenciales de base de datos y topología multi-datacenter.</td>
+            <td>Equipos pequeños donde desplegar y operar un clúster de Consul/Vault supone una complejidad desproporcionada.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de gestión de configuración distribuida</span>
+
+<h2>4. Dependencias del Proyecto (Maven y Gradle)</h2>
+
+<h3>4.1. Para el Microservicio Servidor (Config Server)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml del Config Server --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-config-server&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle del Config Server
+implementation 'org.springframework.cloud:spring-cloud-config-server'
+</code></pre>
+</div>
+
+<h3>4.2. Para los Microservicios Clientes (Config Clients)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml del Cliente --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;!-- Para refresco dinámico sin reinicio --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle del Cliente
+implementation 'org.springframework.cloud:spring-cloud-starter-config'
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+</code></pre>
+</div>
+
+<h2>5. Implementación del Config Server</h2>
+
+<h3>5.1. Clase Principal con @EnableConfigServer</h3>
+<p>
+    Para habilitar las capacidades de servidor de configuración solo es necesario añadir la anotación <code>@EnableConfigServer</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.configserver;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.config.server.EnableConfigServer;
+
+@EnableConfigServer
+@SpringBootApplication
+public class ConfigServerApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ConfigServerApplication.class, args);
+    }
+}
+</code></pre>
+</div>
+
+<h3>5.2. Configuración del Servidor (application.yml)</h3>
+<p>
+    El servidor se configura para apuntar al repositorio Git donde se encuentran los archivos YAML:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/empresa/microservices-config-repo.git
+          default-label: main
+          clone-on-start: true
+          # Para desarrollo local o carpetas del sistema de ficheros:
+          # native:
+          #   search-locations: classpath:/config,file:///opt/config
+</code></pre>
+</div>
+
+<h3>5.3. Convención de Nombres de Archivos en el Repositorio Central</h3>
+<p>
+    El servidor expone configuraciones bajo el patrón de URL <code>/{application}/{profile}[/{label}]</code>. Los archivos en el repositorio Git siguen esta nomenclatura:
+</p>
+<ul>
+    <li><code>application.yml</code>: Configuración compartida por <b>todos</b> los microservicios del ecosistema de la tienda de mascotas.</li>
+    <li><code>pet-service.yml</code>: Configuración base específica del microservicio <code>pet-service</code> para todos sus entornos.</li>
+    <li><code>pet-service-dev.yml</code>: Configuración de <code>pet-service</code> específica para el perfil <code>dev</code> (sobrescribe la base).</li>
+    <li><code>pet-service-prod.yml</code>: Configuración de producción para <code>pet-service</code>.</li>
+</ul>
+
+<h2>6. Implementación del Config Client</h2>
+
+<h3>6.1. Vinculación en Spring Boot 3.x (spring.config.import)</h3>
+<p>
+    A partir de Spring Boot 2.4 y en todo Spring Boot 3.x, la conexión al Config Server se declara en el archivo <code>application.yml</code> del cliente mediante la directiva <code>spring.config.import</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# application.yml del Microservicio Cliente (Spring Boot 3.x)
+spring:
+  application:
+    name: pet-service
+  profiles:
+    active: dev
+  config:
+    import: "optional:configserver:http://localhost:8888"
+</code></pre>
+</div>
+
+<h3>6.2. Vinculación Legacy en Spring Boot 2.x (bootstrap.yml)</h3>
+<p>
+    En arquitecturas legadas de Spring Boot 2, el cliente utilizaba una fase previa de arranque configurada en <code>bootstrap.yml</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# bootstrap.yml (Legacy Spring Boot 2.x)
+spring:
+  application:
+    name: pet-service
+  profiles:
+    active: local
+  cloud:
+    config:
+      uri: http://localhost:8888
+      fail-fast: true
+      retry:
+        initial-interval: 1500
+        max-attempts: 5
+</code></pre>
+</div>
+
+<h2>7. Refresco en Caliente sin Reinicio: @RefreshScope</h2>
+<p>
+    Por defecto, los Beans de Spring se instancian como <i>Singleton</i> al arrancar la aplicación y sus atributos inyectados mediante <code>@Value</code> o <code>@ConfigurationProperties</code> no vuelven a cambiar.
+</p>
+<p>
+    Anotando la clase con <code>@RefreshScope</code> (del paquete <code>org.springframework.cloud.context.config.annotation.RefreshScope</code>), Spring envuelve el Bean en un proxy dinámico:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RefreshScope
+public class PetAdoptionPricingService {
+
+    @Value("${petshop.adoption.fee-discount:0.10}")
+    private double feeDiscount;
+
+    @Value("${petshop.features.home-delivery-enabled:false}")
+    private boolean homeDeliveryEnabled;
+
+    public double calculateFinalAdoptionFee(double baseFee) {
+        log.info("Calculando tarifa de adopción con descuento recargado: {}", feeDiscount);
+        return baseFee * (1.0 - feeDiscount);
+    }
+}
+</code></pre>
+</div>
+
+<h3>Disparar el Refresco en Caliente vía Actuator</h3>
+<p>
+    Una vez modificado el valor en el repositorio Git, se realiza una petición HTTP POST al endpoint del microservicio cliente:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Petición para forzar la recarga de propiedades en el cliente
+curl -X POST http://localhost:8080/actuator/refresh
+</code></pre>
+</div>
+<p>
+    La respuesta HTTP devolverá un array JSON con las propiedades exactas que han sido actualizadas en memoria sin haber detenido el proceso Java ni una sola milésima de segundo.
+</p>
+
+<h2>8. Seguridad y Cifrado de Secretos ({cipher})</h2>
+<p>
+    Almacenar contraseñas de base de datos o API keys en texto plano en repositorios Git es una mala práctica de seguridad crítica. Spring Cloud Config soporta <b>cifrado simétrico</b> (clave compartida) o <b>asimétrico</b> (par de claves pública/privada RSA).
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# pet-service-prod.yml en el repositorio Git central
+spring:
+  datasource:
+    url: jdbc:postgresql://db.prod.internal:5432/petshopdb
+    username: petshop_user
+    # La contraseña está cifrada con la clave del Config Server:
+    password: '{cipher}AQA7b9zY4K3J1u8...longCipherString...'
+</code></pre>
+</div>
+<p>
+    Cuando el microservicio cliente descarga la configuración, el <b>Config Server descifra automáticamente</b> el valor utilizando su clave privada y se lo entrega al cliente descifrado sobre una conexión segura TLS/HTTPS.
+</p>

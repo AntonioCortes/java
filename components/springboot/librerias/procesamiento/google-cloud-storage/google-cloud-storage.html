@@ -1,0 +1,230 @@
+<h1 class="title">Google Cloud Storage (GCP) en Spring Boot</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    En aplicaciones tradicionales se solía guardar archivos (fotos, contratos, diarios de auditoría, PDFs de facturas) directamente en el disco duro local del servidor (<code>/var/data/uploads/</code>). En arquitecturas modernas de microservicios contenerizadas en <b>Kubernetes o Docker</b>, esto es inviable:
+</p>
+<ul>
+    <li><b>Pods efímeros:</b> Los contenedores se destruyen y recrean constantemente. Al reiniciar un pod, todo archivo guardado en su disco local desaparece para siempre.</li>
+    <li><b>Múltiples réplicas:</b> Si el usuario sube un archivo a la Réplica A y la siguiente petición de descarga la atiende la Réplica B, la Réplica B no tiene el archivo en su disco local.</li>
+</ul>
+
+<p>
+    <b>Google Cloud Storage (GCS)</b> es el servicio administrado de almacenamiento de objetos (*Object Storage*) en la nube de Google Cloud Platform. Proporciona durabilidad del 99.999999999% (11 nueves), cifrado automático en reposo y en tránsito, versionado de objetos y almacenamiento prácticamente ilimitado accesible vía API de red.
+</p>
+
+<h3>Analogía del mundo real: La Bóveda de Custodia Bancaria</h3>
+<p>
+    Imaginemos una notaría:
+</p>
+<ul>
+    <li><b>Disco local del servidor:</b> El notario guarda escrituras y pagarés en una caja de cartón debajo de su mesa de oficina. Si se rompe una tubería o entra un ladrón (el contenedor se reinicia o cae el host físico), todos los documentos originales se destruyen sin posibilidad de recuperación.</li>
+    <li><b>Google Cloud Storage:</b> El notario introduce el documento en una <b>bóveda de custodia bancaria acorazada externa</b> con control biométrico, réplica instantánea en varios búnkeres geográficos y entrega de un ticket seguro con caducidad para que solo el propietario pueda acceder a revisarlo.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>El microservicio <code>pet-service</code> de una red de clínicas veterinarias y centros de adopción gestiona miles de fotos de alta resolución de mascotas, certificados de pedigree y contratos de adopción que deben archivarse con alta disponibilidad.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema</div>
+            <div class="card-body">
+                <p>Guardar fotos de 5 MB de cada mascota en una columna <code>BYTEA / BLOB</code> de PostgreSQL multiplica por 10 el tamaño de la base de datos, colapsa los backups diarios y satura la memoria RAM del motor relacional.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución</div>
+            <div class="card-body">
+                <p>El microservicio sube la fotografía o contrato directamente a un Bucket de Google Cloud Storage mediante el SDK oficial y almacena únicamente la URI del blob en la base de datos relacional. Máximo rendimiento y coste residual de almacenamiento.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar Object Storage vs Alternativas?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Mecanismo</th>
+            <th scope="col">Ventajas</th>
+            <th scope="col">Desventajas</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Google Cloud Storage (GCS / S3)</b></td>
+            <td>Escalabilidad infinita, durabilidad del 99.999999999%, URLs firmadas temporales y coste por gigabyte extremadamente bajo.</td>
+            <td>Latencia de red algo superior a un disco local SSD (decenas de milisegundos).</td>
+            <td><b>Estándar de facto en Cloud:</b> Fotos de perfil, diarios de auditoría, recibos, archivos multimedia y backups.</td>
+        </tr>
+        <tr>
+            <td><b>Columnas BLOB en Base de Datos</b></td>
+            <td>Transaccionalidad ACID atómica junto con el registro relacional.</td>
+            <td>Degradación severa del rendimiento de la base de datos, fragmentación de tablas y encarecimiento drástico del storage de base de datos.</td>
+            <td>Solo para binarios minúsculos (menos de 20 KB) que deban viajar estrictamente ligados a una transacción ACID sin excepciones.</td>
+        </tr>
+        <tr>
+            <td><b>Volúmenes Montados en Red (NFS / PVC)</b></td>
+            <td>Acceso como sistema de archivos estándar de Linux (POSIX).</td>
+            <td>Bloqueos de concurrencia de lectura/escritura (ReadWriteMany), cuellos de botella de red del clúster y complejidad operativa de almacenamiento compartido.</td>
+            <td>Aplicaciones legadas que no soportan el SDK de Cloud y exigen leer rutas fijas en disco (<code>/mnt/data</code>).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de estrategias de almacenamiento de archivos</span>
+
+<h2>4. Dependencias del Proyecto (Maven y Gradle)</h2>
+<p>
+    Spring Cloud GCP proporciona starters dedicados que autoconfiguran automáticamente el cliente <code>Storage</code>:
+</p>
+
+<h3>Maven (pom.xml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter de Google Cloud Storage para Spring Boot en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.google.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-gcp-starter-storage&lt;/artifactId&gt;
+    &lt;version&gt;3.8.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>Gradle (build.gradle)</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Starter de Google Cloud Storage para Spring Boot en build.gradle
+dependencies {
+    implementation 'com.google.cloud:spring-cloud-gcp-starter-storage:3.8.0'
+}
+</code></pre>
+</div>
+
+<h2>5. Configuración de Spring Boot (application.yml)</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  cloud:
+    gcp:
+      project-id: petshop-cloud-production
+      credentials:
+        # En Google Kubernetes Engine (GKE) se recomienda Workload Identity (sin archivos de credenciales).
+        # Para desarrollo local o máquinas virtuales se indica la ruta a la clave de servicio JSON:
+        location: file:/etc/secrets/gcp-service-account.json
+      storage:
+        # Nombre del bucket configurado para la aplicación
+        bucket-name: petshop-adoption-documents
+</code></pre>
+</div>
+
+<h2>6. Implementación del Servicio de Almacenamiento</h2>
+<p>
+    El starter inyecta automáticamente un bean de tipo <code>com.google.cloud.storage.Storage</code> ya autenticado:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.storage.service;
+
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class GoogleCloudStorageService {
+
+    private final Storage storage;
+
+    @Value("${spring.cloud.gcp.storage.bucket-name}")
+    private String bucketName;
+
+    /**
+     * Sube un archivo binario a Google Cloud Storage
+     */
+    public String uploadFile(String destinationBlobPath, byte[] content, String contentType) {
+        log.info("Subiendo archivo a GCS: bucket={}, path={}", bucketName, destinationBlobPath);
+
+        BlobId blobId = BlobId.of(bucketName, destinationBlobPath);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                .setContentType(contentType)
+                .build();
+
+        Blob createdBlob = storage.create(blobInfo, content);
+        log.info("Archivo subido con éxito a GCS con md5={}", createdBlob.getMd5());
+
+        return String.format("gs://%s/%s", bucketName, destinationBlobPath);
+    }
+
+    /**
+     * Descarga los bytes de un archivo almacenado en GCS
+     */
+    public byte[] downloadFile(String blobPath) {
+        log.info("Descargando archivo desde GCS: {}", blobPath);
+        BlobId blobId = BlobId.of(bucketName, blobPath);
+        return storage.readAllBytes(blobId);
+    }
+
+    /**
+     * Genera una Signed URL (URL firmada temporal) para que el frontend descargue
+     * directamente el archivo desde Google Cloud sin pasar por el servidor Spring Boot.
+     */
+    public String generatePresignedDownloadUrl(String blobPath, int durationMinutes) {
+        log.info("Generando URL firmada para {}, validez {} minutos", blobPath, durationMinutes);
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, blobPath).build();
+
+        URL signedUrl = storage.signUrl(
+                blobInfo,
+                durationMinutes,
+                TimeUnit.MINUTES,
+                Storage.SignUrlOption.withV4Signature()
+        );
+
+        return signedUrl.toString();
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Buenas Prácticas y Errores Frecuentes</h2>
+
+<h3>7.1. Usar Signed URLs para Descargas Grandes (No saturar la RAM del Backend)</h3>
+<p>
+    Si 1.000 clientes descargan a la vez un archivo de 50 MB y el servidor Java hace <code>storage.readAllBytes()</code> para enviarlo a través de un <code>ResponseEntity&lt;byte[]&gt;</code>, el proceso necesitará 50 GB de memoria RAM adicional solo para buffers temporales, provocando un <code>OutOfMemoryError</code> inminente.
+</p>
+<p>
+    <b>Solución:</b> Generar una <b>URL firmada con el método <code>generatePresignedDownloadUrl()</code></b>. El cliente web recibe una URL temporal de Google (<code>https://storage.googleapis.com/...</code>) y descarga el archivo directamente desde los servidores de Google Cloud, ahorrando el 100% de la memoria y ancho de banda de nuestro microservicio.
+</p>
+
+<h3>7.2. Anti-patrón: Rutas Absolutas con Barras Iniciales</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ¡ERROR COMÚN EN GOOGLE CLOUD STORAGE!
+// GCS no tiene carpetas reales: todo el path es el nombre del blob.
+// Poner "/fotos/mascotas/2026/perro-max.jpg" creará un blob cuyo nombre empieza por una barra vacía "/",
+// rompiendo la navegación en la consola web de Google Cloud.
+
+// CORRECTO:
+String validPath = "fotos/mascotas/2026/perro-max.jpg"; // Sin barra inicial
+BlobId blobId = BlobId.of(bucketName, validPath);
+</code></pre>
+</div>

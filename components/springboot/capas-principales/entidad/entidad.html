@@ -379,3 +379,174 @@ public class SafeProcessedJSON {
 </code></pre>
 </div>
 <span class="center-horizontal caption">Antipatrón: Bucle infinito StackOverflowError provocado por @Data en relaciones bidireccionales</span>
+
+<h2 class="subtitle">Claves Primarias Compuestas: @EmbeddedId vs @IdClass</h2>
+<p>
+    En modelos relacionales es común encontrar tablas donde la clave primaria no es un único número autoincremental, sino la combinación de dos o más columnas (claves naturales compuestas o registros de asociación en la clínica veterinaria, por ejemplo: código de mascota + código de vacuna + número de dosis). JPA ofrece dos estrategias estándar para mapear estas claves:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">@EmbeddedId (Enfoque Objeto / Recomendado)</th>
+            <th scope="col">@IdClass (Enfoque Relacional Plano)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Estructura</b></td>
+            <td>Los campos de la clave se encapsulan en una clase auxiliar anotada con <code>@Embeddable</code>. La entidad contiene un único atributo anotado con <code>@EmbeddedId</code>.</td>
+            <td>Los campos de la clave se definen como atributos directos en la propia entidad con <code>@Id</code>, y se asocian a una clase clave externa con <code>@IdClass(ClaveId.class)</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Navegabilidad</b></td>
+            <td>Orientado a objetos claro: <code>entidad.getId().getPetId()</code>. La clave es un objeto autocontenido.</td>
+            <td>Plano: <code>entidad.getPetId()</code> directo en la entidad.</td>
+        </tr>
+        <tr>
+            <td><b>Requisitos</b></td>
+            <td>La clase clave debe implementar <code>Serializable</code>, tener constructor por defecto y sobrescribir correctamente <code>equals</code> y <code>hashCode</code>.</td>
+            <td>Mismos requisitos de <code>Serializable</code> y <code>equals/hashCode</code> en la clase externa auxiliar.</td>
+        </tr>
+        <tr>
+            <td><b>Cuándo usarlo</b></td>
+            <td>Recomendado para la inmensa mayoría de casos: mayor cohesión, paso de la clave completa como parámetro único y tipado estricto en repositorios (<code>JpaRepository&lt;PetVaccinationScheduleEntity, PetVaccinationScheduleId&gt;</code>).</td>
+            <td>Sistemas legados con tablas existentes donde se prefiera acceder a los campos clave de forma plana sin llamar a un objeto intermedio.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 4: Comparativa entre @EmbeddedId y @IdClass en JPA</span>
+
+<h3>1. Estrategia con @EmbeddedId y @Embeddable (Recomendada)</h3>
+<p>
+    Primero se define la clase que agrupa los campos de la clave primaria compuesta (calendario de vacunación de la mascota), anotada con <code>@Embeddable</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import lombok.*;
+
+import java.io.Serializable;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode
+@Embeddable
+public class PetVaccinationScheduleId implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Column(name = "pet_id", nullable = false)
+    private Long petId;
+
+    @Column(name = "vaccine_code", nullable = false, length = 30)
+    private String vaccineCode;
+
+    @Column(name = "dose_number", nullable = false)
+    private Integer doseNumber;
+}
+</code></pre>
+</div>
+
+<p>
+    A continuación, la entidad principal declara su identificador utilizando <code>@EmbeddedId</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "pet_vaccination_schedules")
+public class PetVaccinationScheduleEntity {
+
+    @EmbeddedId
+    @EqualsAndHashCode.Include
+    private PetVaccinationScheduleId id;
+
+    @Column(name = "scheduled_date", nullable = false)
+    private LocalDate scheduledDate;
+
+    @Column(name = "administered_date")
+    private LocalDate administeredDate;
+
+    @Column(name = "veterinarian_license", length = 50)
+    private String veterinarianLicense;
+
+    @Column(name = "status", nullable = false, length = 20)
+    private String status;
+}
+</code></pre>
+</div>
+
+<h3>2. Relaciones con Claves Compuestas: @JoinColumns</h3>
+<p>
+    Cuando una entidad relacionada (como el registro de reacciones alérgicas post-vacunales de la mascota) debe referenciar a una tabla cuya clave primaria está formada por varias columnas, se utiliza la anotación <code>@JoinColumns</code> agrupando múltiples <code>@JoinColumn</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "pet_vaccine_reactions")
+public class PetVaccineReactionEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    // Relación que referencia la clave primaria compuesta de PetVaccinationScheduleEntity
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumns({
+        @JoinColumn(name = "pet_id", referencedColumnName = "pet_id", nullable = false),
+        @JoinColumn(name = "vaccine_code", referencedColumnName = "vaccine_code", nullable = false),
+        @JoinColumn(name = "dose_number", referencedColumnName = "dose_number", nullable = false)
+    })
+    private PetVaccinationScheduleEntity vaccinationSchedule;
+
+    @Column(name = "reaction_description", nullable = false, length = 500)
+    private String reactionDescription;
+
+    @Column(name = "severity_level", nullable = false, length = 20)
+    private String severityLevel;
+
+    @Column(name = "recorded_at", nullable = false)
+    private LocalDateTime recordedAt;
+}
+</code></pre>
+</div>

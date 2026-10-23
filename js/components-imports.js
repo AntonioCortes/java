@@ -222,11 +222,13 @@ import '../components/springboot/librerias/developer-tools/docker-compose/docker
 // SpringBoot - Librerías - Procesamiento e I/O
 import '../components/springboot/librerias/procesamiento/spring-batch/spring-batch.js';
 import '../components/springboot/librerias/procesamiento/quartz-scheduler/quartz-scheduler.js';
+import '../components/springboot/librerias/procesamiento/google-cloud-storage/google-cloud-storage.js';
 
 // SpringBoot - Librerías - Spring AI
 import '../components/springboot/librerias/spring-ai/spring-ai/spring-ai.js';
 
 // SpringBoot - Librerías - Spring Cloud
+import '../components/springboot/librerias/spring-cloud/config-server/config-server.js';
 import '../components/springboot/librerias/spring-cloud/distributed-tracing/distributed-tracing.js';
 import '../components/springboot/librerias/spring-cloud/eureka-server/eureka-server.js';
 import '../components/springboot/librerias/spring-cloud/gateway/gateway.js';

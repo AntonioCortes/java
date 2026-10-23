@@ -233,6 +233,10 @@
                         {
                             "text": "Quartz Scheduler",
                             "content": "component-springboot-librerias-procesamiento-quartz-scheduler"
+                        },
+                        {
+                            "text": "Google Cloud Storage",
+                            "content": "component-springboot-librerias-procesamiento-google-cloud-storage"
                         }
                     ]
                 },
@@ -267,6 +271,10 @@
                         {
                             "text": "Trazas distribuidas",
                             "content": "component-springboot-librerias-spring-cloud-distributed-tracing"
+                        },
+                        {
+                            "text": "Config Server",
+                            "content": "component-springboot-librerias-spring-cloud-config-server"
                         }
                     ]
                 },

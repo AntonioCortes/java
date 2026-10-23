@@ -248,3 +248,215 @@ public void badConsumer(PetAdoptedEvent event) {
 <p>
     <b>Solución:</b> Diseñar siempre los consumidores con <b>idempotencia</b> (guardando el ID del evento procesado en una tabla o en Redis con comprobación previa antes de ejecutar acciones críticas).
 </p>
+
+---
+
+<h2>8. Contratos Fuertes con Apache Avro y Confluent Schema Registry</h2>
+<p>
+    Aunque serializar eventos como cadenas JSON es habitual en proyectos pequeños, en arquitecturas empresariales con decenas de microservicios independientes presenta riesgos operativos graves:
+</p>
+<ul>
+    <li><b>Payloads redundantes y pesados:</b> Cada mensaje JSON repite los nombres de todas las claves (<code>"adopterEmail"</code>, <code>"petName"</code>), consumiendo ancho de banda de red y almacenamiento en disco innecesario.</li>
+    <li><b>Falta de tipado estricto en compilación:</b> Un productor puede cambiar el tipo de un campo (de <code>Long</code> a <code>String</code>) sin que ningún compilador avise del error.</li>
+    <li><b>Riesgo de roturas catastróficas en producción:</b> Si un productor elimina o renombra un atributo sin coordinarse con todos los equipos que consumen el Topic, los consumidores fallarán con excepciones de deserialización.</li>
+</ul>
+
+<p>
+    La solución industrial a este problema es la combinación de <b>Apache Avro</b> (formato de serialización binaria ultracompacto basado en esquemas) y <b>Confluent Schema Registry</b> (un servicio centralizado que almacena y valida las versiones de los esquemas).
+</p>
+
+<h3>8.1. Analogía del Mundo Real: El Registro Notarial de Contratos</h3>
+<p>
+    Imaginemos dos empresas cerrando acuerdos mercantiles:
+</p>
+<ul>
+    <li><b>Con JSON sin esquema:</b> Cada empleado escribe los términos del pedido en una servilleta de papel a mano alzada. Si un empleado llama al campo <code>"precio"</code> y el de la otra empresa espera <code>"importe_total"</code>, el pedido se rechaza cuando la mercancía ya está en la puerta del almacén.</li>
+    <li><b>Con Avro y Schema Registry:</b> Ambas empresas redactan un modelo oficial de contrato (el archivo <code>.avsc</code>) y lo depositan ante un <b>Colegio Notarial Central (el Schema Registry)</b>. Cada mensaje que viaja por el camión (Kafka) solo lleva un sello con el identificador del notario y los datos puros en binario. Si una empresa intenta modificar unilateralmente el contrato eliminando una cláusula obligatoria, el notario rechaza el contrato de inmediato impidiendo que el camión salga del muelle.</li>
+</ul>
+
+<h3>8.2. Esquema Avro (.avsc)</h3>
+<p>
+    Los esquemas se definen en formato JSON dentro del directorio <code>src/main/avro/</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-json">
+{
+  "namespace": "com.example.petshop.avro",
+  "type": "record",
+  "name": "PetAdoptedAvroEvent",
+  "doc": "Evento publicado cuando una mascota es formalmente adoptada",
+  "fields": [
+    { "name": "petId", "type": "long", "doc": "Identificador único de la mascota" },
+    { "name": "petName", "type": "string", "doc": "Nombre de la mascota" },
+    { "name": "adopterEmail", "type": "string", "doc": "Correo del adoptante" },
+    { 
+      "name": "adoptionTimestamp", 
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
+      "doc": "Momento exacto de la adopción" 
+    },
+    { 
+      "name": "notes", 
+      "type": ["null", "string"], 
+      "default": null,
+      "doc": "Observaciones opcionales del proceso"
+    }
+  ]
+}
+</code></pre>
+</div>
+
+<h3>8.3. Configuración del Repositorio y Dependencias de Confluent</h3>
+<p>
+    Los serializadores de Avro para Kafka no residen en Maven Central, sino en el repositorio oficial de Confluent:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Repositorio Confluent en pom.xml --&gt;
+&lt;repositories&gt;
+    &lt;repository&gt;
+        &lt;id&gt;confluent&lt;/id&gt;
+        &lt;url&gt;https://packages.confluent.io/maven/&lt;/url&gt;
+    &lt;/repository&gt;
+&lt;/repositories&gt;
+
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;io.confluent&lt;/groupId&gt;
+        &lt;artifactId&gt;kafka-avro-serializer&lt;/artifactId&gt;
+        &lt;version&gt;7.6.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.apache.avro&lt;/groupId&gt;
+        &lt;artifactId&gt;avro&lt;/artifactId&gt;
+        &lt;version&gt;1.11.3&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<p>
+    Configuración equivalente en <b>Gradle</b> incluyendo el plugin para autogenerar las clases Java durante la compilación:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle: Plugins, repositorio y dependencias para Apache Avro
+plugins {
+    id 'com.github.davidmc24.gradle.plugin.avro' version '1.9.1'
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://packages.confluent.io/maven/" }
+}
+
+dependencies {
+    implementation 'io.confluent:kafka-avro-serializer:7.6.0'
+    implementation 'org.apache.avro:avro:1.11.3'
+}
+
+// Configuración de la tarea de generación de código Java a partir de archivos .avsc
+avro {
+    fieldVisibility = "PRIVATE"
+    stringType = "String"
+}
+</code></pre>
+</div>
+
+<h3>8.4. Configuración de Spring Boot (application.yml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: http://localhost:8081
+    consumer:
+      group-id: notification-service-avro-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        schema.registry.url: http://localhost:8081
+        specific.avro.reader: true
+</code></pre>
+</div>
+
+<h3>8.5. Publicación y Consumo de Mensajes con Clases Avro</h3>
+<p>
+    El productor utiliza la clase tipada generada a partir del esquema:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.producer;
+
+import com.example.petshop.avro.PetAdoptedAvroEvent;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PetAdoptedAvroProducer {
+
+    private final KafkaTemplate&lt;String, PetAdoptedAvroEvent&gt; kafkaTemplate;
+    private static final String TOPIC = "pet.adopted.avro.v1";
+
+    public void publishEvent(Long petId, String petName, String email) {
+        // Uso de la clase Java autogenerada con el patrón Builder nativo de Avro
+        PetAdoptedAvroEvent event = PetAdoptedAvroEvent.newBuilder()
+                .setPetId(petId)
+                .setPetName(petName)
+                .setAdopterEmail(email)
+                .setAdoptionTimestamp(Instant.now())
+                .setNotes("Adopción verificada en clínica")
+                .build();
+
+        kafkaTemplate.send(TOPIC, String.valueOf(petId), event)
+                .whenComplete((result, ex) -&gt; {
+                    if (ex == null) {
+                        log.info("Evento Avro emitido con éxito. Schema ID registrado en Schema Registry");
+                    } else {
+                        log.error("Error al emitir evento Avro", ex);
+                    }
+                });
+    }
+}
+</code></pre>
+</div>
+
+<p>
+    Y el consumidor recibe directamente la instancia fuertemente tipada:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.consumer;
+
+import com.example.petshop.avro.PetAdoptedAvroEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+public class PetAdoptedAvroConsumer {
+
+    @KafkaListener(topics = "pet.adopted.avro.v1", groupId = "billing-avro-group")
+    public void onEvent(PetAdoptedAvroEvent event) {
+        log.info("Evento Avro consumido: Mascota={}, ID={}, Email={}",
+                event.getPetName(), event.getPetId(), event.getAdopterEmail());
+    }
+}
+</code></pre>
+</div>

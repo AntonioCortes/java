@@ -416,3 +416,105 @@ public abstract class AbstractIntegrationTest {
 <p>
     Todas las clases de test de integración concretas deben heredar de <code>AbstractIntegrationTest</code> (ej. <code>class PetControllerIntegrationTest extends AbstractIntegrationTest</code>). De esta manera, el contenedor Docker de PostgreSQL arranca <b>una sola vez</b> y el <code>ApplicationContext</code> se reutiliza al 100%, ejecutando decenas de tests de integración en cuestión de segundos.
 </p>
+
+---
+
+<h2>7. Tests End-to-End con REST-Assured y Puerto Real (@LocalServerPort)</h2>
+<p>
+    Mientras que en los tests funcionales de controladores se utiliza <code>RestAssuredMockMvc</code> para evaluar la capa web sin red, en los <b>Tests de Integración End-to-End</b> se arranca un servidor embebido real (Tomcat / Jetty) en un puerto aleatorio libre utilizando <code>webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT</code>.
+</p>
+<p>
+    En este escenario, el cliente <b>REST-Assured estándar (<code>io.rest-assured:rest-assured</code>)</b> abre conexiones TCP/HTTP reales a través del stack de red del sistema operativo, validando el ciclo completo: filtros de seguridad, serialización JSON, lógica de servicios y persistencia física en la base de datos de Testcontainers.
+</p>
+
+<h3>7.1. Dependencias de REST-Assured Estándar</h3>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml: REST-Assured para tests HTTP reales --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.rest-assured&lt;/groupId&gt;
+    &lt;artifactId&gt;rest-assured&lt;/artifactId&gt;
+    &lt;version&gt;5.4.0&lt;/version&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle: REST-Assured para tests HTTP reales
+testImplementation 'io.rest-assured:rest-assured:5.4.0'
+</code></pre>
+</div>
+
+<h3>7.2. Ejemplo de Test de Integración E2E con REST-Assured</h3>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.integration;
+
+import com.example.petshop.dto.PetRequestDTO;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
+
+@DisplayName("Test de Integración End-to-End con REST-Assured y Testcontainers")
+class PetControllerE2ETest extends AbstractIntegrationTest {
+
+    @LocalServerPort
+    private int port;
+
+    @BeforeEach
+    void setUp() {
+        // Vincula REST-Assured al puerto dinámico asignado por Spring Boot al arrancar Tomcat
+        RestAssured.baseURI = "http://localhost";
+        RestAssured.port = port;
+    }
+
+    @Test
+    @DisplayName("Debe persistir una mascota en PostgreSQL real y recuperarla vía HTTP GET")
+    void shouldPersistAndRetrievePetEndToEnd() {
+        // GIVEN: DTO de creación de mascota
+        PetRequestDTO requestDto = PetRequestDTO.builder()
+                .name("Rocky")
+                .species("Canino")
+                .age(4)
+                .vaccinated(true)
+                .build();
+
+        // 1. POST: Creación del recurso en la base de datos real
+        Integer createdId = given()
+                .contentType(ContentType.JSON)
+                .body(requestDto)
+        .when()
+                .post("/api/v1/pets")
+        .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .body("id", notNullValue())
+                .body("name", equalTo("Rocky"))
+                .extract()
+                .path("id");
+
+        // 2. GET: Recuperación y verificación contra la base de datos real
+        given()
+        .when()
+                .get("/api/v1/pets/" + createdId)
+        .then()
+                .statusCode(HttpStatus.OK.value())
+                .contentType(ContentType.JSON)
+                .body("id", equalTo(createdId))
+                .body("name", equalTo("Rocky"))
+                .body("species", equalTo("Canino"))
+                .body("vaccinated", equalTo(true));
+    }
+}
+</code></pre>
+</div>

@@ -203,3 +203,143 @@ public void badMetric(String userEmail, String creditCardToken) {
 <p>
     <b>Regla de Oro:</b> Los tags de las métricas deben tener valores predecibles y acotados (ej. <code>status: success|failure</code>, <code>method: GET|POST</code>, <code>region: eu-west-1</code>), nunca valores libres como IDs de usuario, emails, tokens o UUIDs.
 </p>
+
+---
+
+<h2>7. Métricas Asíncronas con StatsD (Datadog Flavor)</h2>
+<p>
+    Mientras que Prometheus utiliza un modelo <b>Pull</b> (un scraper central realiza peticiones HTTP periódicas al endpoint de la aplicación), plataformas como <b>Datadog</b> o agentes <b>StatsD</b> utilizan un modelo <b>Push no bloqueante vía UDP</b>:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Prometheus (Pull HTTP)</th>
+            <th scope="col">StatsD / Datadog (Push UDP)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Protocolo de Red</b></td>
+            <td>HTTP síncrono sobre TCP (puerto expuesto).</td>
+            <td><b>UDP sin conexión:</b> El microservicio envía datagramas de fuego y olvido (*fire and forget*).</td>
+        </tr>
+        <tr>
+            <td><b>Impacto en la Aplicación</b></td>
+            <td>Genera peticiones HTTP entrantes y serialización de texto bajo demanda.</td>
+            <td><b>Cero bloqueo:</b> Si el agente de Datadog está caído o saturado, los paquetes UDP se descartan sin ralentizar jamás la lógica de negocio.</td>
+        </tr>
+        <tr>
+            <td><b>Sabor (Flavor)</b></td>
+            <td>Formato OpenMetrics / Prometheus nativo.</td>
+            <td>Configurable mediante <code>flavor: datadog</code> para añadir soporte nativo de etiquetas (*tags*) dimensionales.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Comparativa técnica entre Prometheus (Pull) y StatsD (Push)</span>
+
+<h3>7.1. Dependencias de Micrometer StatsD</h3>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml: Registro StatsD para Micrometer --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.micrometer&lt;/groupId&gt;
+    &lt;artifactId&gt;micrometer-registry-statsd&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle: Registro StatsD para Micrometer
+implementation 'io.micrometer:micrometer-registry-statsd'
+</code></pre>
+</div>
+
+<h3>7.2. Configuración en application.yml (Sabor Datadog)</h3>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+management:
+  metrics:
+    export:
+      statsd:
+        enabled: true
+        flavor: datadog
+        host: 127.0.0.1
+        port: 8125
+        step: 10s
+        publish-unchanged-meters: true
+    tags:
+      application: ${spring.application.name}
+      env: production
+</code></pre>
+</div>
+
+---
+
+<h2>8. Logs Centralizados en Formato GELF (Graylog / Logstash)</h2>
+<p>
+    En arquitecturas con múltiples instancias en clúster, almacenar logs en archivos de texto en cada máquina o depender de <code>stdout</code> sin formato estructurado hace inviable correlacionar errores.
+</p>
+<p>
+    <b>GELF (Graylog Extended Log Format)</b> es un formato estándar basado en JSON comprimido que supera las limitaciones del clásico syslog. Mediante la librería <code>biz.paluch.logging:logstash-gelf</code>, Spring Boot envía automáticamente todos sus eventos de log de Logback hacia un servidor central <b>Graylog</b> o <b>Logstash</b> a través de la red (UDP o TCP), inyectando campos adicionales como el host, el entorno y los identificadores de trazabilidad del contexto MDC (<code>traceId</code>, <code>spanId</code>, <code>userId</code>).
+</p>
+
+<h3>8.1. Dependencia de Logstash-GELF</h3>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml: Appender GELF para Logback --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;biz.paluch.logging&lt;/groupId&gt;
+    &lt;artifactId&gt;logstash-gelf&lt;/artifactId&gt;
+    &lt;version&gt;1.15.1&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle: Appender GELF para Logback
+implementation 'biz.paluch.logging:logstash-gelf:1.15.1'
+</code></pre>
+</div>
+
+<h3>8.2. Configuración del Appender en logback-spring.xml</h3>
+<p>
+    Se añade el appender <code>GelfUdpAppender</code> en el archivo <code>src/main/resources/logback-spring.xml</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;configuration&gt;
+    &lt;include resource="org/springframework/boot/logging/logback/defaults.xml"/&gt;
+    &lt;include resource="org/springframework/boot/logging/logback/console-appender.xml"/&gt;
+
+    &lt;!-- Appender UDP para Graylog / Logstash en formato GELF --&gt;
+    &lt;appender name="GELF" class="biz.paluch.logging.gelf.logback.GelfUdpAppender"&gt;
+        &lt;host&gt;graylog-server.internal&lt;/host&gt;
+        &lt;port&gt;12201&lt;/port&gt;
+        &lt;version&gt;1.1&lt;/version&gt;
+        &lt;facility&gt;spring-boot-petshop&lt;/facility&gt;
+        &lt;extractStackTrace&gt;true&lt;/extractStackTrace&gt;
+        &lt;filterStackTrace&gt;true&lt;/filterStackTrace&gt;
+        &lt;includeMdc&gt;true&lt;/includeMdc&gt;
+        &lt;includeFullMdc&gt;true&lt;/includeFullMdc&gt;
+        &lt;maximumMessageSize&gt;8192&lt;/maximumMessageSize&gt;
+
+        &lt;!-- Campos estáticos globales añadidos a cada mensaje JSON --&gt;
+        &lt;additionalFields&gt;environment=production,service=petshop-service&lt;/additionalFields&gt;
+    &lt;/appender&gt;
+
+    &lt;root level="INFO"&gt;
+        &lt;appender-ref ref="CONSOLE"/&gt;
+        &lt;appender-ref ref="GELF"/&gt;
+    &lt;/root&gt;
+&lt;/configuration&gt;
+</code></pre>
+</div>
