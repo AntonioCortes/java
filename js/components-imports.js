@@ -2,6 +2,7 @@
 import '../components/design-patterns/cheatsheet/cheatsheet.js';
 import '../components/design-patterns/explicacion-detallada/explicacion-detallada.js';
 // Ejemplos
+import '../components/design-patterns/ejemplos/gof-introduccion/gof-introduccion.js';
 import '../components/design-patterns/ejemplos/singleton/singleton.js';
 import '../components/design-patterns/ejemplos/factory-method/factory-method.js';
 import '../components/design-patterns/ejemplos/observer/observer.js';
@@ -27,6 +28,7 @@ import '../components/design-patterns/ejemplos/template-method/template-method.j
 import '../components/design-patterns/ejemplos/visitor/visitor.js';
 
 // Java EE
+import '../components/design-patterns/ejemplos/javaee-introduccion/javaee-introduccion.js';
 import '../components/design-patterns/ejemplos/intercepting-filter/intercepting-filter.js';
 import '../components/design-patterns/ejemplos/front-controller/front-controller.js';
 import '../components/design-patterns/ejemplos/view-helper/view-helper.js';
@@ -192,6 +194,37 @@ import '../components/springboot/librerias/spring-data-jpa/paginacion-ordenacion
 import '../components/springboot/librerias/spring-data-jpa/proyecciones/proyecciones.js';
 import '../components/springboot/librerias/spring-data-jpa/rendimiento-n-mas-uno/rendimiento-n-mas-uno.js';
 import '../components/springboot/librerias/spring-data-jpa/auditoria-transacciones/auditoria-transacciones.js';
+
+// SpringBoot - Librerías - Bases de Datos Adicionales
+import '../components/springboot/librerias/bases-de-datos/spring-data-jdbc-r2dbc/spring-data-jdbc-r2dbc.js';
+import '../components/springboot/librerias/bases-de-datos/nosql/nosql.js';
+import '../components/springboot/librerias/bases-de-datos/migraciones/migraciones.js';
+import '../components/springboot/librerias/bases-de-datos/drivers-bbdd/drivers-bbdd.js';
+
+// SpringBoot - Librerías - Web y APIs
+import '../components/springboot/librerias/web/spring-web/spring-web.js';
+import '../components/springboot/librerias/web/spring-webflux/spring-webflux.js';
+import '../components/springboot/librerias/web/springdoc-openapi/springdoc-openapi.js';
+import '../components/springboot/librerias/web/spring-hateoas/spring-hateoas.js';
+
+// SpringBoot - Librerías - Mensajería
+import '../components/springboot/librerias/mensajeria/kafka/kafka.js';
+import '../components/springboot/librerias/mensajeria/rabbitmq/rabbitmq.js';
+
+// SpringBoot - Librerías - Operaciones y Observabilidad (Ops)
+import '../components/springboot/librerias/ops/actuator/actuator.js';
+import '../components/springboot/librerias/ops/metricas-prometheus/metricas-prometheus.js';
+
+// SpringBoot - Librerías - Herramientas de Desarrollo
+import '../components/springboot/librerias/developer-tools/devtools/devtools.js';
+import '../components/springboot/librerias/developer-tools/docker-compose/docker-compose.js';
+
+// SpringBoot - Librerías - Procesamiento e I/O
+import '../components/springboot/librerias/procesamiento/spring-batch/spring-batch.js';
+import '../components/springboot/librerias/procesamiento/quartz-scheduler/quartz-scheduler.js';
+
+// SpringBoot - Librerías - Spring AI
+import '../components/springboot/librerias/spring-ai/spring-ai/spring-ai.js';
 
 // SpringBoot - Librerías - Spring Cloud
 import '../components/springboot/librerias/spring-cloud/distributed-tracing/distributed-tracing.js';

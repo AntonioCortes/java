@@ -1,0 +1,221 @@
+<h1 class="title">Quartz Scheduler: Programación Avanzada de Tareas en Clúster</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    En Spring Boot existen dos formas principales de programar tareas periódicas (cron jobs):
+</p>
+<ul>
+    <li>
+        <b>@Scheduled simple de Spring:</b> La anotación básica incluida en Spring Core. Las tareas se gestionan <b>puramente en la memoria RAM</b> de la instancia de la aplicación.
+    </li>
+    <li>
+        <b>Quartz Scheduler (starter <code>spring-boot-starter-quartz</code> en Spring Initializr):</b> El motor de programación empresarial de nivel industrial. Permite programar tareas complejas y, crucialmente, <b>persistir los trabajos y disparadores en la base de datos</b> (soporte de <code>JobStoreTX</code> o <code>JobStoreCMT</code>).
+    </li>
+</ul>
+
+<h3>¿Por qué @Scheduled falla en microservicios y Quartz es obligatorio?</h3>
+<p>
+    En entornos modernos con <b>Kubernetes o Docker Swarm</b>, las aplicaciones nunca corren en una sola máquina; se despliegan con 2, 5 o 10 réplicas por motivos de alta disponibilidad.
+</p>
+<ul>
+    <li>Si usas <code>@Scheduled(cron = "0 0 8 * * ?")</code> con 4 réplicas en Kubernetes, <b>las 4 réplicas ejecutarán la tarea a las 08:00 AM al mismo tiempo</b>, cobrando cuatro veces a los clientes o enviando cuatro emails duplicados.</li>
+    <li><b>Quartz en modo Clúster</b> utiliza bloqueos a nivel de base de datos (tablas <code>QRTZ_LOCKS</code> y <code>QRTZ_TRIGGERS</code>): cuando llega la hora de ejecución, <b>una sola de las 4 réplicas adquiere el bloqueo y ejecuta el trabajo</b>, mientras las demás continúan en espera. Si la réplica que estaba ejecutando el trabajo cae inesperadamente, otra réplica del clúster detecta el fallo (misfire) y lo completa.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>campanario con varios campaneros</b>:
+</p>
+<ul>
+    <li>Con <code>@Scheduled</code>, hay 4 campaneros sordos en la torre con su propio reloj de pulsera. A las 12:00 en punto, los 4 se tiran a la cuerda y tocan la campana al mismo tiempo con un estruendo ensordecedor y descoordinado.</li>
+    <li>Con <b>Quartz en Clúster</b>, hay una única cuerda con un cerrojo central: a las 12:00, el primer campanero que llega coge la cuerda, echa el pestillo y toca la campana limpiamente; los otros tres ven que el cerrojo está ocupado y continúan barriendo la torre.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Un microservicio de suscripciones veterinarias mensuales factura a los clientes el día 1 de cada mes a las 06:00 AM, desplegado en 3 pods en Kubernetes.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Con @Scheduled simple)</div>
+            <div class="card-body">
+                <p>Las 3 réplicas despiertan a la vez a las 06:00 AM. Se cobran 3 cuotas mensuales simultáneas a cada cliente en su tarjeta bancaria, provocando reclamaciones masivas y bloqueos bancarios.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Quartz Clustered)</div>
+            <div class="card-body">
+                <p>Quartz persiste el Trigger en PostgreSQL con <code>isClustered = true</code>. Un único pod ejecuta la facturación; los demás pods reconocen la reserva y descansan.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar @Scheduled vs Quartz Scheduler?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Característica</th>
+            <th scope="col">@Scheduled (Spring Básico)</th>
+            <th scope="col">Quartz Scheduler</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Almacenamiento</b></td>
+            <td>Solo en memoria RAM (se pierde todo al reiniciar).</td>
+            <td><b>Persistente en Base de Datos SQL</b> (tablas QRTZ).</td>
+        </tr>
+        <tr>
+            <td><b>Soporte Multi-Instancia / Clúster</b></td>
+            <td>No (se ejecuta en todas las réplicas duplicándose).</td>
+            <td><b>Sí (ejecución única coordinada en clúster).</b></td>
+        </tr>
+        <tr>
+            <td><b>Modificación de Tareas en Caliente</b></td>
+            <td>No (requiere recompilar o reiniciar).</td>
+            <td><b>Sí:</b> Permite pausar, reanudar y reprogramar triggers dinámicamente vía API.</td>
+        </tr>
+        <tr>
+            <td><b>Curva de Configuración</b></td>
+            <td>Mínima (solo una anotación).</td>
+            <td>Media (requiere scripts de tablas SQL y configuración).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa entre @Scheduled y Quartz</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Quartz en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-quartz&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
+}
+</code></pre>
+</div>
+
+<h2>5. Configuración de Quartz en Clúster (application.yml)</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  quartz:
+    job-store-type: jdbc # Persistencia en base de datos para modo clúster
+    jdbc:
+      initialize-schema: always # Crea las tablas QRTZ_* automáticamente si no existen
+    properties:
+      org.quartz.jobStore.isClustered: true # Activa la coordinación entre múltiples réplicas
+      org.quartz.jobStore.clusterCheckinInterval: 20000 # Chequeo de latido entre pods cada 20 segundos
+</code></pre>
+</div>
+
+<h2>6. Ejemplo Completo: Creación de un Job y un Trigger con Quartz y Lombok</h2>
+
+<h3>A. Implementación del Trabajo (Job)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.quartz;
+
+import lombok.extern.slf4j.Slf4j;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class MonthlySubscriptionBillingJob implements Job {
+
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        String podName = System.getenv().getOrDefault("HOSTNAME", "local-instance");
+        log.info("Iniciando trabajo de facturación mensual en la instancia clúster: {}", podName);
+
+        try {
+            // Lógica de cobro a clientes
+            processBilling();
+            log.info("Facturación mensual finalizada con éxito");
+        } catch (Exception e) {
+            log.error("Fallo durante la facturación", e);
+            throw new JobExecutionException(e);
+        }
+    }
+
+    private void processBilling() {
+        // Cobro en pasarela de pagos
+    }
+}
+</code></pre>
+</div>
+
+<h3>B. Configuración de JobDetail y CronTrigger</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.quartz;
+
+import org.quartz.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class QuartzConfig {
+
+    // 1. Definición del JobDetail (Metadatos del trabajo)
+    @Bean
+    public JobDetail billingJobDetail() {
+        return JobBuilder.newJob(MonthlySubscriptionBillingJob.class)
+                .withIdentity("monthlyBillingJob", "billingGroup")
+                .withDescription("Trabajo mensual de cobro recurrente")
+                .storeDurably() // Permanece en la BD incluso si no tiene triggers asociados
+                .build();
+    }
+
+    // 2. Definición del Trigger (Horario de ejecución con expresión Cron)
+    @Bean
+    public Trigger billingJobTrigger(JobDetail billingJobDetail) {
+        return TriggerBuilder.newTrigger()
+                .forJob(billingJobDetail)
+                .withIdentity("monthlyBillingTrigger", "billingGroup")
+                // Se ejecuta a las 06:00 AM el día 1 de cada mes
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 6 1 * ?")
+                        .withMisfireHandlingInstructionFireAndProceed())
+                .build();
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo y Error Frecuente: Usar @Scheduled en Clúster sin Mecanismo de Bloqueo</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN EN ARQUITECTURAS DISTRIBUIDAS (KUBERNETES):
+@Scheduled(cron = "0 0 6 1 * ?")
+public void badClusteredScheduled() {
+    // PELIGRO: Si tienes 5 réplicas desplegadas en Kubernetes,
+    // este método se disparará 5 VECES a la vez a las 06:00 AM en los 5 pods distintos.
+    cobrarCuotaMensual();
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar <b>Quartz Scheduler con JDBC JobStore</b> o librerías de bloqueo distribuido como <i>ShedLock</i> sobre bases de datos relacionales o Redis.
+</p>

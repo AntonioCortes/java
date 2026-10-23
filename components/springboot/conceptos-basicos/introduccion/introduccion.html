@@ -1,13 +1,232 @@
-<h1 class="title">Introducción</h1>
+<h1 class="title">Introducción a Spring Boot</h1>
 
 <p>Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can "just run".</p>
 
-<h2>La Anotacion @Component</h2>
+<h2>1. ¿Qué es Spring Boot y qué problema resuelve?</h2>
 <p>
-    El contenedor de Spring autodetecta las clases con la anotación <b>@Component</b>, lo que permite usar dichas clases como dependencias y así poder inyectarlas donde se necesiten.
-    Tiene las mismas funcionalidades que las etiquetas <b>@Service</b>, <b>@Controller</b> y <b>@Repository</b>.
+    <b>Spring Boot</b> es una extensión del framework Spring que elimina la complejidad de configuración tradicional (*boilerplate* y configuración XML masiva). Su objetivo fundamental es permitir a los desarrolladores construir aplicaciones y microservicios listos para producción con un esfuerzo de arranque mínimo, aplicando el principio de <b>convención sobre configuración (opinionated defaults)</b>.
 </p>
 
-TODO:<p>Ciclo de vida de un componente:</p>
-<p>@PostConstruct:</p>
-<p>@PreDestroy:</p>
+<h3>Analogía del mundo real</h3>
+<p>
+    Construir una aplicación con el Spring clásico tradicional equivalía a <b>comprar un mueble de piezas sueltas sin instrucciones</b>: había que seleccionar manualmente el servidor web (Tomcat o Jetty), configurar el despachador de peticiones (<code>DispatcherServlet</code>), conectar las librerías de JSON (Jackson) y configurar a mano los conversores y transacciones.
+    En cambio, <b>Spring Boot es como comprar un electrodoméstico listo para enchufar y encender ("just run")</b>: incluye el servidor web embebido internamente, detecta las librerías añadidas en el archivo de construcción y autoconfigura la infraestructura sin intervención manual.
+</p>
+
+---
+
+<h2>2. Estereotipos de Spring: La Anotación @Component y sus Especializaciones</h2>
+<p>
+    El contenedor de Inversión de Control (IoC) de Spring autodetecta las clases marcadas con la anotación <b>@Component</b> mediante el escaneo de paquetes (<i>Component Scanning</i>), registrándolas como <b>Spring Beans</b> en el contexto de la aplicación para poder inyectarlas donde se necesiten.
+    Tiene las mismas funcionalidades base que las etiquetas especializadas <b>@Service</b>, <b>@Controller</b> y <b>@Repository</b>, pero estas últimas añaden semántica arquitectónica y comportamientos adicionales:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Capa Arquitectónica</th>
+            <th scope="col">Comportamiento Especial y Propósito</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>@Component</b></td>
+            <td>Genérica / Utilitaria</td>
+            <td>Anota cualquier clase gestionada por el contenedor IoC que no encaje de forma estricta en las capas MVC tradicionales (ej. convertidores, clientes de colas, componentes auxiliares).</td>
+        </tr>
+        <tr>
+            <td><b>@Service</b></td>
+            <td>Capa de Negocio (Servicios)</td>
+            <td>Indica que la clase encapsula lógica de negocio, orquestación de operaciones y demarcación transaccional (<code>@Transactional</code>). No añade traducción de excepciones, pero comunica semánticamente el rol en la arquitectura limpia.</td>
+        </tr>
+        <tr>
+            <td><b>@Repository</b></td>
+            <td>Capa de Persistencia (DAOs / Acceso a Datos)</td>
+            <td>
+                Encapsula el acceso y manipulación de datos en la base de datos. <b>Añade traducción automática de excepciones:</b> intercepta excepciones de bajo nivel del driver JDBC o Hibernate y las traduce de forma transparente a la jerarquía de excepciones de Spring (<code>DataAccessException</code>).
+            </td>
+        </tr>
+        <tr>
+            <td><b>@Controller / @RestController</b></td>
+            <td>Capa Web / Presentación (API)</td>
+            <td>Mapea peticiones HTTP, gestiona rutas REST, procesa payloads de entrada y devuelve vistas HTML (<code>@Controller</code>) o datos JSON/XML planos (<code>@RestController</code>).</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>3. Ciclo de Vida de un Bean en Spring Boot</h2>
+<p>
+    Cuando el contenedor de Spring arranca la aplicación, cada componente atraviesa un ciclo de vida rigurosamente ordenado:
+</p>
+
+<ol>
+    <li><b>Instanciación:</b> El contenedor llama al constructor del Bean (o ejecuta el método factory <code>@Bean</code>).</li>
+    <li><b>Inyección de Dependencias:</b> Spring inyecta todos los colaboradores requeridos (mediante inyección por constructor o campos).</li>
+    <li><b>Interfaces "Aware":</b> Si el Bean implementa interfaces como <code>BeanNameAware</code> o <code>ApplicationContextAware</code>, Spring le entrega acceso al contexto.</li>
+    <li><b>Inicialización (@PostConstruct):</b> Se ejecuta el método anotado con <code>@PostConstruct</code> (definido en la especificación Jakarta Annotations). En este punto, <b>todas las dependencias ya están inyectadas</b> y listas para ser utilizadas con total seguridad.</li>
+    <li><b>Fase Activa:</b> El Bean está en servicio atendiendo peticiones concurrentes en la aplicación.</li>
+    <li><b>Destrucción (@PreDestroy):</b> Justo antes de que el contexto de Spring se apague (por ejemplo, al detener el microservicio), se ejecuta el método anotado con <code>@PreDestroy</code> para liberar recursos, cerrar conexiones de red o finalizar hilos en segundo plano de forma limpia.</li>
+</ol>
+
+<h3>Ejemplo Completo del Ciclo de Vida</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.component;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class CacheWarmupComponent {
+
+    public CacheWarmupComponent() {
+        log.info("[PASO 1 - Constructor] Instanciando CacheWarmupComponent. Las dependencias aún no están inyectadas.");
+    }
+
+    @PostConstruct
+    public void init() {
+        log.info("[PASO 2 - @PostConstruct] Componente completamente inicializado con dependencias listas.");
+        log.info("Cargando catálogo inicial de mascotas en la memoria caché...");
+    }
+
+    public void executeTask() {
+        log.info("[PASO 3 - Uso] Ejecutando operación de negocio con el componente activo.");
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        log.info("[PASO 4 - @PreDestroy] Apagando aplicación. Vaciando cachés y cerrando conexiones abiertas...");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de gestión del ciclo de vida de un bean con @PostConstruct y @PreDestroy</span>
+
+---
+
+<h2>4. Ámbitos de los Beans (Bean Scopes)</h2>
+<p>
+    Por defecto, todos los beans en Spring son <b>Singleton</b> (una única instancia por contenedor). Sin embargo, Spring permite modificar el alcance del bean mediante la anotación <code>@Scope</code>:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Ámbito (Scope)</th>
+            <th scope="col">Instancias Creadas</th>
+            <th scope="col">Cuándo Usarlo</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>singleton (por defecto)</b></td>
+            <td>1 única instancia compartida por todo el <code>ApplicationContext</code>.</td>
+            <td>Para servicios, repositorios y controladores sin estado mutable (*stateless*).</td>
+            <td>Clases que mantengan variables de estado que muten por usuario o petición HTTP (provocaría condiciones de carrera concurrentes).</td>
+        </tr>
+        <tr>
+            <td><b>prototype</b></td>
+            <td>Una nueva instancia cada vez que se solicita el bean con <code>getBean()</code> o se inyecta.</td>
+            <td>Objetos con estado mutable específico de una operación o que no sean seguros para hilos (*thread-safe*).</td>
+            <td>Servicios pesados o DAOs sin estado (desperdicia memoria y tiempo de CPU creando objetos idénticos).</td>
+        </tr>
+        <tr>
+            <td><b>request</b></td>
+            <td>Una instancia por cada petición HTTP entrante. Se destruye al finalizar la respuesta.</td>
+            <td>Contextos de auditoría de petición (IP de origen, ID de correlación de traza, tiempo de inicio de la llamada).</td>
+            <td>Aplicaciones no web o procesos batch en segundo plano.</td>
+        </tr>
+        <tr>
+            <td><b>session</b></td>
+            <td>Una instancia por cada sesión HTTP de usuario (mantenida entre múltiples peticiones).</td>
+            <td>Carritos de la compra en aplicaciones con renderizado en servidor tradicional o preferencias de usuario.</td>
+            <td>Arquitecturas de microservicios REST modernas sin estado (*stateless* con JWT).</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>5. Cuándo Usar y Cuándo NO Usar Cada Estereotipo</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Cuándo Usarla</th>
+            <th scope="col">Cuándo NO Usarla</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>@Component</b></td>
+            <td>Para utilidades generales, interceptores, scheduled tasks (<code>@Scheduled</code>) o clientes de colas de mensajería (RabbitMQ / Kafka).</td>
+            <td>En clases de acceso a base de datos (usar <code>@Repository</code>) o servicios de negocio (usar <code>@Service</code>).</td>
+        </tr>
+        <tr>
+            <td><b>@Repository</b></td>
+            <td>En interfaces o clases que acceden a tablas, índices o colecciones persistentes.</td>
+            <td>En controladores o servicios que no realizan operaciones directas de almacenamiento.</td>
+        </tr>
+        <tr>
+            <td><b>@Service</b></td>
+            <td>En clases donde reside la lógica pura, cálculos de precios, validaciones y orquestación.</td>
+            <td>En clases puramente técnicas sin lógica de negocio o en DTOs.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>6. Contraejemplos y Antipatrones Frecuentes</h2>
+
+<h3>Contraejemplo 1: Ejecutar Lógica que Depende de Spring en el Constructor</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Intentar usar dependencias o consultar la BD en el constructor
+@Component
+public class BadInitializationComponent {
+
+    private final PetRepository petRepository;
+
+    public BadInitializationComponent(PetRepository petRepository) {
+        this.petRepository = petRepository;
+        // ERROR: Aunque petRepository esté asignado, el contexto de Spring aún no ha finalizado
+        // de configurar proxies transaccionales ni conexiones. Puede provocar fallos silenciosos.
+        this.petRepository.count(); 
+    }
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Mover la lógica de arranque a un método anotado con <code>@PostConstruct</code> o implementar <code>ApplicationRunner</code>.
+</p>
+
+<h3>Contraejemplo 2: Estado Mutable en un Bean Singleton</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN CATASTRÓFICO: Variable de estado mutable en un Singleton compartido
+@Service
+public class UnsafePetService {
+
+    // PELIGRO: Todos los hilos concurrentes que invoquen el servicio compartirán esta variable.
+    // El usuario B verá los datos del usuario A (Race Condition y fuga de datos).
+    private String currentLoggedInUser; 
+
+    public void processAdoption(Long petId, String username) {
+        this.currentLoggedInUser = username; // Mutación insegura
+        // ...
+    }
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Mantener los servicios estrictamente sin estado (*stateless*), pasando el usuario como argumento local del método o leyéndolo de forma segura para hilos mediante <code>ThreadLocal</code> (como hace <code>SecurityContextHolder</code>).
+</p>

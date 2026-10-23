@@ -191,7 +191,7 @@ zipStorePath=wrapper/dists
 <p>Cuando crees un proyecto nuevo (por ejemplo, en <a href="https://start.spring.io" target="_blank">Spring Initializr</a> o en IntelliJ IDEA), te preguntará qué lenguaje quieres usar para los archivos de Gradle:</p>
 <ul>
     <li><strong>Groovy (<code class="language-bash">build.gradle</code>):</strong> Es el formato clásico y el que encontrarás en el 80% de los proyectos de empresa y respuestas de StackOverflow. Permite omitir paréntesis y usar comillas simples <code class="language-groovy">'...'</code> o dobles <code class="language-groovy">"..."</code>.</li>
-    <li><strong>Kotlin (<code class="language-bash">build.gradle.kts</code>):</strong> Es el formato más reciente con tipado estático. Ofrece mejor autocompletado en IntelliJ IDEA, pero exige usar siempre paréntesis <code class="language-kotlin">implementation("...")</code> y comillas dobles.</li>
+    <li><strong>Kotlin (<code class="language-bash">build.gradle.kts</code>):</strong> Es el formato más reciente con tipado estático. Ofrece mejor autocompletado en IntelliJ IDEA, pero exige usar siempre paréntesis <code class="language-groovy">implementation("...")</code> y comillas dobles.</li>
 </ul>
 
 <div class="center-horizontal">
@@ -208,7 +208,7 @@ dependencies {
 <span class="center-horizontal caption">Ejemplo en Groovy DSL (build.gradle)</span>
 
 <div class="center-horizontal">
-<pre><code class="language-kotlin">
+<pre><code class="language-groovy">
 // 2. Sintaxis equivalente en Kotlin DSL (Archivo: build.gradle.kts)
 plugins {
     id("java")

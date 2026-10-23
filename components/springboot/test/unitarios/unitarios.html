@@ -112,6 +112,21 @@ test {
             <td>JUnit 5</td>
             <td>Ejecuta tareas de limpieza tras la finalización de cada test individual.</td>
         </tr>
+        <tr>
+            <td><code>@ParameterizedTest</code></td>
+            <td>JUnit 5</td>
+            <td>Ejecuta el mismo test múltiples veces con diferentes conjuntos de datos de entrada sin duplicar código.</td>
+        </tr>
+        <tr>
+            <td><code>@ValueSource / @CsvSource</code></td>
+            <td>JUnit 5</td>
+            <td>Proveedores de argumentos literales o tabulares en formato CSV para métodos anotados con <code>@ParameterizedTest</code>.</td>
+        </tr>
+        <tr>
+            <td><code>@MethodSource</code></td>
+            <td>JUnit 5</td>
+            <td>Permite alimentar tests parametrizados mediante un método estático que devuelve un <code>Stream&lt;Arguments&gt;</code>.</td>
+        </tr>
     </tbody>
 </table>
 
@@ -172,6 +187,8 @@ import com.example.petshop.repository.relational.PetJpaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -229,10 +246,18 @@ class PetServiceImplTest {
         // WHEN: Ejecución de la unidad
         PetDTO result = underTest.registerPet(inputDto);
 
-        // THEN: Aserciones con AssertJ y verificación con BDDMockito
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getName()).isEqualTo("Max");
+        // THEN: Aserciones avanzadas con AssertJ (comparación profunda y satisfies)
+        assertThat(result).isNotNull().satisfies(p -> {
+            assertThat(p.getId()).isEqualTo(1L);
+            assertThat(p.getName()).isEqualTo("Max");
+            assertThat(p.isVaccinated()).isTrue();
+        });
+
+        // Verificamos que la entidad guardada coincide profundamente con los datos de entrada
+        assertThat(savedEntity)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .isEqualTo(inputDto);
 
         // Verificamos que el argumento capturado tenía los campos correctos antes de persistir
         PetEntity capturedPet = petArgumentCaptor.getValue();
@@ -241,6 +266,26 @@ class PetServiceImplTest {
 
         // Verificamos que se envió la notificación
         then(notificationService).should().sendWelcomeNotification("Max");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   ", "\t", "\n"})
+    @DisplayName("Tests Parametrizados: Debe rechazar múltiples variantes de nombres en blanco")
+    void shouldThrowIllegalArgumentExceptionForMultipleBlankNameVariants(String blankName) {
+        // GIVEN: DTO con variantes inválidas del nombre
+        PetDTO invalidDto = PetDTO.builder()
+                .name(blankName)
+                .species("Cat")
+                .age((short) 1)
+                .build();
+
+        // WHEN & THEN: Falla la validación temprana para cada variante
+        assertThatThrownBy(() -> underTest.registerPet(invalidDto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("El nombre no puede estar en blanco");
+
+        then(petRepository).shouldHaveNoInteractions();
+        then(notificationService).shouldHaveNoInteractions();
     }
 
     @Test
@@ -355,3 +400,59 @@ void badAssertionTest() {
     <b>Solución con AssertJ:</b> Verificar todos los atributos clave con métodos fluidos:
     <code>assertThat(result).isNotNull().extracting(PetDTO::getName, PetDTO::getAge).containsExactly("Max", (short) 3);</code>.
 </p>
+
+---
+
+<h2>8. Árbol de Decisión: ¿Test Unitario Puro, Test Slice o Integración E2E?</h2>
+<p>
+    Para maximizar la productividad y no ralentizar la batería de integración continua, utilice la siguiente matriz de decisión técnica antes de escribir cualquier test:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Qué Necesitas Verificar</th>
+            <th scope="col">Estrategia Óptima</th>
+            <th scope="col">Anotación Clave</th>
+            <th scope="col">Velocidad Típica</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Reglas de negocio, cálculos de tarifas, validaciones condicionales y algoritmos de servicios.</td>
+            <td><b>Test Unitario Puro</b> (sin Spring)</td>
+            <td><code>@ExtendWith(MockitoExtension.class)</code></td>
+            <td>&lt; 50 ms</td>
+        </tr>
+        <tr>
+            <td>Serialización JSON, formatos de fecha, <code>@JsonProperty</code> y DTOs fuertemente tipados.</td>
+            <td><b>Slice Test JSON</b></td>
+            <td><code>@JsonTest</code> con <code>JacksonTester</code></td>
+            <td>&lt; 500 ms</td>
+        </tr>
+        <tr>
+            <td>Enrutamiento de controladores REST, códigos HTTP, <code>@Valid</code> y manejadores <code>@RestControllerAdvice</code>.</td>
+            <td><b>Slice Test Web</b></td>
+            <td><code>@WebMvcTest</code> con <code>MockMvc</code></td>
+            <td>1 - 2 s</td>
+        </tr>
+        <tr>
+            <td>Consultas derivadas de repositorios JPA, sentencias JPQL, restricciones <code>nullable/unique</code> y mapeo ORM.</td>
+            <td><b>Slice Test Persistencia</b></td>
+            <td><code>@DataJpaTest</code> con <code>TestEntityManager</code></td>
+            <td>2 - 4 s</td>
+        </tr>
+        <tr>
+            <td>Llamadas salientes a microservicios externos o APIs HTTP mediante <code>RestClient</code> / <code>RestTemplate</code>.</td>
+            <td><b>Slice Test Cliente REST</b></td>
+            <td><code>@RestClientTest</code> con <code>MockRestServiceServer</code></td>
+            <td>1 - 2 s</td>
+        </tr>
+        <tr>
+            <td>Flujo completo de extremo a extremo: Petición HTTP real -&gt; Filtros de Seguridad -&gt; Transacción ACID en PostgreSQL real.</td>
+            <td><b>Test de Integración Completo</b></td>
+            <td><code>@SpringBootTest</code> + <code>@ServiceConnection</code> Testcontainers</td>
+            <td>5 - 15 s</td>
+        </tr>
+    </tbody>
+</table>

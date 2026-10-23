@@ -5,20 +5,24 @@
 </style>
 <h1 class="title">Patrón Service to Worker</h1>
 
-<p>El patrón <strong>Service to Worker</strong> es un patrón de la capa de presentación de Java EE en el que un controlador (el <em>Worker</em>) recibe la petición, <strong>coordina e invoca múltiples servicios de negocio pesados</strong>, prepara un modelo de datos completo y finalmente despacha a una vista pasiva para que solo pinte el resultado.</p>
+<p>El patrón <strong>Service to Worker</strong> (Servicio al Trabajador) es un patrón arquitectónico de la capa de presentación de Java EE en el que un controlador de acción (el <em>Worker Controller</em>) recibe la petición entrante, <strong>coordina e invoca los servicios de negocio pesados previamente</strong>, construye un modelo de datos estructurado y finalmente delega el resultado en una vista pasiva (<em>Passive View</em>) cuya única función es renderizar el HTML.</p>
 
-<h2 class="subtitle">Analogía del Mundo Real</h2>
-<p>Piensa en un <strong>Chef Ejecutivo en la cocina de un restaurante</strong> (el <code class="language-java">Worker Controller</code>) y el <strong>Camarero que lleva el plato a la mesa</strong> (la Vista pasiva). Antes de que el plato salga del pase de cocina, el Chef pide la carne a la parrilla, la guarnición a la estación de verduras y la salsa al salsero, emplata todo listo y solo entonces se lo entrega al camarero para que lo sirva en la mesa sin tener que cocinar nada.</p>
+<h2 class="subtitle">Analogía del Mundo Real: El Chef Ejecutivo y el Camarero</h2>
+<p>Imagina la cocina de un restaurante de alta gama:</p>
+<ul>
+    <li>El <strong>Chef Ejecutivo (Worker Controller)</strong> recibe la comanda de la mesa. Antes de sacar el plato, pide la carne a la parrilla, exige la guarnición al repostero, prepara la salsa, emplata cuidando la presentación y verifica que todo esté perfecto.</li>
+    <li>El <strong>Camarero (Vista Pasiva)</strong> únicamente recoge la bandeja ya emplatada y la deposita sobre la mesa del comensal. El camarero no cocina, no asa ni sazona: es un transmisor pasivo que garantiza que el comensal disfrute del plato terminado sin esperas caóticas.</li>
+</ul>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Asegurar una separación estricta donde todo el trabajo pesado de negocio y acceso a datos ocurra <strong>antes</strong> de empezar a renderizar la vista HTML, manteniendo la vista 100% pasiva y limpia.</p>
+<p>Garantizar una separación estricta de responsabilidades impidiendo que las vistas (plantillas JSP, Thymeleaf o HTML) contengan código de acceso a datos o lógica de negocio, asegurando que todo procesamiento crítico ocurra antes de iniciar la generación de la respuesta visual.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Procesamiento Completo de un Pedido antes de Mostrar el Recibo</h2>
-<p><strong>Contexto:</strong> Un cliente pulsa "Comprar ahora". Antes de mostrarle la pantalla de confirmación (<code class="language-java">VistaConfirmacion</code>), el sistema debe comprobar y reservar el stock en <code class="language-java">ServicioInventario</code> y procesar el cobro bancario en <code class="language-java">ServicioPagos</code>.</p>
+<h2 class="subtitle">Caso de Uso Real: Adopción y Check-Out de Mascota en PetShop</h2>
+<p><strong>Contexto:</strong> Cuando un cliente pulsa <em>"Confirmar Adopción"</em> en la plataforma <em>PetShop</em>, el sistema debe: 1) validar que la mascota sigue disponible en <code>PetService</code>, 2) tramitar la fianza en <code>PaymentService</code>, y 3) registrar el contrato legal en <code>ContractService</code> antes de pintar la pantalla de confirmación.</p>
 
-<p><strong>El Problema (Sin Service to Worker):</strong> Si muestras primero la vista y desde mitad del HTML intentas cobrar la tarjeta o consultar el stock, si el cobro falla a mitad de página el usuario verá una pantalla rota e inconsistente.</p>
+<p><strong>El Problema (Sin Service to Worker):</strong> Si se despacha la vista primero y desde el propio archivo HTML/JSP se intenta invocar al servicio de base de datos o pasarela de pagos, si el cobro falla cuando ya se ha transmitido la mitad del HTML, el usuario verá una página rota e inconsistente y el servidor no podrá emitir una cabecera de error HTTP limpia.</p>
 
-<p><strong>La Solución (Con Service to Worker):</strong> El controlador <code class="language-java">ControladorTrabajadorPedido</code> ejecuta primero las llamadas a <code class="language-java">ServicioInventario</code> y <code class="language-java">ServicioPagos</code>. Cuando todo ha terminado con éxito, empaqueta el recibo y se lo entrega listo a <code class="language-java">VistaConfirmacion</code>.</p>
+<p><strong>La Solución (Con Service to Worker):</strong> El controlador <code>AdopcionWorkerController</code> ejecuta todas las operaciones de negocio de forma previa y atómica. Si todo es exitoso, inyecta el recibo en el <code>Model</code> y despacha a la vista pasiva <code>VistaReciboAdopcion</code>.</p>
 
 <h2 class="subtitle">Diagrama de Arquitectura y Participantes</h2>
 
@@ -36,18 +40,18 @@
     <tbody>
         <tr>
             <th scope="row">Worker Controller</th>
-            <td><code class="language-java">ControladorTrabajadorPedido</code></td>
-            <td>Recibe la petición, invoca a los servicios de negocio, construye el modelo de respuesta y selecciona la vista final.</td>
+            <td><code class="language-java">AdopcionWorkerController</code></td>
+            <td>Recibe la acción, coordina las llamadas a servicios de negocio, prepara el modelo y transfiere a la vista pasiva.</td>
         </tr>
         <tr>
             <th scope="row">Business Services</th>
-            <td><code class="language-java">ServicioInventario</code>, <code class="language-java">ServicioPagos</code></td>
-            <td>Ejecutan la lógica de negocio real (reservar unidades en almacén y realizar el cargo financiero).</td>
+            <td><code class="language-java">ServicioInventarioMascotas</code>, <code class="language-java">ServicioPagos</code></td>
+            <td>Ejecutan la persistencia, validaciones de disponibilidad y transacciones monetarias.</td>
         </tr>
         <tr>
             <th scope="row">Passive View (Vista Pasiva)</th>
-            <td><code class="language-java">VistaConfirmacion</code></td>
-            <td>Recibe los datos ya calculados y se limita a pintarlos en pantalla sin ejecutar ninguna lógica de negocio.</td>
+            <td><code class="language-java">VistaReciboAdopcion</code></td>
+            <td>Recibe el modelo ya consolidado y pinta los datos sin referencias a la base de datos ni lógica condicional de negocio.</td>
         </tr>
     </tbody>
 </table>
@@ -57,47 +61,48 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// 1. Servicios de Negocio (Capa de Servicios)
-class ServicioInventario {
-    public boolean reservarStock(String product, int quantity) {
-        System.out.println("📦 [ServicioInventario] Reservando " + quantity + " unidad(es) de: " + product);
+// 1. Servicios de Negocio (Capa de Negocio)
+class ServicioInventarioMascotas {
+    public boolean reservarMascota(String idMascota) {
+        System.out.println("🐾 [Inventario] Reservando mascota ID '" + idMascota + "' para adopción.");
         return true;
     }
 }
 
 class ServicioPagos {
-    public String processPayment(double amount) {
-        System.out.println("💳 [ServicioPagos] Cobrando " + amount + " EUR en la pasarela bancaria...");
-        return "TXN-994810"; // Devuelve el código de recibo bancario
+    public String procesarFianza(double importe) {
+        System.out.println("💳 [PasarelaPagos] Cargo de fianza procesado: " + importe + " EUR.");
+        return "RECIBO-PET-77189";
     }
 }
 
-// 2. Vista Pasiva (Solo pinta los datos que el controlador ya le entrega listos)
-class VistaConfirmacion {
-    public void renderizar(String product, double total, String transactionId) {
-        System.out.println("🖥️ [VistaConfirmacion - HTML] ¡Compra completada!");
-        System.out.println("   Producto : " + product);
-        System.out.println("   Importe  : " + total + " EUR");
-        System.out.println("   Recibo Nº: " + transactionId);
+// 2. Vista Pasiva: Solo renderiza datos entregados listos en el modelo
+class VistaReciboAdopcion {
+    public void render(String idMascota, double total, String codigoRecibo) {
+        System.out.println("🖥️ [VistaRecibo - HTML Generado]");
+        System.out.println("   Mascota Adoptada : " + idMascota);
+        System.out.println("   Fianza Abonada   : " + total + " EUR");
+        System.out.println("   Localizador      : " + codigoRecibo);
     }
 }
 
-// 3. Worker Controller: hace todo el trabajo pesado ANTES de llamar a la vista
-class ControladorTrabajadorPedido {
-    private ServicioInventario inventoryService = new ServicioInventario();
-    private ServicioPagos paymentService = new ServicioPagos();
-    private VistaConfirmacion confirmationView = new VistaConfirmacion();
+// 3. Worker Controller: Orquestación previa completa antes de renderizar
+class AdopcionWorkerController {
+    private final ServicioInventarioMascotas inventario = new ServicioInventarioMascotas();
+    private final ServicioPagos pagos = new ServicioPagos();
+    private final VistaReciboAdopcion vista = new VistaReciboAdopcion();
 
-    public void handleCheckoutRequest(String product, int quantity, double price) {
-        System.out.println("&gt;&gt; [ControladorTrabajadorPedido] Iniciando procesamiento pesado de la petición...");
+    // En Spring MVC equivale a un método @PostMapping que puebla el Model y devuelve la vista
+    public void procesarAdopcion(String idMascota, double fianza) {
+        System.out.println("&gt;&gt; [AdopcionWorkerController] Procesando solicitud pesada de adopción...");
 
-        // Paso 1 y 2: Orquestar la lógica de negocio
-        boolean stockOk = inventoryService.reservarStock(product, quantity);
-        if (stockOk) {
-            String txId = paymentService.processPayment(price * quantity);
+        // Fase 1: Coordinar servicios de negocio antes de la vista
+        boolean disponible = inventario.reservarMascota(idMascota);
+        if (disponible) {
+            String reciboId = pagos.procesarFianza(fianza);
 
-            // Paso 3: Con todos los datos listos, despachamos a la vista pasiva
-            confirmationView.renderizar(product, price * quantity, txId);
+            // Fase 2: Despachar a la vista pasiva con el modelo completo
+            vista.render(idMascota, fianza, reciboId);
         }
     }
 }
@@ -105,51 +110,105 @@ class ControladorTrabajadorPedido {
 </div>
 <span class="center-horizontal caption">Implementación completa del patrón Service to Worker</span>
 
-<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
-
-<ul>
-    <li>
-        <strong>1. La base de los <code class="language-java">@Controller</code> de Spring MVC:</strong>
-        <p>En Spring MVC, cuando un método anotado con <code class="language-java">@PostMapping("/checkout")</code> llama a varios <code class="language-java">@Service</code>, mete los resultados en <code class="language-java">model.addAttribute(...)</code> y al final devuelve <code class="language-java">"confirmation"</code>, estás aplicando exactamente el patrón <strong>Service to Worker</strong>.</p>
-    </li>
-    <li>
-        <strong>2. Vistas "tontas" (<em>Passive Views</em>):</strong>
-        <p><code class="language-java">VistaConfirmacion</code> no tiene ninguna referencia a <code class="language-java">ServicioInventario</code> ni a <code class="language-java">ServicioPagos</code>; solo recibe tipos simples o DTOs ya listos para mostrar.</p>
-    </li>
-</ul>
-
-<h2 class="subtitle">Ejemplo de Uso</h2>
+<h2 class="subtitle">Ejemplo de Uso y Trazas de Consola</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        ControladorTrabajadorPedido workerController = new ControladorTrabajadorPedido();
+        AdopcionWorkerController controller = new AdopcionWorkerController();
 
-        // El usuario envía el formulario de compra
-        workerController.handleCheckoutRequest("Monitor Ultrawide 34\"", 2, 350.00);
+        System.out.println("--- Formalización de Adopción de Mascota ---");
+        controller.procesarAdopcion("DOG-GOLDEN-04", 120.00);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Procesamiento completo de negocio previo al renderizado de la vista</span>
+<span class="center-horizontal caption">Ejecución del flujo Service to Worker</span>
 
 <div class="center-horizontal">
 <pre><code class="language-bash">
 Salida por consola:
-&gt;&gt; [ControladorTrabajadorPedido] Iniciando procesamiento pesado de la petición...
-📦 [ServicioInventario] Reservando 2 unidad(es) de: Monitor Ultrawide 34"
-💳 [ServicioPagos] Cobrando 700.0 EUR en la pasarela bancaria...
-🖥️ [VistaConfirmacion - HTML] ¡Compra completada!
-   Producto : Monitor Ultrawide 34"
-   Importe  : 700.0 EUR
-   Recibo Nº: TXN-994810
+--- Formalización de Adopción de Mascota ---
+&gt;&gt; [AdopcionWorkerController] Procesando solicitud pesada de adopción...
+🐾 [Inventario] Reservando mascota ID 'DOG-GOLDEN-04' para adopción.
+💳 [PasarelaPagos] Cargo de fianza procesado: 120.0 EUR.
+🖥️ [VistaRecibo - HTML Generado]
+   Mascota Adoptada : DOG-GOLDEN-04
+   Fianza Abonada   : 120.0 EUR
+   Localizador      : RECIBO-PET-77189
 </code></pre>
 </div>
-<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+<span class="center-horizontal caption">Trazas que verifican la secuencia estricta: Negocio primero &rarr; Vista pasiva después</span>
+
+<h2 class="subtitle">Diferencias Clave: Service to Worker vs Dispatcher View</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio Arquitectónico</th>
+            <th scope="col">Service to Worker</th>
+            <th scope="col">Dispatcher View</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Lógica Previa a la Vista</th>
+            <td><b>Intensa y transaccional:</b> orquesta múltiples servicios de negocio, repositorios y pagos.</td>
+            <td><b>Mínima o nula:</b> solo validaciones ligeras de rol, sesión o enrutamiento estático.</td>
+        </tr>
+        <tr>
+            <th scope="row">Rol de la Vista</th>
+            <td><b>Vista Pasiva (Passive View):</b> solo pinta el modelo entregado por el controlador.</td>
+            <td><b>Vista Activa con View Helper:</b> la vista puede pedir datos complementarios de presentación bajo demanda.</td>
+        </tr>
+        <tr>
+            <th scope="row">Equivalente Spring MVC</th>
+            <td>Métodos <code>@PostMapping</code> o <code>@GetMapping</code> con consultas cruzadas y servicios.</td>
+            <td>Controladores estáticos o métodos que devuelven directamente un nombre de vista sin llamar a la base de datos.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Matriz comparativa entre Service to Worker y Dispatcher View</span>
+
+<h2 class="subtitle">Contraejemplo: Ejecutar Lógica de Negocio y Base de Datos Dentro de las Vistas</h2>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- ANTIPATRÓN CLÁSICO (JSP Scriptlets o expresiones directas en plantillas) --&gt;
+&lt;html&gt;
+&lt;body&gt;
+    &lt;h1&gt;Confirmación de Pedido&lt;/h1&gt;
+    &lt;%
+        // ERROR GRAVE: Invocar JDBC o pasarelas de pago desde la plantilla
+        // 1. Si falla a mitad de página, el navegador ya habrá renderizado el &lt;h1&gt; y no se puede emitir HTTP 500
+        // 2. Fuga de conexiones JDBC al quedar abiertas en el hilo de renderizado
+        Connection conn = DriverManager.getConnection("jdbc:postgresql://...");
+        Statement stmt = conn.createStatement();
+        stmt.executeUpdate("UPDATE pets SET status = 'ADOPTED' WHERE id = 15");
+    %&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Acoplar lógica de persistencia transaccional en la capa de vista</span>
 
 <h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
-<ul>
-    <li><strong>Cuándo usarlo:</strong> En casi cualquier operación web empresarial que requiera consultar o modificar datos de negocio antes de mostrar la página resultante.</li>
-    <li><strong>Cuándo evitarlo:</strong> Si solo necesitas redirigir a una página estática de ayuda sin tocar ningún servicio de negocio (usa entonces <strong>Dispatcher View</strong>).</li>
-</ul>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Cuándo SÍ Usar Service to Worker</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>En formularios de registro, compras, transacciones financieras o cualquier caso de uso donde el resultado dependa de procesamientos previos en la capa de negocio.</td>
+            <td>En navegación estática simple (pantalla de ayuda, login, páginas de inicio sin datos) donde <strong>Dispatcher View</strong> es mucho más simple y rápido.</td>
+        </tr>
+        <tr>
+            <td>Cuando se requiera garantizar que las vistas sean pasivas y desacopladas de las capas inferiores del sistema.</td>
+            <td>En APIs REST puras donde no existen vistas HTML ni renderizado en servidor (allí se utiliza el controlador REST directo delegando en el Application Service).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Criterios de adopción de Service to Worker</span>

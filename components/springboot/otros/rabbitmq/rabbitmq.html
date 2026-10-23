@@ -199,11 +199,11 @@ dependencies {
     </li>
     <li>
         <b>RabbitTemplate:</b> Clase ubicada en <code>org.springframework.amqp.rabbit.core.RabbitTemplate</code>. Es el utilitario central para enviar y recibir mensajes de forma reactiva o imperativa. Su método principal es:
-        <div class="center-horizontal">
-        <pre><code class="language-java">
-        rabbitTemplate.convertAndSend(exchangeName, routingKey, payloadObject);
-        </code></pre>
-        </div>
+<div class="center-horizontal">
+<pre><code class="language-java">
+rabbitTemplate.convertAndSend(exchangeName, routingKey, payloadObject);
+</code></pre>
+</div>
     </li>
     <li>
         <b>Jackson2JsonMessageConverter:</b> Componente de <code>org.springframework.amqp.support.converter.Jackson2JsonMessageConverter</code>. Reemplaza el serializador nativo de Java por serialización estándar JSON, permitiendo interoperabilidad con servicios escritos en Python, Node.js o Go y mitigando fallos de seguridad.

@@ -1,50 +1,60 @@
-<h1 class="title">Archivo de configuración</h1>
+<h1 class="title">Archivos de Configuración en Spring Boot</h1>
 
-<p>En Spring el archivo de configuración se encuentra dentro de la carpeta de <b>resources</b>. Este puede tener la extensión <b>.yml</b> o <b>.properties</b></p>
+<h2>1. ¿Qué son y dónde residen los archivos de configuración?</h2>
+<p>
+    En Spring Boot, la configuración de la aplicación se centraliza en el directorio <code>src/main/resources/</code>. El framework soporta de forma nativa dos formatos equivalentes:
+</p>
+<ul>
+    <li><b>YAML (<code>application.yml</code>):</b> Formato jerárquico y legible basado en sangría de espacios que evita repetir prefijos. Es el estándar ampliamente preferido en arquitecturas cloud y microservicios modernos.</li>
+    <li><b>Properties (<code>application.properties</code>):</b> Formato clásico basado en pares clave=valor planos (<code>clave=valor</code>).</li>
+</ul>
 
-<p>Ejemplo de <b>application.yml</b>:</p>
+---
 
+<h2>2. Ejemplos Prácticos de Configuración</h2>
+
+<h3>2.1. Ejemplo de application.yml (PostgreSQL, RabbitMQ, Zipkin y Eureka)</h3>
 <div class="center-horizontal">
 <pre><code class="language-yaml">
 server:
-    port: 8080
+  port: 8080
 spring:
-    application:
-        name: customer
-    datasource:
-        password: password
-        url: jdbc:postgresql://localhost:5432/customer
-        username: amigoscode
-    jpa:
-        hibernate:
-            ddl-auto: create-drop
-        properties:
-            hibernate:
-                dialect: org.hibernate.dialect.PostgreSQLDialect
-                format_sql: true
-        show-sql: true
-    zipkin:
-        base-url: http://localhost:9411
-    rabbitmq:
-        addresses: localhost:5672
+  application:
+    name: pet-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/petshop_db
+    username: pet_user
+    password: pet_password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  zipkin:
+    base-url: http://localhost:9411
+  rabbitmq:
+    addresses: localhost:5672
 eureka:
-    client:
-        service-url:
-            defaultZone: http://localhost:8761/eureka
-        fetch-registry: true
-        register-with-eureka: true
-        enabled: false
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    fetch-registry: true
+    register-with-eureka: true
+    enabled: false
 </code></pre>
 </div>
+<span class="center-horizontal caption">Configuración en application.yml con base de datos, mensajería y registro en Eureka</span>
 
-<p>Ejemplo de <b>application.properties</b>:</p>
-
+<h3>2.2. Ejemplo de application.properties (MySQL 8.0 y Configuración de Subida de Archivos)</h3>
 <div class="center-horizontal">
 <pre><code class="language-properties">
 # DATASOURCE (MySQL 8.0)
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.hibernate.ddl-auto=update
-#DB path, name, pass, etc
+# DB path, name, pass, etc
 spring.datasource.url=jdbc:mysql://localhost:3306/trailers?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
 spring.datasource.username=admin
 spring.datasource.password=admin
@@ -57,32 +67,188 @@ spring.jpa.show-sql=true
 # Table names physically
 spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
-
 spring.main.allow-circular-references=true
 spring.jpa.properties.hibernate.event.merge.entity_copy_observer=allow
 spring.jpa.defer-datasource-initialization=true
 
-# Files
-
+# Files / Multipart Upload
 spring.servlet.multipart.enabled=true
 server.servlet.multipart.max-file-size=10MB
 server.servlet.multipart.max-request-size=10MB
 </code></pre>
 </div>
+<span class="center-horizontal caption">Configuración en application.properties para MySQL y subida de archivos Multipart</span>
 
-<p>Para añadir una base de datos h2 la configuración es:</p>
-
+<h3>2.3. Configuración de Base de Datos H2 en Memoria</h3>
+<p>
+    Para prototipos rápidos o consolas web de diagnóstico en memoria:
+</p>
 <div class="center-horizontal">
 <pre><code class="language-yaml">
 spring:
   h2:
     console:
-        enabled : "true"
-        path : "/h2"
-datasource:
-    url: "jdbc:h2:mem:memDb"
-    driverClassName : "org.h2.Driver"
-    username : "sa"
-    password : ""
+      enabled: true
+      path: /h2
+  datasource:
+    url: jdbc:h2:mem:memDb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+</code></pre>
+</div>
+<span class="center-horizontal caption">Configuración de H2 en memoria con consola web habilitada en /h2</span>
+
+---
+
+<h2>3. Jerarquía y Precedencia de Configuración en Spring Boot</h2>
+<p>
+    Spring Boot permite sobreescribir valores de configuración sin recompilar el código mediante una <b>jerarquía de precedencia estricta</b>. De menor a mayor prioridad:
+</p>
+<ol>
+    <li>Valores por defecto internos de los starters.</li>
+    <li>Archivo base empaquetado: <code>application.yml</code> dentro del JAR.</li>
+    <li>Archivo de perfil específico: <code>application-{perfil}.yml</code> (ej. <code>application-prod.yml</code>).</li>
+    <li>Archivo externo fuera del JAR (en la carpeta <code>./config/</code> del servidor).</li>
+    <li><b>Variables de Entorno del Sistema Operativo:</b> (ej. <code>SPRING_DATASOURCE_PASSWORD=miPasswordSeguro</code>). Sustituyen puntos y guiones por guiones bajos.</li>
+    <li><b>Argumentos de Línea de Comandos:</b> (ej. <code>java -jar app.jar --server.port=9090</code>). Tienen la máxima prioridad absoluta.</li>
+</ol>
+
+---
+
+<h2>4. Gestión de Perfiles (Spring Profiles)</h2>
+<p>
+    Los perfiles permiten segregar configuraciones según el entorno de despliegue (Desarrollo, Pruebas, Preproducción, Producción):
+</p>
+<ul>
+    <li><code>application.yml</code>: Configuraciones comunes a todos los entornos (nombre de la aplicación, endpoints genéricos).</li>
+    <li><code>application-dev.yml</code>: Base de datos local (PostgreSQL en Docker), <code>show-sql: true</code> y logs en <code>DEBUG</code>.</li>
+    <li><code>application-prod.yml</code>: Clúster de base de datos cloud con pool HikariCP optimizado, logs en <code>WARN/INFO</code> y credenciales leídas por variables de entorno.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Activar perfil por variable de entorno:
+export SPRING_PROFILES_ACTIVE=prod
+java -jar target/pet-service.jar
+
+# Activar perfil por argumento de terminal:
+java -jar target/pet-service.jar --spring.profiles.active=dev
+</code></pre>
+</div>
+
+---
+
+<h2>5. Lectura Tipada con @ConfigurationProperties</h2>
+<p>
+    Aunque la anotación <code>@Value("${clave}")</code> es útil para inyectar una propiedad individual, la mejor práctica en Spring Boot es agrupar propiedades relacionadas mediante <b>@ConfigurationProperties</b>, aportando tipado fuerte, validación y autocompletado en el IDE:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# application.yml
+app:
+  petshop:
+    max-pets-per-owner: 5
+    enable-sms-notifications: true
+    support-email: soporte@petshop.com
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.config;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
+
+@Getter
+@Setter
+@Validated
+@Configuration
+@ConfigurationProperties(prefix = "app.petshop")
+public class PetShopProperties {
+
+    @Min(value = 1, message = "El límite de mascotas debe ser al menos 1")
+    private int maxPetsPerOwner;
+
+    private boolean enableSmsNotifications;
+
+    @NotBlank
+    @Email
+    private String supportEmail;
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Mapeo de propiedades tipadas y validadas con @ConfigurationProperties y Lombok</span>
+
+---
+
+<h2>6. Cuándo Usar @Value frente a @ConfigurationProperties</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">@Value</th>
+            <th scope="col">@ConfigurationProperties</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Tipo de Uso</b></td>
+            <td>Propiedades aisladas, flags simples o constantes rápidas.</td>
+            <td>Configuraciones estructuradas, jerárquicas o con múltiples atributos.</td>
+        </tr>
+        <tr>
+            <td><b>Validación con Bean Validation</b></td>
+            <td>No soportada.</td>
+            <td><b>Soportada con <code>@Validated</code></b> (falla en el arranque si los valores son inválidos).</td>
+        </tr>
+        <tr>
+            <td><b>Soporte de Expresiones SpEL</b></td>
+            <td><b>Sí</b> (<code>@Value("#{systemProperties['user.home']}")</code>)</td>
+            <td>No.</td>
+        </tr>
+        <tr>
+            <td><b>Autocompletado en IDE</b></td>
+            <td>No disponible.</td>
+            <td><b>Sí</b> (generando metadatos con <code>spring-boot-configuration-processor</code>).</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>7. Contraejemplos de Seguridad en Configuración</h2>
+
+<h3>Contraejemplo: Credenciales Secretas Hardcodeadas en el Repositorio Git</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# ANTIPATRÓN CRÍTICO DE SEGURIDAD: Contraseñas en texto plano versionadas en Git
+spring:
+  datasource:
+    url: jdbc:postgresql://servidor-produccion.com:5432/db
+    username: superadmin
+    password: PasswordSecreta1234! # Expuesta en el repositorio de código
+</code></pre>
+</div>
+<p>
+    <b>Solución Segura:</b> Utilizar referencias a variables de entorno con valores por defecto para local:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# BUENA PRÁCTICA: Inyección de secretos por variables de entorno
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/petshop}
+    username: ${DB_USERNAME:petuser}
+    password: ${DB_PASSWORD} # Obligatorio inyectar en producción (AWS Secrets Manager, Vault o K8s Secrets)
 </code></pre>
 </div>

@@ -1,0 +1,250 @@
+<h1 class="title">Spring for Apache Kafka: Mensajería Asíncrona y Streaming Distribuido</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    En arquitecturas de microservicios distribuidos, la comunicación directa síncrona vía HTTP REST puede generar cuellos de botella y acoplamiento temporal: si el servicio de facturación se cae o responde lento, el servicio de pedidos se bloquea.
+</p>
+<p>
+    <b>Spring for Apache Kafka</b> (dependencia <code>spring-kafka</code> en Spring Initializr) proporciona una integración de alto nivel con <b>Apache Kafka</b>, la plataforma de mensajería distribuida y procesamiento de flujos de eventos (*event streaming*) líder del mercado.
+</p>
+<ul>
+    <li><b>Desacoplamiento Total:</b> Los microservicios productores emiten eventos a un <i>Topic</i> de Kafka sin saber quién los consume ni cuándo.</li>
+    <li><b>Persistencia y Reproducibilidad:</b> A diferencia de una cola tradicional en memoria, Kafka guarda los mensajes en disco de forma ordenada e inmutable según su política de retención, permitiendo que nuevos consumidores procesen eventos históricos desde el principio (replay).</li>
+    <li><b>Escalado Horizontal Masivo:</b> Gracias a las <b>Particiones</b> y los <b>Consumer Groups</b>, múltiples instancias de un mismo microservicio pueden procesar millones de mensajes por segundo en paralelo sin duplicar trabajo.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>periódico matutino de noticias</b>:
+</p>
+<ul>
+    <li>El periodista (<strong>el Productor</strong>) escribe un artículo sobre una adopción y lo publica en la sección de noticias locales (<strong>el Topic de Kafka</strong>).</li>
+    <li>El periodista no llama por teléfono uno a uno a 50.000 ciudadanos (no hace 50.000 llamadas HTTP bloqueantes). Simplemente publica la noticia.</li>
+    <li>Los lectores (<strong>los Consumidores</strong>) compran el periódico y leen a su propio ritmo. Si un lector está de viaje durante tres días, al regresar puede leer los periódicos atrasados en orden (<strong>los Offsets</strong>) sin perder ninguna información.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Al completarse la adopción de una mascota en <code>pet-service</code>, se deben disparar múltiples acciones: emitir factura contable en <code>billing-service</code>, enviar email con consejos en <code>notification-service</code> y reservar cita veterinaria en <code>clinic-service</code>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Llamadas HTTP Síncronas)</div>
+            <div class="card-body">
+                <p><code>pet-service</code> llama en cadena por HTTP a los tres servicios. Si <code>notification-service</code> tarda 3 segundos en conectar con el servidor SMTP, la adopción se bloquea, la experiencia de usuario se degrada y si el servidor de correo falla, la transacción entera se aborta.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Apache Kafka)</div>
+            <div class="card-body">
+                <p><code>pet-service</code> publica el evento <code>PetAdoptedEvent</code> en Kafka en 2 milisegundos y confirma la adopción al usuario. <code>billing</code>, <code>notification</code> y <code>clinic</code> consumen el evento de forma asíncrona a su propio ritmo con total tolerancia a fallos.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar Kafka vs Colas Tradicionales (RabbitMQ)?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Apache Kafka</th>
+            <th scope="col">RabbitMQ (AMQP)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Modelo de Arquitectura</b></td>
+            <td><b>Log distribuido continuo (Append-only)</b> particionado y persistente en disco.</td>
+            <td><b>Colas de mensajes tradicionales</b> (los mensajes se destruyen una vez confirmados / acked).</td>
+        </tr>
+        <tr>
+            <td><b>Rendimiento y Volumen</b></td>
+            <td><b>Extremo:</b> Cientos de miles / millones de eventos por segundo.</td>
+            <td>Alto: Decenas de miles de mensajes por segundo.</td>
+        </tr>
+        <tr>
+            <td><b>Replay de Mensajes</b></td>
+            <td><b>Soportado nativamente:</b> Un consumidor puede rebobinar su offset y reprocesar el histórico.</td>
+            <td>No soportado: una vez consumido el mensaje desaparece de la cola.</td>
+        </tr>
+        <tr>
+            <td><b>Enrutamiento Dinámico Complejo</b></td>
+            <td>Básico (basado en Topics y Particiones fijas).</td>
+            <td><b>Muy avanzado:</b> Exchanges Topic, Direct, Fanout y Headers con comodines (`*.order.#`).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa arquitectónica entre Apache Kafka y RabbitMQ</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring for Apache Kafka en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.kafka&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-kafka&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.kafka:spring-kafka'
+}
+</code></pre>
+</div>
+
+<h2>5. Configuración en Spring Boot (application.yml)</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all # Garantiza que todas las réplicas confirmaron el mensaje
+    consumer:
+      group-id: pet-notification-group
+      auto-offset-reset: earliest # Lee desde el principio si no hay offset previo
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.example.petshop.*"
+</code></pre>
+</div>
+
+<h2>6. Ejemplo Completo: Productor y Consumidor de Eventos con Lombok</h2>
+
+<h3>A. DTO del Evento Inmutable</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.event;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class PetAdoptedEvent {
+    private Integer petId;
+    private String petName;
+    private String adopterEmail;
+    private LocalDateTime timestamp;
+}
+</code></pre>
+</div>
+
+<h3>B. Productor Kafka (KafkaTemplate)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.producer;
+
+import com.example.petshop.event.PetAdoptedEvent;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PetEventProducer {
+
+    private static final String TOPIC_PET_ADOPTED = "pet.adopted.v1";
+
+    private final KafkaTemplate&lt;String, PetAdoptedEvent&gt; kafkaTemplate;
+
+    public void publishPetAdopted(PetAdoptedEvent event) {
+        log.info("Publicando evento de adopción en Kafka: {}", event);
+
+        // La clave petId asegura que todos los eventos de la misma mascota vayan a la misma partición
+        kafkaTemplate.send(TOPIC_PET_ADOPTED, String.valueOf(event.getPetId()), event)
+                .whenComplete((result, ex) -&gt; {
+                    if (ex == null) {
+                        log.info("Evento entregado con éxito a la partición {} con offset {}",
+                                result.getRecordMetadata().partition(),
+                                result.getRecordMetadata().offset());
+                    } else {
+                        log.error("Fallo crítico publicando evento en Kafka", ex);
+                    }
+                });
+    }
+}
+</code></pre>
+</div>
+
+<h3>C. Consumidor Kafka (@KafkaListener)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.consumer;
+
+import com.example.petshop.event.PetAdoptedEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.retrytopic.DltStrategy;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+public class PetNotificationConsumer {
+
+    // Reintentos automáticos con backoff exponencial y envío a Dead Letter Topic (DLT) si agota reintentos
+    @RetryableTopic(
+            attempts = "3",
+            backoff = @Backoff(delay = 1000, multiplier = 2.0),
+            dltStrategy = DltStrategy.FAIL_ON_ERROR
+    )
+    @KafkaListener(topics = "pet.adopted.v1", groupId = "notification-service-group")
+    public void onPetAdopted(PetAdoptedEvent event) {
+        log.info("Evento recibido en el consumidor: Mascota {} adoptada por {}", 
+                event.getPetName(), event.getAdopterEmail());
+
+        // Lógica de envío de email o notificación push
+        sendWelcomeEmail(event.getAdopterEmail(), event.getPetName());
+    }
+
+    private void sendWelcomeEmail(String email, String petName) {
+        log.info("Email de bienvenida enviado con éxito a {}", email);
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo y Error Frecuente: Falta de Idempotencia en el Consumidor</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Asumir que Kafka entrega los mensajes exactamente una sola vez sin verificar
+@KafkaListener(topics = "pet.adopted.v1")
+public void badConsumer(PetAdoptedEvent event) {
+    // PELIGRO: Ante un reinicio de red o rebalanceo de partición, Kafka puede reenviar el mensaje.
+    // Si no verificas si ya procesaste este event.getPetId(), cobrarás dos veces al cliente o enviarás dos emails.
+    cobrarTarjeta(event); 
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Diseñar siempre los consumidores con <b>idempotencia</b> (guardando el ID del evento procesado en una tabla o en Redis con comprobación previa antes de ejecutar acciones críticas).
+</p>

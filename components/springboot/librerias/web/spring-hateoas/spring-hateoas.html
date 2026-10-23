@@ -1,0 +1,189 @@
+<h1 class="title">Spring HATEOAS: APIs RESTful Nivel 3 y Enlaces de Hipermedia</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    En el <b>Modelo de Madurez de Richardson</b> para APIs REST, existen cuatro niveles (Nivel 0: POX/SOAP, Nivel 1: Recursos con URLs, Nivel 2: Verbos HTTP como GET/POST/PUT/DELETE y Nivel 3: <b>Controles de Hipermedia / HATEOAS</b>).
+</p>
+<p>
+    <b>Spring HATEOAS</b> (starter <code>spring-boot-starter-hateoas</code> en Spring Initializr) es la librería que permite implementar el <b>Nivel 3 de Richardson</b>: cada respuesta JSON no solo incluye los datos del recurso, sino también un bloque de <b>enlaces de navegación inteligentes (<code>_links</code>)</b> que indican al cliente qué acciones o transiciones de estado puede realizar a continuación.
+</p>
+<ul>
+    <li><b>Desacoplamiento Total de URLs:</b> El cliente frontend no necesita memorizar o construir URLs complejas a mano; simplemente navega siguiendo los enlaces devueltos por el servidor (formato estándar <b>HAL - Hypertext Application Language</b>).</li>
+    <li><b>Navegación Dinámica según el Estado:</b> Si una mascota ya ha sido adoptada, el servidor omite el enlace <code>"adopt"</code> y muestra solo <code>"medical-history"</code>, guiando la interfaz de usuario automáticamente.</li>
+    <li><b>WebMvcLinkBuilder:</b> Utilidad de Spring que genera enlaces fuertemente tipados vinculados directamente a métodos de controladores, evitando URLs rotas si se refactorizan rutas.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>cajero automático bancario</b>:
+</p>
+<ul>
+    <li>En un sistema sin HATEOAS, el cajero es una pantalla de terminal antigua donde tienes que teclear de memoria el comando <code>/cuenta/123/retirar?cantidad=50</code>. Si te equivocas de sintaxis, falla.</li>
+    <li>Con <b>HATEOAS</b>, introduces la tarjeta e inmediatamente la pantalla te muestra botones claros: <i>[Consultar Saldo]</i>, <i>[Retirar Efectivo]</i>, <i>[Transferir]</i>. Si tu saldo es cero, el botón de retirar desaparece automáticamente de la pantalla porque el servidor te guía en función del estado de tu cuenta.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una plataforma de adopción de mascotas tiene un flujo de estados: <i>Disponible &rarr; En Proceso de Adopción &rarr; Adoptada &rarr; En Seguimiento</i>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin HATEOAS)</div>
+            <div class="card-body">
+                <p>La aplicación frontend tiene que replicar toda la lógica de negocio en JavaScript: si el estado es 'ADOPTADA', ocultar el botón de adoptar, calcular la URL de vacunas a mano y arriesgarse a desincronizaciones cuando la API cambia de versión.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Spring HATEOAS)</div>
+            <div class="card-body">
+                <p>La API devuelve el recurso envuelto en <code>EntityModel&lt;PetDTO&gt;</code> con sus hipermedios calculados por el servidor. El cliente simplemente renderiza los botones a los que apuntan los enlaces <code>_links</code>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar HATEOAS y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>APIs públicas de gran escala o sistemas con flujos de estado complejos donde se busque desacoplar al 100% el frontend del enrutamiento de URLs.</td>
+            <td><b>USAR Spring HATEOAS</b></td>
+            <td>Permite cambiar rutas en el servidor sin romper las aplicaciones cliente y autodescribe las acciones disponibles.</td>
+        </tr>
+        <tr>
+            <td>Microservicios internos de alta velocidad, streaming reactivo o APIs CRUD simples.</td>
+            <td><b>NO usar HATEOAS</b></td>
+            <td>Añade una sobrecarga innecesaria en el tamaño del payload JSON y en el cálculo de enlaces para servicios simples.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Cuándo aplicar HATEOAS</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring HATEOAS en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-hateoas&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+}
+</code></pre>
+</div>
+
+<h2>5. Ejemplo Completo: Controlador con Enlaces de Hipermedia HAL</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.controller.hateoas;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.service.PetService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+@RestController
+@RequestMapping("/api/v1/hateoas/pets")
+@RequiredArgsConstructor
+public class PetHateoasController {
+
+    private final PetService petService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;EntityModel&lt;PetDTO&gt;&gt; getPetWithHypermedia(@PathVariable Integer id) {
+        PetDTO pet = petService.findById(id);
+
+        // Envolvemos el DTO con enlaces de navegación
+        EntityModel&lt;PetDTO&gt; resource = EntityModel.of(pet);
+
+        // 1. Enlace a sí mismo (self link)
+        resource.add(linkTo(methodOn(PetHateoasController.class).getPetWithHypermedia(id))
+                .withSelfRel());
+
+        // 2. Enlace a la colección general de mascotas
+        resource.add(linkTo(methodOn(PetHateoasController.class).getAllPets())
+                .withRel("all-pets"));
+
+        // 3. Enlace condicional: si no está vacunada, se ofrece la acción de vacunar
+        if (!pet.isVaccinated()) {
+            resource.add(linkTo(methodOn(PetHateoasController.class).vaccinatePet(id))
+                    .withRel("vaccinate"));
+        }
+
+        return ResponseEntity.ok(resource);
+    }
+
+    @GetMapping
+    public ResponseEntity&lt;String&gt; getAllPets() { return ResponseEntity.ok("Colección"); }
+
+    @PutMapping("/{id}/vaccinate")
+    public ResponseEntity&lt;Void&gt; vaccinatePet(@PathVariable Integer id) { return ResponseEntity.noContent().build(); }
+}
+</code></pre>
+</div>
+
+<h3>Respuesta JSON en Formato Estándar HAL</h3>
+<div class="center-horizontal">
+<pre><code class="language-json">
+{
+  "id": 1,
+  "name": "Rocky",
+  "species": "Dog",
+  "vaccinated": false,
+  "_links": {
+    "self": {
+      "href": "http://localhost:8080/api/v1/hateoas/pets/1"
+    },
+    "all-pets": {
+      "href": "http://localhost:8080/api/v1/hateoas/pets"
+    },
+    "vaccinate": {
+      "href": "http://localhost:8080/api/v1/hateoas/pets/1/vaccinate"
+    }
+  }
+}
+</code></pre>
+</div>
+
+<h2>6. Contraejemplo: Construir URLs de Enlace a Mano con Cadenas de Texto</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Concatenar cadenas de texto para crear hipermedios
+Link badLink = Link.of("http://localhost:8080/api/v1/pets/" + id, "self");
+// ERROR: Si cambia el host, el puerto, el context-path o la ruta del controlador,
+// todos los enlaces devueltos quedan rotos silenciosamente.
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar siempre <code>WebMvcLinkBuilder.linkTo(methodOn(Clase.class).metodo(...))</code>, que genera las URLs dinámicamente inspeccionando el mapeo real del método en Spring MVC.
+</p>

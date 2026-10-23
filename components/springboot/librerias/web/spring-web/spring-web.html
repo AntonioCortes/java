@@ -1,0 +1,226 @@
+<h1 class="title">Spring Web: Desarrollo de APIs REST y Aplicaciones Web (Spring MVC)</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    <b>Spring Web</b> (starter <code>spring-boot-starter-web</code> en Spring Initializr) es el núcleo fundamental sobre el que se construyen la inmensa mayoría de microservicios y APIs REST empresariales en Java.
+</p>
+<p>
+    Empaqueta y autoconfigura automáticamente:
+</p>
+<ul>
+    <li><b>Spring MVC:</b> El framework web basado en el patrón Modelo-Vista-Controlador y el servlet frontal <code>DispatcherServlet</code>.</li>
+    <li><b>Servidor Embebido Apache Tomcat:</b> Servidor web de producción preconfigurado que arranca en milisegundos sin requerir instalaciones externas ni despliegues en servidores de aplicaciones pesados (como WebLogic o JBoss).</li>
+    <li><b>Jackson:</b> El motor estándar de serialización y deserialización que traduce automáticamente objetos Java a JSON y viceversa.</li>
+    <li><b>Soporte REST completo:</b> Negociación de contenido (Content Negotiation), filtros HTTP, interceptores y conversión de parámetros.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>aeropuerto internacional moderno</b>:
+</p>
+<ul>
+    <li>El <b>Servidor Tomcat Embebido</b> son las pistas de aterrizaje y las puertas de embarque físicas que reciben los aviones (conexiones TCP/HTTP).</li>
+    <li>El <b>DispatcherServlet</b> es la torre de control y el panel central de llegadas: cada pasajero (petición HTTP entrante) es recibido, se comprueba su billete y se le asigna la cinta transportadora o mostrador exacto que debe atenderle.</li>
+    <li>Los <b>Controladores (@RestController)</b> son los mostradores de aduanas o tiendas duty-free específicos que realizan la transacción requerida y entregan el equipaje (el payload JSON de respuesta).</li>
+    <li><b>Jackson</b> es el traductor universal jurado que traduce el pasaporte del viajero de cualquier idioma al formato oficial estándar.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una plataforma de telemedicina veterinaria expone endpoints REST para que aplicaciones móviles de clientes y clínicas asociadas gestionen citas, historiales médicos y prescripciones.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin Spring Web)</div>
+            <div class="card-body">
+                <p>Escribir Servlets puros de Java (<code>HttpServlet</code>) obliga a parsear manualmente cadenas de texto del <code>BufferedReader</code>, convertir JSON a mano con bibliotecas de bajo nivel, mapear manualmente códigos de estado HTTP y desplegar pesados archivos <code>.war</code> en servidores externos.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Spring Web)</div>
+            <div class="card-body">
+                <p>Con solo anotar una clase con <code>@RestController</code>, Spring resuelve rutas, valida payloads entrantes y devuelve objetos tipados como <code>ResponseEntity&lt;T&gt;</code> que se serializan automáticamente a JSON, ejecutándose como un ejecutable independiente (<code>java -jar app.jar</code>).</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Justificación Técnica</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>APIs REST estándar, microservicios empresariales de propósito general y operaciones CRUD con bases de datos relacionales tradicionales.</td>
+            <td><b>SIEMPRE usar Spring Web</b></td>
+            <td>Es el estándar más maduro, estable, fácil de depurar y con mayor compatibilidad de librerías del ecosistema Java.</td>
+        </tr>
+        <tr>
+            <td>Sistemas con cientos de miles de conexiones abiertas permanentes (IoT, chats masivos en tiempo real o streaming continuo).</td>
+            <td><b>NO usar Spring Web (Usar Spring WebFlux)</b></td>
+            <td>Spring Web asigna un hilo por petición (modelo Tomcat bloqueante); bajo 50.000 conexiones concurrentes los hilos colapsan la memoria del sistema operativo.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Criterios de elección de Spring Web</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring Web en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+</code></pre>
+</div>
+
+<h2>5. Anotaciones Fundamentales de Spring Web</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Paquete</th>
+            <th scope="col">Propósito y Comportamiento</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@RestController</code></td>
+            <td><code>org.springframework.web.bind.annotation</code></td>
+            <td>Anotación compuesta que une <code>@Controller</code> y <code>@ResponseBody</code>. Marca la clase como controladora REST, haciendo que cada método devuelva datos directamente al cuerpo de la respuesta HTTP en JSON.</td>
+        </tr>
+        <tr>
+            <td><code>@RequestMapping("/path")</code></td>
+            <td><code>org.springframework.web.bind.annotation</code></td>
+            <td>Define la ruta base común para todos los endpoints expuestos dentro de la clase de controlador.</td>
+        </tr>
+        <tr>
+            <td><code>@GetMapping, @PostMapping, etc.</code></td>
+            <td><code>org.springframework.web.bind.annotation</code></td>
+            <td>Atajos específicos de método HTTP (<code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>).</td>
+        </tr>
+        <tr>
+            <td><code>@PathVariable</code></td>
+            <td><code>org.springframework.web.bind.annotation</code></td>
+            <td>Extrae una variable de segmento dinámico dentro de la URL (ej. <code>/petshop/pet/{id}</code>).</td>
+        </tr>
+        <tr>
+            <td><code>@RequestParam</code></td>
+            <td><code>org.springframework.web.bind.annotation</code></td>
+            <td>Extrae parámetros de consulta (query params) de la URL (ej. <code>/petshop/pet?species=dog&amp;age=3</code>).</td>
+        </tr>
+        <tr>
+            <td><code>@RequestBody</code></td>
+            <td><code>org.springframework.web.bind.annotation</code></td>
+            <td>Indica a Jackson que deserialice el cuerpo JSON de la petición HTTP entrante hacia el objeto Java indicado.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>6. Ejemplo Completo: Controlador REST Profesional con Spring Web y Lombok</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.controller;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.service.PetService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/v1/pets")
+@RequiredArgsConstructor
+public class PetWebController {
+
+    private final PetService petService;
+
+    // 1. GET con parámetro de ruta (Path Variable)
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity&lt;PetDTO&gt; getPetById(@PathVariable Integer id) {
+        log.info("Recibida petición GET para mascota con ID: {}", id);
+        return ResponseEntity.ok(petService.findById(id));
+    }
+
+    // 2. GET con parámetros de consulta opcionales (Query Params)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity&lt;List&lt;PetDTO&gt;&gt; searchPets(
+            @RequestParam(required = false) String species,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        log.info("Buscando mascotas por especie '{}', página {}, tamaño {}", species, page, size);
+        return ResponseEntity.ok(petService.searchPets(species, page, size));
+    }
+
+    // 3. POST para creación de recursos con cabecera Location
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity&lt;PetDTO&gt; createPet(@RequestBody PetDTO inputDto) {
+        log.info("Creando nueva mascota: {}", inputDto.getName());
+        PetDTO created = petService.registerPet(inputDto);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(created);
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo y Antipatrón Frecuente</h2>
+
+<h3>Contraejemplo: Devolver códigos HTTP 200 OK con mensajes de error incrustados</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN CATASTRÓFICO: Ocultar errores bajo 200 OK
+@GetMapping("/bad-pet/{id}")
+public ResponseEntity&lt;String&gt; getBadPet(@PathVariable Integer id) {
+    if (id &lt;= 0) {
+        // ERROR GRAVE: Devuelve HTTP 200 OK pero con un texto de error.
+        // Los balanceadores, clientes REST y sistemas de monitorización creerán que la llamada tuvo éxito.
+        return ResponseEntity.ok("Error: El ID debe ser positivo"); 
+    }
+    return ResponseEntity.ok("Mascota encontrada");
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar siempre el código de estado HTTP semántico adecuado (<code>400 BAD_REQUEST</code>, <code>404 NOT_FOUND</code>, <code>500 INTERNAL_SERVER_ERROR</code>) a través de excepciones gestionadas centralizadamente con <code>@RestControllerAdvice</code>.
+</p>

@@ -3,27 +3,32 @@
         color: black !important;
     }
 </style>
-<h1 class="title">Patrón Template Method</h1>
+<h1 class="title">Patrón Template Method (Método Plantilla)</h1>
 
-<p>El patrón <strong>Template Method</strong> (Método Plantilla) es un patrón de comportamiento que define el <strong>esqueleto fijo de un algoritmo en una clase padre abstracta</strong>, pero deja que las subclases personalicen ciertos pasos concretos sin poder alterar el orden general de la receta.</p>
+<p>El patrón <strong>Template Method</strong> (Método Plantilla) es un patrón de diseño de comportamiento que define el <strong>esqueleto invariable de un algoritmo en un método de una clase base abstracta</strong>, delegando la implementación de ciertos pasos específicos en las subclases sin permitir que estas alteren el orden ni la estructura general del proceso.</p>
 
-<h2 class="subtitle">Analogía del Mundo Real</h2>
-<p>Piensa en la <strong>construcción de viviendas en una urbanización</strong>. El arquitecto jefe fija el orden inalterable de la obra (el Método Plantilla): <code class="language-java">1. Cimientos -&gt; 2. Estructura -&gt; 3. Fontanería -&gt; 4. Pintura y Acabados</code>. Ningún constructor puede pintar antes de poner los cimientos, pero cada subcontratista puede personalizar cómo se hace el paso 4 (unos pintan en blanco y ponen suelo de madera, otros pintan en beige y ponen cerámica).</p>
+<h2 class="subtitle">Analogía del Mundo Real: Construcción de Casas Prefabricadas</h2>
+<p>Imagina una empresa de construcción de viviendas modulares:</p>
+<ul>
+    <li>El arquitecto jefe establece el <strong>orden inalterable de la obra (el Método Plantilla)</strong>: <code>1. Cimentación &rarr; 2. Estructura portante &rarr; 3. Fontanería y Electricidad &rarr; 4. Acabados y Pintura</code>.</li>
+    <li>Ningún constructor puede ponerse a pintar las paredes antes de verter los cimientos; si lo intentara, la casa colapsaría.</li>
+    <li>Sin embargo, cada cliente puede personalizar los pasos concretos (un cliente elige suelo de parquet y paredes blancas; otro prefiere baldosas cerámicas y paredes grises). El esqueleto del algoritmo permanece intacto.</li>
+</ul>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Evitar la duplicación de código cuando varias clases comparten exactamente la misma secuencia de pasos de un algoritmo, diferenciándose únicamente en cómo se implementan algunos de esos pasos.</p>
+<p>Reutilizar el esqueleto y la lógica de control común de un flujo complejo, evitando duplicar código boilerplate y aplicando el <strong>Principio de Hollywood</strong> (<em>"No nos llames, nosotros te llamaremos"</em>): la clase padre invoca a los métodos de las clases hijas, nunca al revés.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Ciclo de Partida en un Motor de Videojuegos</h2>
-<p><strong>Contexto:</strong> Estás programando un motor deportivo para distintos juegos (<code class="language-java">Ajedrez</code> y <code class="language-java">Futbol</code>). En todos los deportes, una partida siempre sigue el mismo orden obligatorio: <strong>1. Inicializar campo y equipos</strong> (<code class="language-java">inicializar()</code>) $\rightarrow$ <strong>2. Empezar el partido</strong> (<code class="language-java">iniciarJuego()</code>) $\rightarrow$ <strong>3. Finalizar y mostrar marcador</strong> (<code class="language-java">finalizarJuego()</code>).</p>
+<h2 class="subtitle">Caso de Uso Real: Procesamiento de Reportes Financieros en PetShop</h2>
+<p><strong>Contexto:</strong> En la plataforma <em>PetShop</em>, exportar informes de ventas y adopciones requiere siempre el mismo ciclo: 1) conectar y autenticar con el almacén de datos, 2) extraer los registros transaccionales, 3) dar formato específico al documento (PDF o Excel CSV), y 4) registrar auditoría y cerrar la conexión.</p>
 
-<p><strong>El Problema (Sin Template Method):</strong> Si cada deporte programa su propio método <code class="language-java">jugar()</code> por libre, duplicarás la estructura de control y algún programador podría olvidarse de llamar a <code class="language-java">inicializar()</code> antes de <code class="language-java">iniciarJuego()</code>.</p>
+<p><strong>El Problema (Sin Template Method):</strong> Si cada formato (<code>ReportePdf</code> y <code>ReporteCsv</code>) implementa su propio método <code>generar()</code> por libre, se duplicarán las conexiones y el manejo de excepciones, y algún programador podría olvidar cerrar los recursos o registrar la auditoría.</p>
 
-<p><strong>La Solución (Con Template Method):</strong> En la clase abstracta <code class="language-java">Juego</code> creamos el método <code class="language-java">public final void jugar()</code> que llama en orden a <code class="language-java">inicializar()</code>, <code class="language-java">iniciarJuego()</code> y <code class="language-java">finalizarJuego()</code>. Al ser <code class="language-java">final</code>, ninguna subclase puede alterar el orden, solo rellenar qué ocurre en cada paso.</p>
+<p><strong>La Solución (Con Template Method):</strong> Se crea la clase abstracta <code>GeneradorReportes</code> con el método inmutable <code>public final void generarReporte()</code>. Las subclases solo implementan el paso abstracto de formateo.</p>
 
 <h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
 <img class="center-horizontal" src="components/design-patterns/ejemplos/template-method/assets/img/template-method-diagram.png">
-<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Template Method con el método plantilla final jugar()</span>
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Template Method con método plantilla inmutable</span>
 
 <table class="table table-striped table-hover">
     <thead>
@@ -35,127 +40,194 @@
     </thead>
     <tbody>
         <tr>
-            <th scope="row">Abstract Class (Clase Plantilla)</th>
-            <td><code class="language-java">Juego</code></td>
-            <td>Define el método plantilla <code class="language-java">final jugar()</code> con el orden fijo de ejecución y declara los pasos abstractos (<code class="language-java">inicializar</code>, <code class="language-java">iniciarJuego</code>, <code class="language-java">finalizarJuego</code>).</td>
+            <th scope="row">Abstract Class</th>
+            <td><code class="language-java">GeneradorReportes</code></td>
+            <td>Define el método plantilla <code>final generarReporte()</code>, implementa pasos comunes y declara métodos abstractos y <em>hooks</em>.</td>
         </tr>
         <tr>
-            <th scope="row">Concrete Classes (Subclases)</th>
-            <td><code class="language-java">Ajedrez</code>, <code class="language-java">Futbol</code></td>
-            <td>Implementan los pasos concretos adaptados a su deporte sin tocar el esqueleto general.</td>
+            <th scope="row">Concrete Classes</th>
+            <td><code class="language-java">ReportePdf</code>, <code class="language-java">ReporteCsv</code></td>
+            <td>Implementan exclusivamente los pasos abstractos específicos de su formato sin tocar el flujo global.</td>
+        </tr>
+        <tr>
+            <th scope="row">Client</th>
+            <td><code class="language-java">Main</code></td>
+            <td>Invoca al método plantilla público <code>generarReporte()</code>.</td>
         </tr>
     </tbody>
 </table>
 <span class="center-horizontal caption">Tabla 1: Participantes del patrón Template Method</span>
 
-<h2 class="subtitle">Implementación en Java</h2>
+<h2 class="subtitle">Implementación en Java (con Métodos Abstractos y Hooks)</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// 1. Clase Abstracta que contiene el Método Plantilla
-abstract class Juego {
-    // Pasos abstractos que cada subclase personalizará
-    protected abstract void inicializar();
-    protected abstract void iniciarJuego();
-    protected abstract void finalizarJuego();
+// 1. Clase Abstracta con el Método Plantilla 'final'
+public abstract class GeneradorReportes {
 
-    // MÉTODO PLANTILLA: es 'final' para que ninguna subclase pueda cambiar el orden de los pasos
-    public final void jugar() {
-        inicializar();
-        iniciarJuego();
-        finalizarJuego();
+    // MÉTODO PLANTILLA: 'final' para que ninguna subclase altere el orden de ejecución
+    public final void generarReporte(String entidad) {
+        conectarFuenteDatos();
+        String datos = extraerDatos(entidad);
+        darFormato(datos);
+
+        // Método Gancho (Hook): paso opcional que las subclases pueden activar o ignorar
+        if (requiereCifrado()) {
+            cifrarDocumento();
+        }
+
+        cerrarConexion();
+    }
+
+    // Pasos comunes con implementación por defecto
+    private void conectarFuenteDatos() {
+        System.out.println("🔌 [BD] Conexión abierta con el almacén transaccional de PetShop.");
+    }
+
+    private void cerrarConexion() {
+        System.out.println("🔒 [BD] Conexión liberada y devuelta al pool de conexiones.");
+    }
+
+    private void cifrarDocumento() {
+        System.out.println("🛡️ [Seguridad] Cifrando archivo final con clave simétrica AES-256.");
+    }
+
+    // Pasos obligatorios que las subclases DEBEN implementar
+    protected abstract String extraerDatos(String entidad);
+    protected abstract void darFormato(String datos);
+
+    // Método Gancho (Hook): por defecto no requiere cifrado, pero puede sobrescribirse
+    protected boolean requiereCifrado() {
+        return false;
     }
 }
 
-// 2. Subclase Concreta A: Ajedrez
-class Ajedrez extends Juego {
+// 2. Subclase Concreta A: Reporte en PDF
+public class ReportePdf extends GeneradorReportes {
     @Override
-    protected void inicializar() {
-        System.out.println("[Ajedrez] Preparando bateadores y campo ovalado.");
+    protected String extraerDatos(String entidad) {
+        return "Listado consolidado de " + entidad;
     }
 
     @Override
-    protected void iniciarJuego() {
-        System.out.println("[Ajedrez] ¡Comienza el partido de Ajedrez!");
+    protected void darFormato(String datos) {
+        System.out.println("📄 [PDF Engine] Compilando vectorialmente documento PDF con fuentes y logotipos: " + datos);
     }
 
     @Override
-    protected void finalizarJuego() {
-        System.out.println("[Ajedrez] Partido de Ajedrez finalizado. Mostrando puntuación.");
+    protected boolean requiereCifrado() {
+        return true; // Los PDFs contienen datos confidenciales y activan el cifrado
     }
 }
 
-// 3. Subclase Concreta B: Fútbol
-class Futbol extends Juego {
+// 3. Subclase Concreta B: Reporte plano CSV
+public class ReporteCsv extends GeneradorReportes {
     @Override
-    protected void inicializar() {
-        System.out.println("[Fútbol] Colocando porterías, balón en el centro y 11 jugadores por equipo.");
+    protected String extraerDatos(String entidad) {
+        return "id,nombre,especie,estado\n1,Max,Perro,Adoptado";
     }
 
     @Override
-    protected void iniciarJuego() {
-        System.out.println("[Fútbol] ¡Pitido inicial del árbitro! Rueda el balón.");
-    }
-
-    @Override
-    protected void finalizarJuego() {
-        System.out.println("[Fútbol] Minuto 90: Final del partido de Fútbol.");
+    protected void darFormato(String datos) {
+        System.out.println("📊 [CSV Engine] Generando archivo de texto delimitado por comas:\n" + datos);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Implementación completa del patrón Template Method</span>
+<span class="center-horizontal caption">Implementación canónica con método plantilla final y métodos gancho (hooks)</span>
 
-<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
-
-<ul>
-    <li>
-        <strong>1. ¿Por qué el método <code class="language-java">jugar()</code> lleva la palabra clave <code class="language-java">final</code>?</strong>
-        <p>En Java, un método marcado como <code class="language-java">final</code> no puede ser sobrescrito (<code class="language-java">@Override</code>) por ninguna clase hija. Así protegemos la "receta" para que nadie pueda por error llamar a <code class="language-java">finalizarJuego()</code> antes de <code class="language-java">inicializar()</code>.</p>
-    </li>
-    <li>
-        <strong>2. El "Principio de Hollywood" (<em>No nos llames, nosotros te llamaremos</em>):</strong>
-        <p>El cliente solo llama a <code class="language-java">game.jugar()</code> en la clase padre, y es la clase padre quien va llamando automáticamente a los métodos de las clases hijas en el momento oportuno.</p>
-    </li>
-</ul>
-
-<h2 class="subtitle">Ejemplo de Uso</h2>
+<h2 class="subtitle">Ejemplo de Uso y Trazas de Consola</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        System.out.println("--- Ejecutando plantilla con Ajedrez ---");
-        Juego game = new Ajedrez();
-        game.jugar();
+        System.out.println("--- 1. Generando Reporte Confidencial en PDF ---");
+        GeneradorReportes pdf = new ReportePdf();
+        pdf.generarReporte("Adopciones de Octubre");
 
-        System.out.println("\n--- Ejecutando la misma plantilla con Fútbol ---");
-        game = new Futbol();
-        game.jugar();
+        System.out.println("\n--- 2. Generando Volcado Rápido en CSV ---");
+        GeneradorReportes csv = new ReporteCsv();
+        csv.generarReporte("Inventario Mascotas");
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">El método plantilla garantiza siempre la misma secuencia de ejecución</span>
+<span class="center-horizontal caption">Invocación uniforme del método plantilla sobre distintos formatos</span>
 
 <div class="center-horizontal">
 <pre><code class="language-bash">
 Salida por consola:
---- Ejecutando plantilla con Ajedrez ---
-[Ajedrez] Preparando bateadores y campo ovalado.
-[Ajedrez] ¡Comienza el partido de Ajedrez!
-[Ajedrez] Partido de Ajedrez finalizado. Mostrando puntuación.
+--- 1. Generando Reporte Confidencial en PDF ---
+🔌 [BD] Conexión abierta con el almacén transaccional de PetShop.
+📄 [PDF Engine] Compilando vectorialmente documento PDF con fuentes y logotipos: Listado consolidado de Adopciones de Octubre
+🛡️ [Seguridad] Cifrando archivo final con clave simétrica AES-256.
+🔒 [BD] Conexión liberada y devuelta al pool de conexiones.
 
---- Ejecutando la misma plantilla con Fútbol ---
-[Fútbol] Colocando porterías, balón en el centro y 11 jugadores por equipo.
-[Fútbol] ¡Pitido inicial del árbitro! Rueda el balón.
-[Fútbol] Minuto 90: Final del partido de Fútbol.
+--- 2. Generando Volcado Rápido en CSV ---
+🔌 [BD] Conexión abierta con el almacén transaccional de PetShop.
+📊 [CSV Engine] Generando archivo de texto delimitado por comas:
+id,nombre,especie,estado
+1,Max,Perro,Adoptado
+🔒 [BD] Conexión liberada y devuelta al pool de conexiones.
 </code></pre>
 </div>
-<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+<span class="center-horizontal caption">Trazas generadas confirmando la ejecución del esqueleto inmutable</span>
+
+<h2 class="subtitle">El Patrón en el Ecosistema Spring: Clases "Template"</h2>
+<p>Spring Framework utiliza masivamente este patrón en sus componentes más populares para gestionar recursos de red y conexiones a bases de datos sin fugas de memoria:</p>
+<ul>
+    <li><code>JdbcTemplate</code>: Abre la conexión JDBC, ejecuta la transacción, cierra el <code>ResultSet</code> y libera la conexión, delegando en el usuario únicamente el mapeo fila a fila (<code>RowMapper</code>).</li>
+    <li><code>TransactionTemplate</code>: Demarca <code>begin</code>, <code>commit</code> y <code>rollback</code>, delegando la lógica atómica mediante un callback <code>TransactionCallback</code>.</li>
+    <li><code>RestTemplate</code>: Resuelve cabeceras, serializa JSON, abre el socket HTTP y cierra el stream, delegando en el cliente la interpretación del body.</li>
+</ul>
+
+<h2 class="subtitle">Diferencias Clave: Template Method vs Strategy</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Característica</th>
+            <th scope="col">Template Method</th>
+            <th scope="col">Strategy</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">Mecanismo de Reutilización</th>
+            <td><b>Herencia de Clases:</b> Se extiende de una clase abstracta común.</td>
+            <td><b>Composición de Objetos:</b> Se inyecta una interfaz en el contexto.</td>
+        </tr>
+        <tr>
+            <th scope="row">Nivel de Cambio</th>
+            <td>Permite alterar únicamente <b>pasos puntuales</b> del algoritmo; la estructura es rígida.</td>
+            <td>Permite sustituir el <b>algoritmo completo</b> de principio a fin.</td>
+        </tr>
+        <tr>
+            <th scope="row">Momento del Cambio</th>
+            <td>Fijo en tiempo de compilación según la subclase instanciada.</td>
+            <td>Dinámico e intercambiable en tiempo de ejecución (runtime).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Matriz comparativa entre Template Method y Strategy</span>
 
 <h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
-<ul>
-    <li><strong>Cuándo usarlo:</strong> Cuando varias clases tengan algoritmos casi idénticos paso a paso (como importar archivos PDF/CSV/XML donde abrir, validar, procesar y cerrar siempre siguen el mismo orden).</li>
-    <li><strong>Cuándo evitarlo:</strong> Si el orden de los pasos cambia radicalmente entre una clase y otra; en ese caso es preferible usar el patrón <strong>Strategy</strong> (basado en composición en vez de herencia).</li>
-</ul>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Cuándo SÍ Usar Template Method</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Cuando varios flujos de la aplicación compartan exactamente la misma secuencia de pasos y solo difieran en implementaciones puntuales.</td>
+            <td>Cuando el flujo general cambie radicalmente entre un caso y otro (en tal caso usar <strong>Strategy</strong>).</td>
+        </tr>
+        <tr>
+            <td>Para garantizar que pasos críticos (como abrir/cerrar transacciones, auditar o liberar conexiones) se ejecuten siempre sin olvidos.</td>
+            <td>Si la jerarquía de herencia se vuelve demasiado profunda y frágil (violando la recomendación de favorecer composición sobre herencia).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Criterios para la selección de Template Method</span>

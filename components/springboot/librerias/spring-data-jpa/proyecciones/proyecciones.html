@@ -16,25 +16,25 @@
 <ul>
     <li>
         <b>Proyección Cerrada (Closed):</b> La interfaz define únicamente métodos de acceso (getters) cuyos nombres coinciden con las propiedades de la entidad. Spring Data optimiza la sentencia SQL/BSON solicitando <b>exclusivamente esas columnas</b>:
-        <div class="center-horizontal">
-        <pre><code class="language-java">
-        public interface PetSummaryProjection {
-            String getName();
-            String getSpecies();
-        }
-        </code></pre>
-        </div>
+<div class="center-horizontal">
+<pre><code class="language-java">
+public interface PetSummaryProjection {
+    String getName();
+    String getSpecies();
+}
+</code></pre>
+</div>
     </li>
     <li>
         <b>Proyección Abierta (Open):</b> Utiliza la anotación <code>@Value</code> de Spring Framework con expresiones SpEL para calcular atributos derivados. <i>Advertencia técnica:</i> Al requerir SpEL, Spring Data se ve obligado a cargar la entidad completa a memoria para evaluar la expresión:
-        <div class="center-horizontal">
-        <pre><code class="language-java">
-        public interface PetOpenProjection {
-            @Value("#{target.name + ' (' + target.species + ')'}")
-            String getDisplayName();
-        }
-        </code></pre>
-        </div>
+<div class="center-horizontal">
+<pre><code class="language-java">
+public interface PetOpenProjection {
+    @Value("#{target.name + ' (' + target.species + ')'}")
+    String getDisplayName();
+}
+</code></pre>
+</div>
     </li>
 </ul>
 

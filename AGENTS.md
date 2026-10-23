@@ -301,6 +301,7 @@ El agente DEBE seleccionar, activar y aplicar de manera **100% automática, cont
 - **`spring-boot-expert`**: Usar en arquitectura de Spring Boot, controladores, servicios, inyección por constructor, configuración y manejo de excepciones RFC 7807.
 - **`spring-data-jpa-expert`**: Usar en persistencia relacional (JPA, Hibernate, PostgreSQL, particularidades de Oracle) o NoSQL (MongoDB), consultas, optimización N+1 y transacciones.
 - **`testing-expert`**: Usar en pruebas unitarias, de integración, slice tests (`@DataJpaTest`, `@WebMvcTest`), mocks con Mockito, aserciones con AssertJ y Testcontainers.
+- **`spring-boot-testing`**: Usar en pruebas avanzadas de Spring Boot (pirámide de pruebas, slice tests `@WebMvcTest`, `@DataJpaTest`, `@RestClientTest`, `@JsonTest`, Testcontainers con `@ServiceConnection`, `@MockitoBean` y optimización de context caching).
 - **Cualquier skill futura**: Usar según su especialidad declarada.
 
 *Nota de combinación*: Si una tarea involucra varios ámbitos a la vez (por ejemplo, implementar persistencia con JPA y escribir su test de integración), se combinan de forma natural solo las skills pertinentes (`spring-data-jpa-expert` + `testing-expert`), sin forzar skills ajenas.

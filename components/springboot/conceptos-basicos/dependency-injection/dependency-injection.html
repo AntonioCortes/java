@@ -1,29 +1,268 @@
-<h1 class="title">Inyección de dependencias</h1>
+<h1 class="title">Inyección de Dependencias (Dependency Injection)</h1>
 
-<p>La Inyección de Dependencias (Dependency Injection en inglés) es un patrón de diseño en el que se separa la creación de objetos de su uso. En Spring Framework, la inyección de dependencias es una característica fundamental que permite gestionar las dependencias de los objetos de una aplicación de manera más sencilla y desacoplada.</p>
+<h2>1. ¿Qué es la Inyección de Dependencias y el Principio IoC?</h2>
+<p>
+    La <b>Inyección de Dependencias (Dependency Injection - DI)</b> es un patrón de diseño y un mecanismo fundamental de Spring Framework que materializa el principio de <b>Inversión de Control (Inversion of Control - IoC)</b>: separa la responsabilidad de <i>crear</i> las instancias de los objetos de su <i>uso</i> dentro de la lógica de negocio.
+</p>
+<p>
+    En lugar de crear manualmente las instancias de las clases mediante el operador <code>new</code> (lo que genera un acoplamiento rígido entre componentes), las dependencias se declaran como contratos o interfaces y el <b>Contenedor IoC de Spring</b> se encarga de instanciarlas, resolverlas e inyectarlas automáticamente en tiempo de ejecución. De esta forma, se reduce drásticamente el acoplamiento entre las diferentes partes de la aplicación y se mejora la flexibilidad, la mantenibilidad y la testabilidad.
+</p>
 
-<p>En lugar de crear manualmente las instancias de las clases que se necesitan en una aplicación, se definen las dependencias en un archivo de configuración y se utiliza un contenedor de Spring para crear y administrar automáticamente los objetos. De esta forma, se reduce el acoplamiento entre las diferentes partes de la aplicación y se mejora la flexibilidad y la mantenibilidad.</p>
-
-<p>Existen tres formas de inyectar dependencias por medio de la anotación <b>@Autowired</b> en Spring:</p>
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos una <b>lámpara de escritorio</b>:
+</p>
 <ul>
-    <li>Por constructor</li>
-    <li>Por Atributo</li>
-    <li>Utilizando el método Set</li>
+    <li><b>Sin Inyección de Dependencias (Acoplamiento fuerte):</b> La lámpara viene de fábrica con una bombilla incandescente soldada a los cables internos. Si la bombilla se funde o queremos probar una bombilla LED de bajo consumo o una luz tenue para pruebas, tenemos que destruir la lámpara entera.</li>
+    <li><b>Con Inyección de Dependencias (Acoplamiento débil):</b> La lámpara tiene un <b>casquillo estándar (la interfaz o contrato)</b>. La persona que usa la lámpara puede "inyectarle" cualquier bombilla que encaje en el casquillo (una bombilla real halógena, una LED inteligente o una bombilla simulada en un laboratorio de pruebas). La lámpara funciona sin saber qué marca concreta de bombilla tiene conectada.</li>
 </ul>
-<p>Ejemplo de inyección de dependencia por atributo:</p>
+
+---
+
+<h2>2. Las Tres Formas de Inyectar Dependencias en Spring</h2>
+<p>
+    Existen tres formas de inyectar dependencias por medio de la anotación <b>@Autowired</b> en Spring:
+</p>
+<ol>
+    <li>Inyección por Constructor (Estándar recomendado por el equipo de Spring).</li>
+    <li>Inyección por Atributo o Campo (Field Injection).</li>
+    <li>Inyección por medio del método Set (Setter Injection).</li>
+</ol>
+
+---
+
+<h3>2.1. Inyección por Atributo (Field Injection)</h3>
+<p>
+    Consiste en colocar la anotación <code>@Autowired</code> directamente sobre el atributo privado de la clase:
+</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@Autowired
-private Pet pet;
+@Service
+public class PetServiceFieldInjection {
+
+    @Autowired
+    private PetJpaRepository petRepository;
+
+    public Optional&lt;PetEntity&gt; findById(Long id) {
+        return petRepository.findById(id);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de inyección de dependencia por atributo</span>
+
+<p>
+    <b>¿Por qué está desaconsejada en código moderno?</b> Aunque es muy corta de escribir, presenta graves inconvenientes arquitectónicos:
+</p>
+<ul>
+    <li><b>Viola el encapsulamiento:</b> Requiere que Spring utilice reflexión interna para modificar atributos privados.</li>
+    <li><b>Impide la inmutabilidad:</b> Los campos no pueden declararse como <code>final</code>, lo que permite que el objeto mute accidentalmente después de su inicialización.</li>
+    <li><b>Dificulta los tests unitarios puros:</b> En un test unitario con JUnit 5 sin Spring, es imposible pasar un mock a este atributo a menos que se recurra a reflexión compleja (<code>ReflectionTestUtils</code>) o se levante el pesado contexto de Spring.</li>
+    <li><b>Oculta el exceso de dependencias:</b> Facilita que una clase acabe inyectando 10 repositorios distintos sin que el desarrollador perciba la violación del Principio de Responsabilidad Única.</li>
+</ul>
+
+---
+
+<h3>2.2. Inyección por Setter (Método Set)</h3>
+<p>
+    La dependencia se suministra a través de un método setter público anotado con <code>@Autowired</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class PetServiceSetterInjection {
+
+    private NotificationService notificationService;
+
+    @Autowired
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    public void notifyAdoption(String petName) {
+        if (notificationService != null) {
+            notificationService.sendNotification(petName);
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Ejemplo de inyección de dependencia por medio del método Set</span>
+
+<p>
+    <b>Cuándo usarla:</b> Únicamente para <b>dependencias opcionales</b> o que admitan reconfiguración dinámica en caliente en tiempo de ejecución. Si la dependencia es obligatoria para el funcionamiento de la clase, usar setter es peligroso porque permite que el objeto quede a medio instanciar y lance <code>NullPointerException</code>.
+</p>
+
+---
+
+<h3>2.3. Inyección por Constructor (El Estándar Moderno Recomendado)</h3>
+<p>
+    Las dependencias se declaran como atributos <b>private final</b> y se reciben como parámetros en el constructor de la clase:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class PetServiceConstructorManual {
+
+    private final PetJpaRepository petRepository;
+    private final NotificationService notificationService;
+
+    // A partir de Spring Framework 4.3, si la clase solo tiene un constructor,
+    // la anotación @Autowired es 100% opcional y Spring la aplica automáticamente.
+    public PetServiceConstructorManual(PetJpaRepository petRepository, 
+                                       NotificationService notificationService) {
+        this.petRepository = petRepository;
+        this.notificationService = notificationService;
+    }
+}
 </code></pre>
 </div>
 
-TODO:<p>Ejemplo de inyección de dependencia por constructor:</p>
-TODO:<p>Ejemplo de inyección de dependencia por medio del método Set:</p>
-
-TODO:<p><b>NOTA:</b> Constructor injection has a few advantages compared to field injection. The first benefit is testability.</p>
-
+<h4>Forma Idiomática y Limpia con Project Lombok (@RequiredArgsConstructor)</h4>
 <p>
-    <b>NOTA:</b> Spring también proporciona otras anotaciones para configurar la inyección de dependencias, como @Qualifier para especificar una dependencia concreta cuando hay varias opciones disponibles, @Value para inyectar valores de propiedades de configuración, y @Resource para inyectar dependencias por nombre.
+    Para eliminar el código repetitivo del constructor manual respetando las directrices de diseño del proyecto, se utiliza la anotación <code>@RequiredArgsConstructor</code> de Lombok sobre la clase, la cual genera automáticamente en tiempo de compilación el constructor exacto para todos los campos marcados como <code>final</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service;
+
+import com.example.petshop.repository.relational.PetJpaRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class PetServiceImpl implements PetService {
+
+    // Las dependencias son inmutables (final) y se inyectan automáticamente en el constructor generado por Lombok
+    private final PetJpaRepository petRepository;
+    private final NotificationService notificationService;
+
+    // Métodos de negocio...
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Inyección por constructor idiomática con Lombok @RequiredArgsConstructor</span>
+
+<p><b>Ventajas indiscutibles de la Inyección por Constructor:</b></p>
+<ol>
+    <li><b>Testabilidad superior:</b> En tests unitarios con JUnit 5 o Mockito se instancia la clase de forma trivial con <code>new PetServiceImpl(mockRepo, mockNotification)</code> sin necesidad de reflection ni de arrancar el framework.</li>
+    <li><b>Inmutabilidad garantizada:</b> Los campos <code>final</code> previenen que las dependencias sean reasignadas o corrompidas una vez instanciado el bean.</li>
+    <li><b>Imposibilidad de estados corruptos:</b> Un objeto nunca puede existir a medio construir; el compilador de Java exige suministrar todas las dependencias requeridas para crear la instancia.</li>
+    <li><b>Detección temprana de dependencias circulares:</b> Si la clase A necesita a B y B necesita a A, Spring detecta el ciclo inmediatamente al arrancar la aplicación y falla de forma temprana (<i>Fail-Fast</i>), evitando bucles infinitos en ejecución.</li>
+</ol>
+
+---
+
+<h2>3. Tabla Comparativa de Estrategias de Inyección</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Por Constructor</th>
+            <th scope="col">Por Setter</th>
+            <th scope="col">Por Atributo (Campo)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Recomendación de Spring</b></td>
+            <td><span class="badge bg-success">Obligatorio / Estándar</span></td>
+            <td><span class="badge bg-warning text-dark">Solo para dependencias opcionales</span></td>
+            <td><span class="badge bg-danger">Desaconsejado / Antipatrón</span></td>
+        </tr>
+        <tr>
+            <td><b>Inmutabilidad (campos <code>final</code>)</b></td>
+            <td><b>Sí</b></td>
+            <td>No</td>
+            <td>No</td>
+        </tr>
+        <tr>
+            <td><b>Testabilidad sin Spring</b></td>
+            <td><b>Excelente</b> (mediante <code>new Clase(...)</code>)</td>
+            <td>Buena (mediante llamadas a setters)</td>
+            <td>Muy deficiente (requiere reflection)</td>
+        </tr>
+        <tr>
+            <td><b>Prevención de NullPointerException</b></td>
+            <td><b>Total</b> (garantizado en compilación)</td>
+            <td>Parcial (depende de invocar el setter)</td>
+            <td>Nula (el campo puede ser null antes de inyectar)</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>4. Desambiguación y Otras Anotaciones de Inyección</h2>
+<p>
+    Spring proporciona anotaciones complementarias para afinar el comportamiento de la inyección de dependencias:
+</p>
+
+<ul>
+    <li>
+        <b>@Qualifier("nombreBean"):</b> Permite desambiguar qué bean concreto inyectar cuando existen dos o más implementaciones de la misma interfaz registradas en el contenedor (evita la excepción <code>NoUniqueBeanDefinitionException</code>).
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class OrderService {
+    private final PaymentGateway paymentGateway;
+
+    public OrderService(@Qualifier("paypalGateway") PaymentGateway paymentGateway) {
+        this.paymentGateway = paymentGateway;
+    }
+}
+</code></pre>
+</div>
+    </li>
+    <li>
+        <b>@Primary:</b> Se coloca sobre una clase de implementación para indicar que es la opción preferente por defecto cuando hay varios candidatos y el llamador no especifica ningún <code>@Qualifier</code>.
+    </li>
+    <li>
+        <b>@Value("${propiedad:valorDefecto}"):</b> Permite inyectar valores escalares (cadenas, enteros, booleanos) procedentes del archivo de configuración (<code>application.yml</code>) o variables de entorno:
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Component
+public class ReportConfig {
+    @Value("${app.reports.max-records:500}")
+    private int maxRecords;
+}
+</code></pre>
+</div>
+    </li>
+    <li>
+        <b>@Resource:</b> Anotación estándar de Jakarta EE (JSR-250) que inyecta dependencias asociándolas prioritariamente por <b>nombre de bean</b> en lugar de por tipo.
+    </li>
+</ul>
+
+---
+
+<h2>5. Contraejemplos y Antipatrones de Inyección</h2>
+
+<h3>Contraejemplo: Dependencia Circular Oculta por Field Injection</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Servicio A inyecta a B por campo, y B inyecta a A por campo
+@Service
+public class ServiceA {
+    @Autowired
+    private ServiceB serviceB; // Spring intentará resolverlo tardíamente
+}
+
+@Service
+public class ServiceB {
+    @Autowired
+    private ServiceA serviceA; // Dependencia circular encubierta
+}
+</code></pre>
+</div>
+<p>
+    <b>Por qué es un problema:</b> Las dependencias circulares delatan un grave error de diseño arquitectónico (acoplamiento bidireccional indebido). Con inyección por constructor, Spring Boot bloquea el arranque inmediatamente con <code>BeanCurrentlyInCreationException</code>, obligando a desacoplar el código extrayendo la lógica común a un tercer servicio o utilizando eventos de aplicación (<code>ApplicationEventPublisher</code>).
 </p>

@@ -96,6 +96,31 @@ mvn archetype:generate \
 <h3>Opción 2: Modo Interactivo (Asistente por Preguntas)</h3>
 <p>Si solo escribes <code>mvn archetype:generate</code> en tu terminal, Maven descargará el catálogo completo de más de 3.000 arquetipos y te pedirá elegir un número en un menú interactivo en consola, solicitando sucesivamente el grupo, artefacto y paquete.</p>
 
+<h2 class="subtitle">Cómo Crear un Arquetipo Corporativo a Partir de un Proyecto Existente</h2>
+<p>En organizaciones grandes, los equipos de arquitectura preparan un proyecto base homologado (con seguridad Spring Security, observabilidad Micrometer y cliente corporativo) y lo convierten en plantilla con un solo comando:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# 1. En la raíz de tu proyecto base homologado:
+mvn archetype:create-from-project
+
+# 2. Maven genera el arquetipo en target/generated-sources/archetype:
+cd target/generated-sources/archetype
+
+# 3. Instalarlo en tu repositorio local (o 'mvn deploy' para subirlo a Nexus):
+mvn install
+
+# 4. Cualquier miembro del equipo puede ahora crear proyectos basados en tu plantilla:
+mvn archetype:generate \
+  -DarchetypeGroupId=com.petshop \
+  -DarchetypeArtifactId=petshop-template-archetype \
+  -DarchetypeVersion=1.0.0 \
+  -DgroupId=com.petshop.orders \
+  -DartifactId=order-service
+</code></pre>
+</div>
+<span class="center-horizontal caption">Creación e instanciación de un arquetipo corporativo reutilizable</span>
+
 <h2 class="subtitle">¿Cuándo Usar Arquetipos y Cuándo NO Usarlos?</h2>
 <table class="table table-striped table-hover">
     <thead>

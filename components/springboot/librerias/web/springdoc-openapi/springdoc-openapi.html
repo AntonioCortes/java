@@ -1,0 +1,240 @@
+<h1 class="title">Documentación de APIs con Springdoc OpenAPI 3 y Swagger UI</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    Una API REST sin documentación viva y ejecutable es prácticamente inútil para los desarrolladores frontend, equipos móviles o microservicios que necesitan integrarse con ella.
+</p>
+<p>
+    <b>Springdoc OpenAPI</b> (starter <code>springdoc-openapi-starter-webmvc-ui</code>) es la biblioteca oficial recomendada para generar automáticamente la especificación <b>OpenAPI 3</b> y la interfaz interactiva <b>Swagger UI</b> en aplicaciones Spring Boot 3.x, actuando como el sucesor moderno del descontinuado <i>SpringFox</i>.
+</p>
+<ul>
+    <li><b>Generación Automática:</b> Analiza las anotaciones de Spring MVC (<code>@RestController</code>, <code>@GetMapping</code>, <code>@RequestParam</code>, <code>@RequestBody</code>) y las restricciones de Bean Validation (<code>@NotNull</code>, <code>@Size</code>) para deducir el contrato de la API sin esfuerzo manual.</li>
+    <li><b>Swagger UI Integrado:</b> Proporciona una interfaz web interactiva en <code>/swagger-ui.html</code> donde cualquier usuario puede consultar los endpoints y probar peticiones en vivo (*"Try it out"*).</li>
+    <li><b>Especificación JSON/YAML:</b> Expone la especificación estándar OpenAPI 3 en <code>/v3/api-docs</code> para importar en Postman o herramientas de integración continua.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>restaurante gourmet internacional</b>:
+</p>
+<ul>
+    <li>Sin Springdoc, es como un restaurante sin carta donde el cliente debe adivinar qué platos cocina el chef, qué ingredientes llevan y cuánto cuestan preguntando uno por uno.</li>
+    <li>Con <b>Springdoc OpenAPI y Swagger UI</b>, cada mesa dispone de una <b>tablet interactiva</b> con la carta completa en varios idiomas, fotografías de los platos, alérgenos obligatorios señalados y un botón para pedir una muestra y probarla de inmediato.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una API de gestión de mascotas es consumida por desarrolladores de apps móviles iOS/Android y pasarelas de pago de terceros.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Documentación manual)</div>
+            <div class="card-body">
+                <p>La documentación se mantiene a mano en un documento Word o Confluence. Tras cada despliegue, los endpoints cambian, los parámetros se renombran y el documento queda obsoleto, provocando horas de llamadas y bugs en el equipo de frontend.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Springdoc OpenAPI)</div>
+            <div class="card-body">
+                <p>La documentación se genera en tiempo real a partir del propio código compilado. Si un parámetro se renombra en Java, Swagger UI se actualiza al instante con total fidelidad.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Cualquier API REST pública o interna consumida por frontends u otros equipos.</td>
+            <td><b>SIEMPRE usar Springdoc OpenAPI</b></td>
+            <td>Ahorra cientos de horas de soporte y asegura que la documentación nunca se desincronice.</td>
+        </tr>
+        <tr>
+            <td>Microservicios de procesamiento interno orientados puramente a colas (Kafka/RabbitMQ) sin puertos HTTP expuestos.</td>
+            <td><b>NO es necesario</b></td>
+            <td>No aportan valor visual si el microservicio no expone endpoints REST a clientes externos.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Cuándo utilizar Springdoc OpenAPI</span>
+
+<h2>4. Dependencias Necesarias (Spring Boot 3+)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Dependencia oficial de Springdoc OpenAPI para Spring Boot 3 en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springdoc&lt;/groupId&gt;
+    &lt;artifactId&gt;springdoc-openapi-starter-webmvc-ui&lt;/artifactId&gt;
+    &lt;version&gt;2.3.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+}
+</code></pre>
+</div>
+
+<h2>5. Anotaciones Principales de OpenAPI 3</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Paquete</th>
+            <th scope="col">Propósito y Uso</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@Tag(name = "...", description = "...")</code></td>
+            <td><code>io.swagger.v3.oas.annotations.tags</code></td>
+            <td>Agrupa los endpoints en Swagger UI bajo una categoría temática (ej. "Mascotas", "Adopciones").</td>
+        </tr>
+        <tr>
+            <td><code>@Operation(summary = "...", description = "...")</code></td>
+            <td><code>io.swagger.v3.oas.annotations</code></td>
+            <td>Describe la acción que realiza el método REST y su comportamiento detallado.</td>
+        </tr>
+        <tr>
+            <td><code>@ApiResponse / @ApiResponses</code></td>
+            <td><code>io.swagger.v3.oas.annotations.responses</code></td>
+            <td>Documenta los códigos de respuesta HTTP posibles (200, 201, 400, 404, 500) y el esquema del cuerpo devuelto.</td>
+        </tr>
+        <tr>
+            <td><code>@Parameter(description = "...", example = "...")</code></td>
+            <td><code>io.swagger.v3.oas.annotations</code></td>
+            <td>Añade descripciones legibles y ejemplos a variables de ruta o query params.</td>
+        </tr>
+        <tr>
+            <td><code>@Schema(description = "...", example = "...")</code></td>
+            <td><code>io.swagger.v3.oas.annotations.media</code></td>
+            <td>Se coloca en los campos de los DTOs para indicar descripción, valores de ejemplo y formatos.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>6. Ejemplo Completo: Controlador Documentado con Soporte de Seguridad JWT</h2>
+
+<h3>A. Configuración Global de OpenAPI (Bean OpenAPI)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.config;
+
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OpenApiConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("PetShop Enterprise REST API")
+                        .version("1.0.0")
+                        .description("API REST oficial para la gestión integral de mascotas y adopciones")
+                        .contact(new Contact().name("Soporte Técnico").email("soporte@petshop.com")))
+                // Configuración de autenticación JWT Bearer en Swagger UI
+                .addSecurityItem(new SecurityRequirement().addList("BearerAuth"))
+                .components(new Components().addSecuritySchemes("BearerAuth",
+                        new SecurityScheme()
+                                .name("BearerAuth")
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")));
+    }
+}
+</code></pre>
+</div>
+
+<h3>B. Controlador REST Anotado con OpenAPI 3 y Lombok</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.controller;
+
+import com.example.petshop.dto.ErrorResponseDTO;
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.service.PetService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/pets")
+@RequiredArgsConstructor
+@Tag(name = "Mascotas", description = "Endpoints de gestión y consulta del catálogo de mascotas")
+public class PetDocumentedController {
+
+    private final PetService petService;
+
+    @Operation(summary = "Obtener mascota por ID", description = "Devuelve los detalles de una mascota existente a partir de su identificador numérico")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Mascota encontrada con éxito",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PetDTO.class))),
+            @ApiResponse(responseCode = "404", description = "No existe ninguna mascota con el ID solicitado",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseDTO.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno no controlado en el servidor",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseDTO.class)))
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;PetDTO&gt; getPetById(
+            @Parameter(description = "Identificador único de la mascota", example = "1", required = true)
+            @PathVariable Integer id) {
+        return ResponseEntity.ok(petService.findById(id));
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo y Error Común: Usar el Deprecado SpringFox en Spring Boot 3</h2>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- ANTIPATRÓN: Dependencia obsoleta incompatible con Spring Boot 3 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+    &lt;artifactId&gt;springfox-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
+    &lt;!-- FALLO DE ARRANQUE: Provoca NullPointerException y PatternParseException en Spring Boot 3 --&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Migrar siempre a <code>org.springdoc:springdoc-openapi-starter-webmvc-ui</code>, el estándar oficial para Spring Boot 3.
+</p>

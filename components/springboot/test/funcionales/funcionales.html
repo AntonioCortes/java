@@ -19,14 +19,14 @@
 
 ---
 
-<h2>2. Herramientas del Web Slice: MockMvc y @MockBean</h2>
+<h2>2. Herramientas del Web Slice: MockMvc, @MockBean y @MockitoBean</h2>
 
 <table class="table table-striped table-hover">
     <thead>
         <tr>
             <th scope="col">Componente</th>
             <th scope="col">Paquete</th>
-            <th scope="col">Propósito y Uso</th>
+            <th scope="col">Propósito y Versión</th>
         </tr>
     </thead>
     <tbody>
@@ -41,9 +41,14 @@
             <td>Punto de entrada principal para disparar peticiones HTTP virtuales (<code>perform(get(...))</code>, <code>perform(post(...))</code>) y verificar respuestas.</td>
         </tr>
         <tr>
+            <td><code>@MockitoBean</code></td>
+            <td><code>org.springframework.test.context.bean.override.mockito</code></td>
+            <td><b>Recomendado en Spring Boot 3.4+:</b> Nueva anotación oficial de Spring Framework 6.2+ / Spring Boot 3.4+ que reemplaza a <code>@MockBean</code> con un ciclo de vida más predecible y soporte unificado de <i>Bean Overrides</i>.</td>
+        </tr>
+        <tr>
             <td><code>@MockBean</code></td>
             <td><code>org.springframework.boot.test.mock.mockito</code></td>
-            <td>Registra un mock de Mockito dentro del contexto de Spring, sustituyendo al servicio real que requiere el controlador.</td>
+            <td><b>Estándar en Spring Boot 2.x - 3.3:</b> Registra un mock de Mockito dentro del contexto de Spring (marcada como <i>deprecated</i> a partir de Spring Boot 3.4 en favor de <code>@MockitoBean</code>).</td>
         </tr>
         <tr>
             <td><code>ObjectMapper</code></td>
@@ -148,6 +153,7 @@ class PetControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    // En Spring Boot 2.x - 3.3 se usa @MockBean; en Spring Boot 3.4+ se usa @MockitoBean
     @MockBean
     private PetService petService;
 
@@ -324,3 +330,166 @@ class BadControllerTest {
 <p>
     <b>Solución:</b> Utilizar siempre <code>@WebMvcTest</code> con <code>MockMvc</code> para disparar la petición a través de la infraestructura web real de Spring.
 </p>
+
+---
+
+<h2>7. Slice Test de Serialización JSON: @JsonTest y JacksonTester</h2>
+<p>
+    La anotación <code>@JsonTest</code> configura un contexto de test ultra ligero que inicializa exclusivamente el subsistema de serialización y deserialización (<b>Jackson</b>, <b>Gson</b> o <b>JSON-B</b>) y utilidades auxiliares como <code>JacksonTester&lt;T&gt;</code>.
+</p>
+
+<h3>¿Para qué sirve y qué problemas previene?</h3>
+<ul>
+    <li>Verifica que las anotaciones de Jackson como <code>@JsonProperty("pet_name")</code>, <code>@JsonFormat</code>, <code>@JsonIgnore</code> o <code>@JsonInclude(NON_NULL)</code> producen exactamente el payload esperado.</li>
+    <li>Comprueba que cadenas JSON complejas se deserializan correctamente hacia DTOs o records Java sin pérdidas de precisión ni errores de formato de fechas.</li>
+    <li>Se ejecuta en menos de 500 milisegundos sin levantar ningún servidor Tomcat ni servlet container.</li>
+</ul>
+
+<h3>Ejemplo Completo con JacksonTester</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.json;
+
+import com.example.petshop.dto.PetDTO;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.json.JsonTest;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.json.JsonContent;
+
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@JsonTest
+@DisplayName("Slice Test de Serialización JSON - PetDTO")
+class PetJsonTest {
+
+    @Autowired
+    private JacksonTester&lt;PetDTO&gt; jsonTester;
+
+    @Test
+    @DisplayName("Serialización: Convierte PetDTO a JSON respetando nombres y formatos")
+    void shouldSerializePetDtoToJson() throws Exception {
+        // GIVEN
+        PetDTO pet = PetDTO.builder()
+                .id(10)
+                .name("Oreo")
+                .species("Cat")
+                .age((short) 2)
+                .vaccinated(true)
+                .admissionDate(LocalDate.of(2025, 3, 20))
+                .build();
+
+        // WHEN
+        JsonContent&lt;PetDTO&gt; result = jsonTester.write(pet);
+
+        // THEN: Aserciones fluidas sobre rutas JSON
+        assertThat(result).extractingJsonPathNumberValue("@.id").isEqualTo(10);
+        assertThat(result).extractingJsonPathStringValue("@.name").isEqualTo("Oreo");
+        assertThat(result).extractingJsonPathStringValue("@.species").isEqualTo("Cat");
+        assertThat(result).extractingJsonPathBooleanValue("@.vaccinated").isTrue();
+        assertThat(result).extractingJsonPathStringValue("@.admissionDate").isEqualTo("2025-03-20");
+    }
+
+    @Test
+    @DisplayName("Deserialización: Convierte cadena JSON a objeto PetDTO fuertemente tipado")
+    void shouldDeserializeJsonToPetDto() throws Exception {
+        // GIVEN
+        String jsonPayload = """
+                {
+                    "id": 10,
+                    "name": "Oreo",
+                    "species": "Cat",
+                    "age": 2,
+                    "vaccinated": true,
+                    "admissionDate": "2025-03-20"
+                }
+                """;
+
+        // WHEN
+        PetDTO pet = jsonTester.parseObject(jsonPayload);
+
+        // THEN
+        assertThat(pet.getId()).isEqualTo(10);
+        assertThat(pet.getName()).isEqualTo("Oreo");
+        assertThat(pet.getSpecies()).isEqualTo("Cat");
+        assertThat(pet.isVaccinated()).isTrue();
+        assertThat(pet.getAdmissionDate()).isEqualTo(LocalDate.of(2025, 3, 20));
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>8. Slice Test de Clientes HTTP Externos: @RestClientTest y MockRestServiceServer</h2>
+<p>
+    Cuando nuestro microservicio se comunica con APIs externas (por ejemplo, pasarelas de pago, servicios de envíos o proveedores de vacunas veterinarias) utilizando <code>RestClient</code> o <code>RestTemplate</code>, la anotación <code>@RestClientTest</code> permite probar dicho cliente sin realizar llamadas de red reales.
+</p>
+
+<h3>¿Cómo funciona MockRestServiceServer?</h3>
+<p>
+    <code>MockRestServiceServer</code> intercepta a nivel interno las llamadas del cliente HTTP, valida que el cliente envíe el método HTTP, la URL y las cabeceras requeridas, y responde inmediatamente con un payload simulado y un código de estado predefinido.
+</p>
+
+<h3>Ejemplo Completo con MockRestServiceServer</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.client;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.MockRestServiceServer;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
+@RestClientTest(VaccineSupplierClient.class)
+@DisplayName("Slice Test de Cliente REST Externo - VaccineSupplierClient")
+class VaccineSupplierClientTest {
+
+    @Autowired
+    private VaccineSupplierClient client;
+
+    @Autowired
+    private MockRestServiceServer mockServer;
+
+    @Test
+    @DisplayName("Debe consultar la disponibilidad de vacunas contra el proveedor externo vía HTTP GET")
+    void shouldCheckVaccineStockFromExternalSupplier() {
+        // GIVEN: Expectativa de petición hacia el proveedor externo y respuesta simulada
+        String expectedUrl = "/api/v1/vaccines/rabies/stock";
+        String mockResponseBody = """
+                {
+                    "vaccine": "rabies",
+                    "availableDoses": 45,
+                    "inStock": true
+                }
+                """;
+
+        mockServer.expect(requestTo(expectedUrl))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(mockResponseBody, MediaType.APPLICATION_JSON));
+
+        // WHEN: El cliente ejecuta la llamada HTTP simulada
+        VaccineStockResponse response = client.checkStock("rabies");
+
+        // THEN: Verificación de resultado y confirmación de que se cumplió el contrato
+        assertThat(response).isNotNull();
+        assertThat(response.isInStock()).isTrue();
+        assertThat(response.getAvailableDoses()).isEqualTo(45);
+
+        // Verifica que todas las expectativas configuradas en el servidor mock se ejecutaron
+        mockServer.verify();
+    }
+}
+</code></pre>
+</div>

@@ -3,27 +3,32 @@
         color: black !important;
     }
 </style>
-<h1 class="title">Patrón Factory Method</h1>
+<h1 class="title">Patrón Factory Method (Método Fábrica)</h1>
 
-<p>El patrón <strong>Factory Method</strong> (Método Fábrica) es un patrón creacional que centraliza la creación de objetos a través de un método especializado, devolviendo los objetos bajo una interfaz común en lugar de acoplar el código cliente a clases concretas con <code class="language-java">new</code>.</p>
+<p>El patrón <strong>Factory Method</strong> (Método Fábrica) es un patrón creacional de diseño que define una interfaz o método para crear un objeto, pero delega en las subclases o en una factoría especializada la decisión de <strong>qué clase concreta instanciar</strong>, desacoplando el código cliente del operador <code>new</code> y de las implementaciones concretas.</p>
 
-<h2 class="subtitle">Analogía del Mundo Real</h2>
-<p>Piensa en una <strong>empresa de logística y mensajería</strong>. Cuando contratas un envío en el mostrador, tú solo pides "enviar este paquete" (<code class="language-java">notificarUsuario</code>). No vas tú mismo al garaje a comprar un camión, un barco o una furgoneta. El departamento de despacho (la <strong>Fábrica</strong>) decide internamente qué medio de transporte concreto preparar según el destino, pero para ti todos cumplen exactamente el mismo contrato: entregar el paquete.</p>
+<h2 class="subtitle">Analogía del Mundo Real: Agencia de Envíos y Logística</h2>
+<p>Imagina una <strong>empresa de mensajería urgente</strong>:</p>
+<ul>
+    <li>Cuando un usuario acude al mostrador para enviar un paquete, solo solicita el servicio: <em>"Quiero enviar este paquete a su destino"</em>.</li>
+    <li>El cliente no necesita saber si la empresa utilizará un camión diésel, un avión de carga o un buque portacontenedores; tampoco necesita comprar ni mantener el vehículo.</li>
+    <li>El departamento de logística interna (la <strong>Factoría</strong>) evalúa el destino y la urgencia y proporciona el <code>Transporte</code> adecuado. Para el cliente, todos los transportes cumplen el mismo contrato: <code>entregar(paquete)</code>.</li>
+</ul>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Separar el código que <strong>usa</strong> los objetos del código que los <strong>construye</strong>. El cliente trabaja únicamente con una interfaz abstracta (por ejemplo, <code class="language-java">Notificacion</code>) y delega en la fábrica la decisión de qué clase concreta instanciar.</p>
+<p>Separar la lógica de creación de objetos de la lógica de negocio que los utiliza. El cliente trabaja exclusivamente contra una interfaz o abstracción común (ej. <code>Notificacion</code>), mientras que la factoría centraliza las reglas de instanciación, facilitando añadir nuevos tipos de objetos sin modificar el código existente (Principio Open/Closed).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Sistema de Notificaciones Multicanal</h2>
-<p><strong>Contexto:</strong> Una aplicación bancaria necesita enviar alertas a los clientes por distintos canales según sus preferencias: Email, SMS o Notificaciones Push móviles.</p>
+<h2 class="subtitle">Caso de Uso Real: Sistema de Notificaciones Multicanal en PetShop</h2>
+<p><strong>Contexto:</strong> En la plataforma <em>PetShop</em>, cuando se confirma la adopción o cita médica de una mascota, el sistema debe alertar al usuario a través de su canal preferido: Correo Electrónico (<code>NotificacionEmail</code>), SMS (<code>NotificacionSMS</code>) o Alerta Push (<code>NotificacionPush</code>).</p>
 
-<p><strong>El Problema (Sin Factory Method):</strong> Si repartes sentencias <code class="language-java">new NotificacionEmail()</code> y <code class="language-java">new NotificacionSMS()</code> por decenas de clases de tu aplicación, tu lógica de negocio queda fuertemente acoplada a esas clases concretas. Si mañana cambias el constructor de <code class="language-java">NotificacionSMS</code> o añades un canal de WhatsApp, tendrás que modificar código en toda la aplicación.</p>
+<p><strong>El Problema (Sin Factory Method):</strong> Si cada servicio de la aplicación instancia manualmente <code class="language-java">new NotificacionEmail()</code> o <code class="language-java">new NotificacionSMS()</code> mediante bloques <code>if-else</code> dispersos, añadir un nuevo canal (como WhatsApp) obligará a modificar y retestear decenas de clases en toda la aplicación.</p>
 
-<p><strong>La Solución (Con Factory Method):</strong> Creas una interfaz <code class="language-java">Notificacion</code> con el método <code class="language-java">notificarUsuario()</code>, y una clase <code class="language-java">FabricaNotificaciones</code> cuyo método <code class="language-java">crearNotificacion(canal)</code> encapsula el <code class="language-java">switch</code> y los operadores <code class="language-java">new</code>. El resto de la aplicación solo conoce la interfaz <code class="language-java">Notificacion</code>.</p>
+<p><strong>La Solución (Con Factory Method):</strong> Centralizar la instanciación en <code>FabricaNotificaciones</code>, devolviendo siempre el contrato <code>Notificacion</code>. El cliente invoca <code>notificarUsuario(mensaje)</code> con total transparencia.</p>
 
 <h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
 <img class="center-horizontal" src="components/design-patterns/ejemplos/factory-method/assets/img/factory-method-diagram.png">
-<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Factory Method para un sistema de notificaciones</span>
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Factory Method para el sistema de notificaciones</span>
 
 <table class="table table-striped table-hover">
     <thead>
@@ -35,24 +40,24 @@
     </thead>
     <tbody>
         <tr>
-            <th scope="row">Producto (Interfaz)</th>
+            <th scope="row">Product (Producto Abstracto)</th>
             <td><code class="language-java">Notificacion</code></td>
-            <td>Define el contrato común (<code class="language-java">notificarUsuario(String mensaje)</code>) que todas las notificaciones deben cumplir.</td>
+            <td>Interfaz común que define el método <code>notificarUsuario(String mensaje)</code>.</td>
         </tr>
         <tr>
-            <th scope="row">Productos Concretos (Clases Normales)</th>
+            <th scope="row">Concrete Products</th>
             <td><code class="language-java">NotificacionEmail</code>, <code class="language-java">NotificacionSMS</code>, <code class="language-java">NotificacionPush</code></td>
-            <td>Implementan la interfaz <code class="language-java">Notificacion</code> con la lógica real de envío de cada canal.</td>
+            <td>Implementaciones reales de cada canal de mensajería con sus clientes y librerías técnicas.</td>
         </tr>
         <tr>
-            <th scope="row">Creador / Fábrica (Clase Normal)</th>
+            <th scope="row">Creator / Factory</th>
             <td><code class="language-java">FabricaNotificaciones</code></td>
-            <td>Contiene el método de fabricación (<code class="language-java">crearNotificacion</code>) que decide qué clase concreta instanciar.</td>
+            <td>Centraliza la creación e instanciación según el canal solicitado y devuelve la abstracción <code>Notificacion</code>.</td>
         </tr>
         <tr>
-            <th scope="row">Cliente (Clase Normal)</th>
+            <th scope="row">Client</th>
             <td><code class="language-java">Main</code></td>
-            <td>Solicita objetos a la fábrica y los utiliza a través de la interfaz <code class="language-java">Notificacion</code> sin saber su clase concreta.</td>
+            <td>Consume el producto a través de la interfaz común sin acoplarse a clases concretas.</td>
         </tr>
     </tbody>
 </table>
@@ -62,38 +67,38 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// 1. Interfaz Producto: contrato común para cualquier tipo de notificación
-interface Notificacion {
+// 1. Interfaz común del Producto
+public interface Notificacion {
     void notificarUsuario(String mensaje);
 }
 
-// 2. Productos Concretos: cada uno implementa el envío a su manera
-class NotificacionEmail implements Notificacion {
+// 2. Productos Concretos
+public class NotificacionEmail implements Notificacion {
     @Override
     public void notificarUsuario(String mensaje) {
-        System.out.println("[EMAIL] Enviando correo electrónico: " + mensaje);
+        System.out.println("✉️ [EMAIL] Enviando correo electrónico a la bandeja de entrada: " + mensaje);
     }
 }
 
-class NotificacionSMS implements Notificacion {
+public class NotificacionSMS implements Notificacion {
     @Override
     public void notificarUsuario(String mensaje) {
-        System.out.println("[SMS] Enviando mensaje de texto: " + mensaje);
+        System.out.println("📱 [SMS] Transmitiendo SMS a la red móvil: " + mensaje);
     }
 }
 
-class NotificacionPush implements Notificacion {
+public class NotificacionPush implements Notificacion {
     @Override
     public void notificarUsuario(String mensaje) {
-        System.out.println("[PUSH] Enviando alerta móvil: " + mensaje);
+        System.out.println("🔔 [PUSH] Emitiendo notificación push al dispositivo móvil: " + mensaje);
     }
 }
 
-// 3. Clase Fábrica: único lugar donde se hace 'new' de los productos
-class FabricaNotificaciones {
-    public Notification crearNotificacion(String channel) {
-        if (canal == null || canal.isEmpty()) {
-            throw new IllegalArgumentException("El canal no puede estar vacío");
+// 3. Creador / Factoría (Factory Method Parametrizado)
+public class FabricaNotificaciones {
+    public Notificacion crearNotificacion(String canal) {
+        if (canal == null || canal.isBlank()) {
+            throw new IllegalArgumentException("El canal de notificación no puede ser nulo o vacío.");
         }
         switch (canal.toUpperCase()) {
             case "EMAIL":
@@ -103,28 +108,21 @@ class FabricaNotificaciones {
             case "PUSH":
                 return new NotificacionPush();
             default:
-                throw new IllegalArgumentException("Canal desconocido: " + canal);
+                throw new IllegalArgumentException("Canal de mensajería no soportado: " + canal);
         }
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Implementación completa del patrón Factory Method</span>
+<span class="center-horizontal caption">Implementación completa y limpia del patrón Factory Method en Java</span>
 
-<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
-
+<h2 class="subtitle">Diferencia Clave: Simple Factory vs Factory Method Clásico (GoF)</h2>
 <ul>
-    <li>
-        <strong>1. Programar hacia una interfaz, no hacia una implementación:</strong>
-        <p>Fíjate en el tipo de retorno de <code class="language-java">crearNotificacion(String channel)</code>: devuelve <code class="language-java">Notificacion</code> (la interfaz), no <code class="language-java">NotificacionEmail</code>. Gracias al polimorfismo, el cliente puede guardar cualquier notificación en una variable de tipo <code class="language-java">Notificacion</code> y llamar a <code class="language-java">notificarUsuario()</code> con total transparencia.</p>
-    </li>
-    <li>
-        <strong>2. Principio de Responsabilidad Única (SRP):</strong>
-        <p>Hemos sacado la lógica de decisión y construcción fuera del código de negocio y la hemos concentrado en <code class="language-java">FabricaNotificaciones</code>. Si mañana hay que añadir un cuarto canal (<code class="language-java">NotificacionSlack</code>), solo añadimos la nueva clase y un <code class="language-java">case "SLACK"</code> en la fábrica.</p>
-    </li>
+    <li><strong>Simple Factory (La más habitual en la práctica):</strong> Una clase estática o utilitaria con un método <code>crearNotificacion(tipo)</code> que contiene el <code>switch</code> de instanciación. Es compacta y directa para el 90% de los casos.</li>
+    <li><strong>Factory Method Clásico (Gang of Four):</strong> La clase creadora es abstracta (<code>abstract class CreadorNotificacion</code>) con el método abstracto <code>abstract Notificacion crear()</code>. Cada canal tiene su propio creador concreto (<code>CreadorEmail</code>, <code>CreadorSMS</code>). Permite añadir canales sin modificar siquiera el <code>switch</code> de la factoría principal.</li>
 </ul>
 
-<h2 class="subtitle">Ejemplo de Uso</h2>
+<h2 class="subtitle">Ejemplo de Uso y Trazas de Consola</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -132,33 +130,83 @@ public class Main {
     public static void main(String[] args) {
         FabricaNotificaciones fabrica = new FabricaNotificaciones();
 
-        // El cliente pide objetos por su identificador lógico, sin usar 'new NotificacionEmail()'
-        Notificacion alerta1 = fabrica.crearNotificacion("EMAIL");
-        alerta1.notificarUsuario("Tu factura de octubre ya está disponible.");
+        // El cliente solicita notificaciones indicando el canal sin usar operadores 'new' directos
+        System.out.println("1. Alerta de confirmación de cita médica:");
+        Notificacion alertaEmail = fabrica.crearNotificacion("EMAIL");
+        alertaEmail.notificarUsuario("Tu cita para vacunación de 'Max' está confirmada para el viernes.");
 
-        Notificacion alerta2 = fabrica.crearNotificacion("SMS");
-        alerta2.notificarUsuario("Código de verificación: 849201");
+        System.out.println("\n2. Código de autenticación de dos factores (2FA):");
+        Notificacion alertaSMS = fabrica.crearNotificacion("SMS");
+        alertaSMS.notificarUsuario("Tu código temporal de acceso es: 749-102.");
 
-        Notificacion alerta3 = fabrica.crearNotificacion("PUSH");
-        alerta3.notificarUsuario("Has recibido una transferencia de 50,00 EUR.");
+        System.out.println("\n3. Aviso de entrega a domicilio:");
+        Notificacion alertaPush = fabrica.crearNotificacion("PUSH");
+        alertaPush.notificarUsuario("El transportista está a 5 minutos de tu domicilio.");
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Código cliente desacoplado de las clases concretas</span>
+<span class="center-horizontal caption">Consumo transparente desacoplado de las clases concretas</span>
 
 <div class="center-horizontal">
 <pre><code class="language-bash">
 Salida por consola:
-[EMAIL] Enviando correo electrónico: Tu factura de octubre ya está disponible.
-[SMS] Enviando mensaje de texto: Código de verificación: 849201
-[PUSH] Enviando alerta móvil: Has recibido una transferencia de 50,00 EUR.
+1. Alerta de confirmación de cita médica:
+✉️ [EMAIL] Enviando correo electrónico a la bandeja de entrada: Tu cita para vacunación de 'Max' está confirmada para el viernes.
+
+2. Código de autenticación de dos factores (2FA):
+📱 [SMS] Transmitiendo SMS a la red móvil: Tu código temporal de acceso es: 749-102.
+
+3. Aviso de entrega a domicilio:
+🔔 [PUSH] Emitiendo notificación push al dispositivo móvil: El transportista está a 5 minutos de tu domicilio.
 </code></pre>
 </div>
-<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+<span class="center-horizontal caption">Trazas que confirman el funcionamiento polimórfico</span>
+
+<h2 class="subtitle">Contraejemplo: Instanciación Directa Acoplada en Controladores</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Código cliente fuertemente acoplado a clases concretas
+public class PetControllerMalDisenado {
+
+    public void confirmarAdopcion(String canal, String email, String movil) {
+        // ERROR: Lógica de construcción mezclada con lógica de presentación
+        // Si NotificacionEmail cambia su constructor para requerir puerto SMTP o TLS,
+        // hay que editar todos los controladores donde se use new NotificacionEmail()
+        if ("EMAIL".equals(canal)) {
+            NotificacionEmail emailNotifier = new NotificacionEmail();
+            emailNotifier.notificarUsuario("Adopción lista");
+        } else if ("SMS".equals(canal)) {
+            NotificacionSMS smsNotifier = new NotificacionSMS();
+            smsNotifier.notificarUsuario("Adopción lista");
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Acoplamiento extremo que rompe el principio de sustitución y dificulta los tests</span>
 
 <h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
-<ul>
-    <li><strong>Cuándo usarlo:</strong> Cuando no sabes de antemano qué tipo exacto de objeto necesitarás crear hasta el momento de ejecución (por ejemplo, según un parámetro del usuario, un archivo de configuración o un evento entrante).</li>
-    <li><strong>Cuándo evitarlo:</strong> Si tu aplicación solo tiene una clase concreta y nunca va a variar, crear una interfaz y una fábrica añadirá complejidad innecesaria.</li>
-</ul>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Cuándo SÍ Usar Factory Method</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Cuando no se conoce con antelación el tipo exacto de objeto que se necesitará hasta el momento de ejecución (depende de parámetros del usuario, cabeceras o base de datos).</td>
+            <td>Cuando el sistema solo cuenta con una clase concreta fija y nunca existirá variación polimórfica (crear una interfaz y factoría para una sola clase es sobreingeniería).</td>
+        </tr>
+        <tr>
+            <td>Para desacoplar el cliente de librerías externas o frameworks propietarios.</td>
+            <td>En clases de datos simples (POJOs, DTOs o records inmutables) donde un constructor o Builder es mucho más natural.</td>
+        </tr>
+        <tr>
+            <td>Cuando se requiera facilitar la extensión de una librería permitiendo a otros programadores introducir nuevos productos.</td>
+            <td>Si la creación del objeto involucra familias completas de productos relacionados que deben combinar entre sí (en tal caso se debe usar <strong>Abstract Factory</strong>).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios para la selección del patrón Factory Method</span>

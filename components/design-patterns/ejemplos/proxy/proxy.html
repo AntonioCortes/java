@@ -3,27 +3,38 @@
         color: black !important;
     }
 </style>
-<h1 class="title">Patrón Proxy</h1>
+<h1 class="title">Patrón Proxy (Apoderado / Sustituto)</h1>
 
-<p>El patrón <strong>Proxy</strong> (Sustituto o Apoderado) es un patrón estructural que proporciona un objeto representante que <strong>controla el acceso</strong> a otro objeto real. Al implementar exactamente la misma interfaz que el objeto real, el Proxy puede interceptar las llamadas para realizar tareas antes o después (como carga perezosa, caché, control de permisos o registro de logs).</p>
+<p>El patrón <strong>Proxy</strong> (Sustituto o Apoderado) es un patrón estructural de diseño que proporciona un <strong>objeto representante que controla e intercepta el acceso</strong> a otro objeto real. Al implementar exactamente la misma interfaz que el objeto real, el Proxy actúa de forma transparente para el cliente, pudiendo ejecutar acciones antes o después de la llamada (como carga perezosa, control de seguridad, caché, telemetría o demolición/apertura de transacciones).</p>
 
-<h2 class="subtitle">Analogía del Mundo Real</h2>
-<p>Piensa en una <strong>tarjeta de débito bancaria</strong>. La tarjeta es un <strong>Proxy</strong> de tu dinero en efectivo guardado en la cámara acorazada del banco (el Objeto Real). Para el comerciante, cobrar con tarjeta o cobrar en efectivo cumple la misma interfaz ("pagar"), pero la tarjeta intercepta la operación, verifica si tienes saldo o permisos y solo mueve el dinero real cuando se confirma la compra.</p>
+<h2 class="subtitle">Analogía del Mundo Real: La Tarjeta de Débito Bancaria</h2>
+<p>Piensa en una <strong>tarjeta de débito bancaria</strong> frente a un fajo de billetes en efectivo:</p>
+<ul>
+    <li>La tarjeta física es un <strong>Proxy</strong> del dinero real guardado en la cámara acorazada del banco central (el Objeto Real).</li>
+    <li>Para el comercio, pagar con tarjeta o pagar en efectivo cumple el mismo contrato ("pagar"), pero la tarjeta intercepta la operación: comprueba el código PIN de seguridad, verifica que tu cuenta tiene saldo suficiente y solo entonces autoriza la transferencia.</li>
+    <li>Además, evita que tengas que cargar físicamente con 5.000 € en billetes por la calle a menos que realmente los vayas a gastar (<em>Virtual Proxy</em> / Carga perezosa).</li>
+</ul>
 
-<h2 class="subtitle">Propósito</h2>
-<p>Actuar como intermediario transparente del objeto real para gestionar su ciclo de vida o proteger su acceso. Sus variantes más famosas son: <strong>Virtual Proxy</strong> (carga diferida / <em>Lazy Loading</em>), <strong>Protection Proxy</strong> (control de permisos) y <strong>Caching Proxy</strong> (guardar respuestas en caché).</p>
+<h2 class="subtitle">Propósito y Principales Variantes</h2>
+<p>Actuar como intermediario transparente para controlar el ciclo de vida, la seguridad o el rendimiento del objeto subyacente:</p>
+<ul>
+    <li><strong>Virtual Proxy (Lazy Loading):</strong> Retrasa la creación de un objeto pesado (lectura de disco, descarga de red) hasta el milisegundo exacto en que se solicita su uso.</li>
+    <li><strong>Protection Proxy (Seguridad):</strong> Verifica credenciales o roles de usuario antes de permitir la ejecución de métodos críticos.</li>
+    <li><strong>Caching Proxy (Caché):</strong> Guarda en memoria los resultados de operaciones costosas para no repetirlas si los parámetros no cambian.</li>
+    <li><strong>Remote Proxy:</strong> Representa un objeto que reside en otra máquina o proceso (RMI, gRPC).</li>
+</ul>
 
-<h2 class="subtitle">Caso de Uso Real: Carga Diferida (Lazy Loading) de Imágenes Pesadas</h2>
-<p><strong>Contexto:</strong> Un catálogo tiene 500 fotografías en alta resolución (<code class="language-java">ImagenReal</code>). Cargar cada foto desde el disco duro o desde internet tarda mucho tiempo y consume mucha memoria.</p>
+<h2 class="subtitle">Caso de Uso Real: Carga Diferida (Lazy Loading) de Imágenes de Mascotas</h2>
+<p><strong>Contexto:</strong> En el catálogo de <em>PetShop</em> se muestran 500 fotografías en resolución 4K (<code>ImagenReal</code>). Descargar cada fotografía consume 15 MB de ancho de banda y 200 milisegundos de CPU.</p>
 
-<p><strong>El Problema (Sin Proxy):</strong> Si al abrir la pantalla instancias las 500 <code class="language-java">ImagenReal</code> de golpe, la aplicación se quedará congelada cargando fotos que el usuario quizá ni siquiera llegue a mirar.</p>
+<p><strong>El Problema (Sin Proxy):</strong> Si la pantalla inicial carga los 500 objetos <code>ImagenReal</code> en memoria de golpe, la aplicación colapsará por consumo de RAM y el usuario esperará 30 segundos de pantalla congelada.</p>
 
-<p><strong>La Solución (Con Virtual Proxy):</strong> La lista carga 500 objetos <code class="language-java">ImagenProxy</code> ultraligeros que implementan la interfaz <code class="language-java">Imagen</code> pero aún no han leído el disco. Solo cuando el usuario hace clic en una foto y se invoca <code class="language-java">mostrar()</code>, el <code class="language-java">ImagenProxy</code> instancia por primera vez a <code class="language-java">ImagenReal</code> y además la guarda en memoria por si vuelve a mostrarse.</p>
+<p><strong>La Solución (Con Virtual Proxy):</strong> La aplicación lista 500 objetos <code>ImagenProxy</code> ultraligeros. Solo cuando el usuario hace scroll y la imagen entra en el viewport llamando a <code>mostrar()</code>, el proxy descarga e inicializa la <code>ImagenReal</code>.</p>
 
 <h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
 <img class="center-horizontal" src="components/design-patterns/ejemplos/proxy/assets/img/proxy-diagram.png">
-<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Proxy controlando la creación y acceso a ImagenReal</span>
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Proxy interceptando y retrasando el acceso a ImagenReal</span>
 
 <table class="table table-striped table-hover">
     <thead>
@@ -35,19 +46,19 @@
     </thead>
     <tbody>
         <tr>
-            <th scope="row">Subject (Interfaz)</th>
+            <th scope="row">Subject (Contrato Común)</th>
             <td><code class="language-java">Imagen</code></td>
-            <td>Define la interfaz común para que el cliente pueda usar un <code class="language-java">ImagenProxy</code> exactamente igual que usaría un <code class="language-java">ImagenReal</code>.</td>
+            <td>Define la interfaz abstracta que permite al cliente tratar a <code>ImagenProxy</code> e <code>ImagenReal</code> de forma idéntica.</td>
         </tr>
         <tr>
-            <th scope="row">Real Subject (Objeto Real)</th>
+            <th scope="row">Real Subject (Objeto Real Pesado)</th>
             <td><code class="language-java">ImagenReal</code></td>
-            <td>La clase pesada que realiza el trabajo costoso real (leer la imagen de alta resolución del disco y renderizarla).</td>
+            <td>Clase que ejecuta el trabajo pesado y costoso (leer el fichero binario del disco o la red).</td>
         </tr>
         <tr>
-            <th scope="row">Proxy (Sustituto)</th>
+            <th scope="row">Proxy</th>
             <td><code class="language-java">ImagenProxy</code></td>
-            <td>Guarda una referencia a <code class="language-java">ImagenReal</code>, retrasa su creación hasta que se llama a <code class="language-java">mostrar()</code> y reutiliza la instancia en llamadas posteriores.</td>
+            <td>Retiene la referencia al objeto real, retrasa su creación hasta la primera invocación y cachea el resultado.</td>
         </tr>
     </tbody>
 </table>
@@ -57,34 +68,34 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// 1. Interfaz común para el Objeto Real y para el Proxy
+// 1. Interfaz común (Subject)
 interface Imagen {
     void mostrar();
 }
 
-// 2. Objeto Real: pesado de instanciar porque carga el archivo en su constructor
+// 2. Objeto Real (Real Subject): Muy costoso de instanciar
 class ImagenReal implements Imagen {
-    private String nombreArchivo;
+    private final String nombreArchivo;
 
     public ImagenReal(String nombreArchivo) {
         this.nombreArchivo = nombreArchivo;
         cargarDesdeDisco(nombreArchivo);
     }
 
-    private void cargarDesdeDisco(String nombreArchivo) {
-        System.out.println("&gt;&gt; [DISCO] Cargando archivo pesado de 25MB: " + nombreArchivo + "...");
+    private void cargarDesdeDisco(String archivo) {
+        System.out.println(">> [DISCO I/O] Leyendo fichero binario pesado de 15MB: " + archivo + "...");
     }
 
     @Override
     public void mostrar() {
-        System.out.println("🖼 Mostrando en pantalla la imagen: " + nombreArchivo);
+        System.out.println("🖼️ Mostrando en pantalla la imagen: " + nombreArchivo);
     }
 }
 
-// 3. Proxy: objeto ligero que retrasa la creación de ImagenReal hasta que sea indispensable
+// 3. Proxy Virtual y de Caché
 class ImagenProxy implements Imagen {
     private ImagenReal imagenReal;
-    private String nombreArchivo;
+    private final String nombreArchivo;
 
     public ImagenProxy(String nombreArchivo) {
         this.nombreArchivo = nombreArchivo;
@@ -92,72 +103,109 @@ class ImagenProxy implements Imagen {
 
     @Override
     public void mostrar() {
-        // Lazy Loading: solo creamos ImagenReal la primera vez que alguien pide verla
+        // Carga perezosa (Lazy Loading): solo se instancia al solicitar el método
         if (imagenReal == null) {
             imagenReal = new ImagenReal(nombreArchivo);
         } else {
-            System.out.println("&gt;&gt; [CACHÉ PROXY] La imagen ya estaba en memoria, evitando lectura de disco.");
+            System.out.println(">> [PROXY CACHÉ] Imagen reutilizada desde la memoria (0 lecturas a disco).");
         }
         imagenReal.mostrar();
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Implementación del patrón Proxy (Virtual + Caching Proxy)</span>
+<span class="center-horizontal caption">Implementación canónica del patrón Proxy en Java</span>
 
-<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
-
-<ul>
-    <li>
-        <strong>1. ¿Por qué Spring Boot e Hibernate usan tanto el patrón Proxy?</strong>
-        <p>En <strong>Hibernate/JPA</strong>, cuando tienes una relación <code class="language-java">FetchType.LAZY</code>, Hibernate te entrega un <em>Proxy</em> en vez de hacer un <code class="language-java">SELECT</code> inmediato a la base de datos. Y en <strong>Spring</strong>, anotaciones como <code class="language-java">@Transactional</code> o <code class="language-java">@Cacheable</code> funcionan creando un Proxy alrededor de tu <code class="language-java">@Service</code> que abre la transacción antes de llamar a tu método y hace <code class="language-java">commit</code> al terminar.</p>
-    </li>
-    <li>
-        <strong>2. Diferencia entre Decorator y Proxy:</strong>
-        <p>Aunque su estructura UML se parece mucho, en <strong>Decorator</strong> el cliente envuelve manualmente los objetos para sumar funcionalidades (leche + azúcar), mientras que el <strong>Proxy</strong> controla el acceso y suele gestionar él mismo la creación del objeto real sin que el cliente tenga que instanciarlo.</p>
-    </li>
-</ul>
-
-<h2 class="subtitle">Ejemplo de Uso</h2>
+<h2 class="subtitle">Ejemplo de Uso y Trazas de Consola</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        System.out.println("1. Creando el ImagenProxy...");
-        Image image = new ImagenProxy("paisaje_8k.jpg");
-        System.out.println("Proxy creado al instante (aún no se ha tocado el disco duro).\n");
+        System.out.println("1. Instanciando el ImagenProxy...");
+        Imagen imagen = new ImagenProxy("perro_golden_retriever_4k.jpg");
+        System.out.println("   Objeto Proxy listo en 0 milisegundos (disco intacto).\n");
 
-        System.out.println("2. Primera llamada a image.mostrar():");
-        image.mostrar();
+        System.out.println("2. Primera llamada a mostrar() (Provoca carga en disco):");
+        imagen.mostrar();
 
-        System.out.println("\n3. Segunda llamada a image.mostrar():");
-        image.mostrar();
+        System.out.println("\n3. Segunda llamada a mostrar() (Aprovecha caché en memoria):");
+        imagen.mostrar();
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Demostración de carga diferida y reutilización a través del Proxy</span>
+<span class="center-horizontal caption">Demostración práctica de carga perezosa y reutilización</span>
 
 <div class="center-horizontal">
 <pre><code class="language-bash">
 Salida por consola:
-1. Creando el ImagenProxy...
-Proxy creado al instante (aún no se ha tocado el disco duro).
+1. Instanciando el ImagenProxy...
+   Objeto Proxy listo en 0 milisegundos (disco intacto).
 
-2. Primera llamada a image.mostrar():
-&gt;&gt; [DISCO] Cargando archivo pesado de 25MB: paisaje_8k.jpg...
-🖼 Mostrando en pantalla la imagen: paisaje_8k.jpg
+2. Primera llamada a mostrar() (Provoca carga en disco):
+>> [DISCO I/O] Leyendo fichero binario pesado de 15MB: perro_golden_retriever_4k.jpg...
+🖼️ Mostrando en pantalla la imagen: perro_golden_retriever_4k.jpg
 
-3. Segunda llamada a image.mostrar():
-&gt;&gt; [CACHÉ PROXY] La imagen ya estaba en memoria, evitando lectura de disco.
-🖼 Mostrando en pantalla la imagen: paisaje_8k.jpg
+3. Segunda llamada a mostrar() (Aprovecha caché en memoria):
+>> [PROXY CACHÉ] Imagen reutilizada desde la memoria (0 lecturas a disco).
+🖼️ Mostrando en pantalla la imagen: perro_golden_retriever_4k.jpg
 </code></pre>
 </div>
-<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+<span class="center-horizontal caption">Trazas generadas por la consola</span>
+
+<h2 class="subtitle">El Patrón Proxy en Spring Boot: Dinámicos (JDK vs CGLIB) y el Fallo de Autoinvocación</h2>
+<p>Spring Boot genera proxies dinámicos automáticamente alrededor de tus clases con anotaciones como <code>@Transactional</code>, <code>@Cacheable</code> o <code>@Async</code>:</p>
+<ul>
+    <li>Si la clase implementa una interfaz, Spring utiliza por defecto <strong>JDK Dynamic Proxies</strong> (paquete <code>java.lang.reflect.Proxy</code>).</li>
+    <li>Si es una clase concreta sin interfaz, utiliza <strong>CGLIB</strong> generando una subclase en bytecode al vuelo.</li>
+</ul>
+
+<h3>El Error más Común en Spring: Autoinvocación (Self-Invocation Pitfall)</h3>
+<p>Si un método dentro de un <code>@Service</code> llama directamente a otro método de la misma clase anotado con <code>@Transactional</code>, <strong>la transacción NO se abre</strong> porque la llamada se produce internamente mediante <code>this.metodoB()</code> sin pasar por el Proxy de Spring:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class PetService {
+
+    public void registrarMascota() {
+        // ¡ERROR GRAVE! Invocación directa 'this.guardarEnBBDD()'.
+        // No pasa a través del Proxy de Spring; la anotación @Transactional se IGNORA por completo.
+        guardarEnBBDD();
+    }
+
+    @Transactional
+    public void guardarEnBBDD() {
+        petRepository.save(new Pet());
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón de Autoinvocación: El Proxy de Spring no puede interceptar llamadas internas 'this'</span>
+<p><b>Solución:</b> Extraer <code>guardarEnBBDD()</code> a otro servicio inyectado o inyectar el propio bean (<em>Self-Injection</em>) para obligar a que la llamada atraviese el Proxy.</p>
 
 <h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
-<ul>
-    <li><strong>Cuándo usarlo:</strong> Cuando tengas objetos muy pesados que no siempre se llegan a utilizar (<em>Lazy Loading</em>), cuando necesites comprobar permisos antes de ejecutar un método sensible, o para medir tiempos de ejecución y guardar logs sin ensuciar la clase de negocio.</li>
-    <li><strong>Cuándo evitarlo:</strong> Si el objeto original es ligero, rápido y no requiere control de acceso ni caché.</li>
-</ul>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Cuándo SÍ Usar Proxy</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Objetos o conexiones pesadas que deben cargarse bajo demanda (<em>Lazy Loading</em> en Hibernate).</td>
+            <td>Objetos ligeros en memoria que se utilizan siempre nada más crearse.</td>
+        </tr>
+        <tr>
+            <td>Aspectos transversales (AOP): auditoría, control de accesos por rol (<code>@PreAuthorize</code>) y transacciones (<code>@Transactional</code>).</td>
+            <td>Cuando se busque agregar funcionalidades acumulables en tiempo de ejecución (para eso se debe usar <strong>Decorator</strong>).</td>
+        </tr>
+        <tr>
+            <td>Para implementar cachés en memoria transparentes para el cliente consumidor.</td>
+            <td>Cuando añada complejidad innecesaria en flujos simples sin requerimientos de seguridad ni rendimiento.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios para la aplicación del patrón Proxy</span>

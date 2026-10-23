@@ -1,33 +1,38 @@
-<h1 class="title">Estructura y capas de Spring</h1>
+<h1 class="title">Estructura y Arquitectura de Aplicaciones en Spring Boot</h1>
 
+<h2>1. Las Tres Capas Principales de la Arquitectura</h2>
 <p>
-    Un proyecto de SpringBoot está dividido en 3 capas principales, a saber:
+    Un proyecto de Spring Boot se divide típicamente en tres capas arquitectónicas fundamentales que delimitan responsabilidades y garantizan el desacoplamiento:
 </p>
 <ul>
-    <li>Capa API</li>
-    <li>Capa de servicios</li>
-    <li>Capa de acceso a datos</li>
+    <li><b>Capa API (Presentación / Web):</b> Contiene todo lo relativo a la exposición pública de la aplicación. En ella residen los controladores REST (<code>@RestController</code>), los objetos de transferencia de datos (<b>DTO</b> - Data Transfer Object), los manejadores globales de excepciones (<code>@RestControllerAdvice</code>), los filtros de seguridad, interceptores y validadores de entrada.</li>
+    <li><b>Capa de Servicios (Lógica de Negocio):</b> Contiene la lógica pura del dominio, el procesamiento de reglas de negocio, la coordinación y orquestación de operaciones transaccionales (<code>@Transactional</code>), las comunicaciones entre microservicios (mediante clientes Feign o RestTemplate/WebClient) y la publicación de eventos asíncronos en colas (RabbitMQ / Kafka).</li>
+    <li><b>Capa de Acceso a Datos (Persistencia / Infraestructura):</b> Contiene los componentes responsables de interactuar con el motor de base de datos relacional o documental. En esta capa se ubican las interfaces de repositorios (<code>JpaRepository</code>, <code>MongoRepository</code>), las entidades persistentes (<code>@Entity</code>, <code>@Document</code>), convertidores de tipos y clases DAO (Data Access Object).</li>
 </ul>
+
+<div class="center-horizontal">
+    <img class="center-horizontal" src="components/springboot/conceptos-basicos/estructura/assets/dibujo.svg" alt="Diagrama de capas de Spring Boot">
+</div>
+<span class="center-horizontal caption">Figura 1: Flujo unidireccional entre la Capa API, la Capa de Servicios y la Capa de Acceso a Datos</span>
+
+---
+
+<h2>2. Estrategias de Organización de Paquetes en el Proyecto</h2>
 <p>
-    La <b>capa de API (Application Programming Interface)</b> contiene todo lo relativo a la parte pública. En ella se encuentran las clases de DTO (Data Transfer Object), los controladores, los manejadores de excepciones, filtros, plantillas, etc
-</p>
-<p>
-    La <b>capa de servicios</b> contiene la lógica de negocio, toda la infraestructura necesaria para la comunicación entre microservicios y lo necesario para consumir servicios externos.
-</p>
-<p>
-    La <b>capa de acceso a datos</b> contiene lo necesario para obtener y entregar datos persistentes de gestión privada. En esta capa se pueden encontrar los repositorios, las entidades, los modelos, las clases DAO( Data Access Object), etc.
+    Spring Framework no impone una estructura de carpetas rígida por defecto, permitiendo adoptar la convención que mejor se adapte al tamaño, escala y ciclo de vida del proyecto:
 </p>
 
-<img class="center-horizontal" src=".\components\springboot\conceptos-basicos\estructura\assets\dibujo.svg">
-
-<h2>Estructura de archivos</h2>
-
-<p>La documentación oficial de Spring plantea la posibilidad de organizar la estructura de archivos de la siguiente manera:</p>
+<h3>2.1. Organización por Funcionalidad o Dominio (Package-by-Feature / Vertical Slices)</h3>
 <p>
+    Recomendada por la documentación oficial de Spring y en proyectos orientados a <b>Domain-Driven Design (DDD)</b>. Agrupa todas las clases de un mismo dominio de negocio dentro de un paquete común, facilitando la modularización y la extracción futura a microservicios independientes:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
 com
  +- example
-     +- myapplication
-         +- MyApplication.java
+     +- petshop
+         +- PetShopApplication.java   # Clase principal de arranque en el paquete raíz
          |
          +- customer
          |   +- Customer.java
@@ -35,47 +40,178 @@ com
          |   +- CustomerService.java
          |   +- CustomerRepository.java
          |
+         +- pet
+         |   +- Pet.java
+         |   +- PetController.java
+         |   +- PetService.java
+         |   +- PetRepository.java
+         |
          +- order
              +- Order.java
              +- OrderController.java
              +- OrderService.java
              +- OrderRepository.java
-</p>
-<p>Otra forma aceptada es agrupando controladores, servicios, etc, en paquetes</p>
+</code></pre>
+</div>
+<span class="center-horizontal caption">Estructura organizada por funcionalidad (Package-by-Feature)</span>
+
+<h3>2.2. Organización Tradicional por Capas Técnicas (Package-by-Layer)</h3>
 <p>
+    Agrupa los artefactos según su rol técnico (todos los controladores juntos, todos los servicios juntos, todos los repositorios juntos). Es muy popular en microservicios pequeños o medianos con un alcance de dominio bien delimitado:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
 com
  +- example
-     +- myapplication
-         +- MyApplication.java
+     +- petshop
+         +- PetShopApplication.java   # Clase principal en el paquete raíz
          |
-         +- Repository
-         |   +- CustomerRepository.java
-         |   +- FraudRepository.java
-         |   +- OrderRepository.java
-         |
-         +- Controller
+         +- controller
          |   +- CustomerController.java
-         |   +- FraudController.java
+         |   +- PetController.java
          |   +- OrderController.java
          |
-         +- Service
-             +- CustomerService.java
-             +- FraudService.java
-             +- OrderService.java
-</p>
-<p>En cualquier caso no hay un estandar fijado por spring, por lo que lo ideal es utilizar la manera que mejor se adapte al proyecto a efectos de mantenimiento, escalabilidad, legibilidad, etc</p>
+         +- service
+         |   +- CustomerService.java
+         |   +- PetService.java
+         |   +- OrderService.java
+         |
+         +- repository
+         |   +- CustomerRepository.java
+         |   +- PetRepository.java
+         |   +- OrderRepository.java
+         |
+         +- model / entity
+             +- Customer.java
+             +- Pet.java
+             +- Order.java
+</code></pre>
+</div>
+<span class="center-horizontal caption">Estructura organizada por capas técnicas (Package-by-Layer)</span>
 
-<h2>@SpringBootApplication</h2>
-<p>Todo proyecto de SpringBoot tiene una clase principal que contiene un método main el cual se utilizará para arrancar el proyecto. Esta clase se identifica con la anotación <b>@SpringBootApplication</b></p>
+---
+
+<h2>3. La Anotación @SpringBootApplication y el Component Scanning</h2>
+<p>
+    Todo proyecto de Spring Boot cuenta con una clase principal que contiene el método <code>main</code> utilizado para arrancar el contenedor. Esta clase se marca con la anotación <b>@SpringBootApplication</b>:
+</p>
+
 <div class="center-horizontal">
-<pre class="language-java"><code>
+<pre><code class="language-java">
+package com.example.petshop;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 @SpringBootApplication
-public class MyApplication {
+public class PetShopApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MyApplication.class, args);
+        SpringApplication.run(PetShopApplication.class, args);
     }
-        
 }
-</code></pre>    
+</code></pre>
 </div>
+<span class="center-horizontal caption">Clase de arranque con @SpringBootApplication</span>
+
+<h3>Composición Interna de @SpringBootApplication</h3>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Meta-Anotación</th>
+            <th scope="col">Propósito y Mecanismo Interno</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>@SpringBootConfiguration</b></td>
+            <td>Identifica la clase como una clase de configuración equivalente a <code>@Configuration</code> de Spring, permitiendo declarar beans con <code>@Bean</code>.</td>
+        </tr>
+        <tr>
+            <td><b>@EnableAutoConfiguration</b></td>
+            <td>
+                El núcleo de la magia de Spring Boot: examina el classpath (los JARs añadidos en Maven o Gradle) y registra automáticamente los beans de infraestructura mediante condiciones como <code>@ConditionalOnClass</code> o <code>@ConditionalOnMissingBean</code> (ej. si detecta el driver de Postgres y Spring Data JPA, autoconfigura el <code>DataSource</code> y el <code>EntityManagerFactory</code>).
+            </td>
+        </tr>
+        <tr>
+            <td><b>@ComponentScan</b></td>
+            <td>
+                <b>Escaneo jerárquico de paquetes:</b> Activa la búsqueda automática de clases marcadas con <code>@Component</code>, <code>@Service</code>, <code>@Repository</code> y <code>@RestController</code>. <b>Regla Crítica:</b> Solo escanea el paquete donde se encuentra la clase principal y todos sus subpaquetes descendientes.
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>4. Inicializadores de Arranque: CommandLineRunner y ApplicationRunner</h2>
+<p>
+    Si se necesita ejecutar código específico nada más finalizar el arranque del microservicio (como precargar datos de prueba o validar conectividad externa), Spring Boot ofrece las interfaces <code>CommandLineRunner</code> y <code>ApplicationRunner</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.config;
+
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetJpaRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.time.LocalDate;
+
+@Slf4j
+@RequiredArgsConstructor
+@Configuration
+public class DataInitializerConfig {
+
+    private final PetJpaRepository petRepository;
+
+    @Bean
+    public CommandLineRunner initDatabase() {
+        return args -> {
+            log.info("Verificando catálogo inicial de mascotas...");
+            if (petRepository.count() == 0) {
+                petRepository.save(PetEntity.builder()
+                        .name("Thor")
+                        .species("Dog")
+                        .age(2)
+                        .vaccinated(true)
+                        .admissionDate(LocalDate.now())
+                        .build());
+                log.info("Mascota inicial creada con éxito en la base de datos.");
+            }
+        };
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Precarga de datos automática en el arranque con CommandLineRunner</span>
+
+---
+
+<h2>5. Contraejemplos y Antipatrones de Estructura</h2>
+
+<h3>Contraejemplo: Ubicar la Clase Principal en un Subpaquete Interno</h3>
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# ANTIPATRÓN CATASTRÓFICO: La clase principal está dentro de un subpaquete
+com.example.petshop
+ +- controller
+ |   +- PetController.java      # ¡NUNCA SERÁ ESCANEADO!
+ +- service
+ |   +- PetService.java         # ¡NUNCA SERÁ ESCANEADO!
+ +- config
+     +- PetShopApplication.java # ERROR: Solo escaneará 'com.example.petshop.config.*'
+</code></pre>
+</div>
+<p>
+    <b>Consecuencia técnica:</b> Todas las peticiones HTTP a <code>/petshop/pet</code> devolverán <b>404 NOT FOUND</b> y las inyecciones de servicio fallarán con <code>NoSuchBeanDefinitionException</code>, porque <code>@ComponentScan</code> no escanea paquetes hermanos o superiores.
+</p>
+<p>
+    <b>Solución Obligatoria:</b> La clase <code>@SpringBootApplication</code> debe ubicarse <b>siempre en el paquete raíz</b> (<code>com.example.petshop</code>).
+</p>

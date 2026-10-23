@@ -1,0 +1,244 @@
+<h1 class="title">Spring for RabbitMQ (AMQP): Mensajería y Enrutamiento Flexible</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    <b>Spring for RabbitMQ</b> (starter <code>spring-boot-starter-amqp</code> en Spring Initializr) proporciona una integración robusta con <b>RabbitMQ</b>, el broker de mensajería tradicional basado en el estándar <b>AMQP (Advanced Message Queuing Protocol)</b>.
+</p>
+<p>
+    A diferencia de Kafka (donde los productores publican directamente en particiones de Topics), en RabbitMQ la arquitectura se basa en el desacoplamiento mediante <b>Intercambiadores (Exchanges)</b> y <b>Colas (Queues)</b>:
+</p>
+<ul>
+    <li><b>Exchanges:</b> Reciben los mensajes de los productores y los enrutan hacia una o más colas según reglas lógicas:
+        <ul>
+            <li><b>Direct Exchange:</b> Enruta a la cola que coincida exactamente con la <i>Routing Key</i>.</li>
+            <li><b>Fanout Exchange:</b> Difusión masiva (*broadcast*): reenvía el mensaje a todas las colas vinculadas sin evaluar ninguna clave.</li>
+            <li><b>Topic Exchange:</b> Enrutamiento inteligente con comodines (ej. <code>pet.order.*</code> o <code>pet.#</code>).</li>
+            <li><b>Headers Exchange:</b> Enruta evaluando las cabeceras del mensaje en lugar de la clave.</li>
+        </ul>
+    </li>
+    <li><b>Colas (Queues):</b> Almacenan los mensajes en memoria (o en disco) hasta que los consumidores los extraen y confirman su procesamiento mediante un <b>ACK (Acknowledgement)</b>. Una vez confirmado, el mensaje se elimina de la cola.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos la <b>oficina central de clasificación de correos</b>:
+</p>
+<ul>
+    <li>El productor mete una carta en el buzón general.</li>
+    <li>El <b>Exchange</b> es el clasificador central que mira la etiqueta de la carta: *"Urgente - Madrid"*.</li>
+    <li>Si la regla es Direct, la deposita en la saca específica de Madrid. Si la regla es Fanout (un aviso de emergencia general), hace 50 fotocopias y echa una en cada saca del país.</li>
+    <li>El repartidor (<strong>el Consumidor</strong>) llega, toma las cartas de su saca (<strong>la Cola</strong>), las reparte y firma el albarán (<strong>el ACK</strong>). Una vez firmada la entrega, la carta ya no ocupa espacio en la saca.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una tienda de animales procesa pedidos con pagos, generación de facturas PDF pesadas y envíos de paquetería.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Procesamiento síncrono)</div>
+            <div class="card-body">
+                <p>Generar el PDF de la factura tarda 4 segundos. El cliente se queda esperando con la pantalla congelada durante el proceso de compra y si el generador de PDF falla, la compra entera se marca como errónea.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con RabbitMQ)</div>
+            <div class="card-body">
+                <p>El pedido se guarda y se deposita un mensaje ligero en la cola <code>invoice-generation-queue</code>. El microservicio de PDFs procesa la cola en segundo plano; el cliente recibe su confirmación inmediata en 50 milisegundos.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar RabbitMQ y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Tareas asíncronas pesadas en segundo plano (generación de PDFs, procesamiento de imágenes, importación de ficheros Excel).</td>
+            <td><b>SIEMPRE usar RabbitMQ</b></td>
+            <td>Garantiza entrega fiable, reparto equitativo de carga entre trabajadores y reintentos con Dead Letter Exchange.</td>
+        </tr>
+        <tr>
+            <td>Enrutamiento complejo con patrones y comodines hacia diferentes colas departamentales.</td>
+            <td><b>USAR RabbitMQ (Topic Exchange)</b></td>
+            <td>Sus capacidades de enrutamiento son muy superiores y flexibles a las de Kafka.</td>
+        </tr>
+        <tr>
+            <td>Streaming masivo de telemetría de millones de sensores IoT o reproducción histórica de eventos (Replay).</td>
+            <td><b>NO usar RabbitMQ (Usar Apache Kafka)</b></td>
+            <td>RabbitMQ no está diseñado para retener históricos ni para volúmenes de millones de eventos continuos en disco.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Cuándo elegir RabbitMQ</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring for RabbitMQ (AMQP) en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-amqp&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+}
+</code></pre>
+</div>
+
+<h2>5. Configuración de Topología AMQP en Spring Boot</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.config;
+
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMqConfig {
+
+    public static final String EXCHANGE_NAME = "petshop.direct.exchange";
+    public static final String QUEUE_NAME = "petshop.invoice.queue";
+    public static final String ROUTING_KEY = "petshop.invoice.generate";
+
+    // 1. Definición del Intercambiador Directo
+    @Bean
+    public DirectExchange petDirectExchange() {
+        return new DirectExchange(EXCHANGE_NAME, true, false);
+    }
+
+    // 2. Definición de la Cola persistente
+    @Bean
+    public Queue invoiceQueue() {
+        return QueueBuilder.durable(QUEUE_NAME)
+                .deadLetterExchange("petshop.dlx.exchange") // Redirige a DLX si falla
+                .deadLetterRoutingKey("petshop.invoice.deadletter")
+                .build();
+    }
+
+    // 3. Enlace (Binding) entre el Exchange y la Cola mediante la Routing Key
+    @Bean
+    public Binding invoiceBinding(Queue invoiceQueue, DirectExchange petDirectExchange) {
+        return BindingBuilder.bind(invoiceQueue)
+                .to(petDirectExchange)
+                .with(ROUTING_KEY);
+    }
+
+    // 4. Conversor JSON automático para payloads de mensajes
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+}
+</code></pre>
+</div>
+
+<h2>6. Productor y Consumidor de Mensajes con Lombok</h2>
+
+<h3>A. Productor (RabbitTemplate)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.producer;
+
+import com.example.petshop.config.RabbitMqConfig;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class InvoiceMessageProducer {
+
+    private final RabbitTemplate rabbitTemplate;
+
+    public void sendInvoiceRequest(InvoiceRequestMessage message) {
+        log.info("Depositando mensaje de factura en RabbitMQ para orden: {}", message.orderId());
+        rabbitTemplate.convertAndSend(
+                RabbitMqConfig.EXCHANGE_NAME,
+                RabbitMqConfig.ROUTING_KEY,
+                message
+        );
+    }
+
+    public record InvoiceRequestMessage(String orderId, String customerEmail, double amount) implements Serializable {}
+}
+</code></pre>
+</div>
+
+<h3>B. Consumidor (@RabbitListener)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.consumer;
+
+import com.example.petshop.config.RabbitMqConfig;
+import com.example.petshop.producer.InvoiceMessageProducer.InvoiceRequestMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+public class InvoiceMessageConsumer {
+
+    @RabbitListener(queues = RabbitMqConfig.QUEUE_NAME)
+    public void processInvoice(InvoiceRequestMessage message) {
+        log.info("Consumiendo mensaje de RabbitMQ: generando factura para pedido {}", message.orderId());
+        
+        // Simulación de generación pesada de PDF
+        generatePdf(message.orderId(), message.amount());
+        log.info("Factura para pedido {} generada y enviada a {}", message.orderId(), message.customerEmail());
+    }
+
+    private void generatePdf(String orderId, double amount) {
+        // Lógica de iText o JasperReports
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo y Error Fatal: Reintentos Infinitos (Poison Pill)</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Consumidor que lanza una excepción no controlada sin Dead Letter Queue configurada
+@RabbitListener(queues = "my-queue")
+public void badConsumer(String message) {
+    // Si el mensaje está corrupto (Poison Pill), el consumidor falla,
+    // RabbitMQ reencola el mensaje inmediatamente y vuelve a entregarlo en un bucle infinito
+    // saturando la CPU al 100% y llenando los discos con logs de error.
+    throw new RuntimeException("Payload corrupto imposible de procesar");
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Configurar siempre un límite de reintentos en <code>application.yml</code> (<code>spring.rabbitmq.listener.simple.retry.max-attempts=3</code>) y redirigir los mensajes venenosos a una <b>Dead Letter Queue (DLQ)</b> para su posterior inspección humana.
+</p>

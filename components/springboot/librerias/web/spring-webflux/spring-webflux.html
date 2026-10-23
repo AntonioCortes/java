@@ -1,0 +1,183 @@
+<h1 class="title">Spring WebFlux: Programación Reactiva No Bloqueante</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    <b>Spring Reactive Web</b> (starter <code>spring-boot-starter-webflux</code> en Spring Initializr) es el framework web reactivo oficial de Spring diseñado para construir microservicios y sistemas orientados a eventos de <b>altísimo rendimiento y escala masiva</b>.
+</p>
+<p>
+    A diferencia de Spring MVC tradicional (que asigna un hilo exclusivo del sistema operativo por cada petición entrante bloqueándolo hasta que la operación termine), <b>Spring WebFlux</b> opera sobre un modelo completamente <b>asíncrono y no bloqueante</b> basado en:
+</p>
+<ul>
+    <li><b>Servidor Embebido Netty:</b> Motor de red asíncrono basado en un bucle de eventos (<i>Event Loop</i>) que gestiona decenas de miles de conexiones concurrentes con un número muy reducido de hilos (igual al número de núcleos de la CPU).</li>
+    <li><b>Project Reactor:</b> La implementación de referencia de la especificación <i>Reactive Streams</i> en Java, que introduce dos tipos de datos reactivos fundamentales:
+        <ul>
+            <li><code>Mono&lt;T&gt;</code>: Emite como máximo <b>1 elemento</b> (o completa vacío / con error). Equivalente asíncrono a <code>Optional&lt;T&gt;</code> o <code>CompletableFuture&lt;T&gt;</code>.</li>
+            <li><code>Flux&lt;T&gt;</code>: Emite una secuencia asíncrona de <b>0 a N elementos</b> a lo largo del tiempo, con soporte nativo de <i>Backpressure</i> (el consumidor avisa al productor de cuántos elementos puede procesar para no ser saturado).</li>
+        </ul>
+    </li>
+    <li><b>WebClient:</b> Cliente HTTP reactivo y no bloqueante moderno (sustituto oficial recomendado de <code>RestTemplate</code>).</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos una <b>oficina de correos</b>:
+</p>
+<ul>
+    <li><b>Spring MVC (Tomcat clásico):</b> Hay 20 ventanillas. Si un cliente pide un paquete que tarda 10 minutos en buscarse en el sótano, el empleado se queda de brazos cruzados esperando en la ventanilla. Si llegan 21 clientes a la vez, el número 21 tiene que esperar en la calle porque no hay hilos libres.</li>
+    <li><b>Spring WebFlux (Netty reactivo):</b> Hay un único mostrador rápido. El empleado recoge el número de seguimiento, le da un ticket electrónico al cliente y le dice: *"Siéntese, cuando su paquete esté en la cinta sonará su ticket"*. El empleado atiende a 1.000 personas en 5 minutos; a medida que los paquetes llegan del sótano de forma asíncrona, se emite una notificación y se entregan.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una plataforma de monitorización veterinaria en tiempo real transmite constantes biométricas (pulso cardíaco, oxígeno en sangre) de miles de mascotas hospitalizadas a las pantallas de los veterinarios.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Con Spring MVC)</div>
+            <div class="card-body">
+                <p>Mantener 20.000 conexiones HTTP abiertas en Tomcat para recibir eventos continuos requiere 20.000 hilos del sistema operativo. La JVM consume 20 GB de memoria solo en pilas de hilos (thread stacks) y el servidor cae por <code>OutOfMemoryError: unable to create new native thread</code>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con WebFlux + SSE)</div>
+            <div class="card-body">
+                <p>Utilizando un <code>Flux</code> continuo mediante Server-Sent Events (SSE), Netty mantiene las 20.000 conexiones abiertas con tan solo 8 hilos de CPU y menos de 200 MB de memoria RAM.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar WebFlux y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Spring MVC (Spring Web)</th>
+            <th scope="col">Spring WebFlux (Reactive Web)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Modelo de Ejecución</b></td>
+            <td>Síncrono y bloqueante (1 hilo por petición en Tomcat).</td>
+            <td><b>Asíncrono y no bloqueante</b> (Event Loop en Netty).</td>
+        </tr>
+        <tr>
+            <td><b>Concurrencia Óptima</b></td>
+            <td>Hasta 1.000 - 2.000 peticiones concurrentes.</td>
+            <td><b>Decenas de miles de conexiones simultáneas</b> con mínima memoria.</td>
+        </tr>
+        <tr>
+            <td><b>Bases de Datos Compatibles</b></td>
+            <td>JPA / Hibernate tradicional, JDBC bloqueante.</td>
+            <td><b>R2DBC, MongoDB Reactive, Redis Reactive, Cassandra</b> (deben ser drivers no bloqueantes).</td>
+        </tr>
+        <tr>
+            <td><b>¿Cuándo NO usarlo?</b></td>
+            <td>Cuando se requiera streaming masivo continuo de datos.</td>
+            <td><b>Si tu proyecto utiliza JPA/Hibernate tradicional</b>, ya que las llamadas bloqueantes a la base de datos anulan todas las ventajas reactivas.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa profunda entre Spring MVC y Spring WebFlux</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring WebFlux en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-webflux&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+}
+</code></pre>
+</div>
+
+<h2>5. Ejemplo Completo: Controlador Reactivo y Streaming con Server-Sent Events (SSE)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.controller.reactive;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.service.reactive.PetReactiveService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.time.Duration;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/v1/reactive/pets")
+@RequiredArgsConstructor
+public class PetReactiveController {
+
+    private final PetReactiveService petService;
+
+    // 1. Endpoint que retorna un único elemento asíncrono (Mono)
+    @GetMapping("/{id}")
+    public Mono&lt;PetDTO&gt; getPetById(@PathVariable Long id) {
+        log.info("Llegada de petición no bloqueante para mascota: {}", id);
+        return petService.findPetById(id);
+    }
+
+    // 2. Endpoint de streaming en tiempo real (Server-Sent Events)
+    // Emite una mascota cada segundo de forma continua hacia el navegador/cliente
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux&lt;PetDTO&gt; streamPets() {
+        log.info("Iniciando canal SSE de streaming de mascotas...");
+        return petService.findAllPets()
+                .delayElements(Duration.ofSeconds(1)) // Simula flujo temporal continuo
+                .doOnCancel(() -&gt; log.info("Cliente desconectado del canal SSE"));
+    }
+
+    // 3. Creación reactiva con Mono
+    @PostMapping
+    public Mono&lt;PetDTO&gt; createPet(@RequestBody Mono&lt;PetDTO&gt; petDtoMono) {
+        return petDtoMono.flatMap(petService::savePet);
+    }
+}
+</code></pre>
+</div>
+
+<h2>6. Contraejemplo y Error Fatal: Mezclar Código Bloqueante en WebFlux</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN CATASTRÓFICO: Ejecutar código bloqueante dentro de un operador reactivo
+@GetMapping("/bad-stream")
+public Flux&lt;PetDTO&gt; badReactiveMethod() {
+    return Flux.range(1, 100)
+            .map(id -&gt; {
+                // ERROR MORTAL: Thread.sleep o consultas JDBC bloqueantes
+                // detienen el Event Loop de Netty. Con 4 llamadas simultáneas,
+                // TODAS las peticiones del microservicio entero se congelan.
+                try { Thread.sleep(2000); } catch (InterruptedException e) {}
+                return new PetDTO(...);
+            });
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar siempre operadores no bloqueantes nativos como <code>delayElements(Duration)</code> o delegar operaciones bloqueantes legacy en un scheduler aislado mediante <code>publishOn(Schedulers.boundedElastic())</code>.
+</p>

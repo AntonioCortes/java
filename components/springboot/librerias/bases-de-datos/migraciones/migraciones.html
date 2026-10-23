@@ -1,0 +1,193 @@
+<h1 class="title">Control de Versiones y Migraciones de Base de Datos (Flyway y Liquibase)</h1>
+
+<h2>1. ¿Qué son y para qué sirven?</h2>
+<p>
+    En entornos de desarrollo empresarial y despliegue continuo (CI/CD), la base de datos no puede modificarse manualmente mediante scripts improvisados ni confiando en la generación automática de Hibernate (<code>ddl-auto: update</code>).
+</p>
+<p>
+    <b>Spring Initializr</b> ofrece integración nativa con las dos herramientas estándar de la industria para el control de versiones de esquemas SQL:
+</p>
+<ul>
+    <li>
+        <b>Flyway:</b> La herramienta más extendida y sencilla. Se basa en scripts SQL planos versionados (ej. <code>V1__crear_tablas.sql</code>, <code>V2__anadir_columna_edad.sql</code>) que se guardan en el repositorio de código junto a la aplicación y se ejecutan automáticamente en orden estricto durante el arranque de Spring Boot.
+    </li>
+    <li>
+        <b>Liquibase:</b> Herramienta agnóstica de base de datos basada en conjuntos de cambios (<i>Changesets</i>) definidos en XML, YAML, JSON o SQL. Permite especificar cambios de esquema abstractos que Liquibase traduce automáticamente al dialecto SQL de cualquier motor (PostgreSQL, Oracle, MySQL, SQL Server), con soporte avanzado para rollbacks automatizados.
+    </li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>historial de revisiones de Git</b> aplicado a la estructura de un rascacielos: los arquitectos no van a la obra cada mañana a derribar tabiques o picar columnas sin planos previos. Cada cambio estructural queda registrado en un libro de bitácora oficial numerado: *"Revisión 1: cimientos de hormigón"*, *"Revisión 2: instalación de cableado eléctrico"*. Si una revisión falla o ya fue aplicada, el capataz (Flyway o Liquibase) comprueba la tabla de auditoría (<code>flyway_schema_history</code>), detecta qué cambios faltan por aplicar y ejecuta únicamente las revisiones pendientes de forma segura e irreversible.
+</p>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una aplicación de banca veterinaria tiene entornos de Desarrollo, Pruebas (QA), Preproducción y Producción con réplicas activas en Kubernetes.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Uso de ddl-auto=update)</div>
+            <div class="card-body">
+                <p>Un desarrollador renombra un atributo en una entidad Java. Al arrancar en producción, Hibernate crea una columna nueva y deja la antigua con datos desincronizados, provocando inconsistencias, bloqueos de tablas y pérdida de datos irreversible.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Flyway o Liquibase)</div>
+            <div class="card-body">
+                <p>Se desactiva Hibernate DDL (<code>ddl-auto: validate</code>). Cada cambio viaja en un script SQL versionado revisado por el equipo de BD. Todos los entornos aplican exactamente el mismo script con total trazabilidad y cero sorpresas.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar Flyway vs Liquibase?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Flyway</th>
+            <th scope="col">Liquibase</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Formato Principal</b></td>
+            <td><b>SQL Puro</b> (fácil de leer y escribir por cualquier desarrollador o DBA).</td>
+            <td><b>XML, YAML, JSON o SQL</b> (abstracción independiente del motor).</td>
+        </tr>
+        <tr>
+            <td><b>Curva de Aprendizaje</b></td>
+            <td><b>Muy baja:</b> solo requiere saber SQL y la convención de nombres de archivo.</td>
+            <td>Media/Alta: requiere aprender la estructura de tags de los changesets.</td>
+        </tr>
+        <tr>
+            <td><b>Soporte Multi-Base de Datos</b></td>
+            <td>Los scripts SQL deben adaptarse si se migra de base de datos (ej. de Postgres a Oracle).</td>
+            <td><b>Excelente:</b> un mismo changeset YAML genera la sentencia adaptada a Oracle, Postgres o MySQL.</td>
+        </tr>
+        <tr>
+            <td><b>Rollback Automático</b></td>
+            <td>Disponible únicamente en la versión Enterprise/Teams (de pago).</td>
+            <td><b>Soportado nativamente en la versión gratuita Open Source</b> (etiqueta <code>&lt;rollback&gt;</code>).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa entre Flyway y Liquibase</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<h3>A. Flyway con PostgreSQL</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter de Flyway y dependencia específica de base de datos --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+    &lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+    &lt;artifactId&gt;flyway-database-postgresql&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+}
+</code></pre>
+</div>
+
+<h3>B. Liquibase</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;org.liquibase&lt;/groupId&gt;
+    &lt;artifactId&gt;liquibase-core&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>5. Estructura y Nomenclatura de Scripts en Flyway</h2>
+<p>
+    Los scripts SQL de Flyway se ubican por defecto en <code>src/main/resources/db/migration/</code> y siguen una convención estricta:
+</p>
+<ul>
+    <li><b>Prefijo <code>V</code> (Versión):</b> Scripts versionados que se ejecutan una única vez en orden ascendente (ej. <code>V1__crear_tabla_mascotas.sql</code>, <code>V2__crear_tabla_vacunas.sql</code>).</li>
+    <li><b>Prefijo <code>U</code> (Deshacer / Undo):</b> Scripts de compensación o marcha atrás.</li>
+    <li><b>Prefijo <code>R</code> (Repetibles):</b> Scripts que se ejecutan cada vez que su contenido (checksum) cambia (ideal para vistas SQL, procedimientos almacenados y triggers).</li>
+    <li><b>Separador <code>__</code>:</b> Dos barras bajas consecutivas obligatorias separan la versión de la descripción legible.</li>
+</ul>
+
+<h3>Ejemplo: V1__init_schema.sql</h3>
+<div class="center-horizontal">
+<pre><code class="language-sql">
+CREATE TABLE pets (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    species VARCHAR(50) NOT NULL,
+    age INT,
+    vaccinated BOOLEAN NOT NULL DEFAULT FALSE,
+    admission_date DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+CREATE INDEX idx_pets_species ON pets(species);
+</code></pre>
+</div>
+
+<h3>Ejemplo: V2__add_owner_contact.sql</h3>
+<div class="center-horizontal">
+<pre><code class="language-sql">
+ALTER TABLE pets ADD COLUMN owner_phone VARCHAR(20);
+ALTER TABLE pets ADD COLUMN chip_number VARCHAR(50) UNIQUE;
+</code></pre>
+</div>
+
+<h2>6. Configuración en Spring Boot (application.yml)</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  # Desactivar la generación destructiva de Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: validate # Solo valida que las entidades coincidan con la BD creada por Flyway
+    show-sql: false
+
+  # Configuración de Flyway
+  flyway:
+    enabled: true
+    baseline-on-migrate: true # Si la base de datos ya tenía tablas previas
+    locations: classpath:db/migration
+    out-of-order: false # No permite aplicar scripts antiguos desordenados
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo y Peligro Mortal en Producción</h2>
+
+<h3>Contraejemplo: Usar ddl-auto=create o ddl-auto=update en Entornos Reales</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# ANTIPATRÓN MORTAL EN PRODUCCIÓN:
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # O ddl-auto: update
+      # PELIGRO: create-drop borra todas las tablas al reiniciar el microservicio.
+      # update nunca borra columnas eliminadas (huérfanos silenciosos) y bloquea tablas grandes.
+</code></pre>
+</div>
+<p>
+    <b>Regla de Oro de Producción:</b> Configurar siempre <code>spring.jpa.hibernate.ddl-auto=validate</code> y delegar el 100% del ciclo de vida del esquema en <b>Flyway o Liquibase</b>.
+</p>

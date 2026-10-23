@@ -89,36 +89,150 @@
             "contentId": "springBootLibraries",
             "content": [
                 {
-                    "text": "Spring Data",
-                    "contentId": "springDataSubmenu",
+                    "text": "Bases de Datos",
+                    "contentId": "basesDeDatosSubmenu",
                     "content": [
                         {
-                            "text": "Arquitectura y Modelado",
-                            "content": "component-springboot-librerias-spring-data-jpa-arquitectura-modelado"
+                            "text": "Spring Data JPA",
+                            "contentId": "springDataSubmenu",
+                            "content": [
+                                {
+                                    "text": "Arquitectura y Modelado",
+                                    "content": "component-springboot-librerias-spring-data-jpa-arquitectura-modelado"
+                                },
+                                {
+                                    "text": "Consultas Derivadas",
+                                    "content": "component-springboot-librerias-spring-data-jpa-query-methods"
+                                },
+                                {
+                                    "text": "Consultas Personalizadas",
+                                    "content": "component-springboot-librerias-spring-data-jpa-consultas-personalizadas"
+                                },
+                                {
+                                    "text": "Paginación y Ordenación",
+                                    "content": "component-springboot-librerias-spring-data-jpa-paginacion-ordenacion"
+                                },
+                                {
+                                    "text": "Proyecciones y DTOs",
+                                    "content": "component-springboot-librerias-spring-data-jpa-proyecciones"
+                                },
+                                {
+                                    "text": "Rendimiento y N más 1",
+                                    "content": "component-springboot-librerias-spring-data-jpa-rendimiento-n-mas-uno"
+                                },
+                                {
+                                    "text": "Auditoría y Transacciones",
+                                    "content": "component-springboot-librerias-spring-data-jpa-auditoria-transacciones"
+                                }
+                            ]
                         },
                         {
-                            "text": "Consultas Derivadas",
-                            "content": "component-springboot-librerias-spring-data-jpa-query-methods"
+                            "text": "Spring Data JDBC y R2DBC",
+                            "content": "component-springboot-librerias-bases-de-datos-spring-data-jdbc-r2dbc"
                         },
                         {
-                            "text": "Consultas Personalizadas",
-                            "content": "component-springboot-librerias-spring-data-jpa-consultas-personalizadas"
+                            "text": "NoSQL y Cache",
+                            "content": "component-springboot-librerias-bases-de-datos-nosql"
                         },
                         {
-                            "text": "Paginación y Ordenación",
-                            "content": "component-springboot-librerias-spring-data-jpa-paginacion-ordenacion"
+                            "text": "Migraciones Flyway y Liquibase",
+                            "content": "component-springboot-librerias-bases-de-datos-migraciones"
                         },
                         {
-                            "text": "Proyecciones y DTOs",
-                            "content": "component-springboot-librerias-spring-data-jpa-proyecciones"
+                            "text": "Drivers y Dialectos",
+                            "content": "component-springboot-librerias-bases-de-datos-drivers-bbdd"
+                        }
+                    ]
+                },
+                {
+                    "text": "Web y APIs",
+                    "contentId": "webApisSubmenu",
+                    "content": [
+                        {
+                            "text": "Spring Web MVC",
+                            "content": "component-springboot-librerias-web-spring-web"
                         },
                         {
-                            "text": "Rendimiento y N más 1",
-                            "content": "component-springboot-librerias-spring-data-jpa-rendimiento-n-mas-uno"
+                            "text": "Spring WebFlux",
+                            "content": "component-springboot-librerias-web-spring-webflux"
                         },
                         {
-                            "text": "Auditoría y Transacciones",
-                            "content": "component-springboot-librerias-spring-data-jpa-auditoria-transacciones"
+                            "text": "Documentacion OpenAPI",
+                            "content": "component-springboot-librerias-web-springdoc-openapi"
+                        },
+                        {
+                            "text": "Spring HATEOAS",
+                            "content": "component-springboot-librerias-web-spring-hateoas"
+                        }
+                    ]
+                },
+                {
+                    "text": "Seguridad",
+                    "contentId": "springSecurity",
+                    "content": [
+                        {
+                            "text": "Basic Security",
+                            "content": "component-springboot-librerias-spring-security-basic-security"
+                        },
+                        {
+                            "text": "Microservicios",
+                            "content": "component-springboot-librerias-spring-security-microservices"
+                        }
+                    ]
+                },
+                {
+                    "text": "Mensajeria",
+                    "contentId": "mensajeriaSubmenu",
+                    "content": [
+                        {
+                            "text": "Apache Kafka",
+                            "content": "component-springboot-librerias-mensajeria-kafka"
+                        },
+                        {
+                            "text": "RabbitMQ",
+                            "content": "component-springboot-librerias-mensajeria-rabbitmq"
+                        }
+                    ]
+                },
+                {
+                    "text": "Operaciones y Observabilidad",
+                    "contentId": "opsSubmenu",
+                    "content": [
+                        {
+                            "text": "Spring Boot Actuator",
+                            "content": "component-springboot-librerias-ops-actuator"
+                        },
+                        {
+                            "text": "Prometheus y Metricas",
+                            "content": "component-springboot-librerias-ops-metricas-prometheus"
+                        }
+                    ]
+                },
+                {
+                    "text": "Herramientas de Desarrollo",
+                    "contentId": "devToolsSubmenu",
+                    "content": [
+                        {
+                            "text": "DevTools",
+                            "content": "component-springboot-librerias-developer-tools-devtools"
+                        },
+                        {
+                            "text": "Docker Compose",
+                            "content": "component-springboot-librerias-developer-tools-docker-compose"
+                        }
+                    ]
+                },
+                {
+                    "text": "Procesamiento e IO",
+                    "contentId": "procesamientoSubmenu",
+                    "content": [
+                        {
+                            "text": "Spring Batch",
+                            "content": "component-springboot-librerias-procesamiento-spring-batch"
+                        },
+                        {
+                            "text": "Quartz Scheduler",
+                            "content": "component-springboot-librerias-procesamiento-quartz-scheduler"
                         }
                     ]
                 },
@@ -157,16 +271,12 @@
                     ]
                 },
                 {
-                    "text": "Spring Security",
-                    "contentId": "springSecurity",
+                    "text": "Spring AI",
+                    "contentId": "springAiSubmenu",
                     "content": [
                         {
-                            "text": "Basic Security",
-                            "content": "component-springboot-librerias-spring-security-basic-security"
-                        },
-                        {
-                            "text": "Microservicios",
-                            "content": "component-springboot-librerias-spring-security-microservices"
+                            "text": "Inteligencia Artificial",
+                            "content": "component-springboot-librerias-spring-ai-spring-ai"
                         }
                     ]
                 }

@@ -1,0 +1,163 @@
+<h1 class="title">Docker Compose Support: Infraestructura Automática en Desarrollo</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    Uno de los mayores dolores de cabeza para un desarrollador al clonar un nuevo repositorio es levantar manualmente toda la infraestructura auxiliar que la aplicación necesita para funcionar: la base de datos PostgreSQL, la caché Redis, el broker de RabbitMQ o el clúster de Kafka.
+</p>
+<p>
+    A partir de <b>Spring Boot 3.1+</b>, Spring Initializr incluye el módulo oficial <b>Docker Compose Support</b> (dependencia <code>spring-boot-docker-compose</code>):
+</p>
+<ul>
+    <li><b>Detección Automática:</b> Al arrancar la aplicación (<code>mvn spring-boot:run</code> o <code>./gradlew bootRun</code>), Spring Boot busca automáticamente un archivo <code>compose.yaml</code> o <code>docker-compose.yml</code> en la raíz del proyecto.</li>
+    <li><b>Gestión del Ciclo de Vida:</b> Ejecuta automáticamente <code>docker compose up</code> al iniciar la aplicación y <code>docker compose stop</code> al detenerla.</li>
+    <li><b>Autoconfiguración Mágica de Conexiones (Connection Details):</b> Spring Boot inspecciona los contenedores levantados por Docker Compose y <b>autonfigura automáticamente las propiedades de conexión</b> (URL de JDBC, puertos dinámicos, usuarios y contraseñas) de PostgreSQL, MySQL, Redis, RabbitMQ, Kafka o Zipkin sin escribir ni una sola línea en <code>application.yml</code>.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos una <b>autocaravana de viaje de última generación</b>:
+</p>
+<ul>
+    <li>Sin Docker Compose Support, cada vez que llegas al camping tienes que tender manualmente la manguera del agua, clavar las piquetas, conectar el generador diésel con cables de cobre y configurar el regulador de gas antes de poder encender una bombilla (15 minutos de trabajo manual repetitivo).</li>
+    <li>Con <b>Docker Compose Support</b>, simplemente pulsas el botón *"Start"* en el salpicadero de la autocaravana: los gatos hidráulicos se nivelan solos, las conexiones de agua y luz se acoplan magnéticamente en 2 segundos y todo está listo para cocinar al instante.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Un equipo de 6 desarrolladores trabaja en el microservicio <code>pet-service</code>, que requiere PostgreSQL 16 y Redis 7 para ejecutarse localmente.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Gestión manual)</div>
+            <div class="card-body">
+                <p>Un desarrollador olvida arrancar Docker a mano y la app falla al iniciar; otro tiene un contenedor con contraseñas distintas y comitea cambios erróneos en <code>application.yml</code>; un nuevo fichaje tarda 2 días en configurar su entorno local.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Docker Compose Support)</div>
+            <div class="card-body">
+                <p>El nuevo desarrollador clona el repositorio, ejecuta <code>./gradlew bootRun</code> y Spring Boot arranca PostgreSQL y Redis automáticamente en Docker, inyecta las credenciales y conecta la app en 3 segundos con <i>cero fricción</i>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Entornos de desarrollo local diario con Docker instalado en tu máquina.</td>
+            <td><b>SIEMPRE usar Docker Compose Support</b></td>
+            <td>Estandariza los contenedores del equipo, arranca todo con un solo clic y elimina URLs fijas.</td>
+        </tr>
+        <tr>
+            <td>Despliegues en producción (Kubernetes, AWS ECS) o integración continua (CI/CD).</td>
+            <td><b>Desactivar en CI/Producción</b></td>
+            <td>En producción la base de datos es un clúster gestionado (AWS RDS), no un contenedor Docker local efímero.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Reglas de uso de Docker Compose Support</span>
+
+<h2>4. Dependencias Necesarias (Spring Boot 3.1+)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Docker Compose en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-docker-compose&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;optional&gt;true&lt;/optional&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+}
+</code></pre>
+</div>
+
+<h2>5. Ejemplo Completo: Archivo compose.yaml en la Raíz del Proyecto</h2>
+<p>
+    Basta con crear un archivo llamado <code>compose.yaml</code> en la carpeta raíz del proyecto Java:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+services:
+  # 1. Base de datos PostgreSQL
+  postgres:
+    image: 'postgres:16-alpine'
+    environment:
+      - 'POSTGRES_DB=petshop_db'
+      - 'POSTGRES_USER=pet_user'
+      - 'POSTGRES_PASSWORD=secret_pass'
+    ports:
+      - '5432:5432'
+
+  # 2. Caché en memoria Redis
+  redis:
+    image: 'redis:7-alpine'
+    ports:
+      - '6379:6379'
+
+  # 3. Servidor de Trazabilidad Zipkin
+  zipkin:
+    image: 'openzipkin/zipkin:latest'
+    ports:
+      - '9411:9411'
+</code></pre>
+</div>
+
+<h2>6. Configuración de Comportamiento en application.yml</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  docker:
+    compose:
+      enabled: true
+      file: compose.yaml
+      # Opciones de ciclo de vida:
+      # start-and-stop: Arranca contenedores al iniciar y los detiene al apagar la app
+      # start-only: Arranca contenedores pero los deja corriendo al apagar la app (ahorra tiempo en reinicios)
+      lifecycle-management: start-and-stop
+      readiness:
+        tcp:
+          read-timeout: 20000ms
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo: Hardcodear URLs y Credenciales en application.yml</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# ANTIPATRÓN: Redundancia manual innecesaria en Spring Boot 3.1+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/petshop_db # ¡INNECESARIO!
+    username: pet_user # ¡INNECESARIO!
+    password: secret_pass # ¡INNECESARIO!
+</code></pre>
+</div>
+<p>
+    <b>Solución con Docker Compose Support:</b> Eliminar completamente las propiedades <code>spring.datasource.url</code>, <code>username</code> y <code>password</code> de <code>application.yml</code>. Spring Boot las extrae dinámicamente de las variables de entorno de <code>compose.yaml</code> a través del sistema unificado <code>ConnectionDetails</code>.
+</p>

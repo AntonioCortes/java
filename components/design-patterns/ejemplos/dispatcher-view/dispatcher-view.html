@@ -5,20 +5,24 @@
 </style>
 <h1 class="title">Patrón Dispatcher View</h1>
 
-<p>El patrón <strong>Dispatcher View</strong> (Vista con Despachador) es un patrón de la capa de presentación de Java EE que combina un controlador frontal ligero con un despachador cuya misión principal es <strong>elegir y mostrar inmediatamente la vista adecuada</strong>, realizando un trabajo previo de negocio mínimo o nulo antes de pasar el control a la vista.</p>
+<p>El patrón <strong>Dispatcher View</strong> (Vista con Despachador) es un patrón de diseño de la capa de presentación de Java EE que combina un controlador frontal ligero con un despachador cuya misión exclusiva es <strong>elegir y mostrar inmediatamente la vista adecuada</strong>, realizando un trabajo previo de negocio mínimo o nulo antes de transferir el control a la vista.</p>
 
-<h2 class="subtitle">Analogía del Mundo Real</h2>
-<p>Piensa en el <strong>conserje de un edificio de oficinas</strong> cuando alguien pregunta: "¿Dónde está el salón de actos?". El conserje no te hace una entrevista ni rellena veinte formularios: simplemente mira tu acreditación de un vistazo ("¿eres empleado o visitante?") y te dirige inmediatamente a la sala correspondiente.</p>
+<h2 class="subtitle">Analogía del Mundo Real: El Conserje del Edificio de Oficinas</h2>
+<p>Piensa en el <strong>conserje de un edificio corporativo</strong> cuando alguien pregunta: <em>"¿Dónde está el salón de actos?"</em>:</p>
+<ul>
+    <li>El conserje (<strong>Dispatcher View</strong>) no te somete a un interrogatorio ni te pide rellenar veinte formularios contables: simplemente mira tu acreditación de un vistazo (<em>"¿eres empleado o visitante?"</em>) y te indica con el dedo inmediatamente la puerta del salón correspondiente.</li>
+    <li>En cambio, el <strong>departamento de recursos humanos (Service to Worker)</strong> no te deja pasar directamente a la sala: primero te sienta en una oficina, consulta tu historial en la base de datos, llama a tres directores, firma una autorización de seguridad y solo cuando todo está orquestado te acompaña a la sala.</li>
+</ul>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Gestionar de forma rápida y directa la navegación hacia páginas o vistas que requieren una validación muy ligera antes de renderizarse.</p>
+<p>Centralizar y agilizar el enrutamiento y la selección de vistas cuando la petición no requiere una orquestación pesada de transacciones ni llamadas complejas a servicios de negocio antes de renderizar la pantalla.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Enrutamiento Directo de Pantallas según el Rol del Usuario</h2>
-<p><strong>Contexto:</strong> Cuando un usuario accede al panel de control (<code class="language-java">/panel</code>), si su rol es <code class="language-java">ADMIN</code> debe ver la pantalla de administración (<code class="language-java">VistaPanelAdmin</code>), y si es <code class="language-java">USER</code> debe ver la portada de usuario (<code class="language-java">VistaInicioUsuario</code>).</p>
+<h2 class="subtitle">Caso de Uso Real: Enrutamiento Rápido de Pantallas según el Rol del Usuario</h2>
+<p><strong>Contexto:</strong> En la tienda de mascotas <em>PetShop</em>, cuando un usuario autenticado accede a la ruta genérica <code>/dashboard</code>, si su rol es <code>ADMIN</code> debe ver inmediatamente el panel de monitorización de servidores (<code>VistaPanelAdmin</code>), mientras que si es <code>CLIENTE</code> debe visualizar su resumen de compras y citas veterinarias (<code>VistaInicioCliente</code>).</p>
 
-<p><strong>El Problema (Sin Dispatcher View):</strong> Si dejas que el usuario navegue directamente a archivos JSP/HTML sueltos o metes redirecciones dentro del HTML, pierdes el control centralizado de qué vista corresponde a cada caso.</p>
+<p><strong>El Problema (Sin Dispatcher View):</strong> Si dejas que el cliente front-end navegue directamente a plantillas HTML/JSP sueltas o incluyes lógica de redirección dispersa dentro de las propias vistas, pierdes el control centralizado de seguridad y navegación, duplicando código condicional en cada página.</p>
 
-<p><strong>La Solución (Con Dispatcher View):</strong> El controlador <code class="language-java">DespachadorVistasServlet</code> recibe la petición, comprueba ligeramente el parámetro/rol y despacha (hace <em>forward</em>) directamente a la vista elegida.</p>
+<p><strong>La Solución (Con Dispatcher View):</strong> Un despachador centralizado (<code>DespachadorVistasServlet</code>) intercepta la petición, verifica de forma ligera los atributos de sesión o cabeceras y delega (hace <em>forward</em>) directamente a la vista correspondiente sin bloquear el hilo con cálculos pesados.</p>
 
 <h2 class="subtitle">Diagrama de Flujo y Participantes</h2>
 
@@ -37,12 +41,17 @@
         <tr>
             <th scope="row">Dispatcher Controller</th>
             <td><code class="language-java">DespachadorVistasServlet</code></td>
-            <td>Recibe la petición, hace una comprobación rápida y delega inmediatamente en la vista destino sin invocar servicios pesados.</td>
+            <td>Recibe la petición HTTP, evalúa el contexto superficial y selecciona la vista destino sin invocar servicios transaccionales.</td>
         </tr>
         <tr>
             <th scope="row">Views (Vistas)</th>
-            <td><code class="language-java">VistaPanelAdmin</code>, <code class="language-java">VistaInicioUsuario</code></td>
-            <td>Renderizan la pantalla seleccionada (y si necesitan algún dato menor pueden apoyarse en un <em>View Helper</em>).</td>
+            <td><code class="language-java">VistaPanelAdmin</code>, <code class="language-java">VistaInicioCliente</code></td>
+            <td>Generan el resultado visual para el usuario. Si requieren datos complementarios menores, se apoyan en un componente <em>View Helper</em>.</td>
+        </tr>
+        <tr>
+            <th scope="row">Client</th>
+            <td><code class="language-java">Main</code></td>
+            <td>Emite la solicitud de acceso a una ruta lógica.</td>
         </tr>
     </tbody>
 </table>
@@ -52,53 +61,56 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// 1. Vistas Destino
-class VistaPanelAdmin {
-    public void render(String username) {
-        System.out.println("🛠️ [VistaPanelAdmin] Bienvenido Administrador " + username + ". Mostrando consola de servidores.");
+// 1. Contrato e implementaciones de las Vistas Destino
+interface Vista {
+    void render(String usuario);
+}
+
+class VistaPanelAdmin implements Vista {
+    @Override
+    public void render(String usuario) {
+        System.out.println("🛠️ [VistaPanelAdmin] Administrador '" + usuario + "'. Mostrando consola de telemetría y catálogo general.");
     }
 }
 
-class VistaInicioUsuario {
-    public void render(String username) {
-        System.out.println("🏠 [VistaInicioUsuario] Hola " + username + ". Mostrando tu resumen personal.");
+class VistaInicioCliente implements Vista {
+    @Override
+    public void render(String usuario) {
+        System.out.println("🐾 [VistaInicioCliente] Hola '" + usuario + "'. Mostrando tus mascotas registradas y citas pendientes.");
     }
 }
 
-// 2. Controlador Dispatcher View: validación mínima y despacho inmediato a la vista
+class VistaAccesoDenegado implements Vista {
+    @Override
+    public void render(String usuario) {
+        System.out.println("⛔ [VistaAccesoDenegado] Usuario '" + usuario + "' no autenticado. Redirigiendo a pantalla de login.");
+    }
+}
+
+// 2. Controlador Dispatcher View: despacho estático o condicional inmediato
 class DespachadorVistasServlet {
-    private VistaPanelAdmin adminView = new VistaPanelAdmin();
-    private VistaInicioUsuario userView = new VistaInicioUsuario();
+    private final Vista adminView = new VistaPanelAdmin();
+    private final Vista clientView = new VistaInicioCliente();
+    private final Vista errorView = new VistaAccesoDenegado();
 
-    public void manejarPeticion(String username, String role) {
-        System.out.println("&gt;&gt; [Dispatcher] Evaluando ruta rápida para usuario: " + username + " (Rol: " + role + ")");
+    public void despachar(String usuario, String rol) {
+        System.out.println("&gt;&gt; [Dispatcher] Enrutando petición para usuario: " + usuario + " (Rol: " + rol + ")");
 
-        // Selección directa de la vista (sin orquestación pesada de servicios de negocio)
-        if ("ADMIN".equalsIgnoreCase(role)) {
-            adminView.render(username);
+        // Despacho directo a la vista adecuada sin orquestación de servicios pesados
+        if (usuario == null || usuario.isBlank()) {
+            errorView.render("Anónimo");
+        } else if ("ADMIN".equalsIgnoreCase(rol)) {
+            adminView.render(usuario);
         } else {
-            userView.render(username);
+            clientView.render(usuario);
         }
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Implementación completa del patrón Dispatcher View</span>
+<span class="center-horizontal caption">Implementación completa del patrón Dispatcher View en Java</span>
 
-<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
-
-<ul>
-    <li>
-        <strong>1. Diferencia clave entre Dispatcher View y Service to Worker:</strong>
-        <p>Esta es una pregunta clásica de examen y arquitectura en Java EE: en <strong>Dispatcher View</strong>, el controlador hace un trabajo previo mínimo y pasa rápido a la vista. En <strong>Service to Worker</strong>, el controlador primero llama a varios servicios pesados de negocio (inventario, banco, base de datos), construye un modelo de datos complejo y solo al final llama a la vista.</p>
-    </li>
-    <li>
-        <strong>2. En Spring MVC:</strong>
-        <p>Equivale a un <code class="language-java">ViewControllerRegistry</code> (<code class="language-java">registry.addViewController("/login").setViewName("login")</code>) o un método de controlador que simplemente devuelve el nombre de la plantilla sin llamar a servicios de base de datos.</p>
-    </li>
-</ul>
-
-<h2 class="subtitle">Ejemplo de Uso</h2>
+<h2 class="subtitle">Ejemplo de Uso y Trazas de Consola</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -106,33 +118,93 @@ public class Main {
     public static void main(String[] args) {
         DespachadorVistasServlet dispatcher = new DespachadorVistasServlet();
 
-        System.out.println("--- Petición 1: Accede una administradora ---");
-        dispatcher.manejarPeticion("Laura", "ADMIN");
+        System.out.println("--- Caso 1: Petición de Administrador ---");
+        dispatcher.despachar("Laura_Admin", "ADMIN");
 
-        System.out.println("\n--- Petición 2: Accede un usuario estándar ---");
-        dispatcher.manejarPeticion("Carlos", "USER");
+        System.out.println("\n--- Caso 2: Petición de Cliente Habitual ---");
+        dispatcher.despachar("Carlos_Gomez", "CLIENTE");
+
+        System.out.println("\n--- Caso 3: Petición sin Identificar ---");
+        dispatcher.despachar("", "NONE");
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Despacho directo a distintas vistas según el contexto ligero de la petición</span>
+<span class="center-horizontal caption">Prueba del despachador enrutando distintas solicitudes</span>
 
 <div class="center-horizontal">
 <pre><code class="language-bash">
 Salida por consola:
---- Petición 1: Accede una administradora ---
-&gt;&gt; [Dispatcher] Evaluando ruta rápida para usuario: Laura (Rol: ADMIN)
-🛠️ [VistaPanelAdmin] Bienvenido Administrador Laura. Mostrando consola de servidores.
+--- Caso 1: Petición de Administrador ---
+&gt;&gt; [Dispatcher] Enrutando petición para usuario: Laura_Admin (Rol: ADMIN)
+🛠️ [VistaPanelAdmin] Administrador 'Laura_Admin'. Mostrando consola de telemetría y catálogo general.
 
---- Petición 2: Accede un usuario estándar ---
-&gt;&gt; [Dispatcher] Evaluando ruta rápida para usuario: Carlos (Rol: USER)
-🏠 [VistaInicioUsuario] Hola Carlos. Mostrando tu resumen personal.
+--- Caso 2: Petición de Cliente Habitual ---
+&gt;&gt; [Dispatcher] Enrutando petición para usuario: Carlos_Gomez (Rol: CLIENTE)
+🐾 [VistaInicioCliente] Hola 'Carlos_Gomez'. Mostrando tus mascotas registradas y citas pendientes.
+
+--- Caso 3: Petición sin Identificar ---
+&gt;&gt; [Dispatcher] Enrutando petición para usuario:  (Rol: NONE)
+⛔ [VistaAccesoDenegado] Usuario 'Anónimo' no autenticado. Redirigiendo a pantalla de login.
 </code></pre>
 </div>
-<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+<span class="center-horizontal caption">Salida generada por la consola</span>
+
+<h2 class="subtitle">Comparativa: Dispatcher View vs Service to Worker vs Front Controller</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Patrón</th>
+            <th scope="col">Momento del Procesamiento de Negocio</th>
+            <th scope="col">Complejidad</th>
+            <th scope="col">Caso Típico en Spring MVC</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><b>Dispatcher View</b></th>
+            <td><b>Nulo o mínimo antes de la vista.</b> La vista puede obtener datos diferidos a través de View Helpers.</td>
+            <td>Baja</td>
+            <td><code>ViewControllerRegistry.addViewController("/faq").setViewName("faq")</code> o páginas de bienvenida/estáticas.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Service to Worker</b></th>
+            <td><b>Intenso antes de la vista.</b> El controlador coordina servicios, valida stock, llama pasarelas de pago y puebla el modelo antes de renderizar.</td>
+            <td>Alta</td>
+            <td>Endpoints <code>@PostMapping("/checkout")</code> o procesos transaccionales complejos con <code>PetService</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Front Controller</b></th>
+            <td>Punto de entrada único que centraliza seguridad, internacionalización y logging antes de delegar en cualquier despachador o worker.</td>
+            <td>Media/Alta</td>
+            <td>El <code>DispatcherServlet</code> nativo de Spring MVC que intercepta <code>/*</code>.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Matriz comparativa de patrones de presentación en Java EE</span>
+
+<h2 class="subtitle">Contraejemplo: Acoplar Lógica Transaccional en un Dispatcher View</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: El despachador asume responsabilidades de facturación y persistencia
+public class BrokenDispatcherServlet {
+
+    public void manejarPeticion(HttpServletRequest req) {
+        // ERROR GRAVE: Si la petición requiere cobrar con tarjeta y descontar stock,
+        // convertir el despachador en un orquestador monolítico destruye la arquitectura.
+        // Debe usarse Service to Worker o delegar en un Application Service.
+        pagoService.cobrar(req.getParameter("tarjeta"));
+        stockRepository.descontar(req.getParameter("productoId"));
+        // ...
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Convertir un despachador visual liviano en un servicio transaccional pesado</span>
 
 <h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
 <ul>
-    <li><strong>Cuándo usarlo:</strong> Para pantallas informativas, páginas de login/ayuda o redirecciones condicionales sencillas donde no hay que ejecutar transacciones de negocio previas.</li>
-    <li><strong>Cuándo evitarlo:</strong> Cuando antes de pintar la pantalla necesites validar stock, cobrar con tarjeta o cruzar datos de varios microservicios; en ese caso debes usar <strong>Service to Worker</strong>.</li>
+    <li><strong>Cuándo usarlo:</strong> En páginas informativas, dashboards de bienvenida, enrutamiento basado en roles simples, pantallas de login o cuando la vista solo requiere datos que pueden ser recuperados de forma perezosa por un <em>View Helper</em>.</li>
+    <li><strong>Cuándo evitarlo:</strong> En cualquier flujo donde se requiera persistencia de datos, pagos, validaciones complejas de negocio o transformaciones de modelos; en tales casos se debe implementar <strong>Service to Worker</strong>.</li>
 </ul>

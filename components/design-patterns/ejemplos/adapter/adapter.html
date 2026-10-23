@@ -3,27 +3,32 @@
         color: black !important;
     }
 </style>
-<h1 class="title">Patrón Adapter</h1>
+<h1 class="title">Patrón Adapter (Adaptador / Wrapper)</h1>
 
-<p>El patrón <strong>Adapter</strong> (Adaptador o Envoltorio/Wrapper) es un patrón estructural que permite que dos clases con <strong>interfaces incompatibles</strong> puedan trabajar juntas sin tener que modificar su código interno.</p>
+<p>El patrón <strong>Adapter</strong> (Adaptador o Envoltorio/<em>Wrapper</em>) es un patrón estructural de diseño que permite que dos clases con <strong>interfaces incompatibles puedan colaborar estrechamente</strong> sin modificar el código fuente de ninguna de ellas. Actúa como un traductor intermedio que recibe las invocaciones del cliente bajo una interfaz estándar y las delega hacia la interfaz específica que exige la clase adaptada.</p>
 
-<h2 class="subtitle">Analogía del Mundo Real</h2>
-<p>Piensa en cuando viajas del Reino Unido o Estados Unidos a España: el enchufe de tu cargador tiene clavijas planas, pero la toma de corriente de la pared tiene agujeros redondos. No desmontas la pared del hotel ni cortas el cable de tu portátil: colocas un <strong>adaptador de corriente</strong> en medio que recibe tus clavijas planas por un lado y se conecta a los agujeros redondos por el otro.</p>
+<h2 class="subtitle">Analogía del Mundo Real: El Adaptador de Enchufe de Viaje</h2>
+<p>Imagina que viajas desde España (enchufes con dos clavijas cilíndricas) a Estados Unidos o al Reino Unido (tomas de pared con clavijas planas o triangulares):</p>
+<ul>
+    <li>No derribas la pared del hotel para cambiar el enchufe ni cortas con tijeras el cable de tu ordenador portátil.</li>
+    <li>Utilizas un <strong>Adaptador de viaje</strong>: se enchufa físicamente en la toma americana por un lado y ofrece una toma europea estándar por el otro.</li>
+    <li>Tanto la pared como tu cargador siguen funcionando según sus normas nativas sin ser modificados.</li>
+</ul>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Convertir la interfaz de una clase existente (generalmente de una librería externa o código legado que no podemos cambiar) en otra interfaz que el código cliente espera utilizar.</p>
+<p>Reutilizar clases existentes, SDKs de terceros, clientes HTTP o bibliotecas legadas cuya firma de métodos o modelos de datos no encajan con las interfaces del dominio de tu aplicación, respetando el principio de Inversión de Dependencias (DIP).</p>
 
-<h2 class="subtitle">Caso de Uso Real: Reproductor Multimedia integrando una Librería de Terceros</h2>
-<p><strong>Contexto:</strong> Tu aplicación tiene un reproductor de música (<code class="language-java">ReproductorAudio</code>) que implementa la interfaz estándar <code class="language-java">ReproductorMultimedia</code> con el método <code class="language-java">reproducir(tipoAudio, nombreArchivo)</code>. Inicialmente solo sabe reproducir archivos <code class="language-java">mp3</code>.</p>
+<h2 class="subtitle">Caso de Uso Real: Integración de una Pasarela de Pagos Externa</h2>
+<p><strong>Contexto:</strong> En la plataforma <em>PetShop</em>, la interfaz interna estándar para cobros es <code>ProcesadorPago</code> con el método <code>void procesarCobro(String clienteId, double importe)</code>. Para procesar cobros internacionales se contrata una pasarela de pagos externa (<code>StripeSdkApi</code>).</p>
 
-<p><strong>El Problema (Sin Adapter):</strong> Quieres añadir soporte para formatos <code class="language-java">mp4</code> y <code class="language-java">vlc</code> usando una librería externa (<code class="language-java">ReproductorAvanzado</code>). Sin embargo, esa librería no tiene el método <code class="language-java">reproducir(type, file)</code>, sino dos métodos completamente distintos: <code class="language-java">reproducirVlc(file)</code> y <code class="language-java">reproducirMp4(file)</code>. Sus interfaces son incompatibles.</p>
+<p><strong>El Problema (Sin Adapter):</strong> La librería <code>StripeSdkApi</code> viene compilada en un archivo <code>.jar</code> cerrado. Sus métodos son completamente distintos: <code>stripeCharge(String customerToken, long cents, String currency)</code>. No podemos editar el código de Stripe ni queremos contaminar nuestro dominio con sus tipos específicos.</p>
 
-<p><strong>La Solución (Con Adapter):</strong> Creamos la clase <code class="language-java">AdaptadorMultimedia</code> que implementa la interfaz que nuestro sistema espera (<code class="language-java">ReproductorMultimedia</code>) y guarda dentro una instancia de <code class="language-java">ReproductorAvanzado</code>. Cuando alguien llama a <code class="language-java">reproducir("mp4", "video.mp4")</code> sobre el adaptador, este traduce la llamada invocando <code class="language-java">reproductorAvanzado.reproducirMp4("video.mp4")</code>.</p>
+<p><strong>La Solución (Con Adapter):</strong> Creamos <code>StripeAdapter</code>. Implementa nuestra interfaz <code>ProcesadorPago</code>, almacena una referencia a <code>StripeSdkApi</code> y traduce los euros en céntimos y los identificadores al formato que Stripe exige.</p>
 
 <h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
 <img class="center-horizontal" src="components/design-patterns/ejemplos/adapter/assets/img/adapter-diagram.png">
-<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Adapter (Object Adapter por composición)</span>
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Adapter (Object Adapter mediante composición)</span>
 
 <table class="table table-striped table-hover">
     <thead>
@@ -35,24 +40,24 @@
     </thead>
     <tbody>
         <tr>
-            <th scope="row">Target (Objetivo)</th>
-            <td><code class="language-java">ReproductorMultimedia</code></td>
-            <td>La interfaz estándar que nuestra aplicación conoce y espera usar (<code class="language-java">reproducir(type, file)</code>).</td>
+            <th scope="row">Target (Objetivo / Contrato del Dominio)</th>
+            <td><code class="language-java">ProcesadorPago</code></td>
+            <td>La interfaz que la aplicación cliente conoce y espera utilizar (<code>procesarCobro</code>).</td>
         </tr>
         <tr>
-            <th scope="row">Adaptee (Adaptado)</th>
-            <td><code class="language-java">ReproductorAvanzado</code></td>
-            <td>La clase externa o legada con una interfaz incompatible (<code class="language-java">reproducirVlc</code>, <code class="language-java">reproducirMp4</code>) que no podemos modificar.</td>
+            <th scope="row">Adaptee (Clase Adaptada)</th>
+            <td><code class="language-java">StripeSdkApi</code></td>
+            <td>La clase externa o heredada que contiene la funcionalidad útil pero cuya interfaz es incompatible.</td>
         </tr>
         <tr>
             <th scope="row">Adapter (Adaptador)</th>
-            <td><code class="language-java">AdaptadorMultimedia</code></td>
-            <td>Implementa <code class="language-java">ReproductorMultimedia</code> y envuelve a <code class="language-java">ReproductorAvanzado</code>, traduciendo las llamadas entre ambos.</td>
+            <td><code class="language-java">StripeAdapter</code></td>
+            <td>Implementa <code>ProcesadorPago</code> y traduce las llamadas hacia los métodos específicos de <code>StripeSdkApi</code>.</td>
         </tr>
         <tr>
-            <th scope="row">Cliente</th>
-            <td><code class="language-java">ReproductorAudio</code> / <code class="language-java">Main</code></td>
-            <td>Utiliza el adaptador de forma transparente a través de la interfaz <code class="language-java">ReproductorMultimedia</code>.</td>
+            <th scope="row">Client</th>
+            <td><code class="language-java">Main</code></td>
+            <td>Interactúa con el adaptador de forma transparente a través de la interfaz <code>ProcesadorPago</code>.</td>
         </tr>
     </tbody>
 </table>
@@ -62,107 +67,113 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// 1. Target: Interfaz estándar que nuestra aplicación espera utilizar
-interface ReproductorMultimedia {
-    void reproducir(String tipoAudio, String nombreArchivo);
+// 1. Target: Interfaz estándar del dominio de PetShop
+public interface ProcesadorPago {
+    void procesarCobro(String clienteId, double importeEuros);
 }
 
-// 2. Adaptee: Clase de una librería externa con métodos distintos (incompatibles)
-class ReproductorAvanzado {
-    public void reproducirVlc(String nombreArchivo) {
-        System.out.println("[Librería Externa VLC] Reproduciendo archivo VLC: " + nombreArchivo);
-    }
-
-    public void reproducirMp4(String nombreArchivo) {
-        System.out.println("[Librería Externa MP4] Reproduciendo vídeo MP4: " + nombreArchivo);
+// 2. Adaptee: Librería de terceros (incompatible y cerrada)
+public class StripeSdkApi {
+    public void createStripeCharge(String customerToken, long amountInCents, String currency) {
+        System.out.println("⚡ [SDK Stripe Oficial] Cargo de " + amountInCents + " céntimos (" + currency + ") para token: " + customerToken);
     }
 }
 
-// 3. Adapter: Implementa la interfaz esperada (ReproductorMultimedia) y traduce hacia el Adaptee
-class AdaptadorMultimedia implements ReproductorMultimedia {
-    private ReproductorAvanzado advancedMusicPlayer;
+// 3. Adapter: Traduce entre la interfaz del dominio y la librería externa
+public class StripeAdapter implements ProcesadorPago {
+    private final StripeSdkApi stripeApi;
 
-    public AdaptadorMultimedia() {
-        this.advancedMusicPlayer = new ReproductorAvanzado();
+    public StripeAdapter(StripeSdkApi stripeApi) {
+        this.stripeApi = stripeApi;
     }
 
     @Override
-    public void reproducir(String tipoAudio, String nombreArchivo) {
-        // Traducción de la llamada estándar al método específico de la librería
-        if (tipoAudio.equalsIgnoreCase("vlc")) {
-            advancedMusicPlayer.reproducirVlc(nombreArchivo);
-        } else if (tipoAudio.equalsIgnoreCase("mp4")) {
-            advancedMusicPlayer.reproducirMp4(nombreArchivo);
-        }
-    }
-}
+    public void procesarCobro(String clienteId, double importeEuros) {
+        // Traducción de datos: euros &rarr; céntimos enteros requeridos por Stripe
+        long centimos = Math.round(importeEuros * 100);
+        String tokenStripe = "tok_cust_" + clienteId.toLowerCase();
 
-// 4. Reproductor principal de nuestra aplicación
-class ReproductorAudio implements ReproductorMultimedia {
-    private AdaptadorMultimedia adaptador = new AdaptadorMultimedia();
-
-    @Override
-    public void reproducir(String tipoAudio, String nombreArchivo) {
-        // Formato soportado de forma nativa
-        if (tipoAudio.equalsIgnoreCase("mp3")) {
-            System.out.println("[Nativo MP3] Reproduciendo canción MP3: " + nombreArchivo);
-        }
-        // Formatos delegados al Adaptador
-        else if (tipoAudio.equalsIgnoreCase("vlc") || tipoAudio.equalsIgnoreCase("mp4")) {
-            adaptador.reproducir(tipoAudio, nombreArchivo);
-        } else {
-            System.out.println("[Error] Formato no soportado: " + tipoAudio);
-        }
+        stripeApi.createStripeCharge(tokenStripe, centimos, "EUR");
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Implementación del patrón Adapter traduciendo llamadas entre interfaces</span>
+<span class="center-horizontal caption">Implementación canónica de Object Adapter en Java</span>
 
-<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
-
-<ul>
-    <li>
-        <strong>1. Composición sobre Herencia:</strong>
-        <p><code class="language-java">AdaptadorMultimedia</code> guarda un atributo <code class="language-java">private ReproductorAvanzado</code> (composición) a la vez que implementa <code class="language-java">ReproductorMultimedia</code>. Gracias a eso, puede actuar como "puente traductor" entre ambos mundos.</p>
-    </li>
-    <li>
-        <strong>2. Código externo intacto:</strong>
-        <p>En ningún momento hemos tenido que abrir ni modificar el archivo de <code class="language-java">ReproductorAvanzado</code> (que podría venir compilado dentro de un archivo <code class="language-java">.jar</code> de terceros).</p>
-    </li>
-</ul>
-
-<h2 class="subtitle">Ejemplo de Uso</h2>
+<h2 class="subtitle">Ejemplo de Uso y Trazas de Consola</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        ReproductorAudio player = new ReproductorAudio();
+        // Instanciamos el SDK externo y lo envolvemos con el Adaptador
+        StripeSdkApi stripeSdk = new StripeSdkApi();
+        ProcesadorPago procesador = new StripeAdapter(stripeSdk);
 
-        player.reproducir("mp3", "cancion_rock.mp3");
-        player.reproducir("mp4", "tutorial_java.mp4");
-        player.reproducir("vlc", "pelicula_hd.vlc");
-        player.reproducir("avi", "antiguo.avi");
+        // El cliente invoca el método estándar de su dominio
+        System.out.println("--- Procesando cobro de consulta veterinaria ---");
+        procesador.procesarCobro("CLI-8841", 65.50);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Uso uniforme para todos los formatos desde el cliente</span>
+<span class="center-horizontal caption">Invocación transparente sin acoplamiento a los tipos de Stripe</span>
 
 <div class="center-horizontal">
 <pre><code class="language-bash">
 Salida por consola:
-[Nativo MP3] Reproduciendo canción MP3: cancion_rock.mp3
-[Librería Externa MP4] Reproduciendo vídeo MP4: tutorial_java.mp4
-[Librería Externa VLC] Reproduciendo archivo VLC: pelicula_hd.vlc
-[Error] Formato no soportado: avi
+--- Procesando cobro de consulta veterinaria ---
+⚡ [SDK Stripe Oficial] Cargo de 6550 céntimos (EUR) para token: tok_cust_cli-8841
 </code></pre>
 </div>
-<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+<span class="center-horizontal caption">Trazas generadas por la consola</span>
+
+<h2 class="subtitle">Object Adapter vs Class Adapter</h2>
+<ul>
+    <li><strong>Object Adapter (Recomendado):</strong> Utiliza <strong>composición</strong> (el adaptador tiene una instancia de la clase adaptada). Es el estándar en Java porque respeta la sustitución y no requiere herencia múltiple.</li>
+    <li><strong>Class Adapter:</strong> Utiliza <strong>herencia</strong> (el adaptador hereda de la clase adaptada e implementa la interfaz objetivo). En Java solo es posible si el adaptado es una interfaz o si no se hereda de ninguna otra clase, pero acopla fuertemente el adaptador a la implementación concreta.</li>
+</ul>
+
+<h2 class="subtitle">Ejemplos del Patrón Adapter en el JDK y en Spring Framework</h2>
+<ul>
+    <li><code>java.util.Arrays.asList(T... a)</code>: Adapta un array tradicional de Java a la interfaz <code>List&lt;T&gt;</code> de colecciones.</li>
+    <li><code>java.io.InputStreamReader(InputStream in)</code>: Adapta un stream de bytes binarios (<code>InputStream</code>) para que pueda leerse como caracteres de texto a través de la interfaz <code>Reader</code>.</li>
+    <li><code>HandlerAdapter</code> en Spring MVC: Adapta distintos tipos de controladores (anotados con <code>@Controller</code>, <code>HttpRequestHandler</code>, etc.) para que el <code>DispatcherServlet</code> central los invoque de forma uniforme.</li>
+</ul>
+
+<h2 class="subtitle">Contraejemplo: Acoplamiento Directo al SDK de Terceros en Toda la Aplicación</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Clases de negocio acopladas a la API propietaria de Stripe
+public class OrderServiceMalDisenado {
+
+    public void checkout(StripeSdkApi stripe, String token, long centimos) {
+        // ERROR GRAVE: Si mañana la empresa decide cambiar Stripe por PayPal o Redsys,
+        // habrá que reescribir todos los métodos de todas las clases del dominio.
+        stripe.createStripeCharge(token, centimos, "EUR");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Fuga de tipos de terceros dentro de la lógica del dominio</span>
 
 <h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
-<ul>
-    <li><strong>Cuándo usarlo:</strong> Cuando necesitas integrar una librería de terceros, un SDK bancario o un sistema legado cuya interfaz no coincide con las interfaces de tu dominio.</li>
-    <li><strong>Cuándo evitarlo:</strong> Si eres dueño de ambas clases y puedes refactorizar directamente sus métodos para que coincidan sin necesidad de una clase intermediaria.</li>
-</ul>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Cuándo SÍ Usar Adapter</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Integración de bibliotecas de terceros, SDKs o APIs externas cerradas cuyas firmas no coinciden con las de tu arquitectura.</td>
+            <td>Cuando seas el autor y propietario de ambas clases y puedas refactorizarlas directamente para que coincidan sin intermediarios.</td>
+        </tr>
+        <tr>
+            <td>Para migrar sistemas legados gradualmente manteniendo compatibilidad con código nuevo.</td>
+            <td>Cuando la diferencia entre interfaces sea tan grande que el adaptador requiera reinventar la lógica de negocio completa (en tal caso se requiere un rediseño de dominio).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios para la aplicación del patrón Adapter</span>

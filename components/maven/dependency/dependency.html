@@ -113,6 +113,50 @@
 </table>
 <span class="center-horizontal caption">Tabla 2: Matriz comparativa de scopes de dependencias en Maven</span>
 
+<h2 class="subtitle">¿Cuándo Usar y Cuándo NO Usar Cada Scope?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Scope</th>
+            <th scope="col">Cuándo Usarlo</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><b>compile</b></th>
+            <td>Para librerías centrales que tu código importa y que el ejecutable necesita para arrancar (Spring Framework, Jackson, Apache Commons, Guava, etc.).</td>
+            <td>Para librerías exclusivas de test (como JUnit o Mockito) o utilidades de compilación (como Lombok o procesadores de anotaciones).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>provided</b></th>
+            <td>Para APIs o procesadores que ya estarán presentes en el entorno de despliegue (Servlet API en Tomcat, librerías del servidor de aplicaciones) o herramientas de generación de código en tiempo de compilación (Lombok).</td>
+            <td>Para dependencias que no están garantizadas en el servidor de destino, ya que provocará un error <code>ClassNotFoundException</code> o <code>NoClassDefFoundError</code> en tiempo de ejecución.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>runtime</b></th>
+            <td>Para implementaciones concretas que se cargan dinámicamente mediante reflexión o SPI (drivers JDBC de PostgreSQL/MySQL, implementaciones de Logging como Logback sobre SLF4J).</td>
+            <td>Cuando tu código Java necesita importar clases o tipos específicos de la librería en el código fuente (por ejemplo, usar clases propietarias de Oracle en vez de interfaces estándar <code>java.sql.*</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>test</b></th>
+            <td>Para frameworks de pruebas unitarias y de integración (JUnit 5, Mockito, AssertJ, Spring Boot Test, Testcontainers, bases de datos en memoria como H2).</td>
+            <td>Nunca para clases o utilidades que deban ser invocadas desde el paquete principal <code>src/main/java</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>system</b></th>
+            <td>En casos excepcionales heredados (*legacy*) donde se requiere un archivo <code>.jar</code> local propietario que no existe en ningún repositorio Maven corporativo ni público.</td>
+            <td>En proyectos modernos. Rompe la reproducibilidad del build entre distintas máquinas y entornos de CI/CD al depender de rutas fijas absolutas en disco.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>import</b></th>
+            <td>Dentro de la sección <code>&lt;dependencyManagement&gt;</code> para importar BOMs (*Bill of Materials*) completos (como el BOM de Spring Cloud o Jackson) y sincronizar decenas de librerías con versiones compatibles sin duplicar código.</td>
+            <td>Nunca dentro de la sección <code>&lt;dependencies&gt;</code> principal de un proyecto, ya que no representa un artefacto JAR compilable.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Criterios de selección y exclusión para scopes en Maven</span>
+
 <h2 class="subtitle"><code>&lt;dependencyManagement&gt;</code> vs <code>&lt;dependencies&gt;</code></h2>
 <p>Es muy común confundir estas dos secciones:</p>
 <ul>

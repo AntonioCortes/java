@@ -1,19 +1,35 @@
-<h1 class="title">Construcción con Maven y Gradle</h1>
+<h1 class="title">Construcción con Maven y Gradle en Spring Boot</h1>
 
-<h2>POM generado con Spring Initializr</h2>
+<h2>1. Herramientas de Construcción: Maven vs Gradle</h2>
+<p>
+    En el ecosistema de Spring Boot existen dos herramientas estándar para la compilación, gestión de dependencias y empaquetado de artefactos:
+</p>
+<ul>
+    <li><b>Apache Maven:</b> Basado en un modelo declarativo en XML (<code>pom.xml</code>) y en un ciclo de vida de fases estricto y predecible. Es el estándar histórico más extendido en entornos empresariales.</li>
+    <li><b>Gradle:</b> Basado en un motor de compilación incremental de alto rendimiento con scripts definidos mediante DSL (Groovy o Kotlin DSL). Ofrece ejecuciones sustancialmente más rápidas gracias a su caché de tareas (*Build Cache*) y demonio de ejecución (*Gradle Daemon*).</li>
+</ul>
 
-<p>En la carpeta raiz se encuentra el documento <b>pom.xml</b>.</p>
+---
 
-<p>Dentro de la etiqueta de <b>&lt;project&gt;</b> se deberá indicar la <b>versión del modelo</b>, además del grupo, artefacto, paquete y <b>versión del proyecto.</b></p>
+<h2>2. Construcción con Apache Maven</h2>
+
+<h3>2.1. Anatomía del archivo pom.xml</h3>
+<p>
+    En la carpeta raíz del proyecto se encuentra el documento <b>pom.xml</b> (<i>Project Object Model</i>).
+    Dentro de la etiqueta <b>&lt;project&gt;</b> se debe indicar la versión del modelo (<b>&lt;modelVersion&gt;</b>, actualmente 4.0.0), además de los metadatos de coordenadas del proyecto:
+</p>
 
 <ul>
-  <li>Un <b>grupo</b> es una colección de artefactos relacionados, generalmente producidos por un mismo equipo o proyecto.</li>
-  <li>Un <b>artefacto</b> es una unidad de distribución de software que generalmente toma la forma de un archivo JAR, WAR o ZIP, que se publica en un repositorio</li>
-  <li>Un <b>paquete</b> es una forma de organizar los archivos de un artefacto en una estructura predefinida y consistente, por ejemplo, para incluir recursos y clases compiladas en un archivo JAR.</li>
+    <li>Un <b>grupo (&lt;groupId&gt;)</b> es una colección de artefactos relacionados, generalmente identificados por el dominio inverso de la organización o proyecto (ej. <code>com.example.petshop</code>).</li>
+    <li>Un <b>artefacto (&lt;artifactId&gt;)</b> es la unidad de distribución de software (el nombre del archivo JAR, WAR o ZIP).</li>
+    <li>Una <b>versión (&lt;version&gt;)</b> identifica el ciclo de entrega (ej. <code>0.0.1-SNAPSHOT</code> o <code>1.0.0.RELEASE</code>).</li>
 </ul>
-<p>En resumen, un grupo es una colección de artefactos relacionados, un artefacto es la unidad más pequeña de distribución y un paquete es una forma de organizar los archivos dentro de un artefacto.</p>
 
-<p><b>&lt;modelVersion&gt;</b> es la versión del modelo de objetos de Maven que se utiliza para definir el proyecto. La versión actual del modelo de objetos de Maven es 4.0.0.  Es importante tener en cuenta que al actualizar la versión del modelo de objetos de Maven, puede haber cambios en la sintaxis y los elementos disponibles en el archivo pom.xml, por lo que es necesario revisar y actualizar el archivo en consecuencia.</p>
+<p>
+    <b>&lt;modelVersion&gt;</b> es la versión del modelo de objetos de Maven que se utiliza para definir el proyecto. La versión estándar del modelo de objetos de Maven es 4.0.0.
+</p>
+
+<h3>2.2. Ejemplo de pom.xml Generado con Spring Initializr (Spring Boot 3)</h3>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
@@ -21,21 +37,27 @@
 &lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
 	&lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+	&lt;!-- Padre oficial de Spring Boot: gestiona automáticamente las versiones de dependencias y plugins --&gt;
 	&lt;parent&gt;
 		&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
 		&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
-		&lt;version&gt;3.0.2&lt;/version&gt;
-		&lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+		&lt;version&gt;3.2.4&lt;/version&gt;
+		&lt;relativePath/&gt; &lt;!-- busca el padre en el repositorio central --&gt;
 	&lt;/parent&gt;
+
 	&lt;groupId&gt;com.example&lt;/groupId&gt;
-	&lt;artifactId&gt;demo&lt;/artifactId&gt;
+	&lt;artifactId&gt;petshop&lt;/artifactId&gt;
 	&lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
-	&lt;name&gt;demo&lt;/name&gt;
+	&lt;name&gt;petshop&lt;/name&gt;
 	&lt;description&gt;Demo project for Spring Boot&lt;/description&gt;
+
 	&lt;properties&gt;
 		&lt;java.version&gt;17&lt;/java.version&gt;
 	&lt;/properties&gt;
+
 	&lt;dependencies&gt;
+		&lt;!-- Starters oficiales: No requieren indicar &lt;version&gt; gracias a spring-boot-starter-parent --&gt;
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
@@ -56,11 +78,6 @@
 			&lt;optional&gt;true&lt;/optional&gt;
 		&lt;/dependency&gt;
 		&lt;dependency&gt;
-			&lt;groupId&gt;com.h2database&lt;/groupId&gt;
-			&lt;artifactId&gt;h2&lt;/artifactId&gt;
-			&lt;scope&gt;runtime&lt;/scope&gt;
-		&lt;/dependency&gt;
-		&lt;dependency&gt;
 			&lt;groupId&gt;org.postgresql&lt;/groupId&gt;
 			&lt;artifactId&gt;postgresql&lt;/artifactId&gt;
 			&lt;scope&gt;runtime&lt;/scope&gt;
@@ -79,6 +96,7 @@
 
 	&lt;build&gt;
 		&lt;plugins&gt;
+			&lt;!-- Plugin responsable de empaquetar el Fat-JAR ejecutable con Tomcat embebido --&gt;
 			&lt;plugin&gt;
 				&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
 				&lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
@@ -92,33 +110,27 @@
 				&lt;/configuration&gt;
 			&lt;/plugin&gt;
 		&lt;/plugins&gt;
-    &lt;/build&gt;
-
+	&lt;/build&gt;
 &lt;/project&gt;
 </code></pre>
 </div>
+<span class="center-horizontal caption">Estructura estándar de pom.xml en Spring Boot 3</span>
 
-<h2>Con modulos de Maven</h2>
+---
 
-<p>Para modularizar el proyecto se añade lo siguiente al POM superior:</p>
+<h3>2.3. Proyectos Multi-módulo en Maven</h3>
+<p>
+    Para modularizar un proyecto en diferentes subproyectos independientes (ej. capas compartidas o módulos de dominio), se crea un POM raíz o superior que define:
+</p>
 <ul>
-    <li>
-        La etiqueta <b>&lt;dependencyManagement&gt;</b> y las dependencias a gestionar desde el padre.
-    </li>
-    <li>
-        Los modulos del proyecto.
-    </li>
-    <li>
-        Las propiedades en caso de ser necesarias.
-    </li>
+    <li>El tipo de empaquetado: <code>&lt;packaging&gt;pom&lt;/packaging&gt;</code>.</li>
+    <li>La lista de sub-módulos dentro de <code>&lt;modules&gt;</code>.</li>
+    <li>La etiqueta <b>&lt;dependencyManagement&gt;</b> para centralizar versiones de dependencias sin forzar su descarga en los hijos a menos que estos las declaren explícitamente.</li>
 </ul>
-
-<p>Ejemplo:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
-
 &lt;project xmlns="http://maven.apache.org/POM/4.0.0"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
@@ -140,32 +152,213 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
     &lt;dependencyManagement&gt;
         &lt;dependencies&gt;
+            &lt;!-- Importa el BOM oficial de Spring Boot para sincronizar versiones en todos los hijos --&gt;
             &lt;dependency&gt;
                 &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
                 &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
-                &lt;version&gt;3.0.0&lt;/version&gt;
+                &lt;version&gt;3.2.4&lt;/version&gt;
                 &lt;scope&gt;import&lt;/scope&gt;
                 &lt;type&gt;pom&lt;/type&gt;
             &lt;/dependency&gt;
         &lt;/dependencies&gt;
     &lt;/dependencyManagement&gt;
-    
 &lt;/project&gt;
 </code></pre>
 </div>
+<span class="center-horizontal caption">POM raíz padre gestionando dependencias y módulos hijos</span>
 
-<p><b>NOTA:</b> La dependencia <b>spring-boot-dependencies</b> incluye todas las dependencias que utiliza spring boot. De esta forma se pueden gestionar las versiones desde el POM superior y habilitar dependencias transitivas.</p>
-
-<p>Mas tarde se incluiran las dependecias en los POM hijos y en el padre que se necesiten.</p>
-
-<p>En el hijo se incluye la etiqueta <b>&lt;parent&gt;</b> dentro de &lt;project&gt;. Los valores del artefacto, el grupo y la versión se usan para referenciar al padre o POM superior.</p>
+<p>
+    En los POM de los módulos hijos se añade la etiqueta <code>&lt;parent&gt;</code> referenciando al artefacto superior:
+</p>
 
 <div class="center-horizontal">
 <pre><code class="language-xml">
 &lt;parent&gt;
+    &lt;groupId&gt;org.company&lt;/groupId&gt;
     &lt;artifactId&gt;PetShop&lt;/artifactId&gt;
-    &lt;groupId&gt;org.atr&lt;/groupId&gt;
     &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
 &lt;/parent&gt;
 </code></pre>
 </div>
+
+---
+
+<h2>3. Construcción con Gradle (Groovy DSL)</h2>
+
+<h3>3.1. Anatomía de build.gradle para Spring Boot 3</h3>
+<p>
+    En Gradle, la configuración se expresa de forma concisa mediante código Groovy o Kotlin DSL. Los plugins oficiales gestionan la resolución automática de versiones sin necesidad de especificar números de versión en cada librería:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.4'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.example.petshop'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Dependencias principales de compilación y ejecución
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.flywaydb:flyway-core'
+
+    // Driver de base de datos solo necesario en tiempo de ejecución
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Project Lombok: requiere compileOnly y procesador de anotaciones
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Herramientas de desarrollo
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Archivo build.gradle estándar en Groovy DSL para Spring Boot</span>
+
+<h3>3.2. Ámbitos de Dependencias en Gradle (Scopes)</h3>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Configuración Gradle</th>
+            <th scope="col">Equivalente Maven</th>
+            <th scope="col">Propósito</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>implementation</code></td>
+            <td><code>&lt;scope&gt;compile&lt;/scope&gt;</code></td>
+            <td>Disponible en compilación y ejecución. No se expone de forma transitiva a proyectos consumidores.</td>
+        </tr>
+        <tr>
+            <td><code>runtimeOnly</code></td>
+            <td><code>&lt;scope&gt;runtime&lt;/scope&gt;</code></td>
+            <td>No requerido para compilar el código Java, pero obligatorio al arrancar la app (ej. drivers JDBC).</td>
+        </tr>
+        <tr>
+            <td><code>compileOnly</code></td>
+            <td><code>&lt;scope&gt;provided&lt;/scope&gt;</code></td>
+            <td>Solo necesario al compilar (no se empaqueta en el JAR final, ej. Lombok).</td>
+        </tr>
+        <tr>
+            <td><code>annotationProcessor</code></td>
+            <td>Plugins de compilador</td>
+            <td>Ejecuta generadores de código en tiempo de compilación (Lombok, MapStruct).</td>
+        </tr>
+        <tr>
+            <td><code>testImplementation</code></td>
+            <td><code>&lt;scope&gt;test&lt;/scope&gt;</code></td>
+            <td>Exclusivo para la compilación y ejecución de tests unitarios y de integración.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h3>3.3. Proyectos Multi-módulo en Gradle</h3>
+<p>
+    En Gradle, los proyectos multi-módulo se articulan mediante dos archivos:
+</p>
+<ol>
+    <li>
+        <b>settings.gradle (en la raíz):</b> Registra el nombre del proyecto padre y todos sus submódulos:
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+rootProject.name = 'petshop-multimodule'
+include 'pet-model', 'pet-repository', 'pet-service', 'pet-api'
+</code></pre>
+</div>
+    </li>
+    <li>
+        <b>build.gradle (en la raíz):</b> Aplica configuraciones comunes a todos los submódulos mediante el bloque <code>subprojects</code>:
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+
+    group = 'com.example.petshop'
+    version = '1.0.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:3.2.4"
+        }
+    }
+}
+</code></pre>
+</div>
+    </li>
+</ol>
+
+---
+
+<h2>4. Comandos de Terminal Habituales: Comparativa Directa</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Acción</th>
+            <th scope="col">Comando Apache Maven</th>
+            <th scope="col">Comando Gradle</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Arrancar en Desarrollo</b></td>
+            <td><code>./mvnw spring-boot:run</code></td>
+            <td><code>./gradlew bootRun</code></td>
+        </tr>
+        <tr>
+            <td><b>Compilar y Empaquetar JAR</b></td>
+            <td><code>./mvnw clean package</code></td>
+            <td><code>./gradlew build</code></td>
+        </tr>
+        <tr>
+            <td><b>Ejecutar Tests</b></td>
+            <td><code>./mvnw test</code></td>
+            <td><code>./gradlew test</code></td>
+        </tr>
+        <tr>
+            <td><b>Ver Árbol de Dependencias</b></td>
+            <td><code>./mvnw dependency:tree</code></td>
+            <td><code>./gradlew dependencies</code></td>
+        </tr>
+        <tr>
+            <td><b>Limpiar Carpeta de Salida</b></td>
+            <td><code>./mvnw clean</code></td>
+            <td><code>./gradlew clean</code></td>
+        </tr>
+    </tbody>
+</table>

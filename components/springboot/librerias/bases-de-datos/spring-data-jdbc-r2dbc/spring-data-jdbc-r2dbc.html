@@ -1,0 +1,322 @@
+<h1 class="title">Spring Data JDBC y Spring Data R2DBC (Acceso Reactivo a Bases de Datos)</h1>
+
+<h2>1. ¿Qué son y para qué sirven?</h2>
+<p>
+    En el ecosistema de Spring Initializr, además del tradicional Spring Data JPA (basado en Hibernate y el estándar JPA), disponemos de dos alternativas modernas de persistencia relacional que resuelven problemas arquitectónicos específicos:
+</p>
+<ul>
+    <li>
+        <b>Spring Data JDBC:</b> Un framework de persistencia relacional <b>deliberadamente simple</b>. A diferencia de JPA/Hibernate, no tiene caché de primer nivel (Persistence Context), no realiza <i>dirty checking</i> implícito, no usa proxys de Lazy Loading ni genera complejas cascadas automáticas. Cada consulta a la base de datos se traduce en SQL directo y predecible.
+    </li>
+    <li>
+        <b>Spring Data R2DBC (Reactive Relational Database Connectivity):</b> La implementación reactiva oficial para bases de datos SQL basada en <b>Project Reactor</b> (<code>Mono</code> y <code>Flux</code>). Mientras que JDBC tradicional bloquea el hilo de ejecución del sistema operativo esperando a que la base de datos devuelva los datos (modelo <i>thread-per-request</i>), R2DBC utiliza controladores <b>completamente no bloqueantes</b> sobre <b>Netty</b>, permitiendo gestionar miles de peticiones simultáneas con un consumo mínimo de memoria RAM y CPU.
+    </li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos una ventanilla de pedidos en un restaurante:
+</p>
+<ul>
+    <li><b>Spring Data JPA</b> es como un camarero con una libreta mágica de alta tecnología que intenta recordar todo lo que has comido, predice qué vas a pedir después y reorganiza los platos a tus espaldas (muy potente, pero si se sobrecarga la libreta se producen enredos y bloqueos inesperados).</li>
+    <li><b>Spring Data JDBC</b> es un camarero tradicional: toma la nota exacta, la lleva a la cocina, trae el plato y se olvida. No hay magia ni proxys ocultos; lo que pides es lo que se envía a cocina inmediatamente.</li>
+    <li><b>Spring Data R2DBC</b> es una moderna cinta transportadora inteligente con beepers: el camarero jamás se queda de pie esperando a que el cocinero fría el filete; atiende a otros 100 clientes mientras la cocina trabaja, y cuando el plato está listo, un evento avisa para servirlo al cliente al milisegundo.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Un microservicio de telemetría de mascotas registra constantes vitales de collares inteligentes (frecuencia cardíaca, temperatura, GPS) recibiendo 50.000 eventos por segundo en un clúster de PostgreSQL.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Con JDBC o JPA tradicional)</div>
+            <div class="card-body">
+                <p>Cada petición HTTP bloquea un hilo en Tomcat esperando respuesta de la base de datos. El pool de 200 hilos se agota en segundos, produciendo errores <code>HTTP 503 Service Unavailable</code> y saturando la memoria del servidor.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Spring Data R2DBC)</div>
+            <div class="card-body">
+                <p>Al migrar a Spring WebFlux y Spring Data R2DBC, los flujos asíncronos y no bloqueantes procesan las 50.000 lecturas con tan solo 8 hilos del procesador sin agotar el pool de conexiones.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar cada tecnología y cuándo NO usarlas?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Framework</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Spring Data JPA</b></td>
+            <td>Aplicaciones empresariales con modelos de dominio ricos, grafos complejos de entidades con relaciones <code>@ManyToOne</code>, <code>@OneToMany</code> bidireccionales y flujos CRUD tradicionales.</td>
+            <td>Sistemas con arquitecturas reactivas no bloqueantes, o microservicios sencillos de alto rendimiento donde el coste del Persistence Context y el riesgo de consultas N+1 superen los beneficios.</td>
+        </tr>
+        <tr>
+            <td><b>Spring Data JDBC</b></td>
+            <td>Microservicios donde se busque simplicidad absoluta, consultas SQL totalmente explícitas y control directo de transacciones sin complejidad de Hibernate.</td>
+            <td>Sistemas que dependan fuertemente de proxys de carga perezosa (Lazy Loading) o que requieran soporte reactivo no bloqueante.</td>
+        </tr>
+        <tr>
+            <td><b>Spring Data R2DBC</b></td>
+            <td>Microservicios de altísima concurrencia, ingesta masiva de eventos (IoT), streaming de datos en tiempo real (Server-Sent Events) y aplicaciones reactivas basadas en <b>Spring WebFlux</b>.</td>
+            <td>Aplicaciones tradicionales construidas con Spring MVC clásico (Tomcat bloqueante), ya que mezclar código bloqueante con llamadas reactivas no aporta mejoras y añade complejidad cognitiva innecesaria.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa arquitectónica entre JPA, JDBC y R2DBC</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<h3>A. Dependencias para Spring Data JDBC</h3>
+<p>
+    En Spring Initializr, se selecciona <b>Spring Data JDBC</b> y el driver correspondiente (por ejemplo, PostgreSQL):
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Maven: Spring Data JDBC y Driver PostgreSQL --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-jdbc&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+    &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    runtimeOnly 'org.postgresql:postgresql'
+}
+</code></pre>
+</div>
+
+<h3>B. Dependencias para Spring Data R2DBC (Reactivo)</h3>
+<p>
+    En Spring Initializr, se selecciona <b>Spring Data R2DBC</b> y el driver reactivo correspondiente (ej. <code>r2dbc-postgresql</code>):
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Maven: Spring Data R2DBC y Driver Reactivo PostgreSQL --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-r2dbc&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+    &lt;artifactId&gt;r2dbc-postgresql&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    runtimeOnly 'org.postgresql:r2dbc-postgresql'
+}
+</code></pre>
+</div>
+
+<h2>5. Anotaciones y Clases Principales</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento</th>
+            <th scope="col">Paquete</th>
+            <th scope="col">Propósito y Comportamiento</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@Table("nombre_tabla")</code></td>
+            <td><code>org.springframework.data.relational.core.mapping</code></td>
+            <td>Mapea una clase inmutable a una tabla de la base de datos en JDBC y R2DBC (no usa <code>jakarta.persistence.Entity</code>).</td>
+        </tr>
+        <tr>
+            <td><code>@Id</code></td>
+            <td><code>org.springframework.data.annotation</code></td>
+            <td>Marca la clave primaria de la entidad. En R2DBC/JDBC, si el identificador es nulo, Spring asume que es una nueva inserción y genera la sentencia <code>INSERT</code>; si no es nulo, genera un <code>UPDATE</code>.</td>
+        </tr>
+        <tr>
+            <td><code>ReactiveCrudRepository&lt;T, ID&gt;</code></td>
+            <td><code>org.springframework.data.repository.reactive</code></td>
+            <td>Interfaz base reactiva que expone métodos como <code>findById</code>, <code>save</code> y <code>delete</code> devolviendo <code>Mono&lt;T&gt;</code> o <code>Flux&lt;T&gt;</code> en lugar de tipos bloqueantes.</td>
+        </tr>
+        <tr>
+            <td><code>DatabaseClient</code></td>
+            <td><code>org.springframework.r2dbc.core</code></td>
+            <td>Cliente reactivo de bajo nivel para ejecutar sentencias SQL nativas fluidas y mapear resultados asíncronamente con total control.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>6. Ejemplo Completo: Persistencia Reactiva con Spring Data R2DBC y Lombok</h2>
+
+<h3>A. Configuración de Conexión Reactiva (application.yml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/petshop_db
+    username: postgres_user
+    password: secure_password
+    pool:
+      enabled: true
+      initial-size: 10
+      max-size: 50
+</code></pre>
+</div>
+
+<h3>B. Entidad Reactiva con Lombok</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.reactive;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
+import java.time.LocalDate;
+
+@Table("pets")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+public class PetReactiveEntity {
+
+    @Id
+    private Long id;
+
+    private String name;
+    private String species;
+    private Integer age;
+    private Boolean vaccinated;
+    private LocalDate admissionDate;
+}
+</code></pre>
+</div>
+
+<h3>C. Repositorio Reactivo</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.reactive;
+
+import com.example.petshop.model.reactive.PetReactiveEntity;
+import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+@Repository
+public interface PetReactiveRepository extends ReactiveCrudRepository&lt;PetReactiveEntity, Long&gt; {
+
+    // Consulta derivada reactiva: devuelve un flujo continuo asíncrono
+    Flux&lt;PetReactiveEntity&gt; findByVaccinatedTrue();
+
+    // Consulta personalizada reactiva con enlace de parámetros
+    @Query("SELECT * FROM pets WHERE species = :species AND age &lt;= :maxAge")
+    Flux&lt;PetReactiveEntity&gt; findYoungPetsBySpecies(String species, int maxAge);
+
+    Mono&lt;Boolean&gt; existsByName(String name);
+}
+</code></pre>
+</div>
+
+<h3>D. Servicio Reactivo con Project Reactor</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service.reactive;
+
+import com.example.petshop.model.reactive.PetReactiveEntity;
+import com.example.petshop.repository.reactive.PetReactiveRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PetReactiveService {
+
+    private final PetReactiveRepository petRepository;
+
+    public Mono&lt;PetReactiveEntity&gt; getPetById(Long id) {
+        log.info("Consultando mascota reactiva con ID: {}", id);
+        return petRepository.findById(id)
+                .doOnNext(pet -&gt; log.info("Mascota encontrada: {}", pet.getName()))
+                .switchIfEmpty(Mono.error(new RuntimeException("Mascota no encontrada con ID: " + id)));
+    }
+
+    public Flux&lt;PetReactiveEntity&gt; getAllVaccinatedPets() {
+        return petRepository.findByVaccinatedTrue();
+    }
+
+    @Transactional
+    public Mono&lt;PetReactiveEntity&gt; registerPet(PetReactiveEntity newPet) {
+        return petRepository.existsByName(newPet.getName())
+                .flatMap(exists -&gt; {
+                    if (exists) {
+                        return Mono.error(new IllegalArgumentException("Ya existe una mascota llamada: " + newPet.getName()));
+                    }
+                    return petRepository.save(newPet);
+                });
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo y Antipatrón Crítico</h2>
+
+<h3>Contraejemplo: Bloquear un Flujo Reactivo con .block()</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN CATASTRÓFICO: Usar .block() en una aplicación reactiva
+@GetMapping("/bad-pet/{id}")
+public PetReactiveEntity getBadPet(@PathVariable Long id) {
+    // ERROR CRÍTICO: .block() secuestra el hilo no bloqueante de Netty esperando la BD.
+    // Con 10 llamadas simultáneas, Netty se congela y bloquea todo el microservicio.
+    return petReactiveService.getPetById(id).block(); 
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Devolver siempre tipos reactivos (<code>Mono&lt;PetReactiveEntity&gt;</code> o <code>Flux&lt;PetReactiveEntity&gt;</code>) directamente en los controladores de <b>Spring WebFlux</b>, permitiendo que el framework gestione la suscripción y el streaming asíncrono sin bloquear jamás ningún hilo.
+</p>

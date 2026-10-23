@@ -20,7 +20,12 @@
             "content": [
                 {
                     "text": "Gang of Four",
+                    "contentId": "gof",
                     "content": [
+                        {
+                            "text": "¿Cuándo y Para Qué Usar GoF?",
+                            "content": "component-design-patterns-ejemplos-gof-introduccion"
+                        },
                         {
                             "text": "Singleton",
                             "content": "component-design-patterns-ejemplos-singleton"
@@ -117,7 +122,12 @@
                 },
                 {
                     "text": "Java EE",
+                    "contentId": "javaee",
                     "content": [
+                        {
+                            "text": "¿Cuándo y Para Qué Usar Java EE?",
+                            "content": "component-design-patterns-ejemplos-javaee-introduccion"
+                        },
                         {
                             "text": "Intercepting Filter",
                             "content": "component-design-patterns-ejemplos-intercepting-filter"

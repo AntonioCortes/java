@@ -187,16 +187,19 @@ dependencies {
     </li>
 </ul>
 
-<h2>Implementación Práctica Paso a Paso</h2>
-
-<h3>Paso 1: DTO Estándar de Respuesta de Error</h3>
+<h2>Implementación Práctica Paso a Paso: El Ciclo de Vida Completo del Error</h2>
 <p>
-    Definimos el modelo de datos que recibirán los clientes cuando ocurra cualquier fallo en la API:
+    Para comprender con total claridad cómo funciona el sistema de excepciones en Spring Boot, a continuación se desglosa el proceso de principio a fin: desde la <b>definición del contrato de error</b> y la <b>creación de la excepción de dominio</b>, pasando por el <b>momento exacto en el que el código de negocio decide lanzar el error</b>, hasta la <b>intercepción en el manejador global</b> y la <b>respuesta JSON final entregada al cliente</b>.
+</p>
+
+<h3>Paso 1: DTO Estándar de Respuesta de Error (ErrorResponseDTO)</h3>
+<p>
+    Definimos el modelo de datos inmutable que recibirán los clientes cuando ocurra cualquier fallo en la API, asegurando una estructura JSON homogénea y predecible:
 </p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-package com.example.petstore.dto;
+package com.example.petshop.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -228,17 +231,18 @@ public class ErrorResponseDTO {
 </code></pre>
 </div>
 
-<h3>Paso 2: Excepción de Negocio Personalizada</h3>
+<h3>Paso 2: Creación de las Excepciones de Negocio Personalizadas</h3>
 <p>
-    Creamos excepciones específicas para el dominio que hereden de <code>RuntimeException</code> (excepciones no chequeadas), evitando la necesidad de declarar <code>throws</code> en interfaces y firmas de métodos:
+    Creamos excepciones específicas para nuestro dominio que hereden de <code>RuntimeException</code> (excepciones <i>no chequeadas</i> o <i>unchecked</i>). Al no ser chequeadas, evitamos contaminar las interfaces y firmas de métodos con la cláusula <code>throws</code>, permitiendo que la excepción viaje libremente por la pila de llamadas hasta el interceptor global:
 </p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-package com.example.petstore.exception;
+package com.example.petshop.exception;
 
 import lombok.Getter;
 
+// Excepción lanzada cuando una mascota solicitada no existe en la base de datos
 @Getter
 public class PetNotFoundException extends RuntimeException {
 
@@ -252,16 +256,192 @@ public class PetNotFoundException extends RuntimeException {
 </code></pre>
 </div>
 
-<h3>Paso 3: Manejador Global Centralizado (@RestControllerAdvice)</h3>
 <p>
-    Implementamos la clase interceptora con métodos dedicados a cada tipo de fallo: excepciones de dominio, validaciones de beans y fallback genérico para imprevistos:
+    Creamos también una segunda excepción de negocio para conflictos por registros duplicados:
 </p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-package com.example.petstore.exception;
+package com.example.petshop.exception;
 
-import com.example.petstore.dto.ErrorResponseDTO;
+// Excepción lanzada cuando se intenta registrar una mascota que ya existe
+public class DuplicatePetException extends RuntimeException {
+
+    public DuplicatePetException(String message) {
+        super(message);
+    }
+}
+</code></pre>
+</div>
+
+<h3>Paso 3: ¿En qué momento se lanza el error? (Capa de Servicio PetServiceImpl)</h3>
+<p>
+    <b>Aquí es donde ocurre la decisión de negocio.</b> La capa de servicio es la encargada de verificar las reglas del sistema y consultar los repositorios. Si una condición requerida no se cumple, el servicio <b>instancia y lanza explícitamente la excepción</b> utilizando la palabra reservada <code>throw</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.exception.DuplicatePetException;
+import com.example.petshop.exception.PetNotFoundException;
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetJpaRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PetServiceImpl implements PetService {
+
+    private final PetJpaRepository petRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public PetDTO findById(Integer id) {
+        log.info("Buscando mascota con identificador: {}", id);
+
+        // =========================================================================
+        // ¡MOMENTO EXACTO DEL LANZAMIENTO (CASO 1: RECURSO NO ENCONTRADO)!
+        // petRepository.findById() devuelve un Optional&lt;PetEntity&gt;.
+        // Si el Optional está vacío (.isEmpty()), orElseThrow() ejecuta la lambda
+        // e invoca inmediatamente: throw new PetNotFoundException(id);
+        // =========================================================================
+        PetEntity entity = petRepository.findById(Long.valueOf(id))
+                .orElseThrow(() -> {
+                    log.warn("Fallo de negocio: la mascota con ID {} no existe en la base de datos", id);
+                    return new PetNotFoundException(id);
+                });
+
+        return toDto(entity);
+    }
+
+    @Override
+    @Transactional
+    public PetDTO registerPet(PetDTO petDTO) {
+        log.info("Intentando registrar nueva mascota: {}", petDTO.getName());
+
+        // =========================================================================
+        // ¡MOMENTO EXACTO DEL LANZAMIENTO (CASO 2: CONFLICTO DE REGLA DE NEGOCIO)!
+        // Comprobamos si ya existe una mascota con el mismo nombre en la tienda.
+        // Si existe, se lanza explícitamente DuplicatePetException.
+        // =========================================================================
+        if (petRepository.existsByName(petDTO.getName())) {
+            log.warn("Conflicto de negocio: ya existe una mascota llamada {}", petDTO.getName());
+            throw new DuplicatePetException("Ya existe una mascota registrada con el nombre: " + petDTO.getName());
+        }
+
+        PetEntity entity = toEntity(petDTO);
+        PetEntity saved = petRepository.save(entity);
+        return toDto(saved);
+    }
+
+    private PetDTO toDto(PetEntity entity) {
+        return PetDTO.builder()
+                .id(entity.getId().intValue())
+                .name(entity.getName())
+                .species(entity.getSpecies())
+                .age(entity.getAge() != null ? entity.getAge().shortValue() : null)
+                .vaccinated(entity.isVaccinated())
+                .admissionDate(entity.getAdmissionDate())
+                .build();
+    }
+
+    private PetEntity toEntity(PetDTO dto) {
+        return PetEntity.builder()
+                .name(dto.getName())
+                .species(dto.getSpecies())
+                .age(dto.getAge() != null ? dto.getAge().intValue() : null)
+                .vaccinated(dto.isVaccinated() != null && dto.isVaccinated())
+                .admissionDate(dto.getAdmissionDate())
+                .build();
+    }
+}
+</code></pre>
+</div>
+
+<p>
+    <b>¿Qué sucede exactamente en la máquina virtual (JVM) cuando se ejecuta <code>throw new PetNotFoundException(id)</code>?</b>
+</p>
+<ol>
+    <li><b>Interrupción inmediata del flujo secuencial:</b> La ejecución del método <code>findById</code> se detiene en seco en esa línea exacta. La llamada a <code>toDto(entity)</code> <b>nunca llega a ejecutarse</b>.</li>
+    <li><b>Gestión transaccional:</b> Si el método estuviera modificando datos en una transacción (<code>@Transactional</code>), Spring marcaría la transacción para <i>rollback</i> automático, deshaciendo cualquier cambio pendiente en la base de datos.</li>
+    <li><b>Burbujeo por la pila de llamadas (Call Stack):</b> La excepción abandona el método del servicio y viaja hacia arriba, regresando a quien invocó al servicio: el controlador REST.</li>
+</ol>
+
+<h3>Paso 4: El Controlador REST (PetController) - Delegación Limpia sin try-catch</h3>
+<p>
+    En una arquitectura limpia con Spring Boot, el controlador <b>NO debe contener bloques <code>try-catch</code></b>. Simplemente delega en el servicio y retorna la respuesta exitosa. Si el servicio lanza una excepción, esta atraviesa el controlador de forma transparente:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.controller;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.service.PetService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+
+@RestController
+@RequestMapping("/petshop/pet")
+@RequiredArgsConstructor
+public class PetController {
+
+    private final PetService petService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;PetDTO&gt; getPetById(@PathVariable Integer id) {
+        // =========================================================================
+        // Invocamos al servicio directamente.
+        // Si el ID no existe, petService.findById() LANZA PetNotFoundException.
+        // El controlador NO atrapa la excepción; esta sale del método getPetById()
+        // y alcanza el núcleo de Spring MVC (DispatcherServlet).
+        // =========================================================================
+        PetDTO pet = petService.findById(id);
+        return ResponseEntity.ok(pet);
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;PetDTO&gt; createPet(@Valid @RequestBody PetDTO petDTO) {
+        // =========================================================================
+        // ¡MOMENTO EN QUE SE LANZA EL ERROR DE VALIDACIÓN (@Valid)!
+        // Si el JSON entrante tiene campos inválidos (ej. name en blanco o age < 0),
+        // el interceptor de Bean Validation de Spring MVC lanza AUTOMÁTICAMENTE
+        // la excepción MethodArgumentNotValidException ANTES de entrar al método.
+        // El cuerpo de este método ni siquiera llega a ejecutarse.
+        // =========================================================================
+        PetDTO created = petService.registerPet(petDTO);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(created);
+    }
+}
+</code></pre>
+</div>
+
+<h3>Paso 5: La Intercepción Centralizada (@RestControllerAdvice y @ExceptionHandler)</h3>
+<p>
+    Cuando una excepción sale del controlador sin haber sido capturada, el <code>DispatcherServlet</code> de Spring MVC consulta el contenedor de Spring buscando clases anotadas con <code>@RestControllerAdvice</code>. Al encontrar nuestra clase <code>GlobalExceptionHandler</code>, busca el método que tenga un <code>@ExceptionHandler</code> compatible con el tipo de excepción lanzada:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.exception;
+
+import com.example.petshop.dto.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -277,13 +457,16 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Manejo de recurso no encontrado (404 Not Found)
+    // =========================================================================
+    // 1. Intercepta PetNotFoundException lanzada desde PetServiceImpl.findById()
+    // Transforma la excepción de dominio en un código HTTP 404 NOT_FOUND canónico.
+    // =========================================================================
     @ExceptionHandler(PetNotFoundException.class)
     public ResponseEntity&lt;ErrorResponseDTO&gt; handlePetNotFound(
             PetNotFoundException ex, 
             HttpServletRequest request) {
 
-        log.warn("Recurso no encontrado: {} en ruta {}", ex.getMessage(), request.getRequestURI());
+        log.warn("Excepción interceptada: {} en la ruta {}", ex.getMessage(), request.getRequestURI());
 
         ErrorResponseDTO error = ErrorResponseDTO.builder()
                 .timestamp(LocalDateTime.now())
@@ -296,13 +479,39 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    // 2. Manejo de errores de validación de Bean Validation (400 Bad Request)
+    // =========================================================================
+    // 2. Intercepta DuplicatePetException lanzada desde PetServiceImpl.registerPet()
+    // Transforma el conflicto de negocio en un código HTTP 409 CONFLICT canónico.
+    // =========================================================================
+    @ExceptionHandler(DuplicatePetException.class)
+    public ResponseEntity&lt;ErrorResponseDTO&gt; handleDuplicatePet(
+            DuplicatePetException ex, 
+            HttpServletRequest request) {
+
+        log.warn("Conflicto de duplicidad interceptado: {} en {}", ex.getMessage(), request.getRequestURI());
+
+        ErrorResponseDTO error = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    // =========================================================================
+    // 3. Intercepta MethodArgumentNotValidException lanzada automáticamente por Spring
+    // cuando un payload con @Valid no cumple las restricciones de validación.
+    // =========================================================================
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity&lt;ErrorResponseDTO&gt; handleValidationErrors(
             MethodArgumentNotValidException ex, 
             HttpServletRequest request) {
 
-        log.warn("Fallo de validación en {} campos al invocar {}", ex.getFieldErrorCount(), request.getRequestURI());
+        log.warn("Fallo de validación Bean Validation: {} errores en {}", 
+                ex.getFieldErrorCount(), request.getRequestURI());
 
         List&lt;ErrorResponseDTO.FieldErrorDTO&gt; fieldErrors = ex.getBindingResult()
                 .getFieldErrors()
@@ -326,16 +535,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    // 3. Fallback genérico para errores no controlados (500 Internal Server Error)
+    // =========================================================================
+    // 4. Fallback de seguridad: Captura cualquier error no controlado (NullPointer, SQL, etc.)
+    // Genera log con el stacktrace técnico y devuelve un 500 genérico y seguro al cliente.
+    // =========================================================================
     @ExceptionHandler(Exception.class)
     public ResponseEntity&lt;ErrorResponseDTO&gt; handleGenericException(
             Exception ex, 
             HttpServletRequest request) {
 
-        // Se registra el stacktrace completo internamente en logs para auditoría técnica
-        log.error("Excepción no controlada procesando petición en {}: ", request.getRequestURI(), ex);
+        // Se registra el stacktrace técnico en el sistema interno de logs para depuración
+        log.error("Error no controlado procesando petición en {}: ", request.getRequestURI(), ex);
 
-        // NUNCA devolver el mensaje técnico de ex ni el stacktrace al cliente público
+        // NUNCA exponer detalles internos, nombres de tablas ni versiones al exterior
         ErrorResponseDTO error = ErrorResponseDTO.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -350,11 +562,138 @@ public class GlobalExceptionHandler {
 </code></pre>
 </div>
 
+<h3>Paso 6: Peticiones HTTP Reales y Respuestas JSON Obtenidas por el Cliente</h3>
+<p>
+    A continuación se ilustran los tres escenarios prácticos en acción, mostrando la petición HTTP enviada, en qué punto exacto saltó el error y la respuesta recibida por el cliente:
+</p>
+
+<h4>Escenario A: Búsqueda de Mascota Inexistente (404 Not Found)</h4>
+<ol>
+    <li><b>Petición del cliente:</b> <code>GET /petshop/pet/99</code></li>
+    <li><b>Momento del error:</b> <code>PetServiceImpl.findById(99)</code> consulta la base de datos, recibe <code>Optional.empty()</code> y ejecuta <code>throw new PetNotFoundException(99)</code>.</li>
+    <li><b>Intercepción:</b> <code>GlobalExceptionHandler.handlePetNotFound(...)</code> captura la excepción.</li>
+    <li><b>Respuesta HTTP entregada al cliente (Código 404):</b></li>
+</ol>
+
+<div class="center-horizontal">
+<pre><code class="language-json">
+{
+  "timestamp": "2026-10-23T10:45:12.345678",
+  "status": 404,
+  "error": "Not Found",
+  "message": "No existe ninguna mascota con el identificador: 99",
+  "path": "/petshop/pet/99"
+}
+</code></pre>
+</div>
+
+<h4>Escenario B: Registro de Mascota con Nombre Duplicado (409 Conflict)</h4>
+<ol>
+    <li><b>Petición del cliente:</b> <code>POST /petshop/pet</code> con cuerpo <code>{"name": "Rocky", "species": "Dog", "age": 4}</code> cuando "Rocky" ya existe en la base de datos.</li>
+    <li><b>Momento del error:</b> <code>PetServiceImpl.registerPet(...)</code> comprueba <code>petRepository.existsByName("Rocky")</code>, que devuelve <code>true</code>, y ejecuta <code>throw new DuplicatePetException(...)</code>.</li>
+    <li><b>Intercepción:</b> <code>GlobalExceptionHandler.handleDuplicatePet(...)</code> captura la excepción.</li>
+    <li><b>Respuesta HTTP entregada al cliente (Código 409):</b></li>
+</ol>
+
+<div class="center-horizontal">
+<pre><code class="language-json">
+{
+  "timestamp": "2026-10-23T10:46:05.112233",
+  "status": 409,
+  "error": "Conflict",
+  "message": "Ya existe una mascota registrada con el nombre: Rocky",
+  "path": "/petshop/pet"
+}
+</code></pre>
+</div>
+
+<h4>Escenario C: Payload con Errores de Validación Bean Validation (400 Bad Request)</h4>
+<ol>
+    <li><b>Petición del cliente:</b> <code>POST /petshop/pet</code> con cuerpo inválido (nombre en blanco y edad negativa):
+<div class="center-horizontal">
+<pre><code class="language-json">
+{
+  "name": "",
+  "species": "Cat",
+  "age": -5
+}
+</code></pre>
+</div>
+    </li>
+    <li><b>Momento del error:</b> Spring MVC ejecuta el validador de <code>@Valid</code> antes de invocar a <code>PetController.createPet(...)</code>, detecta violaciones en <code>@NotBlank</code> y <code>@Min(0)</code>, y lanza automáticamente <code>MethodArgumentNotValidException</code>. El controlador ni siquiera se ejecuta.</li>
+    <li><b>Intercepción:</b> <code>GlobalExceptionHandler.handleValidationErrors(...)</code> extrae la lista de campos con error.</li>
+    <li><b>Respuesta HTTP entregada al cliente (Código 400):</b></li>
+</ol>
+
+<div class="center-horizontal">
+<pre><code class="language-json">
+{
+  "timestamp": "2026-10-23T10:47:30.987654",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "La petición contiene datos inválidos o incompletos",
+  "path": "/petshop/pet",
+  "fieldErrors": [
+    {
+      "field": "name",
+      "message": "El nombre de la mascota es obligatorio y no puede estar en blanco",
+      "rejectedValue": ""
+    },
+    {
+      "field": "age",
+      "message": "La edad de la mascota no puede ser negativa",
+      "rejectedValue": -5
+    }
+  ]
+}
+</code></pre>
+</div>
+
+---
+
+<h2>Paso 7: Problem Details (RFC 7807 / RFC 9457) en Spring Boot 3</h2>
+<p>
+    En <b>Spring Boot 3+</b> (Spring Framework 6+), además de crear DTOs personalizados como <code>ErrorResponseDTO</code>, se dispone de soporte nativo para el estándar oficial <b>RFC 7807 (Problem Details for HTTP APIs)</b> a través de la clase <code>org.springframework.http.ProblemDetail</code>.
+</p>
+
+<p>
+    Podemos activar el formato RFC 7807 estándar en todo el microservicio mediante configuración en <code>application.yml</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  mvc:
+    problemdetails:
+      enabled: true
+</code></pre>
+</div>
+
+<p>
+    O bien construirlo explícitamente dentro de nuestro <code>GlobalExceptionHandler</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+@ExceptionHandler(PetNotFoundException.class)
+public ProblemDetail handlePetNotFoundRfc7807(PetNotFoundException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    problem.setTitle("Mascota No Encontrada");
+    problem.setType(URI.create("https://api.petshop.com/errors/not-found"));
+    problem.setProperty("petId", ex.getPetId());
+    problem.setProperty("timestamp", LocalDateTime.now());
+    return problem;
+}
+</code></pre>
+</div>
+
+---
+
 <h2>Ejemplo vs Contraejemplo</h2>
 
 <h3>Contraejemplo: Cómo NO gestionar las excepciones (Antipatrón)</h3>
 <p>
-    En el siguiente código, el controlador captura las excepciones a mano con bloques <code>try-catch</code>, devuelve formatos incoherentes y expone vulnerabilidades de seguridad:
+    En el siguiente código, el controlador captura las excepciones a mano con bloques <code>try-catch</code>, inventa códigos HTTP arbitrarios y expone fallos internos de base de datos a atacantes externos:
 </p>
 
 <div class="center-horizontal">
@@ -411,19 +750,37 @@ public class PetController {
 </code></pre>
 </div>
 
-<h3>Respuesta JSON Entregada al Cliente</h3>
-<p>
-    Al solicitar un recurso inexistente mediante <code>GET /petshop/pet/99</code>, el cliente recibe de forma estandarizada:
-</p>
+<h3>Tabla Comparativa: Enfoque Global vs Bloques try-catch Manuales</h3>
 
-<div class="center-horizontal">
-<pre><code class="language-json">
-{
-  "timestamp": "2026-10-22T20:15:30.123456",
-  "status": 404,
-  "error": "Not Found",
-  "message": "No existe ninguna mascota con el identificador: 99",
-  "path": "/petshop/pet/99"
-}
-</code></pre>
-</div>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Manejo Manual con try-catch (Antipatrón)</th>
+            <th scope="col">Intercepción Global con @RestControllerAdvice (Buena Práctica)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Responsabilidad del Controlador</b></td>
+            <td>Mezcla transporte HTTP con formateo de errores y lógica de compensación (viola el Principio de Responsabilidad Única - SRP).</td>
+            <td>Controlador limpio, conciso y enfocado al 100% en el camino feliz.</td>
+        </tr>
+        <tr>
+            <td><b>Consistencia del Contrato JSON</b></td>
+            <td>Respuestas dispares según el desarrollador (cadenas de texto plano, errores vacíos o códigos HTTP inventados como 403 para no encontrado).</td>
+            <td>Esquema JSON inmutable, uniforme y predecible para todos los clientes (front-end, móviles, microservicios).</td>
+        </tr>
+        <tr>
+            <td><b>Seguridad (Information Disclosure)</b></td>
+            <td>Peligro de fuga de nombres de tablas, paquetes y excepciones SQL mediante <code>e.toString()</code> al cliente público.</td>
+            <td>Ocultación total de detalles técnicos al exterior y registro seguro del stacktrace completo únicamente en logs internos con SLF4J.</td>
+        </tr>
+        <tr>
+            <td><b>Mantenibilidad y Reutilización (DRY)</b></td>
+            <td>Bloques <code>try-catch</code> repetidos en cada método de cada controlador del microservicio.</td>
+            <td>Un único punto centralizado de cambio para toda la aplicación; añadir una nueva excepción requiere solo un método en el advice.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 3: Comparativa entre manejo manual y manejo global de excepciones</span>

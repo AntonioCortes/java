@@ -1,0 +1,196 @@
+<h1 class="title">Drivers de Base de Datos, Dialectos y Pool de Conexiones (HikariCP)</h1>
+
+<h2>1. ¿Qué son y para qué sirven?</h2>
+<p>
+    Para que Spring Boot pueda dialogar con un motor de base de datos específico (PostgreSQL, Oracle, MySQL, SQL Server o H2), requiere dos componentes esenciales seleccionables en <b>Spring Initializr</b>:
+</p>
+<ul>
+    <li>
+        <b>El Driver JDBC:</b> La librería cliente que implementa el protocolo de red binario nativo del fabricante para enviar consultas SQL y recibir resultsets.
+    </li>
+    <li>
+        <b>El Dialecto de Hibernate / JPA:</b> El traductor de alto nivel que convierte sentencias JPQL a la sintaxis y tipos de datos propios de ese motor (manejo de paginación con <code>LIMIT/OFFSET</code> vs <code>FETCH FIRST n ROWS ONLY</code>, soporte de tipos JSON, secuencias y funciones nativas).
+    </li>
+    <li>
+        <b>El Pool de Conexiones (HikariCP):</b> Spring Boot incluye por defecto <b>HikariCP</b>, el gestor de conexiones JDBC más rápido, ligero y eficiente del ecosistema Java. Mantiene un conjunto de conexiones físicas abiertas y reutilizables para evitar el elevadísimo coste de red de abrir y cerrar conexiones TCP en cada petición.
+    </li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos una <b>embajada internacional</b> con representantes de distintos países:
+</p>
+<ul>
+    <li>El <b>Driver JDBC</b> es la línea telefónica directa cifrada con el país de destino (PostgreSQL o Oracle).</li>
+    <li>El <b>Dialecto</b> es el intérprete diplomático: sabe que en España (PostgreSQL) se usa la palabra "verdadero" (tipo <code>BOOLEAN</code>), pero en la corte tradicional (Oracle clásico) esa palabra no existe y debe decirse "S/N" (tipo <code>CHAR(1)</code>).</li>
+    <li><b>HikariCP</b> es la centralita con 20 líneas reservadas permanentemente activas: cuando un diplomático necesita hacer una llamada urgente, no espera a que los técnicos tiendan un cable nuevo por el océano; descuelga una línea ya conectada y habla de inmediato.</li>
+</ul>
+
+<h2>2. Comparativa de Drivers y Particularidades de Dialectos (PostgreSQL vs Oracle)</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Base de Datos</th>
+            <th scope="col">Driver Oficial</th>
+            <th scope="col">Dialecto Hibernate</th>
+            <th scope="col">Particularidades Críticas</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>PostgreSQL</b></td>
+            <td><code>org.postgresql:postgresql</code></td>
+            <td><code>org.hibernate.dialect.PostgreSQLDialect</code></td>
+            <td>Soporta tipo <code>BOOLEAN</code> nativo, tipos <code>JSONB</code> de alto rendimiento, <code>UUID</code> nativo y columnas autoincrementales con <code>BIGSERIAL</code> o <code>IDENTITY</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Oracle Database</b></td>
+            <td><code>com.oracle.database.jdbc:ojdbc11</code></td>
+            <td><code>org.hibernate.dialect.OracleDialect</code></td>
+            <td>En versiones clásicas (11g/12c/19c) <b>NO existe tipo BOOLEAN nativo</b> (se almacena como <code>CHAR(1) 'Y'/'N'</code> o <code>NUMBER(1) 1/0</code>). Requiere <b>Secuencias explícitas</b> (<code>@SequenceGenerator</code>) en lugar de autoincrementos simples.</td>
+        </tr>
+        <tr>
+            <td><b>MySQL / MariaDB</b></td>
+            <td><code>com.mysql:mysql-connector-j</code></td>
+            <td><code>org.hibernate.dialect.MySQLDialect</code></td>
+            <td>Manejo de columnas <code>AUTO_INCREMENT</code>, dialecto sensible a mayúsculas/minúsculas según el sistema operativo subyacente.</td>
+        </tr>
+        <tr>
+            <td><b>H2 Database</b></td>
+            <td><code>com.h2database:h2</code></td>
+            <td><code>org.hibernate.dialect.H2Dialect</code></td>
+            <td>Motor ligero en memoria RAM. Ideal para pruebas unitarias rápidas y prototipado local sin Docker.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de motores SQL y drivers en Spring Boot</span>
+
+<h2>3. Dependencias en Maven y Gradle</h2>
+
+<h3>PostgreSQL Driver</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+    &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>Oracle Driver (ojdbc11)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;com.oracle.database.jdbc&lt;/groupId&gt;
+    &lt;artifactId&gt;ojdbc11&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>4. Manejo de Particularidades en Oracle: Booleans y Secuencias</h2>
+
+<h3>A. El Reto del Booleano en Oracle y la Solución con @Convert</h3>
+<p>
+    Dado que Oracle clásico no dispone del tipo <code>BOOLEAN</code>, en Java podemos mantener nuestro atributo como <code>Boolean</code> o <code>boolean</code> limpio y mapearlo en la base de datos a un <code>CHAR(1) ('Y'/'N')</code> mediante un conversor JPA (<code>AttributeConverter</code>):
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.converter;
+
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
+@Converter(autoApply = true)
+public class BooleanToCharConverter implements AttributeConverter&lt;Boolean, String&gt; {
+
+    @Override
+    public String convertToDatabaseColumn(Boolean attribute) {
+        if (attribute == null) {
+            return "N";
+        }
+        return attribute ? "Y" : "N";
+    }
+
+    @Override
+    public Boolean convertToEntityAttribute(String dbData) {
+        if (dbData == null) {
+            return false;
+        }
+        return "Y".equalsIgnoreCase(dbData) || "1".equals(dbData);
+    }
+}
+</code></pre>
+</div>
+
+<h3>B. Entidad con Secuencia para Oracle vs Identity para PostgreSQL</h3>
+
+<h4>En PostgreSQL (Estrategia IDENTITY simple):</h4>
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private Long id;
+</code></pre>
+</div>
+
+<h4>En Oracle (Estrategia SEQUENCE obligatoria con allocationSize optimizado):</h4>
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Id
+@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pet_seq_gen")
+@SequenceGenerator(
+    name = "pet_seq_gen", 
+    sequenceName = "PET_SEQ", 
+    allocationSize = 50 // Hibernate reserva bloques de 50 IDs en memoria para no invocar a Oracle en cada INSERT
+)
+private Long id;
+</code></pre>
+</div>
+
+<h2>5. Optimización del Pool de Conexiones HikariCP</h2>
+<p>
+    Configuración recomendada para microservicios de producción en <code>application.yml</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/petshop_db
+    username: petshop_user
+    password: secret_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20 # Número máximo de conexiones físicas simultáneas
+      minimum-idle: 5 # Conexiones mínimas inactivas reservadas
+      idle-timeout: 300000 # 5 minutos antes de cerrar conexiones ociosas
+      connection-timeout: 20000 # 20 segundos máximo esperando conexión del pool
+      max-lifetime: 1200000 # 20 minutos de vida máxima por conexión (evita fugas en firewall)
+      leak-detection-threshold: 2000 # Emite alerta si una consulta retiene una conexión más de 2 segundos
+</code></pre>
+</div>
+
+<h2>6. Contraejemplo y Error Frecuente: Fugas de Conexiones (Connection Leak)</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Abrir conexiones JDBC manuales sin bloque try-with-resources
+public void badManualJdbc() {
+    try {
+        Connection conn = dataSource.getConnection(); // Toma una conexión del pool
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM pets");
+        // ERROR GRAVE: Si ocurre una excepción o se olvida conn.close(),
+        // la conexión nunca regresa al pool. Tras 20 llamadas, el microservicio se bloquea permanentemente.
+    } catch (SQLException e) {
+        log.error("Error", e);
+    }
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar siempre <b>Spring Data JPA</b>, <code>JdbcTemplate</code> o bloques <code>try-with-resources</code> para garantizar que toda conexión sea liberada de inmediato de vuelta a HikariCP.
+</p>

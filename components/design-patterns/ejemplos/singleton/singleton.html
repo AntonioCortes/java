@@ -5,7 +5,7 @@
 </style>
 <h1 class="title">Patrón Singleton</h1>
 
-<p>El patrón <strong>Singleton</strong> es un patrón de diseño creacional que garantiza que una clase tenga <strong>una única instancia</strong> en toda la aplicación y proporciona un punto de acceso global a ella.</p>
+<p>El patrón <strong>Singleton</strong> es un patrón de diseño creacional que garantiza que una clase tenga <strong>una única instancia</strong> en toda la aplicación y proporciona un punto de acceso global y centralizado a ella.</p>
 
 <h2 class="subtitle">Analogía del Mundo Real</h2>
 <p>Imagina el <strong>Gobierno de un país</strong> o la <strong>Torre de Control de un aeropuerto</strong>. Aunque existan millones de ciudadanos o cientos de aviones que necesiten comunicarse con esa entidad, solo existe una única instancia oficial en funcionamiento. Cuando alguien necesita interactuar con "el Gobierno" o "la Torre de Control", no funda un gobierno nuevo ni construye otra torre: siempre acude a la instancia única ya existente.</p>
@@ -48,33 +48,29 @@
 </table>
 <span class="center-horizontal caption">Tabla 1: Participantes del patrón Singleton</span>
 
-<h2 class="subtitle">Implementación en Java (Segura para Hilos / Thread-Safe)</h2>
+<h2 class="subtitle">Las 3 Variantes de Implementación en Java Moderno</h2>
 
-<p>En aplicaciones reales donde varios hilos (threads) se ejecutan a la vez, dos hilos podrían llamar a <code class="language-java">obtenerInstancia()</code> en el mismo milisegundo y crear dos instancias por accidente. Para evitarlo sin perder rendimiento, utilizamos la técnica <strong>Double-Checked Locking</strong> (Doble Comprobación de Bloqueo) junto con la palabra clave <code class="language-java">volatile</code>.</p>
+<h3>Variante 1: Double-Checked Locking (Doble Comprobación de Bloqueo)</h3>
+<p>Utiliza evaluación perezosa (<em>Lazy Initialization</em>), garantizando que la instancia no consuma memoria hasta que alguien la solicita por primera vez. Es segura para entornos multihilo gracias a <code>volatile</code> y al bloque <code>synchronized</code>:</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 public class ConexionBaseDatos {
-    // 1. Atributo estático y volatile que guardará la ÚNICA instancia en memoria
+    // 1. Atributo estático volatile: garantiza visibilidad entre hilos y previene reordenación de instrucciones
     private static volatile ConexionBaseDatos instancia;
-    
-    // Datos internos de nuestra conexión
-    private String cadenaConexion;
+    private final String cadenaConexion;
 
-    // 2. Constructor PRIVADO: impide hacer 'new ConexionBaseDatos()' desde fuera
+    // 2. Constructor privado: prohíbe el uso de new fuera de esta clase
     private ConexionBaseDatos() {
-        this.cadenaConexion = "jdbc:mysql://localhost:3306/mi_tienda_db";
-        System.out.println("&gt;&gt; [INIT] Conexión física a la base de datos iniciada: " + cadenaConexion);
+        this.cadenaConexion = "jdbc:postgresql://localhost:5432/petshop_db";
+        System.out.println("&gt;&gt; [INIT] Conexión física a PostgreSQL iniciada: " + cadenaConexion);
     }
 
-    // 3. Punto de acceso global estático
+    // 3. Doble comprobación: solo sincroniza en la primera invocación
     public static ConexionBaseDatos obtenerInstancia() {
-        // Primera comprobación (sin bloqueo) para no penalizar el rendimiento si ya existe
-        if (instancia == null) {
-            // Solo bloqueamos si la instancia aún no se ha creado
+        if (instancia == null) { // Primera comprobación (sin penalización de bloqueo)
             synchronized (ConexionBaseDatos.class) {
-                // Segunda comprobación dentro del bloque sincronizado
-                if (instancia == null) {
+                if (instancia == null) { // Segunda comprobación con cerrojo exclusivo
                     instancia = new ConexionBaseDatos();
                 }
             }
@@ -82,33 +78,57 @@ public class ConexionBaseDatos {
         return instancia;
     }
 
-    // Método de negocio del Singleton
     public void ejecutarConsulta(String query) {
         System.out.println("Ejecutando SQL en [" + cadenaConexion + "]: " + query);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Implementación Thread-Safe del patrón Singleton en Java</span>
+<span class="center-horizontal caption">Implementación clásica Thread-Safe con Double-Checked Locking</span>
 
-<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+<h3>Variante 2: Bill Pugh Singleton (Holder Idiom - Recomendada en Java Clásico)</h3>
+<p>Aprovecha los mecanismos del ClassLoader de la JVM: la clase interna estática <code>Holder</code> solo se carga en memoria en el momento exacto en que alguien llama al método <code>obtenerInstancia()</code>. Es 100% thread-safe y no requiere ningún bloque <code>synchronized</code>:</p>
 
-<ul>
-    <li>
-        <strong>1. ¿Por qué el constructor es <code class="language-java">private</code>?</strong>
-        <p>En Java, si un constructor es <code class="language-java">public</code>, cualquier programador puede escribir <code class="language-java">new ConexionBaseDatos()</code> y crear copias infinitas. Al declararlo <code class="language-java">private</code>, el compilador prohíbe usar <code class="language-java">new</code> fuera de esta clase.</p>
-    </li>
-    <li>
-        <strong>2. ¿Por qué el atributo <code class="language-java">instancia</code> y el método <code class="language-java">obtenerInstancia()</code> son <code class="language-java">static</code>?</strong>
-        <p>Como nadie puede crear un objeto primero para llamar a un método normal, necesitamos un método que pertenezca a la clase en sí misma (<code class="language-java">static</code>). Así podemos invocarlo directamente como <code class="language-java">ConexionBaseDatos.obtenerInstancia()</code>.</p>
-    </li>
-    <li>
-        <strong>3. ¿Qué hace <code class="language-java">volatile</code> y <code class="language-java">synchronized</code>?</strong>
-        <p>La primera vez que se llama a <code class="language-java">obtenerInstancia()</code>, <code class="language-java">instancia</code> vale <code class="language-java">null</code>. El bloque <code class="language-java">synchronized</code> pone un "cerrojo" para que solo un hilo entre a ejecutar el <code class="language-java">new ConexionBaseDatos()</code>, y <code class="language-java">volatile</code> asegura que todos los demás hilos vean inmediatamente la instancia recién creada en memoria principal.</p>
-    </li>
-</ul>
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class ConfiguracionGlobal {
 
-<h2 class="subtitle">Ejemplo de Uso</h2>
+    private ConfiguracionGlobal() {
+        System.out.println("&gt;&gt; [INIT] Cargando fichero de configuración global en memoria...");
+    }
+
+    // Clase estática interna: la JVM solo la carga cuando se invoca obtenerInstancia()
+    private static class Holder {
+        private static final ConfiguracionGlobal INSTANCIA = new ConfiguracionGlobal();
+    }
+
+    public static ConfiguracionGlobal obtenerInstancia() {
+        return Holder.INSTANCIA;
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Bill Pugh Singleton: inicialización perezosa ultrarrápida sin sobrecarga de sincronización</span>
+
+<h3>Variante 3: Enum Singleton (Recomendación Oficial de Joshua Bloch en Effective Java)</h3>
+<p>En Java, los enumerados son inherentemente instancias únicas administradas por la JVM. Es la **única forma** que resiste automáticamente ataques por reflexión y deserialización sin escribir código adicional:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+public enum GestorSeguridad {
+    INSTANCIA; // Única instancia garantizada por la JVM
+
+    private String claveSecreta = "JWT_SECRET_KEY_PRODUCCION";
+
+    public void validarToken(String token) {
+        System.out.println("Validando token con clave única: " + claveSecreta);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Enum Singleton: inmune a ataques de reflexión y deserialización</span>
+
+<h2 class="subtitle">Ejemplo de Uso y Comprobación en Consola</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
@@ -116,15 +136,15 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("1. Solicitando primera referencia (db1)...");
         ConexionBaseDatos db1 = ConexionBaseDatos.obtenerInstancia();
-        db1.ejecutarConsulta("SELECT * FROM usuarios");
+        db1.ejecutarConsulta("SELECT * FROM pets WHERE status = 'AVAILABLE'");
 
         System.out.println("\n2. Solicitando segunda referencia (db2) desde otra parte del sistema...");
         ConexionBaseDatos db2 = ConexionBaseDatos.obtenerInstancia();
-        db2.ejecutarConsulta("INSERT INTO pedidos VALUES (101, 'Completado')");
+        db2.ejecutarConsulta("INSERT INTO pets (name) VALUES ('Firulais')");
 
         System.out.println("\n3. Verificando si db1 y db2 son exactamente el mismo objeto en memoria:");
         if (db1 == db2) {
-            System.out.println("¡ÉXITO! db1 y db2 apuntan a la misma instancia única.");
+            System.out.println("¡ÉXITO! db1 y db2 apuntan a la misma dirección física de memoria (==).");
         } else {
             System.out.println("ERROR: Se han creado instancias distintas.");
         }
@@ -138,20 +158,75 @@ public class Main {
 <pre><code class="language-bash">
 Salida por consola:
 1. Solicitando primera referencia (db1)...
-&gt;&gt; [INIT] Conexión física a la base de datos iniciada: jdbc:mysql://localhost:3306/mi_tienda_db
-Ejecutando SQL en [jdbc:mysql://localhost:3306/mi_tienda_db]: SELECT * FROM usuarios
+&gt;&gt; [INIT] Conexión física a PostgreSQL iniciada: jdbc:postgresql://localhost:5432/petshop_db
+Ejecutando SQL en [jdbc:postgresql://localhost:5432/petshop_db]: SELECT * FROM pets WHERE status = 'AVAILABLE'
 
 2. Solicitando segunda referencia (db2) desde otra parte del sistema...
-Ejecutando SQL en [jdbc:mysql://localhost:3306/mi_tienda_db]: INSERT INTO pedidos VALUES (101, 'Completado')
+Ejecutando SQL en [jdbc:postgresql://localhost:5432/petshop_db]: INSERT INTO pets (name) VALUES ('Firulais')
 
 3. Verificando si db1 y db2 son exactamente el mismo objeto en memoria:
-¡ÉXITO! db1 y db2 apuntan a la misma instancia única.
+¡ÉXITO! db1 y db2 apuntan a la misma dirección física de memoria (==).
 </code></pre>
 </div>
-<span class="center-horizontal caption">Salida por consola: el constructor solo se ejecuta en la primera llamada</span>
+<span class="center-horizontal caption">Salida esperada: el constructor solo se ejecuta en la primera llamada</span>
+
+<h2 class="subtitle">Contraejemplo: Cómo Romper un Singleton y Cómo Protegerlo</h2>
+
+<h3>1. Ataque por Reflexión</h3>
+<p>Un desarrollador o biblioteca maliciosa puede cambiar la visibilidad del constructor privado mediante reflexión (<code class="language-java">constructor.setAccessible(true)</code>) y crear una segunda instancia:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// VULNERABILIDAD: Un atacante usa reflexión para forzar el constructor privado
+Constructor&lt;ConexionBaseDatos&gt; constructor = ConexionBaseDatos.class.getDeclaredConstructor();
+constructor.setAccessible(true);
+ConexionBaseDatos instancia2 = constructor.newInstance(); // ¡Se crea una segunda instancia!
+
+// SOLUCIÓN: Lanzar excepción si ya existe la instancia en el constructor
+private ConexionBaseDatos() {
+    if (instancia != null) {
+        throw new IllegalStateException("¡Violación de Singleton! Usa obtenerInstancia().");
+    }
+    // Inicialización normal...
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Protección contra violación de Singleton mediante Java Reflection</span>
+
+<h3>2. Ataque por Serialización / Deserialización</h3>
+<p>Si la clase implementa <code>Serializable</code>, al deserializarla en disco o red Java crea una copia nueva sin invocar el constructor:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// SOLUCIÓN: Implementar readResolve() para devolver siempre la instancia única
+protected Object readResolve() {
+    return obtenerInstancia();
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">readResolve asegura que la deserialización no duplique el objeto</span>
 
 <h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
-<ul>
-    <li><strong>Cuándo usarlo:</strong> Cuando deba existir exactamente un recurso compartido en todo el programa (un gestor de configuración global, un pool de conexiones, una caché en memoria o un sistema de registro de logs).</li>
-    <li><strong>Cuándo evitarlo:</strong> No lo uses como sustituto de variables globales para guardar datos temporales. Abusar de Singleton oculta las dependencias entre clases y dificulta los tests unitarios (en frameworks como Spring Boot suele preferirse delegar el ciclo de vida único al contenedor de Inyección de Dependencias con <code class="language-java">@Service</code> o <code class="language-java">@Component</code>).</li>
-</ul>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Cuándo SÍ usar Singleton</th>
+            <th scope="col">Cuándo NO usarlo (Antipatrón)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Para recursos compartidos físicamente únicos: gestores de configuración de solo lectura, pools de hilos o drivers de hardware.</td>
+            <td>Como almacén de variables globales mutables: acopla módulos y dificulta depurar qué hilo modificó los datos.</td>
+        </tr>
+        <tr>
+            <td>Para fábricas de objetos sin estado (como Abstract Factory).</td>
+            <td>En aplicaciones Spring Boot: no implementes Singleton a mano en clases marcadas con <code>@Service</code> o <code>@Component</code>; el contenedor de Spring ya gestiona el alcance Singleton (<em>Singleton Scope</em>) de forma limpia y testeable.</td>
+        </tr>
+        <tr>
+            <td>Cuando la creación del objeto es sumamente costosa en CPU/I-O y debe ser compartido.</td>
+            <td>En pruebas unitarias: los Singletons manuales conservan estado entre tests y no pueden sustituirse por mocks fácilmente sin reflexión.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios para la adopción de Singleton</span>

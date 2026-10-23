@@ -1,0 +1,200 @@
+<h1 class="title">Spring AI: Integración con Modelos de Lenguaje (LLMs) y Bases Vectoriales</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    <b>Spring AI</b> es el proyecto oficial del ecosistema Spring diseñado para aplicar los principios de diseño de Spring (portabilidad, inversión de control y abstracción de bajo acoplamiento) al desarrollo de aplicaciones con <b>Inteligencia Artificial Generativa</b> y <b>Modelos de Lenguaje (LLMs)</b>.
+</p>
+<p>
+    En lugar de acoplarse rígidamente al SDK propietario de un único proveedor en Python o Java, Spring AI proporciona una capa de abstracción unificada intercambiable:
+</p>
+<ul>
+    <li><b>Abstracción Portable de Modelos (ChatModel / ChatClient):</b> Permite escribir código una sola vez y cambiar de proveedor de LLM (OpenAI GPT-4, Anthropic Claude, Azure OpenAI, Google Vertex AI o modelos locales con <b>Ollama</b> como Llama 3 o Mistral) cambiando únicamente una propiedad en <code>application.yml</code>.</li>
+    <li><b>Salidas Fuertemente Tipadas (Structured Outputs):</b> Mediante <code>BeanOutputConverter&lt;T&gt;</code>, Spring AI garantiza que la respuesta en lenguaje natural generada por la IA se valide y transforme automáticamente en un objeto Java tipado (DTO o Record) con validaciones de campos.</li>
+    <li><b>RAG (Retrieval-Augmented Generation) y Bases Vectoriales:</b> Interfaz <code>VectorStore</code> para almacenar y buscar vectores de similitud (*embeddings*) en motores como <b>PostgreSQL con PGVector</b>, Redis o Chroma, permitiendo a la IA responder preguntas sobre documentos privados de la empresa.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>equipo de traductores simultáneos de la ONU</b>:
+</p>
+<ul>
+    <li>Sin Spring AI, tendrías que contratar a un intérprete que solo habla un dialecto concreto de Python y reprogramar toda tu empresa cada vez que quieres probar a un traductor diferente.</li>
+    <li>Con <b>Spring AI (ChatClient)</b>, tienes una cabina de traducción con auriculares estandarizados: puedes sentar en la silla a un experto de OpenAI o a un modelo privado que corre en tu propio servidor local con Ollama. El mensaje que envías y el formulario estructurado que recibes en Java son siempre idénticos.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una tienda de mascotas online desea ofrecer un asistente virtual veterinario que recomiende alimentos y cuidados según la raza, edad y peso de la mascota.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Llamadas HTTP directas a OpenAI)</div>
+            <div class="card-body">
+                <p>El desarrollador concatena cadenas JSON enviadas con <code>RestTemplate</code> a la API de OpenAI. La IA a veces responde con texto libre, otras veces con Markdown o formato inválido, provocando excepciones de parseo continuas en el backend Java.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Spring AI ChatClient)</div>
+            <div class="card-body">
+                <p>Se utiliza <code>ChatClient</code> con <code>entity(PetDietAdviceDTO.class)</code>. Spring AI instruye al modelo en el prompt para que devuelva un esquema JSON estricto y lo mapea automáticamente al DTO tipado con cero fallos de parseo.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar Spring AI y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Generación de resúmenes, extracción de datos estructurados, categorización automática de incidencias y chatbots RAG corporativos.</td>
+            <td><b>SIEMPRE usar Spring AI</b></td>
+            <td>Aísla el backend de cambios en APIs de terceros, soporta modelos locales privados con Ollama y ofrece salidas tipadas en Java.</td>
+        </tr>
+        <tr>
+            <td>Cálculos matemáticos deterministas de alta precisión (cálculo de nóminas, impuestos o saldos bancarios).</td>
+            <td><b>NO usar LLMs</b></td>
+            <td>Los modelos de lenguaje son probabilísticos y pueden sufrir alucinaciones; la lógica contable debe ser código Java tradicional.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Reglas de uso de Spring AI</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Repositorio de Spring Milestones / Releases para Spring AI --&gt;
+&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-ai-bom&lt;/artifactId&gt;
+            &lt;version&gt;1.0.0-M1&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+            &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+
+&lt;dependencies&gt;
+    &lt;!-- Starter de OpenAI (o sustituir por spring-ai-ollama-spring-boot-starter) --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-ai-openai-spring-boot-starter&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation platform('org.springframework.ai:spring-ai-bom:1.0.0-M1')
+    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
+}
+</code></pre>
+</div>
+
+<h2>5. Configuración en Spring Boot (application.yml)</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.3 # Temperatura baja para respuestas más deterministas y precisas
+</code></pre>
+</div>
+
+<h2>6. Ejemplo Completo: Asistente Veterinario con Salida Estructurada (ChatClient)</h2>
+
+<h3>A. DTO de Salida Estructurada</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.dto.ai;
+
+import java.util.List;
+
+public record PetDietAdviceDTO(
+        String petName,
+        String recommendedFoodType,
+        int dailyPortionGrams,
+        List&lt;String&gt; tips,
+        boolean requiresVeterinaryCheck
+) {}
+</code></pre>
+</div>
+
+<h3>B. Servicio con ChatClient</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service.ai;
+
+import com.example.petshop.dto.ai.PetDietAdviceDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+public class PetAiAdvisoryService {
+
+    private final ChatClient chatClient;
+
+    public PetAiAdvisoryService(ChatClient.Builder chatClientBuilder) {
+        this.chatClient = chatClientBuilder
+                .defaultSystem("Eres un asistente veterinario experto. Responde siempre con profesionalidad y rigor.")
+                .build();
+    }
+
+    public PetDietAdviceDTO generateDietPlan(String name, String species, int ageYears, double weightKg) {
+        log.info("Generando plan nutricional con IA para {} ({} de {} años, {} kg)", 
+                name, species, ageYears, weightKg);
+
+        return chatClient.prompt()
+                .user(u -&gt; u.text("Calcula el plan dietético para la mascota con los siguientes datos: " +
+                        "Nombre: {name}, Especie: {species}, Edad: {age} años, Peso: {weight} kg")
+                        .param("name", name)
+                        .param("species", species)
+                        .param("age", ageYears)
+                        .param("weight", weightKg))
+                // Spring AI instruye al modelo para generar JSON y lo deserializa automáticamente
+                .call()
+                .entity(PetDietAdviceDTO.class);
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo: Hardcodear la API Key en el Código o en application.yml</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# ANTIPATRÓN DE SEGURIDAD CRÍTICO:
+spring:
+  ai:
+    openai:
+      api-key: sk-proj-1234567890abcdef... # ¡PROHIBIDO! Fuga de credenciales en GitHub
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar siempre variables de entorno inyectadas en tiempo de ejecución (<code>api-key: ${OPENAI_API_KEY}</code>) gestionadas mediante secretos en Docker, Kubernetes o gestores como AWS Secrets Manager.
+</p>

@@ -3,27 +3,31 @@
         color: black !important;
     }
 </style>
-<h1 class="title">Patrón Strategy</h1>
+<h1 class="title">Patrón Strategy (Estrategia)</h1>
 
-<p>El patrón <strong>Strategy</strong> (Estrategia) es un patrón de comportamiento que permite definir una <strong>familia de algoritmos</strong>, colocar cada uno de ellos en una clase separada y hacer que sus objetos sean <strong>intercambiables en tiempo de ejecución</strong>.</p>
+<p>El patrón <strong>Strategy</strong> (Estrategia) es un patrón de diseño de comportamiento que permite definir una <strong>familia de algoritmos intercambiables</strong>, encapsular cada uno de ellos en una clase independiente y hacer que los objetos puedan intercambiar su comportamiento <strong>dinámicamente en tiempo de ejecución</strong> sin alterar a los clientes que los consumen.</p>
 
-<h2 class="subtitle">Analogía del Mundo Real</h2>
-<p>Piensa en <strong>Google Maps cuando calculas una ruta al aeropuerto</strong>. El objetivo final siempre es el mismo ("llegar del punto A al punto B"), pero tú puedes elegir distintas <strong>Estrategias de ruta</strong> pulsando un icono: ir en Coche, en Transporte Público, en Bicicleta o Caminando. El mapa (el Contexto) cambia instantáneamente el algoritmo de cálculo según la estrategia que selecciones.</p>
+<h2 class="subtitle">Analogía del Mundo Real: Las Rutas en Google Maps</h2>
+<p>Imagina que abres <strong>Google Maps</strong> para planificar un viaje al aeropuerto:</p>
+<ul>
+    <li>El destino y el origen son idénticos ("ir desde casa al aeropuerto"), pero puedes pulsar diferentes iconos de transporte: <em>Coche</em>, <em>Transporte Público</em>, <em>Bicicleta</em> o <em>Caminando</em>.</li>
+    <li>El mapa (el <strong>Contexto</strong>) no implementa internamente las fórmulas matemáticas de los 4 medios de transporte: simplemente delega en la <strong>Estrategia de Enrutamiento</strong> seleccionada. Si cambias de Coche a Bicicleta en mitad de la consulta, la aplicación recalcula la ruta al instante usando el nuevo algoritmo sin tener que reinstalar la aplicación.</li>
+</ul>
 
 <h2 class="subtitle">Propósito</h2>
-<p>Extraer distintos algoritmos que resuelven la misma tarea fuera de la clase principal, eliminando bloques <code class="language-java">if-else</code> o <code class="language-java">switch</code> y permitiendo cambiar el algoritmo al vuelo mediante composición.</p>
+<p>Dar cumplimiento estricto al <strong>Principio Open/Closed (OCP)</strong> de SOLID: permitir agregar nuevos algoritmos, cálculos o políticas de negocio simplemente creando una nueva clase que implemente el contrato común, eliminando bloques monolíticos de <code>if-else</code> o <code>switch</code>.</p>
 
-<h2 class="subtitle">Caso de Uso Real: Pasarela de Pagos en un Carrito de Compra</h2>
-<p><strong>Contexto:</strong> Una tienda online (<code class="language-java">CarritoCompra</code>) permite al usuario pagar su compra eligiendo entre Tarjeta de Crédito (<code class="language-java">PagoTarjetaCredito</code>) o PayPal (<code class="language-java">PagoPayPal</code>).</p>
+<h2 class="subtitle">Caso de Uso Real: Pasarela de Pagos en PetShop</h2>
+<p><strong>Contexto:</strong> En la tienda de mascotas <em>PetShop</em>, los clientes pueden abonar su compra mediante Tarjeta de Crédito, PayPal o Bizum.</p>
 
-<p><strong>El Problema (Sin Strategy):</strong> Si dentro de <code class="language-java">CarritoCompra.procesarCompra()</code> pones <code class="language-java">if (type.equals("CARD")) { ... } else if (type.equals("PAYPAL")) { ... }</code>, violas el <strong>Principio Abierto/Cerrado (OCP)</strong>: cada vez que quieras añadir Bizum o Apple Pay tendrás que abrir y modificar la clase del carrito.</p>
+<p><strong>El Problema (Sin Strategy):</strong> Si dentro de <code>OrderService.procesarPago()</code> escribes un <code>switch (tipoPago)</code> con 50 líneas por cada pasarela, cada vez que el banco añade un nuevo método (ej. Apple Pay o Criptomonedas) hay que reabrir, modificar y arriesgar la estabilidad de la clase de pedidos completa.</p>
 
-<p><strong>La Solución (Con Strategy):</strong> Definimos la interfaz <code class="language-java">EstrategiaPago</code> con el método <code class="language-java">pagar(int amount)</code>. Cada método de pago es una clase independiente que implementa esa interfaz. El carrito solo tiene el método <code class="language-java">setEstrategiaPago()</code> y delega el cobro llamando a <code class="language-java">estrategiaPago.pagar(amount)</code>.</p>
+<p><strong>La Solución (Con Strategy):</strong> Se define la interfaz <code>EstrategiaPago</code>. Cada método de pago implementa el contrato de forma aislada. El servicio de pedidos recibe la estrategia (o la resuelve dinámicamente) y delega el cobro con <code>estrategia.pagar(importe)</code>.</p>
 
 <h2 class="subtitle">Diagrama de Clases y Participantes</h2>
 
 <img class="center-horizontal" src="components/design-patterns/ejemplos/strategy/assets/img/strategy-diagram.png">
-<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Strategy aplicado al procesamiento de pagos</span>
+<span class="center-horizontal caption">Figura 1: Diagrama UML del patrón Strategy aplicado a pasarelas de pago</span>
 
 <table class="table table-striped table-hover">
     <thead>
@@ -37,17 +41,17 @@
         <tr>
             <th scope="row">Strategy (Interfaz)</th>
             <td><code class="language-java">EstrategiaPago</code></td>
-            <td>Declara el método común (<code class="language-java">pagar(int amount)</code>) para todos los algoritmos de pago soportados.</td>
+            <td>Declara la firma del método común (<code>void pagar(double importe)</code>).</td>
         </tr>
         <tr>
             <th scope="row">Concrete Strategies</th>
-            <td><code class="language-java">PagoTarjetaCredito</code>, <code class="language-java">PagoPayPal</code></td>
-            <td>Implementan cada algoritmo específico de pago con sus propios datos (número de tarjeta o email de cuenta).</td>
+            <td><code class="language-java">PagoTarjeta</code>, <code class="language-java">PagoPayPal</code>, <code class="language-java">PagoBizum</code></td>
+            <td>Implementan el algoritmo técnico específico de comunicación con cada pasarela financiera.</td>
         </tr>
         <tr>
             <th scope="row">Context (Contexto)</th>
-            <td><code class="language-java">CarritoCompra</code></td>
-            <td>Guarda una referencia a una <code class="language-java">EstrategiaPago</code> y permite cambiarla en cualquier momento con <code class="language-java">setEstrategiaPago()</code>.</td>
+            <td><code class="language-java">ProcesadorPedidos</code></td>
+            <td>Mantiene una referencia a la estrategia activa y ejecuta el cobro llamando a su método sin conocer detalles internos.</td>
         </tr>
     </tbody>
 </table>
@@ -57,105 +61,185 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-// 1. Interfaz Strategy: contrato común para cualquier algoritmo de pago
-interface EstrategiaPago {
-    void pagar(int amount);
+// 1. Contrato Strategy común
+public interface EstrategiaPago {
+    void pagar(double importe);
 }
 
-// 2. Estrategia Concreta A: Pago con Tarjeta de Crédito
-class PagoTarjetaCredito implements EstrategiaPago {
-    private String cardNumber;
+// 2. Estrategias Concretas Aisladas
+public class PagoTarjeta implements EstrategiaPago {
+    private final String numeroTarjeta;
 
-    public PagoTarjetaCredito(String cardNumber) {
-        this.cardNumber = cardNumber;
+    public PagoTarjeta(String numeroTarjeta) {
+        this.numeroTarjeta = numeroTarjeta;
     }
 
     @Override
-    public void pagar(int amount) {
-        System.out.println("💳 Pagando " + amount + "€ con Tarjeta de Crédito terminada en: " + cardNumber);
+    public void pagar(double importe) {
+        System.out.println("💳 [Tarjeta] Cobro de " + importe + " € procesado en tarjeta terminada en: " + numeroTarjeta);
     }
 }
 
-// 3. Estrategia Concreta B: Pago con PayPal
-class PagoPayPal implements EstrategiaPago {
-    private String email;
+public class PagoPayPal implements EstrategiaPago {
+    private final String email;
 
     public PagoPayPal(String email) {
         this.email = email;
     }
 
     @Override
-    public void pagar(int amount) {
-        System.out.println("🅿️ Pagando " + amount + "€ mediante cuenta PayPal: " + email);
+    public void pagar(double importe) {
+        System.out.println("🅿️ [PayPal] Cobro de " + importe + " € procesado para la cuenta: " + email);
     }
 }
 
-// 4. Contexto: El Carrito de Compra que delega el cobro en la estrategia elegida
-class CarritoCompra {
+public class PagoBizum implements EstrategiaPago {
+    private final String telefono;
+
+    public PagoBizum(String telefono) {
+        this.telefono = telefono;
+    }
+
+    @Override
+    public void pagar(double importe) {
+        System.out.println("📱 [Bizum] Cobro de " + importe + " € enviado al número: " + telefono);
+    }
+}
+
+// 3. Contexto: procesador de pedidos desacoplado
+public class ProcesadorPedidos {
     private EstrategiaPago estrategiaPago;
 
-    // Permite asignar o cambiar la estrategia en tiempo de ejecución
+    // Permite inyectar o cambiar la estrategia en runtime
     public void setEstrategiaPago(EstrategiaPago estrategiaPago) {
         this.estrategiaPago = estrategiaPago;
     }
 
-    public void procesarCompra(int amount) {
+    public void formalizarCompra(double total) {
         if (estrategiaPago == null) {
-            System.out.println("⚠️ Por favor, seleccione un método de pago antes de continuar.");
-        } else {
-            estrategiaPago.pagar(amount);
+            throw new IllegalStateException("Debe seleccionar un método de pago antes de continuar.");
         }
+        estrategiaPago.pagar(total);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Implementación completa del patrón Strategy</span>
+<span class="center-horizontal caption">Implementación desacoplada del patrón Strategy</span>
 
-<h2 class="subtitle">Análisis Paso a Paso para Principiantes</h2>
+<h2 class="subtitle">Evolución en Java Moderno y Spring Boot</h2>
 
-<ul>
-    <li>
-        <strong>1. Composición sobre Herencia:</strong>
-        <p><code class="language-java">CarritoCompra</code> no hereda de ninguna pasarela de pago; <strong>contiene</strong> un atributo <code class="language-java">private EstrategiaPago</code>. Eso es lo que permite que el mismo carrito pague primero con PayPal y dos líneas más abajo cambie a Tarjeta sin crear otro carrito.</p>
-    </li>
-    <li>
-        <strong>2. Ejemplo en el propio JDK de Java:</strong>
-        <p><code class="language-java">Collections.sort(lista, comparator)</code> es un ejemplo clásico de Strategy: la lista es el contexto y el <code class="language-java">Comparator</code> que le pasas por parámetro es la estrategia de ordenación (ordenar por precio, por nombre o por fecha).</p>
-    </li>
-</ul>
+<h3>1. Con Expresiones Lambda (Java 8+)</h3>
+<p>Si la interfaz de la estrategia tiene un único método abstracto (<em>Functional Interface</em>), no es obligatorio crear clases concretas separadas para algoritmos sencillos; se pueden pasar expresiones lambda directamente:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Estrategia instanciada al vuelo mediante una lambda:
+procesador.setEstrategiaPago(importe -&gt; System.out.println("🎁 [Cupón Regalo] Saldo canjeado por: " + importe + " €"));
+</code></pre>
+</div>
+<span class="center-horizontal caption">Strategy funcional mediante expresiones lambda de Java</span>
 
-<h2 class="subtitle">Ejemplo de Uso</h2>
+<h3>2. Inyección Automática de Estrategias con Spring Boot (Map Injection)</h3>
+<p>Spring Boot permite implementar el patrón Strategy de forma automática: si anotas cada estrategia con <code>@Component("TARJETA")</code> y <code>@Component("PAYPAL")</code>, Spring inyecta automáticamente un <code>Map&lt;String, EstrategiaPago&gt;</code> en el servicio, resolviendo la estrategia en una sola línea sin ningún <code>if</code>:</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+@RequiredArgsConstructor
+public class PaymentServiceSpring {
+
+    // Spring puebla el Map con todas las clases que implementen EstrategiaPago indexadas por nombre de bean
+    private final Map&lt;String, EstrategiaPago&gt; estrategias;
+
+    public void pagar(String metodo, double importe) {
+        EstrategiaPago estrategia = estrategias.get(metodo.toUpperCase());
+        if (estrategia == null) {
+            throw new IllegalArgumentException("Método de pago no soportado: " + metodo);
+        }
+        estrategia.pagar(importe);
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Patrón Strategy corporativo mediante Map Injection en Spring Boot</span>
+
+<h2 class="subtitle">Ejemplo de Uso y Trazas de Consola</h2>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
 public class Main {
     public static void main(String[] args) {
-        CarritoCompra cart = new CarritoCompra();
+        ProcesadorPedidos procesador = new ProcesadorPedidos();
 
-        // El usuario selecciona pagar con PayPal su primer pedido
-        cart.setEstrategiaPago(new PagoPayPal("cliente@ejemplo.com"));
-        cart.procesarCompra(120);
+        System.out.println("--- Pedido 1: Pago con PayPal ---");
+        procesador.setEstrategiaPago(new PagoPayPal("cliente@petshop.com"));
+        procesador.formalizarCompra(45.50);
 
-        // El usuario cambia de opinión y selecciona pagar con Tarjeta el segundo pedido
-        cart.setEstrategiaPago(new PagoTarjetaCredito("****-****-****-4589"));
-        cart.procesarCompra(250);
+        System.out.println("\n--- Pedido 2: Cambio de estrategia al vuelo a Bizum ---");
+        procesador.setEstrategiaPago(new PagoBizum("+34 600 123 456"));
+        procesador.formalizarCompra(89.90);
     }
 }
 </code></pre>
 </div>
-<span class="center-horizontal caption">Cambio dinámico de algoritmo en tiempo de ejecución</span>
+<span class="center-horizontal caption">Demostración de intercambio dinámico de algoritmos</span>
 
 <div class="center-horizontal">
 <pre><code class="language-bash">
 Salida por consola:
-🅿️ Pagando 120€ mediante cuenta PayPal: cliente@ejemplo.com
-💳 Pagando 250€ con Tarjeta de Crédito terminada en: ****-****-****-4589
+--- Pedido 1: Pago con PayPal ---
+🅿️ [PayPal] Cobro de 45.5 € procesado para la cuenta: cliente@petshop.com
+
+--- Pedido 2: Cambio de estrategia al vuelo a Bizum ---
+📱 [Bizum] Cobro de 89.9 € enviado al número: +34 600 123 456
 </code></pre>
 </div>
-<span class="center-horizontal caption">Salida por consola del ejemplo</span>
+<span class="center-horizontal caption">Trazas generadas por la consola</span>
+
+<h2 class="subtitle">Contraejemplo: El Antipatrón del Switch Gigante</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Código acoplado que viola el Principio Open/Closed
+public class BrokenOrderService {
+    public void procesarPago(String tipo, double importe) {
+        switch (tipo) {
+            case "CARD":
+                // 30 líneas de conexión a tarjeta
+                break;
+            case "PAYPAL":
+                // 40 líneas de token OAuth2 de PayPal
+                break;
+            case "BIZUM":
+                // 25 líneas de API Bizum
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón: Para añadir Apple Pay hay que modificar una clase crítica ya en producción</span>
 
 <h2 class="subtitle">¿Cuándo usarlo y cuándo NO usarlo?</h2>
-<ul>
-    <li><strong>Cuándo usarlo:</strong> Cuando tengas distintas variantes de un mismo algoritmo (cálculo de impuestos por país, algoritmos de compresión ZIP/RAR, métodos de pago o descuentos) y quieras poder intercambiarlos en tiempo de ejecución sin usar condicionales <code class="language-java">switch</code>.</li>
-    <li><strong>Cuándo evitarlo:</strong> Si solo tienes un par de algoritmos muy breves que casi nunca cambian (en Java 8+ a menudo puedes pasar directamente una expresión lambda).</li>
-</ul>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Cuándo SÍ Usar Strategy</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Múltiples variantes de un algoritmo (pasarelas de pago, cálculo de impuestos territoriales, algoritmos de compresión o filtrado).</td>
+            <td>Cuando solo existan 1 o 2 variantes estáticas muy breves que nunca van a cambiar a lo largo del ciclo de vida del proyecto.</td>
+        </tr>
+        <tr>
+            <td>Para eliminar estructuras complejas de <code>if-else</code> o <code>switch</code> y cumplir el principio Open/Closed.</td>
+            <td>Si el código cliente no necesita conocer ni elegir entre diferentes estrategias.</td>
+        </tr>
+        <tr>
+            <td>Cuando los algoritmos utilicen datos privados que no deban ser visibles para la clase contexto.</td>
+            <td>En funciones matemáticas triviales donde una función pura o lambda directa sea más simple y legible.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Criterios para la aplicación del patrón Strategy</span>

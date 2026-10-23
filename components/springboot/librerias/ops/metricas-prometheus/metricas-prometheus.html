@@ -1,0 +1,205 @@
+<h1 class="title">Prometheus y Micrometer: Métricas Operativas y Monitorización en Grafana</h1>
+
+<h2>1. ¿Qué son y para qué sirven?</h2>
+<p>
+    En la monitorización de microservicios, el estándar de la industria combina <b>Prometheus</b> (un servidor de recolección y base de datos de series temporales basada en un modelo de <i>scraping</i> periódico) y <b>Grafana</b> (la plataforma visual para dashboards y alertas en tiempo real).
+</p>
+<p>
+    Para conectar Spring Boot con este ecosistema, <b>Spring Initializr</b> proporciona:
+</p>
+<ul>
+    <li>
+        <b>Micrometer:</b> La fachada de métricas de aplicación para Java (el equivalente de <i>SLF4J pero para métricas</i>). Permite instrumentar el código una sola vez con una API unificada neutral y exportar las métricas a cualquier destino (Prometheus, Datadog, New Relic, CloudWatch).
+    </li>
+    <li>
+        <b>Micrometer Registry Prometheus:</b> La extensión específica que convierte las métricas internas de la JVM y de Spring Boot al formato de texto plano y sintaxis de series temporales compatible con el raspador (*scraper*) de Prometheus a través del endpoint <code>/actuator/prometheus</code>.
+    </li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>hospital con pacientes en la UCI</b>:
+</p>
+<ul>
+    <li>Los sensores corporales (electrocardiograma, pulsioxímetro, termómetro) son <b>Micrometer</b>: miden constantes continuas en el paciente.</li>
+    <li>El registrador que pasa cada 15 segundos apuntando las constantes en la ficha del paciente es <b>Prometheus</b> (modelo de *scraping* periódico).</li>
+    <li>La pantalla táctil a color con gráficos de frecuencia cardíaca y alarmas audibles si el pulso baja de 50 es <b>Grafana</b>.</li>
+</ul>
+
+<h2>2. Los Cuatro Tipos Fundamentales de Métricas en Micrometer</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Tipo de Métrica</th>
+            <th scope="col">Comportamiento</th>
+            <th scope="col">Casos de Uso Típicos</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Counter (Contador)</b></td>
+            <td>Valor que <b>únicamente puede incrementarse</b> (o reiniciarse a cero al arrancar la aplicación). Nunca decrece.</td>
+            <td>Total de adopciones completadas, total de peticiones HTTP atendidas, número de fallos de pago bancario.</td>
+        </tr>
+        <tr>
+            <td><b>Gauge (Indicador de Nivel)</b></td>
+            <td>Valor instantáneo que <b>puede subir y bajar</b> con el tiempo. Refleja una fotografía del momento presente.</td>
+            <td>Conexiones activas en el pool HikariCP, memoria RAM utilizada en el Heap de la JVM, número de hilos en ejecución.</td>
+        </tr>
+        <tr>
+            <td><b>Timer (Temporizador)</b></td>
+            <td>Mide simultáneamente la <b>duración</b> y la <b>frecuencia</b> de eventos cortos, calculando percentiles (p50, p95, p99).</td>
+            <td>Tiempo de respuesta de endpoints REST, latencia de consultas SQL complejas, duración de llamadas a pasarelas externas.</td>
+        </tr>
+        <tr>
+            <td><b>DistributionSummary</b></td>
+            <td>Mide la distribución y tamaño de eventos que no son de tiempo.</td>
+            <td>Tamaño en bytes de las fotos de mascotas subidas, número de productos por cesta de la compra.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Tipos de medidores métricos en Micrometer</span>
+
+<h2>3. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Dependencias en pom.xml: Actuator + Registro de Prometheus --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.micrometer&lt;/groupId&gt;
+    &lt;artifactId&gt;micrometer-registry-prometheus&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+}
+</code></pre>
+</div>
+
+<h2>4. Configuración en Spring Boot (application.yml)</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus # Habilita /actuator/prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name:petshop-service}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true # Genera histogramas para calcular percentiles p95 y p99 en Grafana
+</code></pre>
+</div>
+
+<h2>5. Ejemplo Completo: Instrumentación Personalizada con MeterRegistry y Lombok</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+@Service
+public class PetAdoptionMetricsService {
+
+    private final Counter adoptionSuccessCounter;
+    private final Counter adoptionFailureCounter;
+    private final Timer adoptionProcessTimer;
+
+    // Inyectamos el MeterRegistry central de Spring Boot
+    public PetAdoptionMetricsService(MeterRegistry meterRegistry) {
+        // 1. Contador de adopciones exitosas con etiquetas dimensionales (tags)
+        this.adoptionSuccessCounter = Counter.builder("pet.adoptions.total")
+                .description("Total de adopciones completadas con éxito")
+                .tag("status", "success")
+                .register(meterRegistry);
+
+        // 2. Contador de adopciones fallidas
+        this.adoptionFailureCounter = Counter.builder("pet.adoptions.total")
+                .description("Total de adopciones fallidas")
+                .tag("status", "failure")
+                .register(meterRegistry);
+
+        // 3. Temporizador para medir el tiempo total de tramitación
+        this.adoptionProcessTimer = Timer.builder("pet.adoption.duration")
+                .description("Tiempo empleado en procesar una solicitud de adopción")
+                .publishPercentiles(0.5, 0.95, 0.99)
+                .register(meterRegistry);
+    }
+
+    public void processAdoptionWithMetrics(Runnable adoptionTask) {
+        long startTime = System.currentTimeMillis();
+        try {
+            // Ejecutamos la tarea de adopción registrando la duración
+            adoptionTask.run();
+            adoptionSuccessCounter.increment();
+            log.info("Adopción tramitada con éxito y métrica incrementada");
+        } catch (Exception e) {
+            adoptionFailureCounter.increment();
+            log.error("Fallo en la adopción, registrando métrica de fallo", e);
+            throw e;
+        } finally {
+            long duration = System.currentTimeMillis() - startTime;
+            adoptionProcessTimer.record(duration, TimeUnit.MILLISECONDS);
+        }
+    }
+}
+</code></pre>
+</div>
+
+<h3>Salida de Ejemplo en /actuator/prometheus</h3>
+<div class="center-horizontal">
+<pre><code class="language-properties">
+# HELP pet_adoptions_total Total de adopciones completadas con exito
+# TYPE pet_adoptions_total counter
+pet_adoptions_total{application="petshop-service",environment="production",status="success"} 142.0
+pet_adoptions_total{application="petshop-service",environment="production",status="failure"} 3.0
+
+# HELP pet_adoption_duration_seconds Tiempo empleado en procesar una solicitud de adopcion
+# TYPE pet_adoption_duration_seconds summary
+pet_adoption_duration_seconds{application="petshop-service",environment="production",quantile="0.5"} 0.124
+pet_adoption_duration_seconds{application="petshop-service",environment="production",quantile="0.95"} 0.380
+pet_adoption_duration_seconds{application="petshop-service",environment="production",quantile="0.99"} 0.890
+pet_adoption_duration_seconds_count{application="petshop-service",environment="production"} 145.0
+</code></pre>
+</div>
+
+<h2>6. Contraejemplo: Diseñar Métricas con Cardinalidad Infinita (High Cardinality)</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN CATASTRÓFICO: Usar datos de alta cardinalidad en los tags de Micrometer
+public void badMetric(String userEmail, String creditCardToken) {
+    // ERROR CRÍTICO: Si añades el email o ID único de cada usuario como tag,
+    // Prometheus generará 1 millón de series temporales distintas en memoria.
+    // Prometheus colapsará por OutOfMemory (OOM) y saturará toda la infraestructura de monitorización.
+    Counter.builder("bad.logins")
+            .tag("user_email", userEmail) // ¡CARDINALIDAD INFINITA PROHIBIDA!
+            .register(meterRegistry)
+            .increment();
+}
+</code></pre>
+</div>
+<p>
+    <b>Regla de Oro:</b> Los tags de las métricas deben tener valores predecibles y acotados (ej. <code>status: success|failure</code>, <code>method: GET|POST</code>, <code>region: eu-west-1</code>), nunca valores libres como IDs de usuario, emails, tokens o UUIDs.
+</p>

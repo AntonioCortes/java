@@ -1,0 +1,292 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Patrones Java EE / Enterprise: Cuándo y Para Qué Usarlos</h1>
+
+<p>Los <strong>Patrones de Diseño Java EE (Core J2EE Patterns)</strong> constituyen el estándar de arquitectura para aplicaciones empresariales multinivel (<em>n-tier architectures</em>). Formalizados a principios de los años 2000 por Deepak Alur, John Crupi y Dan Malks en el catálogo oficial de Sun Microsystems Press, estos patrones no se centran en pequeños detalles de código o algoritmos locales (como los patrones GoF), sino en resolver los grandes retos estructurales de los <strong>sistemas corporativos distribuidos</strong>: latencia de red, límites transaccionales ACID, concurrencia masiva, seguridad perimetral y desacoplamiento estricto entre capas.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: La Organización de un Gran Aeropuerto Internacional</h2>
+<p>Imagina la operativa logística de un aeropuerto internacional:</p>
+<ul>
+    <li><strong>Capa de Presentación / Entrada (Control de Fronteras):</strong> Cuando los pasajeros llegan a la terminal, no entran directamente a la pista de aterrizaje: pasan por un único arco de seguridad central (<strong>Front Controller</strong>) y varios arcos de detección de equipaje y visados (<strong>Intercepting Filter</strong>). Si un pasajero tiene un vuelo local directo, se le despacha a la puerta de embarque sin trámites pesados (<strong>Dispatcher View</strong>).</li>
+    <li><strong>Capa de Negocio / Tráfico Aéreo (Torre de Control y Operaciones):</strong> Una vez autorizada la entrada, la torre de control coordina los despegues, la asignación de combustible y las pistas bajo un estricto protocolo de seguridad indivisible donde todo se cumple o se aborta el despegue (<strong>Session Facade</strong> y <strong>Application Service</strong>). Para no colapsar la radio enviando datos de cada maleta uno a uno, transmiten un manifiesto consolidado con todos los pasajeros del vuelo (<strong>Transfer Object / DTO</strong>).</li>
+    <li><strong>Capa de Integración / Hangares y Radar (Acceso a Infraestructura):</strong> Los mecánicos se conectan con almacenes de repuestos externos y proveedores de combustible que hablan dialectos heterogéneos mediante adaptadores homologados (<strong>Web Service Broker</strong> y <strong>Data Access Object / DAO</strong>).</li>
+</ul>
+
+<h2 class="subtitle">¿Para Qué Sirven los Patrones Java EE en Arquitecturas Empresariales?</h2>
+<ol>
+    <li><strong>Eliminación del Tráfico de Red Conversacional (Problema <em>Chatty I/O</em>):</strong> En sistemas cliente-servidor o microservicios, hacer 10 llamadas de red pequeñas para consultar atributos individuales genera una latencia inaceptable. Patrones como <em>Transfer Object (DTO)</em> y <em>Session Facade</em> consolidan la comunicación en una única llamada de grano grueso (<em>coarse-grained</em>).</li>
+    <li><strong>Fronteras Transaccionales Atómicas (ACID):</strong> Definen con exactitud quirúrgica dónde inicia y dónde finaliza una transacción en el servidor (<em>commit</em> o <em>rollback</em>), garantizando que si falla un paso intermedio (ej. cobro con tarjeta o reserva de stock) la base de datos no quede corrupta.</li>
+    <li><strong>Desacoplamiento Estricto entre Presentación, Negocio y Persistencia:</strong> Impiden que código de presentación (HTML, JSON o controladores web) contenga sentencias SQL directas, y evitan que la capa de persistencia conozca detalles de la interfaz de usuario.</li>
+    <li><strong>Aislamiento de Sistemas Heterogéneos y Heredados (Legacy):</strong> Permiten modernizar o sustituir bases de datos o mainframes sin obligar a reescribir la capa de negocio ni las aplicaciones móviles o clientes web.</li>
+</ol>
+
+<h2 class="subtitle">Las 3 Capas Arquitectónicas de Java EE</h2>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Capa de Presentación (Presentation)</div>
+            <div class="card-body">
+                <p><strong>Propósito:</strong> Gestionar el ciclo de vida de las peticiones HTTP entrantes, aplicar seguridad y auditoría perimetral, coordinar la navegación y generar la respuesta visual o estructurada.</p>
+                <small class="text-muted">Intercepting Filter, Front Controller, Context Object, Application Controller, View Helper, Composite View, Dispatcher View, Service to Worker.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">2. Capa de Negocio (Business Tier)</div>
+            <div class="card-body">
+                <p><strong>Propósito:</strong> Orquestar casos de uso, ejecutar reglas y cálculos de dominio, gestionar fronteras transaccionales y reducir saltos de red mediante operaciones consolidadas.</p>
+                <small class="text-muted">Business Delegate, Service Locator, Session Facade, Application Service, Business Object, Composite Entity, Transfer Object (DTO), Transfer Object Assembler, Value List Handler.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-warning">
+            <div class="card-header bg-warning text-dark fw-bold">3. Capa de Integración (Integration Tier)</div>
+            <div class="card-body">
+                <p><strong>Propósito:</strong> Conectar la aplicación de forma agnóstica con almacenes de datos persistentes (SQL/NoSQL) y orquestar comunicaciones con sistemas externos heterogéneos o legados.</p>
+                <small class="text-muted">Data Access Object (DAO), Web Service Broker, MVC.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="subtitle">Matriz de Decisión: ¿Cuándo Usar y Cuándo NO Usar Cada Patrón Java EE?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Patrón Enterprise</th>
+            <th scope="col">Capa</th>
+            <th scope="col">¿Para qué sirve? (Problema que resuelve)</th>
+            <th scope="col">Cuándo SÍ usarlo</th>
+            <th scope="col">Cuándo NO usarlo (Alternativa Moderna)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><b>Intercepting Filter</b></th>
+            <td>Presentación</td>
+            <td>Aplica filtros previos o posteriores a la petición HTTP de forma encadenada y declarativa.</td>
+            <td>Validación de tokens JWT/OAuth2, compresión GZIP, cabeceras CORS o registro de logs de auditoría.</td>
+            <td>No usar para validar reglas de negocio profundas de entidades; eso pertenece a los servicios o validadores de dominio.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Front Controller</b></th>
+            <td>Presentación</td>
+            <td>Punto centralizado de entrada única que gestiona y enruta todas las peticiones del sistema.</td>
+            <td>En cualquier framework web MVC para aplicar seguridad, resolución de vistas y locale internacional unificado.</td>
+            <td>No reimplementar a mano en Spring Boot; el framework ya proporciona <code>DispatcherServlet</code> de serie.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Context Object</b></th>
+            <td>Presentación</td>
+            <td>Encapsula información contextual de la petición (sesión, cabeceras, usuario) en un objeto independiente del protocolo.</td>
+            <td>Para compartir el contexto de seguridad o trazabilidad (como <code>SecurityContextHolder</code> o MDC de Slf4j) sin pasar <code>HttpServletRequest</code> por toda la aplicación.</td>
+            <td>No usar para almacenar datos transitorios de negocio que deban pasarse como argumentos directos en métodos de servicio.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Application Controller</b></th>
+            <td>Presentación</td>
+            <td>Centraliza y desacopla las reglas de navegación y la selección de comandos y vistas complejas.</td>
+            <td>Asistentes paso a paso (<em>Wizards</em>) o flujos conversacionales dinámicos guiados por el estado del usuario.</td>
+            <td>En APIs REST sin estado (Stateless) donde cada endpoint responde de forma determinista mediante su URI.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>View Helper</b></th>
+            <td>Presentación</td>
+            <td>Aísla a las vistas del código Java complejo encapsulando formateo, paginación o adaptación de datos para la pantalla.</td>
+            <td>Dar formato a monedas, fechas territoriales, traducciones o cálculos auxiliares de renderizado HTML.</td>
+            <td>No usar para invocar transacciones ni realizar actualizaciones en base de datos desde la vista.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Composite View</b></th>
+            <td>Presentación</td>
+            <td>Construye pantallas complejas a partir de fragmentos visuales modulares e independientes (cabecera, menú, pie).</td>
+            <td>Plantillas maestras en motores como Thymeleaf (<code>th:replace</code>), JSP Tiles o componentes de SPAs (React/Angular).</td>
+            <td>En vistas extremadamente simples de una sola página sin componentes reutilizables en otras pantallas.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Dispatcher View</b></th>
+            <td>Presentación</td>
+            <td>Enruta y despacha inmediatamente la vista destino cuando la petición no requiere lógica de negocio previa pesada.</td>
+            <td>Pantallas informativas, páginas estáticas de ayuda, login o navegación basada en roles ligeros.</td>
+            <td>En operaciones transaccionales donde se requiera persistir datos o validar stock antes de la vista (usar <strong>Service to Worker</strong>).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Service to Worker</b></th>
+            <td>Presentación</td>
+            <td>El controlador ejecuta primero todo el procesamiento pesado de negocio y solo al final despacha a una vista pasiva.</td>
+            <td>Confirmación de pedidos, cobros bancarios, altas transaccionales en bases de datos o formularios con validaciones.</td>
+            <td>En navegación estática directa donde no existen consultas a bases de datos ni transacciones previas.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Business Delegate</b></th>
+            <td>Negocio</td>
+            <td>Oculta a los clientes de presentación la complejidad de localización y comunicación remota con los servicios de negocio.</td>
+            <td>Clientes declarativos para microservicios externos o clientes REST que aíslan excepciones y serialización técnica.</td>
+            <td>En aplicaciones monolíticas donde controladores y servicios residen en la misma memoria JVM y se inyectan con <code>@Autowired</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Service Locator</b></th>
+            <td>Negocio</td>
+            <td>Centraliza la búsqueda y obtención de recursos y servicios distribuidos (JNDI, registros de nombres).</td>
+            <td>Sistemas legados que debían resolver referencias remotas mediante árboles JNDI en servidores de aplicaciones clásicos.</td>
+            <td><b>Antipatrón en proyectos modernos:</b> Sustituido al 100% por la Inyección de Dependencias por Constructor de Spring Boot (IoC).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Session Facade</b></th>
+            <td>Negocio</td>
+            <td>Proporciona una interfaz unificada de grano grueso que demarca la frontera transaccional ACID de la operación.</td>
+            <td>Operaciones que coordinan múltiples repositorios o entidades que deben confirmarse o revertirse juntas.</td>
+            <td>En consultas simples de lectura directa (ej. <code>findById</code>) que solo leen un registro sin coordinación.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Application Service</b></th>
+            <td>Negocio</td>
+            <td>Orquesta el flujo de ejecución completo de un caso de uso manteniéndose agnóstico del protocolo de transporte.</td>
+            <td>En el núcleo de la capa de servicio de cualquier aplicación empresarial con múltiples puntos de entrada (REST, Batch, Kafka).</td>
+            <td>No convertirlo en un servicio anémico absorbiendo toda la lógica de validación que le corresponde a las entidades de dominio.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Business Object</b></th>
+            <td>Negocio</td>
+            <td>Encapsula los datos y el comportamiento de las entidades centrales del dominio del negocio.</td>
+            <td>Modelado rico de negocio (<em>Rich Domain Model</em>) donde las entidades validan su propia coherencia interna.</td>
+            <td>No usar como simples sacos de datos vacíos (<em>Anemic Domain Model</em>) dejando todo el comportamiento en los servicios.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Composite Entity</b></th>
+            <td>Negocio</td>
+            <td>Representa un grafo de entidades de negocio persistentes dependientes gobernadas por una raíz de agregado.</td>
+            <td>Concepto de Agregado en DDD (ej. un <code>Pedido</code> que gobierna a sus <code>LineasPedido</code> de forma indivisible).</td>
+            <td>No crear agregados gigantescos con decenas de relaciones que sobrecarguen la memoria y provoquen bloqueos en base de datos.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Transfer Object (DTO)</b></th>
+            <td>Negocio</td>
+            <td>Portador de datos plano serializable que transfiere información entre capas evitando exponer entidades de base de datos.</td>
+            <td>Cualquier API REST pública, respuestas JSON/XML, desacoplamiento de contraseñas o campos internos de la base de datos.</td>
+            <td>En llamadas estrictamente locales entre métodos de la misma clase donde no se requiere transformar ni proteger datos.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Transfer Object Assembler</b></th>
+            <td>Negocio</td>
+            <td>Agrega y compone múltiples objetos de negocio independientes para ensamblar un DTO compuesto de grano grueso.</td>
+            <td>Construir vistas de resumen (ej. un <code>DashboardClienteDTO</code> que agrupa saldo, últimas 5 compras y citas veterinarias).</td>
+            <td>Si el DTO es plano y procede de una única entidad directa; en ese caso basta un mapeador simple (como MapStruct).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Value List Handler</b></th>
+            <td>Negocio</td>
+            <td>Controla la paginación, navegación hacia adelante/atrás y caché de grandes listados de datos.</td>
+            <td>Tablas corporativas con miles o millones de registros donde la base de datos debe entregar páginas acotadas.</td>
+            <td><b>Sustituido en Spring Boot:</b> El módulo <code>Spring Data JPA</code> lo resuelve automáticamente con <code>Pageable</code> y <code>Page&lt;T&gt;</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Data Access Object (DAO)</b></th>
+            <td>Integración</td>
+            <td>Aísla completamente a la capa de negocio del dialecto SQL y de la tecnología concreta de persistencia.</td>
+            <td>Siempre que la aplicación necesite consultar o almacenar información en bases de datos relacionales o NoSQL.</td>
+            <td>No mezclar llamadas a múltiples tablas o lógica de control de flujo transaccional dentro del propio DAO (eso es rol del servicio).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Web Service Broker</b></th>
+            <td>Integración</td>
+            <td>Intermediario público que expone, traduce y adapta sistemas internos heterogéneos o legados hacia estándares web.</td>
+            <td>Exponer mainframes COBOL, sistemas ERP o protocolos propietarios hacia clientes móviles o SPAs mediante REST/JSON.</td>
+            <td>En comunicaciones directas entre dos microservicios que ya comparten el mismo contrato REST o gRPC sin disparidad de formatos.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Catálogo exhaustivo de decisión para los patrones empresariales Java EE</span>
+
+<h2 class="subtitle">Evolución: De J2EE Clásico (EJB / JSP) a Spring Boot y Clean Architecture</h2>
+<p>Muchos de los patrones Java EE originales nacieron para mitigar la extrema complejidad de la especificación <strong>EJB 2.x</strong> y los servidores de aplicaciones pesados (como WebLogic, WebSphere o JBoss). En el desarrollo moderno con <strong>Spring Boot 3</strong> y <strong>Java 17/21+</strong>, estos patrones se han simplificado y formalizado en la arquitectura estándar del ecosistema:</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Patrón Clásico Java EE</th>
+            <th scope="col">Implementación Tradicional (Año 2002)</th>
+            <th scope="col">Equivalente Estándar en Spring Boot Moderno</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><b>Front Controller</b></th>
+            <td>Un <code>HttpServlet</code> manual centralizado con un enorme bloque <code>service()</code>.</td>
+            <td>El <code>DispatcherServlet</code> nativo de Spring MVC que enruta las peticiones de forma declarativa.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Intercepting Filter</b></th>
+            <td>Filtros <code>javax.servlet.Filter</code> configurados en el fichero XML <code>web.xml</code>.</td>
+            <td>Filtros de Spring Security (<code>SecurityFilterChain</code>) o <code>OncePerRequestFilter</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Session Facade</b></th>
+            <td>EJB de sesión sin estado (<em>Stateless Session Bean</em>) desplegado en un servidor de aplicaciones.</td>
+            <td>Clase anotada con <code>@Service</code> y métodos con <code>@Transactional</code> en Spring Boot.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Data Access Object (DAO)</b></th>
+            <td>Clases JDBC manuales con <code>Connection</code>, <code>PreparedStatement</code> y <code>ResultSet</code> a mano.</td>
+            <td>Interfaces de <strong>Spring Data JPA</strong> extendiendo de <code>JpaRepository&lt;Entidad, ID&gt;</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Transfer Object (DTO)</b></th>
+            <td>Clases Java serializables con 40 líneas de getters y setters manuales.</td>
+            <td><b>Records inmutables de Java</b> (<code>public record PetDTO(...) {}</code>) o clases con Lombok <code>@Data</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Service Locator</b></th>
+            <td>Búsquedas reflexivas complejas en el árbol JNDI (<code>InitialContext.lookup(...)</code>).</td>
+            <td><b>Inyección de Dependencias por Constructor:</b> <code>@RequiredArgsConstructor</code> de Lombok y contenedor IoC de Spring.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Business Delegate</b></th>
+            <td>Clase wrapper manual para ocultar las interfaces remotas RMI/IIOP de los EJBs.</td>
+            <td>Clientes declarativos como <strong>Spring Cloud OpenFeign</strong> o <code>RestClient</code> / <code>WebClient</code>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Value List Handler</b></th>
+            <td>Objetos de sesión con cursores manuales para paginar registros en memoria.</td>
+            <td>Parámetro <code>Pageable pageable</code> y retorno <code>Page&lt;T&gt;</code> directo en repositorios Spring Data.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Correspondencia entre los patrones clásicos J2EE y la arquitectura Spring Boot actual</span>
+
+<h2 class="subtitle">¿Cuándo NO Usar Patrones Java EE? El Error del Antipatrón Monolítico Desordenado</h2>
+<p>El error conceptual más grave en el desarrollo empresarial es saltarse la separación de capas introducida por los patrones Java EE, acoplando controladores con SQL directo:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (ANTIPATRÓN GRAVE): Controlador web que mezcla presentación, negocio y persistencia directa
+@RestController
+@RequestMapping("/api/pets")
+public class BrokenPetController {
+
+    @PostMapping
+    public void registrarMascota(@RequestBody Map&lt;String, Object&gt; payload) throws Exception {
+        // ERROR CRÍTICO 1: No usa DTO (expone el mapa crudo y sin tipar)
+        // ERROR CRÍTICO 2: Lógica de negocio mezclada en la capa web
+        // ERROR CRÍTICO 3: Conexión JDBC directa en el controlador sin transacción ni DAO/Repository
+        Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/petshop");
+        Statement stmt = conn.createStatement();
+        stmt.executeUpdate("INSERT INTO pets (name) VALUES ('" + payload.get("name") + "')");
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón Monolítico Desordenado: Destruye la seguridad, testabilidad y arquitectura multinivel</span>
+
+<p><b>La Solución con Patrones Enterprise:</b></p>
+<ol>
+    <li>El <strong>Front Controller</strong> recibe la petición y la valida con un <strong>Transfer Object (PetDTO)</strong>.</li>
+    <li>El <strong>Application Service / Session Facade</strong> (<code>@Service @Transactional</code>) abre la transacción y ejecuta las reglas de negocio.</li>
+    <li>El <strong>DAO / Repository</strong> (<code>PetRepository</code>) ejecuta la persistencia de forma desacoplada y segura frente a inyección SQL.</li>
+</ol>

@@ -1,0 +1,228 @@
+<h1 class="title">Spring Batch: Procesamiento Masivo por Lotes (ETL)</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    En aplicaciones empresariales, a menudo es necesario procesar millones de registros sin intervención humana: generar liquidaciones contables a medianoche, sincronizar catálogos de proveedores desde ficheros CSV gigantescos de varios gigabytes o migrar bases de datos legadas.
+</p>
+<p>
+    <b>Spring Batch</b> (starter <code>spring-boot-starter-batch</code> en Spring Initializr) es el framework robusto y probado de Spring diseñado específicamente para el procesamiento por lotes masivo (*Batch Processing* / ETL - Extract, Transform, Load).
+</p>
+<ul>
+    <li><b>Procesamiento Orientado a Trozos (Chunk-Oriented Processing):</b> No lee un millón de registros de golpe a memoria (lo que provocaría <code>OutOfMemoryError</code>). Procesa los datos en bloques pequeños (ej. de 100 en 100), abriendo una transacción de base de datos para cada trozo (*chunk*).</li>
+    <li><b>Tolerancia a Fallos y Reintentos:</b> Si en un fichero de 500.000 líneas la línea 240.115 está corrupta, Spring Batch puede configurarse para ignorar (*skip*) ese registro fallido, registrarlo en un log de incidencias y continuar procesando las demás líneas sin abortar el trabajo completo.</li>
+    <li><b>Reanudación Automática (Restartability):</b> Si la máquina se apaga a mitad de un proceso de 5 horas, Spring Batch consulta sus tablas de metadatos (<code>BATCH_JOB_EXECUTION</code>) y reanuda el trabajo exactamente en el punto donde se interrumpió sin duplicar los registros ya insertados.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos una <b>fábrica embotelladora de leche</b>:
+</p>
+<ul>
+    <li>Un enfoque ingenuo (un bucle <code>for</code> en Java) intentaría meter 100.000 litros de leche de golpe en una sola botella gigantesca; el cristal revienta y se inunda la nave.</li>
+    <li><b>Spring Batch</b> es la cinta transportadora industrial:
+        <ul>
+            <li>El <b>ItemReader</b> toma botellas vacías de la caja de una en una.</li>
+            <li>El <b>ItemProcessor</b> las esteriliza y llena de leche (transformación de datos).</li>
+            <li>El <b>ItemWriter</b> empaqueta cajas de 12 botellas (el *chunk* o lote) y las sella con el precinto oficial (hace <code>commit</code> de la transacción). Si una botella sale rota, un sensor la expulsa a la papelera (estrategia *skip*) y la cinta sigue funcionando sin detener la fábrica entera.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Todas las noches a las 02:00 AM, la federación de clínicas veterinarias recibe un archivo CSV de 5 millones de registros con el censo nacional de vacunas administradas.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin Spring Batch)</div>
+            <div class="card-body">
+                <p>Un desarrollador lee el archivo con un bucle simple <code>while(scanner.hasNext())</code> dentro de una transacción <code>@Transactional</code>. Al llegar a la línea 800.000, la base de datos aborta por <i>Transaction Log Full</i>, la memoria RAM colapsa y la aplicación cae, perdiéndose 3 horas de procesamiento.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Spring Batch)</div>
+            <div class="card-body">
+                <p>Un Job de Spring Batch procesa bloques de 1.000 registros con transacciones atómicas independientes. Tarda 40 minutos, tolera líneas malformadas y guarda la auditoría de ejecución en base de datos.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar Spring Batch y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Procesamiento nocturno o periódico de archivos grandes (CSV, XML, JSON), migraciones de millones de registros o facturación masiva.</td>
+            <td><b>SIEMPRE usar Spring Batch</b></td>
+            <td>Garantiza gestión de memoria en streaming, transacciones acotadas, reanudación tras fallos y auditoría completa.</td>
+        </tr>
+        <tr>
+            <td>Procesar una única petición REST interactiva donde un usuario espera respuesta inmediata en su navegador.</td>
+            <td><b>NO usar Spring Batch</b></td>
+            <td>Spring Batch está diseñado para procesamiento asíncrono en segundo plano por lotes, no para responder llamadas síncronas de baja latencia.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Reglas de uso de Spring Batch</span>
+
+<h2>4. Dependencias Necesarias (Spring Boot 3+)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring Batch en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-batch&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+}
+</code></pre>
+</div>
+
+<h2>5. Anatomía de la Arquitectura de Spring Batch</h2>
+<p>
+    En <b>Spring Batch 5</b> (Spring Boot 3), la configuración se realiza mediante beans inyectando <code>JobRepository</code> y <code>PlatformTransactionManager</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.batch;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.model.relational.PetEntity;
+import jakarta.persistence.EntityManagerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import java.time.LocalDate;
+
+@Slf4j
+@Configuration
+@RequiredArgsConstructor
+public class PetImportBatchConfig {
+
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final EntityManagerFactory entityManagerFactory;
+
+    // 1. Reader: Lee registros del archivo CSV línea a línea
+    @Bean
+    public ItemReader&lt;PetDTO&gt; petItemReader() {
+        return new FlatFileItemReaderBuilder&lt;PetDTO&gt;()
+                .name("petCsvReader")
+                .resource(new ClassPathResource("import/pets.csv"))
+                .delimited()
+                .names("name", "species", "age")
+                .fieldSetMapper(new BeanWrapperFieldSetMapper&lt;&gt;() {{
+                    setTargetType(PetDTO.class);
+                }})
+                .build();
+    }
+
+    // 2. Processor: Transforma el DTO y aplica lógica de negocio y validación
+    @Bean
+    public ItemProcessor&lt;PetDTO, PetEntity&gt; petItemProcessor() {
+        return dto -&gt; {
+            // Regla de limpieza y normalización
+            String cleanName = dto.getName().trim().toUpperCase();
+            return PetEntity.builder()
+                    .name(cleanName)
+                    .species(dto.getSpecies())
+                    .age(dto.getAge() != null ? dto.getAge().intValue() : 0)
+                    .vaccinated(true)
+                    .admissionDate(LocalDate.now())
+                    .build();
+        };
+    }
+
+    // 3. Writer: Inserta entidades en bloques en PostgreSQL mediante JPA
+    @Bean
+    public ItemWriter&lt;PetEntity&gt; petItemWriter() {
+        return new JpaItemWriterBuilder&lt;PetEntity&gt;()
+                .entityManagerFactory(entityManagerFactory)
+                .build();
+    }
+
+    // 4. Step: Ensambla Reader, Processor y Writer con transacciones por chunks de 100
+    @Bean
+    public Step importPetsStep(ItemReader&lt;PetDTO&gt; reader, 
+                              ItemProcessor&lt;PetDTO, PetEntity&gt; processor, 
+                              ItemWriter&lt;PetEntity&gt; writer) {
+        return new StepBuilder("importPetsStep", jobRepository)
+                .&lt;PetDTO, PetEntity&gt;chunk(100, transactionManager)
+                .reader(reader)
+                .processor(processor)
+                .writer(writer)
+                .faultTolerant()
+                .skip(Exception.class)
+                .skipLimit(10) // Tolera hasta 10 registros corruptos antes de fallar
+                .build();
+    }
+
+    // 5. Job: Flujo general del lote
+    @Bean
+    public Job importPetsJob(Step importPetsStep) {
+        return new JobBuilder("importPetsJob", jobRepository)
+                .start(importPetsStep)
+                .build();
+    }
+}
+</code></pre>
+</div>
+
+<h2>6. Contraejemplo y Error Fatal: Cargar Millones de Filas en Memoria con findAll()</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Intentar procesar un lote usando JPA findAll() tradicional
+@Scheduled(cron = "0 0 2 * * ?")
+public void badBatch() {
+    // ERROR MORTAL: Si hay 2 millones de mascotas en la tabla,
+    // petRepository.findAll() intentará instanciar 2 millones de entidades en memoria.
+    // La JVM consumirá el 100% de CPU en Garbage Collection y caerá con OutOfMemoryError.
+    List&lt;PetEntity&gt; allPets = petRepository.findAll(); 
+    for (PetEntity p : allPets) {
+        actualizarEstado(p);
+    }
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar siempre <b>Spring Batch</b> con lectores paginados o basados en cursores (<code>JpaPagingItemReader</code> o <code>RepositoryItemReader</code>) que procesan lotes acotados sin saturar la memoria heap.
+</p>

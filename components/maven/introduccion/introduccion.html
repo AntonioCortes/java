@@ -71,6 +71,48 @@
     <li><strong>Version (<code>&lt;version&gt;</code>):</strong> El número de release concreto (ej. <code>3.3.4</code>). Si termina en <code>-SNAPSHOT</code>, indica una versión en desarrollo activa que cambia con frecuencia.</li>
 </ul>
 
+<h2 class="subtitle">El Maven Wrapper (./mvnw): Construcciones 100% Homogéneas</h2>
+<p>En entornos profesionales modernos, <strong>no se recomienda instalar Maven de forma global en el sistema operativo</strong>. En su lugar, los proyectos incluyen los scripts del <strong>Maven Wrapper</strong> (<code>./mvnw</code> para Linux/macOS y <code>mvnw.cmd</code> para Windows):</p>
+<ul>
+    <li>Garantiza que todos los miembros del equipo y los servidores de CI/CD (GitHub Actions, GitLab CI, Jenkins) utilicen <strong>exactamente la misma versión de Maven</strong> (definida en <code>.mvn/wrapper/maven-wrapper.properties</code>).</li>
+    <li>Si un desarrollador se incorpora al equipo y clona el proyecto, no necesita instalar Maven ni configurar variables de entorno: basta con ejecutar <code>./mvnw clean compile</code> y el wrapper descargará automáticamente la versión correcta en segundo plano.</li>
+</ul>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Ejecutar comandos utilizando el wrapper del proyecto:
+./mvnw clean test
+./mvnw spring-boot:run
+</code></pre>
+</div>
+<span class="center-horizontal caption">Invocación estándar del Maven Wrapper sin dependencia de binarios globales</span>
+
+<h2 class="subtitle">El Archivo settings.xml: Repositorios Privados y Espejos</h2>
+<p>El archivo <code>~/.m2/settings.xml</code> almacena la configuración de usuario que no debe subirse a Git, como credenciales de acceso a repositorios corporativos privados (Nexus, JFrog Artifactory) y configuración de proxies:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Archivo: ~/.m2/settings.xml --&gt;
+&lt;settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"&gt;
+    &lt;servers&gt;
+        &lt;server&gt;
+            &lt;id&gt;nexus-corporativo&lt;/id&gt;
+            &lt;username&gt;dev_user&lt;/username&gt;
+            &lt;password&gt;tokenSeguro123!&lt;/password&gt;
+        &lt;/server&gt;
+    &lt;/servers&gt;
+    &lt;mirrors&gt;
+        &lt;mirror&gt;
+            &lt;id&gt;nexus-mirror&lt;/id&gt;
+            &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;
+            &lt;url&gt;https://nexus.miempresa.com/repository/maven-public/&lt;/url&gt;
+        &lt;/mirror&gt;
+    &lt;/mirrors&gt;
+&lt;/settings&gt;
+</code></pre>
+</div>
+<span class="center-horizontal caption">Configuración de servidor Nexus y espejo en settings.xml</span>
+
 <h2 class="subtitle">¿Cuándo Usar Maven y Cuándo NO Usarlo?</h2>
 <table class="table table-striped table-hover">
     <thead>
@@ -112,7 +154,7 @@
 <div class="center-horizontal">
 <pre><code class="language-bash">
 # Limpia target/ y ejecuta todo el ciclo hasta instalar en la caché local
-mvn clean install
+./mvnw clean install
 
 # Salida esperada en consola:
 [INFO] Scanning for projects...
@@ -135,7 +177,7 @@ mvn clean install
 <div class="center-horizontal">
 <pre><code class="language-bash">
 # ¡GRAVE RIESGO EN CI/CD!
-mvn clean package -DskipTests
+./mvnw clean package -DskipTests
 </code></pre>
 </div>
 <span class="center-horizontal caption">Antipatrón: Desplegar paquetes a producción saltándose la verificación de calidad por prisas</span>

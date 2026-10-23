@@ -1,0 +1,306 @@
+<style>
+    .title, .subtitle, strong {
+        color: black !important;
+    }
+</style>
+<h1 class="title">Patrones Gang of Four (GoF): Cuándo y Para Qué Usarlos</h1>
+
+<p>Los <strong>Patrones de Diseño Gang of Four (GoF)</strong> constituyen el catálogo fundacional de la ingeniería de software orientada a objetos. Publicados en 1994 por Erich Gamma, Richard Helm, Ralph Johnson y John Vlissides en el libro <em>"Design Patterns: Elements of Reusable Object-Oriented Software"</em>, estos <strong>23 patrones clásicos</strong> representan soluciones arquitectónicas universales y refinadas para resolver problemas de acoplamiento, extensibilidad y mantenimiento a nivel de <strong>clases, interfaces y objetos en memoria</strong>.</p>
+
+<h2 class="subtitle">Analogía del Mundo Real: La Caja de Herramientas del Maestro Mecánico</h2>
+<p>Imagina a un maestro mecánico reparando motores en un taller de automoción:</p>
+<ul>
+    <li>Cuando necesita unir dos piezas metálicas sometidas a vibración constante, no inventa una aleación química nueva ni funde metal desde cero: utiliza un <strong>tornillo autorroscante con arandela de presión</strong> (un patrón probado durante siglos).</li>
+    <li>Si necesita transferir giro perpendicularmente, acude a un <strong>engranaje cónico</strong>; si necesita amortiguar un impacto, monta un <strong>muelle helicoidal</strong>.</li>
+    <li>En el desarrollo de software orientado a objetos, los patrones GoF son exactamente esas piezas mecánicas estandarizadas: cuando necesitas garantizar una única instancia global recurres a <em>Singleton</em>; si requieres intercambiar algoritmos de cálculo acudes a <em>Strategy</em>; y si debes coordinar objetos complejos paso a paso utilizas <em>Builder</em>.</li>
+</ul>
+
+<h2 class="subtitle">¿Para Qué Sirven los Patrones GoF en el Día a Día?</h2>
+<ol>
+    <li><strong>Vocabulario Técnico Universal (Lenguaje Ubicuo):</strong> Permite que dos ingenieros se comuniquen instantáneamente con máxima precisión. Decir <em>"vamos a aplicar un Decorator sobre el generador de reportes"</em> transmite en 3 segundos una arquitectura completa que de otro modo requeriría 40 minutos de diagramas en una pizarra.</li>
+    <li><strong>Cumplimiento Natural de los Principios SOLID:</strong> Proporcionan la estructura exacta para no violar el principio Open/Closed (extender código sin modificar el existente), el principio de Responsabilidad Única (separar algoritmos de la lógica de dominio) y el de Inversión de Dependencias (programar contra interfaces abstractas).</li>
+    <li><strong>Alta Testabilidad y Mantenibilidad:</strong> Al desacoplar la creación y el comportamiento de las clases concretas, los patrones permiten inyectar dobles de prueba (<em>Mocks</em> y <em>Stubs</em>) con Mockito o JUnit 5 de manera trivial.</li>
+    <li><strong>Prevención de Deuda Técnica:</strong> Evitan la degeneración del código en clases monstruo ("God Objects") repletas de sentencias <code>switch</code> y condicionales infinitos.</li>
+</ol>
+
+<h2 class="subtitle">Las 3 Familias de Patrones GoF</h2>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Patrones Creacionales (5)</div>
+            <div class="card-body">
+                <p><strong>Propósito:</strong> Abstraer y gobernar los mecanismos de creación e instanciación de objetos. Aíslan al código cliente del operador <code>new</code> directo, evitando el acoplamiento a clases concretas.</p>
+                <small class="text-muted">Singleton, Factory Method, Abstract Factory, Builder, Prototype.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">2. Patrones Estructurales (7)</div>
+            <div class="card-body">
+                <p><strong>Propósito:</strong> Ensamblar clases e interfaces en estructuras más amplias, flexibles y eficientes mediante composición y herencia controlada.</p>
+                <small class="text-muted">Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-warning">
+            <div class="card-header bg-warning text-dark fw-bold">3. Patrones de Comportamiento (11)</div>
+            <div class="card-body">
+                <p><strong>Propósito:</strong> Gestionar algoritmos, flujos de control y la asignación limpia de responsabilidades y comunicación entre objetos distribuidos.</p>
+                <small class="text-muted">Chain of Resp., Command, Interpreter, Iterator, Mediator, Memento, Observer, State, Strategy, Template Method, Visitor.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="subtitle">Matriz de Decisión: ¿Cuándo Usar y Cuándo NO Usar Cada Patrón GoF?</h2>
+<p>La siguiente tabla desglosa los 23 patrones del catálogo, indicando el problema exacto que resuelven, sus escenarios idóneos de aplicación y los casos en los que su uso resulta contraproducente:</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Patrón</th>
+            <th scope="col">Familia</th>
+            <th scope="col">¿Para qué sirve? (Problema que resuelve)</th>
+            <th scope="col">Cuándo SÍ usarlo</th>
+            <th scope="col">Cuándo NO usarlo (Antipatrón / Alternativa)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><b>Singleton</b></th>
+            <td>Creacional</td>
+            <td>Garantiza una única instancia global compartida en toda la aplicación.</td>
+            <td>Recursos de hardware físicos únicos, gestores de configuración inmutables o pools de hilos.</td>
+            <td>No usar como sustituto de variables globales mutables ni en Spring Boot (donde el ciclo de vida se delega al contenedor IoC con <code>@Service</code>).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Factory Method</b></th>
+            <td>Creacional</td>
+            <td>Delega en un método la decisión de qué clase concreta instanciar devolviendo una interfaz común.</td>
+            <td>Cuando el tipo exacto del objeto no se conoce hasta el momento de ejecución (según parámetros de entrada o configuración).</td>
+            <td>No usar si solo existe una clase concreta fija que nunca variará; añadir una interfaz y factoría para una sola clase es sobreingeniería.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Abstract Factory</b></th>
+            <td>Creacional</td>
+            <td>Produce familias completas de objetos relacionados o compatibles sin especificar sus clases concretas.</td>
+            <td>Kits de componentes gráficos multitema (Dark/Light) o conectores cruzados compatibles entre sí.</td>
+            <td>Cuando la aplicación solo crea objetos individuales independientes o cuando añadir nuevos productos obligue a redefinir toda la factoría.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Builder</b></th>
+            <td>Creacional</td>
+            <td>Construye objetos complejos paso a paso separando su construcción de su representación final.</td>
+            <td>Constructores con más de 3 o 4 parámetros, presencia de campos opcionales o para crear objetos inmutables seguros (DTOs, entidades).</td>
+            <td>En clases muy simples de 1 o 2 atributos obligatorios (un par clave-valor) o cuando se dispone de la anotación <code>@Builder</code> de Lombok.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Prototype</b></th>
+            <td>Creacional</td>
+            <td>Copia o clona objetos existentes complejos sin acoplar el código a sus clases concretas.</td>
+            <td>Cuando instanciar un objeto desde cero con <code>new</code> sea muy costoso en tiempo de CPU o requiera consultas pesadas a red o base de datos.</td>
+            <td>En objetos con grafos circulares complejos o si basta con instanciar directamente con un constructor o builder ligero.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Adapter</b></th>
+            <td>Estructural</td>
+            <td>Permite que dos clases con interfaces incompatibles colaboren traduciendo llamadas entre ellas.</td>
+            <td>Integración de SDKs de terceros cerrados, librerías legadas o pasarelas de pago cuya firma difiere de la del dominio.</td>
+            <td>Cuando seas el autor y propietario de ambas clases y puedas refactorizar directamente sus métodos para que coincidan de forma nativa.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Bridge</b></th>
+            <td>Estructural</td>
+            <td>Desacopla una abstracción de su implementación para que ambas puedan variar independientemente.</td>
+            <td>Sistemas multiplataforma con jerarquías ortogonales (ej. Formas geométricas y Motores de renderizado vectoriales/ráster).</td>
+            <td>En proyectos monolíticos simples con una sola dimensión de cambio; añade un nivel de indirección innecesario.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Composite</b></th>
+            <td>Estructural</td>
+            <td>Compone objetos en estructuras de árbol para representar jerarquías parte-todo de forma uniforme.</td>
+            <td>Árboles de directorios y ficheros, menús con submenús anidados o cálculo de precios en paquetes de productos y componentes individuales.</td>
+            <td>Cuando los elementos de la colección difieran radicalmente en comportamiento y no compartan una interfaz común significativa.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Decorator</b></th>
+            <td>Estructural</td>
+            <td>Añade responsabilidades a un objeto dinámicamente en tiempo de ejecución envolviéndolo en otra clase.</td>
+            <td>Sistemas de flujos de E/S (como <code>BufferedReader(new FileReader(...))</code>), capas acumulables de compresión, cifrado o café con complementos.</td>
+            <td>Cuando el orden de los decoradores importe de manera crítica o cuando la jerarquía de envoltorios haga muy difícil la depuración con debugger.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Facade</b></th>
+            <td>Estructural</td>
+            <td>Proporciona una interfaz simplificada de alto nivel frente a un subsistema complejo de clases.</td>
+            <td>Ocultar librerías complejas (como conversión de vídeo, parsers XML complejos o pasarelas financieras) bajo 1 único método cómodo.</td>
+            <td>No convertir la Facade en una clase "dios" monolítica que asuma responsabilidades de negocio que pertenecen a los subsistemas.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Flyweight</b></th>
+            <td>Estructural</td>
+            <td>Comparte partes comunes del estado entre múltiples objetos para ahorrar cantidades ingentes de memoria RAM.</td>
+            <td>Renderizado de texto con millones de caracteres tipográficos, partículas en motores de videojuegos o mapas con miles de árboles idénticos.</td>
+            <td>En aplicaciones con memoria suficiente o pocos miles de objetos; el coste en tiempo de CPU para calcular el estado extrínseco superará el ahorro.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Proxy</b></th>
+            <td>Estructural</td>
+            <td>Proporciona un sustituto que controla el acceso, ciclo de vida o seguridad hacia el objeto real.</td>
+            <td>Carga perezosa (<em>Lazy Loading</em> en Hibernate), control de acceso por roles, transacciones declarativas (<code>@Transactional</code>) o caché.</td>
+            <td>Para objetos sencillos en memoria local donde interceptar llamadas no aporte valor y degrade la latencia.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Chain of Responsibility</b></th>
+            <td>Comportamiento</td>
+            <td>Pasa una petición a lo largo de una cadena de manejadores donde cada uno decide procesarla o derivarla.</td>
+            <td>Pipelines de filtros web (Spring Security Filters), validaciones secuenciales de solicitudes o procesadores de eventos.</td>
+            <td>Si la cadena es muy larga y la petición puede llegar al final sin ser atendida por ningún manejador sin un mecanismo de fallback.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Command</b></th>
+            <td>Comportamiento</td>
+            <td>Encapsula una solicitud como un objeto independiente con todos sus parámetros, permitiendo parametrizar y encolar acciones.</td>
+            <td>Sistemas con soporte de deshacer/rehacer (Undo/Redo), colas de tareas asíncronas, macros de comandos o transacciones transitorias.</td>
+            <td>Para llamadas a métodos directas y simples donde no se necesite encolar, serializar ni revertir la ejecución.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Interpreter</b></th>
+            <td>Comportamiento</td>
+            <td>Define una representación gramatical y un intérprete para evaluar oraciones en un lenguaje específico.</td>
+            <td>Motores de expresiones regulares simples, evaluadores de fórmulas matemáticas o lenguajes específicos de dominio (DSL).</td>
+            <td>Cuando la gramática sea compleja o extensa; en tal caso es obligatorio utilizar generadores de parsers consolidados como ANTLR.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Iterator</b></th>
+            <td>Comportamiento</td>
+            <td>Recorre secuencialmente los elementos de una colección sin exponer su representación interna física.</td>
+            <td>Colecciones complejas (grafos, árboles binarios) con múltiples estrategias de recorrido (anchura, profundidad).</td>
+            <td>En colecciones lineales estándar donde el bucle <code>for-each</code> o el API nativo de <code>Stream</code> de Java ya lo resuelven directamente.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Mediator</b></th>
+            <td>Comportamiento</td>
+            <td>Centraliza las comunicaciones complejas y dependencias caóticas entre múltiples objetos (evita la red en espagueti).</td>
+            <td>Formularios de interfaz gráfica complejos donde el cambio en un desplegable altera el estado de 5 botones y campos de texto.</td>
+            <td>Si el Mediador crece descontroladamente hasta convertirse en un objeto monolítico inmanejable ("God Object").</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Memento</b></th>
+            <td>Comportamiento</td>
+            <td>Captura y externaliza el estado interno de un objeto sin violar el encapsulamiento para poder restaurarlo después.</td>
+            <td>Puntos de restauración de partidas de juegos, borradores de editores de texto o rollbacks de transacciones en memoria.</td>
+            <td>Si los estados consumen mucha memoria RAM al duplicarse con frecuencia; en ese caso se requieren estados diferenciales.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Observer</b></th>
+            <td>Comportamiento</td>
+            <td>Define una suscripción uno-a-muchos para notificar automáticamente a múltiples interesados ante cambios de estado.</td>
+            <td>Arquitecturas dirigidas por eventos, interfaces reactivas de usuario o publicación de eventos en Spring (<code>ApplicationEventPublisher</code>).</td>
+            <td>Si los observadores se registran pero nunca se dan de baja, provocando graves fugas de memoria (el antipatrón <em>Lapsed Listener</em>).</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>State</b></th>
+            <td>Comportamiento</td>
+            <td>Permite que un objeto altere su comportamiento cuando cambia su estado interno, pareciendo cambiar de clase.</td>
+            <td>Máquinas de estados finitos (máquinas expendedoras, pedidos en flujo <code>NUEVO &rarr; PAGADO &rarr; ENVIADO &rarr; ENTREGADO</code>).</td>
+            <td>Si la clase solo tiene 2 estados sencillos que casi nunca cambian; un simple condicional booleano basta.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Strategy</b></th>
+            <td>Comportamiento</td>
+            <td>Define una familia de algoritmos, los encapsula independientemente y los hace intercambiables en tiempo de ejecución.</td>
+            <td>Diferentes tarifas o descuentos, múltiples pasarelas de pago (PayPal, Tarjeta, Bizum) o algoritmos de compresión y ordenación.</td>
+            <td>Si los algoritmos son triviales y estáticos; en Java moderno se prefiere pasar expresiones lambda o referencias a métodos.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Template Method</b></th>
+            <td>Comportamiento</td>
+            <td>Define el esqueleto inmutable de un algoritmo en una clase base abstracta delegando pasos específicos en subclases.</td>
+            <td>Procesadores de archivos con cabecera, cuerpo y cierre estándar, o componentes <code>*Template</code> de Spring (<code>JdbcTemplate</code>).</td>
+            <td>Si el orden de los pasos varía de forma radical entre casos; en ese escenario es más apropiado recurrir a <strong>Strategy</strong>.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Visitor</b></th>
+            <td>Comportamiento</td>
+            <td>Separa un algoritmo de la estructura de objetos sobre la que opera, añadiendo operaciones sin modificar las clases.</td>
+            <td>Compiladores de código, recorridos de árboles sintácticos (AST) o generación de reportes sobre jerarquías de clases estables.</td>
+            <td>Si la jerarquía de clases cambia frecuentemente; cada nueva clase obliga a redefinir el método <code>visit()</code> en todos los visitantes.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Catálogo exhaustivo de decisión para los 23 patrones Gang of Four</span>
+
+<h2 class="subtitle">Evolución de los Patrones GoF en Java Moderno (Java 17 / 21+) y Spring Boot</h2>
+<p>Muchos patrones del catálogo original de 1994 fueron concebidos para suplir carencias de lenguajes orientados a objetos tempranos (como C++ o Java 1.1). En el desarrollo moderno con <strong>Java 17/21+</strong> y <strong>Spring Boot 3</strong>, el propio lenguaje o framework absorbe o simplifica drásticamente varios de estos patrones:</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Patrón Clásico GoF</th>
+            <th scope="col">Cómo se Implementaba en 1994</th>
+            <th scope="col">Cómo se Resuelve en Java Moderno y Spring Boot</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row"><b>Strategy</b></th>
+            <td>Crear una interfaz y 5 clases <code>.java</code> separadas para cada variante algorítmica.</td>
+            <td><b>Interfaces Funcionales y Lambdas:</b> Basta con pasar un <code>Function&lt;T, R&gt;</code>, <code>Predicate&lt;T&gt;</code> o <code>Comparator</code> directo en una línea.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Singleton</b></th>
+            <td>Código manual complejo con <code>volatile</code>, constructores privados y doble comprobación de bloqueo.</td>
+            <td><b>Inyección de Dependencias (Spring IoC):</b> Se anota la clase con <code>@Service</code> o <code>@Component</code> y Spring administra el alcance Singleton de forma transparente y testeable.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Builder</b></th>
+            <td>Escribir a mano 60 líneas de una clase interna estática con métodos fluidos <code>return this</code>.</td>
+            <td><b>Project Lombok y Records:</b> Anotación <code>@Builder</code> de Lombok sobre DTOs o entidades, o <code>records</code> inmutables para portadores de datos planos.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Proxy</b></th>
+            <td>Implementar la misma interfaz a mano y reenviar cada llamada al objeto real con cerrojos.</td>
+            <td><b>Spring AOP y CGLIB:</b> Anotaciones declarativas como <code>@Transactional</code>, <code>@Cacheable</code>, <code>@Async</code> o <code>@PreAuthorize</code> gestionan el proxy dinámicamente.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Iterator</b></th>
+            <td>Programar a mano punteros con <code>hasNext()</code>, <code>next()</code> y banderas de fin de colección.</td>
+            <td><b>Java Streams y bucles for-each:</b> Métodos fluidos como <code>stream().filter(...).map(...).toList()</code> nativos del JDK.</td>
+        </tr>
+        <tr>
+            <th scope="row"><b>Observer</b></th>
+            <td>Mantener listas manuales de observadores y sincronizar iteraciones en multihilo.</td>
+            <td><b>Spring Application Events y Reactive Streams:</b> <code>ApplicationEventPublisher</code> con <code>@EventListener</code> o librerías reactivas como Project Reactor.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Absorción de patrones clásicos por el lenguaje Java moderno</span>
+
+<h2 class="subtitle">¿Cuándo NO Usar Patrones de Diseño? El Peligro de la "Patronitis"</h2>
+<p>El error más habitual entre desarrolladores que acaban de estudiar patrones es querer forzar su uso en cualquier línea de código, produciendo una arquitectura hipercompleja, ilegible y difícil de mantener conocida como <strong>"Patronitis" o Sobreingeniería (Overengineering)</strong>.</p>
+<p>Debes seguir siempre la regla del <strong>Principio YAGNI (You Aren't Gonna Need It)</strong> y el principio <strong>KISS (Keep It Simple, Stupid)</strong>:</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// CONTRAEJEMPLO (SOBREINGENIERÍA ABSURDA): Crear Abstract Factory + Strategy para una suma aritmética
+public interface CalculoFactory {
+    Operacion crearOperacion();
+}
+public class SumaFactory implements CalculoFactory {
+    public Operacion crearOperacion() { return new OperacionSuma(); }
+}
+// ¡15 clases creadas para terminar haciendo return a + b!
+
+// SOLUCIÓN LIMPIA Y ELEGANTE: Una función directa
+public class CalculadoraSimple {
+    public static int sumar(int a, int b) {
+        return a + b;
+    }
+}
+</code></pre>
+</div>
+<span class="center-horizontal caption">Antipatrón de Sobreingeniería: Usar patrones para problemas triviales añade complejidad accidental</span>

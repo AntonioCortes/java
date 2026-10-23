@@ -46,7 +46,7 @@
 
 ---
 
-<h2>3. Dependencias de Testcontainers</h2>
+<h2>3. Dependencias de Testcontainers y Conexión Automática</h2>
 
 <h3>Maven (pom.xml)</h3>
 <div class="center-horizontal">
@@ -70,6 +70,13 @@
         &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
         &lt;scope&gt;test&lt;/scope&gt;
     &lt;/dependency&gt;
+
+    &lt;!-- Integración nativa Spring Boot 3.1+ con Testcontainers --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-testcontainers&lt;/artifactId&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
 &lt;/dependencies&gt;
 </code></pre>
 </div>
@@ -81,6 +88,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }
 </code></pre>
 </div>
@@ -136,9 +144,9 @@ dependencies {
 
 ---
 
-<h2>5. Ejemplo Completo: Test de Integración con Testcontainers y Servidor Real</h2>
+<h2>5. Ejemplo Completo: Test de Integración con Testcontainers y @ServiceConnection</h2>
 <p>
-    El siguiente test levanta un contenedor real de PostgreSQL en Docker y arranca la aplicación Spring Boot en un puerto aleatorio (<code>RANDOM_PORT</code>). Ejecuta una petición HTTP POST real mediante <code>TestRestTemplate</code>, comprueba que la mascota se guardó físicamente en PostgreSQL y verifica su recuperación posterior vía HTTP GET:
+    En <b>Spring Boot 3.1+</b>, la anotación <code>@ServiceConnection</code> elimina la necesidad de configurar manualmente las propiedades JDBC mediante <code>@DynamicPropertySource</code>. Spring Boot detecta automáticamente el contenedor Docker de Testcontainers (PostgreSQL en este caso) y autoconfigura el <code>DataSource</code> y el <code>ConnectionDetails</code> de la aplicación de prueba:
 </p>
 
 <div class="center-horizontal">
@@ -153,39 +161,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("Tests de Integración End-to-End con Testcontainers (PostgreSQL)")
+@DisplayName("Tests de Integración End-to-End con Testcontainers y @ServiceConnection (PostgreSQL)")
 class PetIntegrationTest {
 
     // 1. Contenedor Docker oficial de PostgreSQL gestionado por Testcontainers
+    // Con @ServiceConnection (Spring Boot 3.1+), Spring autoconfigura ConnectionDetails automáticamente
     @Container
-    static PostgreSQLContainer&lt;?&gt; postgres = new PostgreSQLContainer&lt;&gt;("postgres:16-alpine")
-            .withDatabaseName("petshop_test_db")
-            .withUsername("test_user")
-            .withPassword("test_pass");
-
-    // 2. Inyección dinámica de las credenciales y URL del contenedor Docker en el DataSource de Spring
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.jpa.hibernate.ddl-auto", () -&gt; "create-drop");
-    }
+    @ServiceConnection
+    static PostgreSQLContainer&lt;?&gt; postgres = new PostgreSQLContainer&lt;&gt;("postgres:16-alpine");
 
     @LocalServerPort
     private int port;
@@ -278,6 +274,23 @@ class PetIntegrationTest {
 </code></pre>
 </div>
 
+<h3>Equivalente Clásico en Spring Boot 2.x - 3.0: @DynamicPropertySource</h3>
+<p>
+    En versiones previas a Spring Boot 3.1, era necesario registrar manualmente las propiedades dinámicas de conexión de JDBC mediante un método estático anotado con <code>@DynamicPropertySource</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// Enfoque clásico (Spring Boot 2.x - 3.0) sustituido por @ServiceConnection en 3.1+
+@DynamicPropertySource
+static void configureProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.url", postgres::getJdbcUrl);
+    registry.add("spring.datasource.username", postgres::getUsername);
+    registry.add("spring.datasource.password", postgres::getPassword);
+}
+</code></pre>
+</div>
+
 ---
 
 <h2>6. Cuándo Usar y Cuándo NO Usar Tests de Integración</h2>
@@ -313,7 +326,7 @@ class PetIntegrationTest {
 
 <h2>7. Contraejemplos y Antipatrones en Tests de Integración</h2>
 
-<h3>Contraejemplo: No Limpiar las Tablas entre Tests (Tests Dependientes)</h3>
+<h3>Contraejemplo 1: No Limpiar las Tablas entre Tests (Tests Dependientes)</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
 // ANTIPATRÓN: Asume que la base de datos siempre arranca vacía para su test
@@ -333,4 +346,73 @@ void test2() {
 </div>
 <p>
     <b>Solución:</b> Incluir siempre un método <code>@BeforeEach</code> que ejecute <code>petRepository.deleteAll()</code> para garantizar que cada test sea estrictamente autónomo e idempotente.
+</p>
+
+<h3>Contraejemplo 2: Abuso de @DirtiesContext (Destrucción de la Caché de Contexto)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN CATASTRÓFICO: Destruye el ApplicationContext al terminar cada test
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@SpringBootTest
+class SlowIntegrationTest {
+    // Provoca que Spring reconstruya el ApplicationContext completo en cada método,
+    // multiplicando el tiempo total de la suite de CI/CD de 30 segundos a más de 10 minutos.
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> En lugar de destruir el contexto con <code>@DirtiesContext</code>, limpiar el estado mutable (tablas de BD, colas en memoria, caches) en métodos <code>@BeforeEach</code> o <code>@AfterEach</code>, permitiendo que Spring reutilice el mismo <code>ApplicationContext</code>.
+</p>
+
+---
+
+<h2>8. Rendimiento y Optimización de la Caché de Contexto (Spring Test Context Caching)</h2>
+<p>
+    El <b>Spring Test Framework</b> incorpora un mecanismo extremadamente eficiente denominado <b>Context Caching</b>: una vez que un <code>ApplicationContext</code> se inicializa para un test, Spring lo mantiene en memoria y lo <b>reutiliza</b> para todos los tests subsiguientes que compartan exactamente la misma configuración.
+</p>
+
+<h3>¿Qué elementos forman la clave de la caché del contexto?</h3>
+<p>
+    Spring calcula un hash identificativo único para cada contexto basándose en:
+</p>
+<ul>
+    <li>Clases de configuración (<code>@SpringBootTest(classes = ...)</code>).</li>
+    <li>Perfiles activos (<code>@ActiveProfiles("test")</code>).</li>
+    <li>Propiedades personalizadas (<code>@TestPropertySource</code> o <code>@SpringBootTest(properties = ...)</code>).</li>
+    <li>Conjunto de beans simulados (<code>@MockBean</code> o <code>@MockitoBean</code> definidos en la clase de test).</li>
+    <li>Contenedores y conexiones dinámicas (<code>@ServiceConnection</code>).</li>
+</ul>
+
+<h3>Patrón de Diseño Recomendado: Clase Base Abstracta de Integración</h3>
+<p>
+    Para evitar la <i>polución de contexto</i> y garantizar que toda la batería de tests de integración comparta <b>un único contenedor Docker y un único ApplicationContext</b> durante toda la ejecución de Maven/Gradle, se define una clase base abstracta:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.integration;
+
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.PostgreSQLContainer;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+public abstract class AbstractIntegrationTest {
+
+    // Contenedor estático compartido entre TODAS las clases de test de integración
+    // Se levanta una sola vez al inicio y se destruye al apagar la JVM
+    @ServiceConnection
+    protected static final PostgreSQLContainer&lt;?&gt; POSTGRES = 
+            new PostgreSQLContainer&lt;&gt;("postgres:16-alpine");
+
+    static {
+        POSTGRES.start();
+    }
+}
+</code></pre>
+</div>
+<p>
+    Todas las clases de test de integración concretas deben heredar de <code>AbstractIntegrationTest</code> (ej. <code>class PetControllerIntegrationTest extends AbstractIntegrationTest</code>). De esta manera, el contenedor Docker de PostgreSQL arranca <b>una sola vez</b> y el <code>ApplicationContext</code> se reutiliza al 100%, ejecutando decenas de tests de integración en cuestión de segundos.
 </p>

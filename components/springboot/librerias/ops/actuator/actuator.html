@@ -1,0 +1,182 @@
+<h1 class="title">Spring Boot Actuator: Monitorización, Salud y Métricas en Producción</h1>
+
+<h2>1. ¿Qué es y para qué sirve?</h2>
+<p>
+    En producción, una aplicación no es una caja negra: los equipos de operaciones (DevOps / SRE) y los orquestadores como <b>Kubernetes</b> necesitan saber en todo momento si la aplicación sigue viva, si está lista para recibir tráfico de red, cuánta memoria RAM consume la JVM y cuál es el estado de la conexión a la base de datos.
+</p>
+<p>
+    <b>Spring Boot Actuator</b> (starter <code>spring-boot-starter-actuator</code> en Spring Initializr) es el estándar oficial que añade funcionalidades de nivel de producción a cualquier microservicio Spring Boot sin escribir código adicional:
+</p>
+<ul>
+    <li><b>Endpoints de Salud (Health Checks):</b> El endpoint <code>/actuator/health</code> comprueba automáticamente el estado de la base de datos, Redis, RabbitMQ, espacio en disco y servicios externos.</li>
+    <li><b>Sondas de Kubernetes (Probes):</b> Soporta nativamente las sondas de vida (<i>Liveness</i> en <code>/actuator/health/liveness</code>) para reiniciar contenedores colgados, y de preparación (<i>Readiness</i> en <code>/actuator/health/readiness</code>) para no enrutar tráfico hasta que las cachés y pools estén inicializados.</li>
+    <li><b>Gestión de Logs en Caliente:</b> Mediante <code>/actuator/loggers</code> se puede cambiar el nivel de log de un paquete específico (ej. de <code>INFO</code> a <code>DEBUG</code>) mediante una petición HTTP POST en tiempo de ejecución sin reiniciar la aplicación.</li>
+    <li><b>Inspección y Diagnóstico:</b> Endpoints para volcado de hilos (<code>/actuator/threaddump</code>) y diagnóstico de cuellos de botella.</li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos el <b>cuadro de mandos y la telemetría de un coche moderno</b>:
+</p>
+<ul>
+    <li>El motor y las ruedas son la lógica de negocio (los controladores y servicios).</li>
+    <li><b>Actuator</b> es el ordenador de a bordo con los testigos luminosos: te indica la temperatura del aceite, la presión de los neumáticos, el nivel de combustible y si el sistema de frenos responde. Si el ordenador detecta que el motor se sobrecalienta (falla la base de datos), enciende el testigo rojo de emergencia de inmediato para que la grúa (Kubernetes) no mande el coche a la autopista.</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Un microservicio de pagos de compras veterinarias se ejecuta en un clúster de Kubernetes con auto-escalado horizontal.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin Actuator)</div>
+            <div class="card-body">
+                <p>La base de datos sufre una saturación y rechaza conexiones. Kubernetes no tiene forma de saberlo (el pod sigue en estado 'Running' a nivel de contenedor de Linux) y continúa enviando peticiones de clientes que fallan con errores 500 durante 30 minutos.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Actuator)</div>
+            <div class="card-body">
+                <p>Kubernetes sondea <code>/actuator/health/readiness</code> cada 5 segundos. En cuanto la BD cae, el endpoint devuelve <code>STATUS: DOWN (HTTP 503)</code>. Kubernetes retira el pod del balanceador automáticamente en 5 segundos, evitando que los clientes perciban el fallo.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar Actuator y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Cualquier microservicio o API REST desplegado en entornos reales (Kubernetes, AWS, Docker, On-Premise).</td>
+            <td><b>OBLIGATORIO usar Spring Boot Actuator</b></td>
+            <td>Sin Actuator es imposible integrar las sondas de Kubernetes, Prometheus ni monitorizar la salud operativa del sistema.</td>
+        </tr>
+        <tr>
+            <td>Exponer todos los endpoints (<code>management.endpoints.web.exposure.include=*</code>) a internet sin seguridad.</td>
+            <td><b>PELIGRO MORTAL: NUNCA hacer esto</b></td>
+            <td>Expone endpoints como <code>/env</code> o <code>/heapdump</code> que filtran contraseñas, variables de entorno y datos sensibles en memoria a atacantes.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Reglas de uso de Spring Boot Actuator</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring Boot Actuator en pom.xml --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+}
+</code></pre>
+</div>
+
+<h2>5. Configuración Segura en Producción (application.yml)</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+management:
+  server:
+    port: 8081 # Separar el puerto de administración del puerto de la API pública (8080)
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        # Exponer únicamente los endpoints imprescindibles
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: when_authorized # Solo muestra detalles técnicos a usuarios autenticados
+      probes:
+        enabled: true # Habilita las sondas nativas de Kubernetes (/liveness y /readiness)
+  info:
+    env:
+      enabled: true
+    git:
+      mode: full
+</code></pre>
+</div>
+
+<h2>6. Creación de un Indicador de Salud Personalizado (Custom HealthIndicator)</h2>
+<p>
+    Podemos crear indicadores personalizados para verificar la disponibilidad de sistemas externos propietarios (como un validador de microchips o un servicio de pasarela de vacunas):
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.health;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ExternalPetRegistryHealthIndicator implements HealthIndicator {
+
+    @Override
+    public Health health() {
+        boolean isRegistryUp = checkExternalRegistry();
+
+        if (isRegistryUp) {
+            return Health.up()
+                    .withDetail("service", "Registro Central de Microchips")
+                    .withDetail("responseTimeMs", 42)
+                    .build();
+        }
+
+        return Health.down()
+                .withDetail("service", "Registro Central de Microchips")
+                .withDetail("error", "Timeout de conexión tras 3000 ms")
+                .build();
+    }
+
+    private boolean checkExternalRegistry() {
+        // Lógica de comprobación de ping HTTP o socket
+        return true;
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplo y Fuga de Seguridad Grave (CWE-200)</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# ANTIPATRÓN CATASTRÓFICO DE SEGURIDAD EN PRODUCCIÓN:
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" # ¡PELIGRO CRÍTICO! Expone /actuator/env y /actuator/heapdump públicamente
+</code></pre>
+</div>
+<p>
+    <b>Impacto de Seguridad:</b> Cualquier usuario externo que navegue a <code>/actuator/env</code> podrá leer las claves de acceso a la base de datos, API Keys de AWS y tokens secretos de la aplicación. Mantener siempre una lista blanca estricta (<code>health, info, prometheus</code>) y aislar el puerto de administración.
+</p>

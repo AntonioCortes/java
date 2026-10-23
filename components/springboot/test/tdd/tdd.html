@@ -202,7 +202,68 @@ public class AdoptionFeeCalculator {
 
 ---
 
-<h2>5. Cuándo Usar y Cuándo NO Usar TDD</h2>
+<h2>5. TDD Outside-In (Escuela de Londres) en Arquitecturas Spring Boot</h2>
+<p>
+    En el desarrollo de microservicios y APIs REST con Spring Boot, existen dos grandes escuelas de pensamiento para aplicar TDD:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Enfoque</th>
+            <th scope="col">Escuela</th>
+            <th scope="col">Dirección del Flujo</th>
+            <th scope="col">Estrategia en Spring Boot</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Outside-In (De Fuera hacia Adentro)</b></td>
+            <td>Escuela de Londres (Mockist)</td>
+            <td>Controlador (API) &rarr; Servicio &rarr; Repositorio</td>
+            <td>Se empieza definiendo el contrato HTTP con <code>@WebMvcTest</code> y <code>MockMvc</code>, simulando el servicio con mocks. Luego se desciende a la capa de servicio con tests unitarios puros y finalmente a la base de datos con <code>@DataJpaTest</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Inside-Out (De Dentro hacia Afuera)</b></td>
+            <td>Escuela Clásica / Chicago</td>
+            <td>Entidad / Repositorio &rarr; Servicio &rarr; Controlador</td>
+            <td>Se modela primero la base de datos y las entidades de dominio, luego la capa de servicio y finalmente se expone el controlador web.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Flujo de Trabajo Outside-In Paso a Paso en Spring Boot</h3>
+<p>
+    El enfoque <b>Outside-In</b> es el estándar preferido en microservicios porque garantiza que <b>solo se programa código que realmente responde a una necesidad del cliente de la API</b>:
+</p>
+
+<ol>
+    <li>
+        <b>Paso 1 (Capa Web / Perímetro):</b> Escribir un test con <code>@WebMvcTest(PetController.class)</code> definiendo la ruta HTTP (ej. <code>POST /petshop/pet</code>), el payload JSON y el código <code>201 Created</code> con su cabecera <code>Location</code>.
+        <br><i>Estado:</i> <span class="badge bg-danger">ROJO</span> (el endpoint no existe o el servicio mock aún no tiene el método firmado).
+    </li>
+    <li>
+        <b>Paso 2 (Descubrimiento de la Interfaz):</b> Crear la firma del método en la interfaz del servicio (<code>PetDTO registerPet(PetDTO dto)</code>) y escribir el código mínimo en el controlador para que el test web pase a <span class="badge bg-success">VERDE</span>.
+    </li>
+    <li>
+        <b>Paso 3 (Capa de Negocio / Servicio):</b> Descender a la implementación del servicio (<code>PetServiceImpl</code>). Escribir un test unitario puro con JUnit 5 y Mockito (<code>@ExtendWith(MockitoExtension.class)</code>) verificando validaciones de negocio, cálculo de fechas y la llamada al repositorio.
+        <br><i>Estado:</i> <span class="badge bg-danger">ROJO</span> (la lógica del servicio aún no está implementada).
+    </li>
+    <li>
+        <b>Paso 4 (Implementación de Negocio):</b> Implementar el código en <code>PetServiceImpl</code> hasta que el test unitario pase a <span class="badge bg-success">VERDE</span>.
+    </li>
+    <li>
+        <b>Paso 5 (Capa de Persistencia):</b> Si la operación requiere una consulta SQL específica o comprobación de restricciones de base de datos, escribir un test con <code>@DataJpaTest</code> para el repositorio.
+        <br><i>Estado:</i> <span class="badge bg-danger">ROJO</span> (el método de consulta no existe en el repositorio).
+    </li>
+    <li>
+        <b>Paso 6 (Cierre y Verificación):</b> Declarar el método en <code>PetJpaRepository</code>. Todo el flujo queda implementado de extremo a extremo, con tests en cada nivel arquitectónico y cero código muerto o innecesario.
+    </li>
+</ol>
+
+---
+
+<h2>6. Cuándo Usar y Cuándo NO Usar TDD</h2>
 
 <table class="table table-striped table-hover">
     <thead>
@@ -233,7 +294,7 @@ public class AdoptionFeeCalculator {
 
 ---
 
-<h2>6. Contraejemplos y Antipatrones de TDD</h2>
+<h2>7. Contraejemplos y Antipatrones de TDD</h2>
 
 <h3>Contraejemplo 1: Testear Detalles Privados de Implementación</h3>
 <div class="center-horizontal">

@@ -68,9 +68,15 @@
             <td>En tests de integración o slice tests que requieran inyección de Spring.</td>
         </tr>
         <tr>
+            <td><code>@MockitoBean</code></td>
+            <td>Spring Boot Test (3.4+)</td>
+            <td>Reemplazo oficial y moderno de <code>@MockBean</code> para sobreescribir beans en el contexto de Spring.</td>
+            <td>En tests unitarios puros de JVM sin Spring.</td>
+        </tr>
+        <tr>
             <td><code>@MockBean</code></td>
-            <td>Spring Boot Test</td>
-            <td>En tests con contexto Spring (<code>@WebMvcTest</code>) para reemplazar un bean real por un mock.</td>
+            <td>Spring Boot Test (&lt; 3.4)</td>
+            <td>En tests con contexto Spring (<code>@WebMvcTest</code>) para reemplazar un bean real por un mock (deprecated en 3.4+).</td>
             <td>En tests unitarios puros (sobrecoste innecesario de contexto).</td>
         </tr>
         <tr>
@@ -90,6 +96,24 @@
             <td>Spring Boot Test</td>
             <td>Para testear repositorios JPA con rollback automático por defecto.</td>
             <td>Para probar controladores o servicios de negocio.</td>
+        </tr>
+        <tr>
+            <td><code>@JsonTest</code></td>
+            <td>Spring Boot Test</td>
+            <td>Para probar serialización y deserialización JSON con <code>JacksonTester</code> en milisegundos.</td>
+            <td>Para probar llamadas HTTP o consultas a base de datos.</td>
+        </tr>
+        <tr>
+            <td><code>@RestClientTest</code></td>
+            <td>Spring Boot Test</td>
+            <td>Para testear clientes HTTP salientes con <code>MockRestServiceServer</code> sin red real.</td>
+            <td>Para probar controladores que reciben peticiones entrantes.</td>
+        </tr>
+        <tr>
+            <td><code>@ServiceConnection</code></td>
+            <td>Spring Boot Testcontainers (3.1+)</td>
+            <td>Autoconfigura automáticamente <code>ConnectionDetails</code> desde un contenedor Docker (Postgres, Mongo, etc.).</td>
+            <td>En tests unitarios o cuando se utiliza H2 en memoria.</td>
         </tr>
         <tr>
             <td><code>@Container</code></td>
@@ -367,6 +391,241 @@ class PetControllerSliceTest {
                 .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>6. Ejemplo 4: Slice Test de Serialización JSON (@JsonTest)</h2>
+<p>
+    Verifica que las transformaciones JSON de nuestros contratos DTO cumplen la especificación de nombres de propiedades, omisión de campos nulos y formateo de fechas ISO:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.json;
+
+import com.example.petshop.dto.PetDTO;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.json.JsonTest;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.json.JsonContent;
+
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@JsonTest
+@DisplayName("Slice Test JSON - PetDTO Jackson Serialization")
+class PetJsonSerializationTest {
+
+    @Autowired
+    private JacksonTester&lt;PetDTO&gt; jsonTester;
+
+    @Test
+    @DisplayName("Debe serializar PetDTO a JSON con los tipos y campos esperados")
+    void shouldSerializePetDto() throws Exception {
+        // GIVEN
+        PetDTO dto = PetDTO.builder()
+                .id(100)
+                .name("Simba")
+                .species("Cat")
+                .age((short) 3)
+                .vaccinated(true)
+                .admissionDate(LocalDate.of(2025, 4, 10))
+                .build();
+
+        // WHEN
+        JsonContent&lt;PetDTO&gt; json = jsonTester.write(dto);
+
+        // THEN
+        assertThat(json).extractingJsonPathNumberValue("@.id").isEqualTo(100);
+        assertThat(json).extractingJsonPathStringValue("@.name").isEqualTo("Simba");
+        assertThat(json).extractingJsonPathStringValue("@.species").isEqualTo("Cat");
+        assertThat(json).extractingJsonPathBooleanValue("@.vaccinated").isTrue();
+        assertThat(json).extractingJsonPathStringValue("@.admissionDate").isEqualTo("2025-04-10");
+    }
+
+    @Test
+    @DisplayName("Debe deserializar JSON a objeto PetDTO fuertemente tipado")
+    void shouldDeserializeJson() throws Exception {
+        // GIVEN
+        String content = """
+                {
+                    "id": 100,
+                    "name": "Simba",
+                    "species": "Cat",
+                    "age": 3,
+                    "vaccinated": true,
+                    "admissionDate": "2025-04-10"
+                }
+                """;
+
+        // WHEN
+        PetDTO dto = jsonTester.parseObject(content);
+
+        // THEN
+        assertThat(dto.getId()).isEqualTo(100);
+        assertThat(dto.getName()).isEqualTo("Simba");
+        assertThat(dto.getSpecies()).isEqualTo("Cat");
+        assertThat(dto.isVaccinated()).isTrue();
+        assertThat(dto.getAdmissionDate()).isEqualTo(LocalDate.of(2025, 4, 10));
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>7. Ejemplo 5: Slice Test de Cliente HTTP Saliente (@RestClientTest)</h2>
+<p>
+    Valida que un cliente HTTP que consume servicios externos (como un registro veterinario centralizado) componga correctamente la URL, cabeceras y parámetros HTTP sin enviar tráfico real por la red:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.client;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.MockRestServiceServer;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
+@RestClientTest(ExternalPetRegistryClient.class)
+@DisplayName("Slice Test de Cliente REST - ExternalPetRegistryClient")
+class ExternalPetRegistryClientTest {
+
+    @Autowired
+    private ExternalPetRegistryClient client;
+
+    @Autowired
+    private MockRestServiceServer mockServer;
+
+    @Test
+    @DisplayName("Debe validar el microchip de una mascota contra el registro central")
+    void shouldValidateMicrochipAgainstCentralRegistry() {
+        // GIVEN
+        String chipNumber = "CHIP-987654";
+        String expectedUrl = "/api/v1/registry/verify/" + chipNumber;
+        String responseJson = """
+                {
+                    "chipNumber": "CHIP-987654",
+                    "registered": true,
+                    "ownerName": "Alice Johnson"
+                }
+                """;
+
+        mockServer.expect(requestTo(expectedUrl))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
+
+        // WHEN
+        ChipVerificationResponse response = client.verifyChip(chipNumber);
+
+        // THEN
+        assertThat(response).isNotNull();
+        assertThat(response.isRegistered()).isTrue();
+        assertThat(response.getOwnerName()).isEqualTo("Alice Johnson");
+
+        mockServer.verify();
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>8. Ejemplo 6: Test de Integración End-to-End (@SpringBootTest + @ServiceConnection)</h2>
+<p>
+    Prueba el ciclo de vida completo de la petición HTTP sobre un puerto real levantando una base de datos PostgreSQL en contenedor Docker mediante <b>Testcontainers y @ServiceConnection</b>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.integration;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetJpaRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Testcontainers
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DisplayName("E2E Integration Test - Full Stack con PostgreSQL Testcontainers")
+class PetFullStackE2ETest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer&lt;?&gt; postgres = new PostgreSQLContainer&lt;&gt;("postgres:16-alpine");
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private PetJpaRepository repository;
+
+    @BeforeEach
+    void cleanUp() {
+        repository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("Flujo E2E: Crea recurso en Postgres mediante POST y lo recupera vía GET")
+    void shouldExecuteFullCrudLifecycle() {
+        // GIVEN: DTO de entrada
+        String url = "http://localhost:" + port + "/petshop/pet";
+        PetDTO dto = PetDTO.builder()
+                .name("Bruno")
+                .species("Dog")
+                .age((short) 4)
+                .vaccinated(true)
+                .admissionDate(LocalDate.now())
+                .build();
+
+        // WHEN: POST creación
+        ResponseEntity&lt;Void&gt; postResp = restTemplate.postForEntity(url, dto, Void.class);
+        assertThat(postResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String location = postResp.getHeaders().getLocation().toString();
+
+        // THEN: Verificación directa en base de datos real
+        assertThat(repository.count()).isEqualTo(1L);
+
+        // WHEN: GET recuperación
+        ResponseEntity&lt;PetDTO&gt; getResp = restTemplate.getForEntity(location, PetDTO.class);
+        assertThat(getResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResp.getBody()).isNotNull();
+        assertThat(getResp.getBody().getName()).isEqualTo("Bruno");
     }
 }
 </code></pre>

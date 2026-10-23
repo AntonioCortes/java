@@ -1,0 +1,304 @@
+<h1 class="title">Bases de Datos NoSQL y Caché en Spring Boot (MongoDB, Redis y Elasticsearch)</h1>
+
+<h2>1. ¿Qué son y para qué sirven?</h2>
+<p>
+    En arquitecturas modernas, no todos los datos encajan eficientemente en tablas relacionales con restricciones rígidas de clave foránea. <b>Spring Initializr</b> ofrece integraciones oficiales de <b>Spring Data</b> para los principales motores NoSQL y sistemas de caché en memoria:
+</p>
+<ul>
+    <li>
+        <b>Spring Data MongoDB:</b> Base de datos NoSQL documental líder. Almacena registros como documentos <b>BSON</b> (JSON binario) flexibles y semiestructurados. Ideal para catálogos dinámicos, historiales de eventos, perfiles de usuario y carritos de compra donde el esquema evoluciona constantemente.
+    </li>
+    <li>
+        <b>Spring Data Redis:</b> Almacén de datos en memoria ultrarrápido (latencias inferiores a 1 milisegundo). Se utiliza como <b>Caché distribuida</b> (mediante la abstracción <code>@Cacheable</code>), gestor de sesiones web (<code>Spring Session</code>), colas Pub/Sub ligeras y almacenamiento de estructuras de datos clave-valor (hashes, conjuntos, listas).
+    </li>
+    <li>
+        <b>Spring Data Elasticsearch:</b> Motor distribuido de indexación y búsqueda <i>Full-Text</i> basado en Apache Lucene. Permite realizar búsquedas difusas (fuzzy search), autocompletado, agregaciones analíticas complejas y filtrado de millones de registros en milisegundos.
+    </li>
+</ul>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un hospital veterinario de gran envergadura:
+</p>
+<ul>
+    <li><b>PostgreSQL / Base Relacional:</b> El libro oficial de facturación contable y cobros con tarjeta (todo debe cuadrar al céntimo bajo estrictas reglas contables ACID).</li>
+    <li><b>MongoDB:</b> El historial clínico de cada mascota (cada animal tiene un historial diferente: análisis de sangre, vacunas, fotos de radiografías, cirugías previas; un esquema rígido de columnas fijas sería inviable).</li>
+    <li><b>Redis:</b> La pizarra magnética rápida de la sala de urgencias (contiene la lista inmediata de pacientes en triaje de los últimos 15 minutos; se lee y borra en un segundo para no ir al archivo general).</li>
+    <li><b>Elasticsearch:</b> El buscador temático de la biblioteca médica (encuentra cualquier informe veterinario que contenga la palabra "fractura de fémur" aunque esté mal escrita).</li>
+</ul>
+
+<h2>2. Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una tienda online de mascotas con 500.000 usuarios concurrentes consulta el catálogo de productos y calcula recomendaciones personalizadas en tiempo real.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Solo con Base Relacional)</div>
+            <div class="card-body">
+                <p>Cada vez que un usuario abre la portada, la base de datos relacional ejecuta 10 sentencias <code>SELECT con múltiples JOIN</code> para cargar categorías y promociones. El motor SQL colapsa bajo 10.000 peticiones por segundo y el tiempo de respuesta supera los 4 segundos.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con MongoDB + Redis)</div>
+            <div class="card-body">
+                <p>El catálogo se almacena como documentos en MongoDB y las respuestas frecuentes se cachean en Redis con <code>@Cacheable</code>. El 95% de las lecturas se resuelven en memoria en menos de 2 milisegundos sin tocar el disco.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>3. ¿Cuándo usar cada tecnología NoSQL y cuándo NO usarlas?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Tecnología NoSQL</th>
+            <th scope="col">¿Cuándo usarla?</th>
+            <th scope="col">¿Cuándo NO usarla?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Spring Data MongoDB</b></td>
+            <td>Documentos con estructuras jerárquicas y anidadas (ej. carritos de compra, registros de sensores, historiales clínicos, catálogos multiatributo).</td>
+            <td>Sistemas con transacciones financieras multi-tabla complejas donde la integridad referencial y las claves foráneas estrictas sean obligatorias por ley.</td>
+        </tr>
+        <tr>
+            <td><b>Spring Data Redis</b></td>
+            <td>Caché de consultas lentas, limitación de tasa (Rate Limiting), sesiones web compartidas entre réplicas de microservicios y bloqueos distribuidos (Redlock).</td>
+            <td>Como base de datos principal de almacenamiento a largo plazo sin un almacenamiento persistente secundario, o para consultas analíticas con filtros complejos.</td>
+        </tr>
+        <tr>
+            <td><b>Spring Data Elasticsearch</b></td>
+            <td>Buscadores con autocompletado, filtrado facetado por múltiples criterios, búsqueda en lenguaje natural y agregación de logs.</td>
+            <td>Como sistema transaccional de registro (System of Record) para operaciones de inserción y modificación de alta frecuencia.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de uso de motores NoSQL en Spring Boot</span>
+
+<h2>4. Dependencias Necesarias (Maven y Gradle)</h2>
+
+<h3>A. Dependencias para Spring Data MongoDB</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Maven: Starter oficial de Spring Data MongoDB --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-mongodb&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+}
+</code></pre>
+</div>
+
+<h3>B. Dependencias para Spring Data Redis</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Maven: Starter oficial de Spring Data Redis con Lettuce --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// Gradle (build.gradle)
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+}
+</code></pre>
+</div>
+
+<h2>5. Anotaciones Clave de Spring Data NoSQL</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Librería</th>
+            <th scope="col">Propósito y Uso</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@Document(collection = "nombre")</code></td>
+            <td>Spring Data MongoDB</td>
+            <td>Mapea una clase Java a una colección de documentos en MongoDB.</td>
+        </tr>
+        <tr>
+            <td><code>@Id</code></td>
+            <td>Spring Data Commons</td>
+            <td>Marca el identificador único del documento (representado como <code>String</code> u <code>ObjectId</code> en Mongo).</td>
+        </tr>
+        <tr>
+            <td><code>@Field("nombre_json")</code></td>
+            <td>Spring Data MongoDB</td>
+            <td>Define el nombre de la clave dentro del documento BSON/JSON almacenado.</td>
+        </tr>
+        <tr>
+            <td><code>@EnableCaching</code></td>
+            <td>Spring Context</td>
+            <td>Habilita la infraestructura de caché distribuida en toda la aplicación Spring Boot.</td>
+        </tr>
+        <tr>
+            <td><code>@Cacheable(value = "cacheName", key = "#id")</code></td>
+            <td>Spring Context / Redis</td>
+            <td>Intercepta la llamada al método: si el resultado ya existe en Redis, lo devuelve de inmediato sin ejecutar el método; si no, ejecuta el método y guarda el valor en Redis con un TTL (tiempo de vida).</td>
+        </tr>
+        <tr>
+            <td><code>@CacheEvict(value = "cacheName", key = "#id")</code></td>
+            <td>Spring Context / Redis</td>
+            <td>Invalida y elimina la entrada correspondiente de la caché de Redis tras un <code>UPDATE</code> o <code>DELETE</code>.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>6. Ejemplos de Implementación con Lombok</h2>
+
+<h3>A. Documento y Repositorio MongoDB</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.nosql;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.util.List;
+import java.util.Map;
+
+@Document(collection = "pet_medical_records")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+public class PetMedicalRecordDocument {
+
+    @Id
+    private String id;
+
+    @Field("pet_code")
+    private String petCode;
+
+    private String petName;
+    private List&lt;String&gt; allergies;
+    
+    // Esquema flexible semiestructurado: atributos dinámicos
+    private Map&lt;String, Object&gt; clinicalNotes;
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.nosql;
+
+import com.example.petshop.model.nosql.PetMedicalRecordDocument;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface PetMedicalRecordMongoRepository extends MongoRepository&lt;PetMedicalRecordDocument, String&gt; {
+
+    Optional&lt;PetMedicalRecordDocument&gt; findByPetCode(String petCode);
+
+    // Consulta nativa en sintaxis JSON de MongoDB
+    @Query("{ 'allergies': ?0 }")
+    List&lt;PetMedicalRecordDocument&gt; findPetsWithAllergy(String allergy);
+}
+</code></pre>
+</div>
+
+<h3>B. Servicio con Caché en Memoria con Redis</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service.cache;
+
+import com.example.petshop.model.nosql.PetMedicalRecordDocument;
+import com.example.petshop.repository.nosql.PetMedicalRecordMongoRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PetMedicalService {
+
+    private final PetMedicalRecordMongoRepository mongoRepository;
+
+    // 1. Consulta con caché en Redis: las lecturas posteriores se resuelven en milisegundos desde RAM
+    @Cacheable(value = "medical_records", key = "#petCode")
+    public PetMedicalRecordDocument getRecordByPetCode(String petCode) {
+        log.info("Accediendo a MongoDB para consultar el historial de: {}", petCode);
+        return mongoRepository.findByPetCode(petCode)
+                .orElseThrow(() -&gt; new RuntimeException("Historial no encontrado para código: " + petCode));
+    }
+
+    // 2. Invalida la entrada en Redis cuando se modifica el historial para evitar datos obsoletos
+    @CacheEvict(value = "medical_records", key = "#document.petCode")
+    public PetMedicalRecordDocument updateRecord(PetMedicalRecordDocument document) {
+        log.info("Actualizando historial en MongoDB e invalidando caché en Redis: {}", document.getPetCode());
+        return mongoRepository.save(document);
+    }
+}
+</code></pre>
+</div>
+
+<h2>7. Contraejemplos y Antipatrones</h2>
+
+<h3>Contraejemplo: Falta de TTL en Redis (Saturación de Memoria OOM)</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# ANTIPATRÓN: Guardar en Redis sin tiempo de vida (TTL)
+spring:
+  cache:
+    type: redis
+    # Si no se configura time-to-live, las claves se acumulan infinitamente
+    # hasta que Redis agota la memoria RAM del servidor y rechaza nuevas peticiones (OOM Crash).
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Configurar siempre un TTL (Time-To-Live) prudente y políticas de expulsión (ej. <code>allkeys-lru</code>) en <code>application.yml</code>:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hora de expiración automática
+      cache-null-values: false
+</code></pre>
+</div>
