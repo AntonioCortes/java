@@ -1,7 +1,92 @@
-<h1 class="title">Basic Security</h1>
+<h1 class="title">Spring Security: Seguridad Básica</h1>
 
+<p>
+    <strong>Spring Security</strong> es el estándar indiscutible de seguridad en el ecosistema Java y Spring Boot. Proporciona un marco potente y altamente personalizable que cubre los dos pilares esenciales de la seguridad informática:
+</p>
+<ul>
+    <li><strong>Autenticación (Authentication):</strong> Verificar <em>quién</em> es el usuario (mediante usuario/contraseña, certificados, tokens, etc.).</li>
+    <li><strong>Autorización (Authorization):</strong> Determinar <em>a qué recursos</em> tiene permiso de acceso el usuario autenticado (roles como <code>ROLE_ADMIN</code>, <code>ROLE_USER</code>, o permisos granulares <em>scopes</em>).</li>
+</ul>
+<p>
+    Con la llegada de <strong>Spring Boot 3 y Spring Security 6</strong>, el framework ha experimentado una modernización total: se eliminó definitivamente la antigua clase base <code>WebSecurityConfigurerAdapter</code> y los encadenamientos con <code>.and()</code>, consolidando la configuración declarativa mediante el componente <strong>SecurityFilterChain</strong> y el uso de expresiones lambda con <strong>Customizer</strong>.
+</p>
+
+<h2>Analogía del Mundo Real: Los Torniquetes y el Guardia del Edificio</h2>
+<p>
+    Imagina la entrada a la sede central de una clínica veterinaria u hospital:
+</p>
+<ul>
+    <li>En la entrada principal hay un <strong>Guardia de Seguridad y un Torniquete</strong> (la <strong>SecurityFilterChain</strong>). Nadie puede acceder a los pasillos interiores sin pasar por el torniquete.</li>
+    <li>El guardia te pide una identificación (la <strong>Autenticación HTTP Basic / Formulario</strong>). Muestras tu tarjeta de empleado. El guardia comprueba en el libro de registros (el <strong>UserDetailsService</strong>) que tu foto y contraseña coincidan con los datos cifrados (<strong>BCryptPasswordEncoder</strong>).</li>
+    <li>Una vez validada tu identidad, el guardia mira tu distintivo (la <strong>Autorización</strong>):
+        <ul>
+            <li>Si eres cliente general (<code>ROLE_USER</code>), se te permite el paso a la sala de espera (<code>GET /petshop/pet/**</code>).</li>
+            <li>Si intentas entrar al quirófano o a la caja fuerte (<code>POST /petshop/pet</code> o administración), el guardia comprueba si tienes la credencial dorada (<code>ROLE_ADMIN</code>). Si no la tienes, te deniega el acceso inmediatamente con un código <strong>403 Forbidden</strong>.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>La API de la tienda de mascotas (<code>PetStore</code>) expone endpoints de consulta pública para catálogo y endpoints privilegiados de creación y borrado para veterinarios administradores.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin Seguridad Adecuada)</div>
+            <div class="card-body">
+                <p>Cualquier usuario anónimo puede emitir una petición <code>DELETE /petshop/pet/5</code> y borrar una mascota de la base de datos. Si se programa seguridad casera con filtros <code>if-else</code> en cada controlador, se cometen fallos humanos y se dejan rutas desprotegidas.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Spring Security)</div>
+            <div class="card-body">
+                <p>Se centralizan las reglas en un <code>SecurityFilterChain</code>: los métodos <code>GET</code> quedan públicos con <code>permitAll()</code>, y las mutaciones <code>POST/PUT/DELETE</code> exigen autenticación y rol <code>ADMIN</code>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Mecanismo</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>HTTP Basic Authentication</b></td>
+            <td>APIs de desarrollo, herramientas internas de administración, prototipos o comunicación directa entre servicios seguros sin navegador web de usuario final.</td>
+            <td>Aplicaciones web públicas con usuarios humanos: la credencial en Base64 viaja en cada cabecera y el navegador almacena las credenciales sin posibilidad de logout limpio nativo.</td>
+        </tr>
+        <tr>
+            <td><b>Form Login (Sesión por Cookies)</b></td>
+            <td>Aplicaciones web tradicionales monolíticas con renderizado en servidor (Thymeleaf, JSP) que mantienen una sesión HTTP con cookie <code>JSESSIONID</code>.</td>
+            <td>APIs REST consumidas por aplicaciones móviles o SPAs (Angular, React, Vue), donde se exige arquitectura Stateless basada en Tokens JWT.</td>
+        </tr>
+        <tr>
+            <td><b>BCryptPasswordEncoder</b></td>
+            <td><strong>Obligatorio siempre</strong> para almacenar contraseñas en bases de datos. Incluye salt criptográfico aleatorio y es resistente a ataques por fuerza bruta o tablas rainbow.</td>
+            <td>Nunca utilizar algoritmos obsoletos o rápidos como MD5, SHA-1 o texto plano (<code>NoOpPasswordEncoder</code>).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Decisiones de seguridad básica</span>
+
+<h2>Dependencias Necesarias</h2>
 <div class="center-horizontal">
 <pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring Security --&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
     &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
@@ -9,243 +94,172 @@
 </code></pre>
 </div>
 
-<h2>Configuración</h2>
+<h2>Diagrama de la Cadena de Filtros (SecurityFilterChain)</h2>
+<p>
+    Toda petición entrante atraviesa una secuencia ordenada de filtros antes de alcanzar los controladores de Spring:
+</p>
 
-<p>Para configurar Spring Security se utiliza una clase que contenga la anotación <b>@Configuration</b> y <b>@EnableWebSecurity</b></p>
+<img class="center-horizontal" src="components/springboot/librerias/spring-security/basic-security/assets/img/security-filterchain.svg">
+<span class="center-horizontal caption">Figura 1: Intercepción y validación de peticiones en la SecurityFilterChain</span>
 
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Filtro / Componente</th>
+            <th scope="col">Rol en la Cadena</th>
+            <th scope="col">Comportamiento en APIs REST</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>CorsFilter</b></td>
+            <td>Gestión de CORS</td>
+            <td>Verifica si el origen del navegador (ej. <code>http://localhost:3000</code>) tiene autorización para realizar peticiones cruzadas.</td>
+        </tr>
+        <tr>
+            <td><b>CsrfFilter</b></td>
+            <td>Protección CSRF</td>
+            <td>En APIs REST sin cookies de sesión (stateless), <strong>debe deshabilitarse</strong> (<code>csrf.disable()</code>) para permitir peticiones POST/PUT sin token anti-falsificación.</td>
+        </tr>
+        <tr>
+            <td><b>BasicAuthenticationFilter</b></td>
+            <td>Autenticación</td>
+            <td>Lee la cabecera <code>Authorization: Basic base64(user:pass)</code> y valida las credenciales contra el <code>UserDetailsService</code>.</td>
+        </tr>
+        <tr>
+            <td><b>AuthorizationFilter</b></td>
+            <td>Autorización por Rol</td>
+            <td>Evalúa si el usuario autenticado posee los roles exigidos para la ruta solicitada (ej. <code>hasRole('ADMIN')</code>).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Filtros principales de Spring Security</span>
+
+<h2>Implementación Moderna en Spring Boot 3 / Spring Security 6</h2>
+
+<h3>Configuración Completa con DSL de Lambdas</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
+package com.example.petstore.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+
 @Configuration
 @EnableWebSecurity
-public class ApplicationSecurityConfiguration {
+public class SecurityConfig {
 
-    //...
-    
-} 
-</code></pre>
-</div>
-
-<h2>Método de configuración de HttpSecurity</h2>
-
-<p>Spring Security necesita del siguiente método de configuración donde se definirá el comportamiento. A continuación un ejemplo de lo que podría ser un método con partes que se pueden activar y desactivar utilizando comentarios en función de las necesidades:</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-@Configuration
-@EnableWebSecurity
-public class ApplicationSecurityConfiguration {
-
+    // 1. Definición de la Cadena de Filtros de Seguridad
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                //Disabled csrf just in case of NO user client
-                //.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrf().disable()
-                //.and()
-                .authorizeHttpRequests((authz) -&gt; authz
-                        /* 
-                        .requestMatchers(ApiPaths.USER_VALIDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name(),USER.name())
-                        .requestMatchers(HttpMethod.POST,ApiPaths.USER_MANAGER_CREATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
-                        .requestMatchers(HttpMethod.PUT,ApiPaths.USER_MANAGER_UPDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
-                        .requestMatchers(HttpMethod.GET,ApiPaths.USER_MANAGER_READ.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
-                        .requestMatchers(HttpMethod.DELETE,ApiPaths.USER_MANAGER_DELETE.getPath()).hasRole(ADMIN.name())
-                        */
-                        .anyRequest().authenticated()
-                )
-                .httpBasic(withDefaults())
-                .rememberMe().tokenValiditySeconds((int) TimeUnit.HOURS.toSeconds(4));
+            // Desactiva CSRF para APIs REST públicas/stateless
+            .csrf(AbstractHttpConfigurer::disable)
+            
+            // Política de sesión sin estado (Stateless)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            
+            // Reglas de autorización por ruta y método HTTP
+            .authorizeHttpRequests(auth -> auth
+                // Rutas públicas de consulta de catálogo y Swagger
+                .requestMatchers(HttpMethod.GET, "/petshop/pet/**").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                
+                // Operaciones de creación, modificación y borrado restringidas a administradores
+                .requestMatchers(HttpMethod.POST, "/petshop/pet/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/petshop/pet/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/petshop/pet/**").hasRole("ADMIN")
+                
+                // Cualquier otra petición debe estar autenticada
+                .anyRequest().authenticated()
+            )
+            
+            // Habilita autenticación HTTP Basic estándar
+            .httpBasic(Customizer.withDefaults());
+
         return http.build();
     }
-    
-} 
-</code></pre>
-</div>
 
-<p><b>NOTA:</b> El método necesita de la anotación <b>@Bean</b> para que el contenedor de Spring la pueda utilizar cuando este se levante.</p>
-
-<h2>Definición de usuarios</h2>
-
-<p>Para poder controlar el acceso a la aplicación se utilizan los privilegios(authorities) o roles de usuarios</p>
-
-<p>Se pueden defininir de la siguiente manera dentro de la clase de configuración:</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-@Configuration
-@EnableWebSecurity
-public class ApplicationSecurityConfiguration {
-
+    // 2. Codificador de contraseñas seguro con algoritmo BCrypt
     @Bean
-    public UserDetailsManager users(DataSource dataSource) {
-        UserDetails user = User.builder()
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    // 3. Usuarios en memoria para desarrollo y pruebas
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
+        UserDetails adminUser = User.builder()
                 .username("admin")
-                .password(passwordEncoder.encode("admin"))
-                .roles(ADMIN.name())
-                //.authorities(ADMIN.getGrantedAuthorities())
+                .password(encoder.encode("admin123"))
+                .roles("ADMIN", "USER")
                 .build();
-        JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
-        users.createUser(user);
-        return users;
+
+        UserDetails regularUser = User.builder()
+                .username("cliente")
+                .password(encoder.encode("cliente123"))
+                .roles("USER")
+                .build();
+
+        return new InMemoryUserDetailsManager(adminUser, regularUser);
     }
-    
-} 
+}
 </code></pre>
 </div>
 
-<p><b>NOTA:</b> Se recomienda codificar la contraseña antes de asignarla. Una posibilidad es utilizar la interfaz de PasswordEncoder y la clase BCryptPasswordEncoder de Spring Security</p>
+<h2>Ejemplo vs Contraejemplo</h2>
 
+<h3>Contraejemplo: Código Obsoleto e Inseguro de Spring Security 5 (Antipatrón)</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
+// ANTIPATRÓN: Código descontinuado en Spring Boot 3 y contraseñas en texto plano
 @Configuration
-public class PasswordConfig {
+public class BadSecurityConfig extends WebSecurityConfigurerAdapter { // ERROR: Eliminado en Spring Boot 3
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .csrf().disable() // ERROR: Métodos encadenados obsoletos
+            .authorizeRequests() // ERROR: Reemplazado por authorizeHttpRequests
+            .antMatchers("/admin/**").hasRole("ADMIN") // ERROR: Reemplazado por requestMatchers
+            .and().httpBasic();
+    }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder(10);
-    }
-
-}
-</code></pre>
-</div>
-
-<h2>Clase enumeradora para roles y permisos</h2>
-
-<p>Aunque esto no deja de ser una recomendación definir en una clase enumeradora los roles y permisos que un usuario puede tomar puede ser buena práctica.</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-public enum ApplicationUserRole {
-    ADMIN(Sets.newHashSet(API_READ,API_WRITE,API_EXECUTE)),
-    ADMINTRAINEE(Sets.newHashSet(API_READ,API_WRITE,API_EXECUTE)),
-    USER(Sets.newHashSet(API_READ));
-
-    private final Set&lt;ApplicationUserPermission&gt; permission;
-
-    ApplicationUserRole(Set&lt;ApplicationUserPermission&gt; permission) {
-        this.permission = permission;
-    }
-
-    public Set&lt;ApplicationUserPermission&gt; getPermission() {
-        return permission;
-    }
-
-    public Set&lt;SimpleGrantedAuthority&gt; getGrantedAuthorities(){
-        Set&lt;SimpleGrantedAuthority&gt; permissions = getPermission().stream()
-                .map(p -&gt; new SimpleGrantedAuthority(p.getPermission()))
-                .collect(Collectors.toSet());
-        permissions.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
-        return permissions;
+    public PasswordEncoder badEncoder() {
+        // ERROR GRAVÍSIMO: Guardar contraseñas en texto plano vulnera todas las leyes de privacidad
+        return NoOpPasswordEncoder.getInstance();
     }
 }
 </code></pre>
 </div>
 
+<h3>Ejemplo: Invocación de la API Protegida con cURL</h3>
 <div class="center-horizontal">
-<pre><code class="language-java">
-public enum ApplicationUserPermission {
-    API_READ("api:read"),
-    API_WRITE("api:write"),
-    API_EXECUTE("api:execute");
+<pre><code class="language-bash">
+# 1. Consulta pública permitida sin credenciales (Retorna 200 OK):
+curl -X GET http://localhost:8080/petshop/pet/1
 
-    private final String permission;
-    ApplicationUserPermission(String permission) {
-        this.permission = permission;
-    }
+# 2. Intento de borrado sin credenciales (Retorna 401 Unauthorized):
+curl -X DELETE http://localhost:8080/petshop/pet/1
 
-    public String getPermission() {
-        return permission;
-    }
-} 
+# 3. Borrado con credenciales de usuario normal sin rol ADMIN (Retorna 403 Forbidden):
+curl -X DELETE http://localhost:8080/petshop/pet/1 -u cliente:cliente123
+
+# 4. Borrado con credenciales de administrador (Retorna 204 No Content):
+curl -X DELETE http://localhost:8080/petshop/pet/1 -u admin:admin123
 </code></pre>
 </div>
-
-<h2>AntMatchers</h2>
-
-<p>Es una forma de definir los permisos utilizando el sistema de rutas del API</p>
-
-<p>En el siguiente ejemplo se puede ver como en el método de configuración se definen una serie de <b>requestMatchers</b>, los cuales tendrán especificado el método de http(GET, POST, PUT, etc), la ruta y el rol que tiene permitido el acceso a dicha ruta.</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-@Bean
-public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-            //Disabled csrf just in case of NO user client
-            //.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            .csrf().disable()
-            //.and()
-            .authorizeHttpRequests((authz) -&gt; authz
-                    .requestMatchers(ApiPaths.USER_VALIDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name(),USER.name())
-                    .requestMatchers(HttpMethod.POST,ApiPaths.USER_MANAGER_CREATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
-                    .requestMatchers(HttpMethod.PUT,ApiPaths.USER_MANAGER_UPDATE.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
-                    .requestMatchers(HttpMethod.GET,ApiPaths.USER_MANAGER_READ.getPath()).hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
-                    .requestMatchers(HttpMethod.DELETE,ApiPaths.USER_MANAGER_DELETE.getPath()).hasRole(ADMIN.name())
-                    .anyRequest().authenticated()
-            )
-            .httpBasic(withDefaults())
-            .rememberMe().tokenValiditySeconds((int) TimeUnit.HOURS.toSeconds(1));
-    return http.build();
-}
-</code></pre>
-</div>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-public enum ApiPaths {
-
-    USER_MANAGER_CREATE("/user/manager/create/**"),
-    USER_MANAGER_READ("/user/manager/read/**"),
-    USER_MANAGER_UPDATE("/user/manager/update/**"),
-    USER_MANAGER_DELETE("/user/manager/delete/**"),
-    USER_VALIDATE("/user/validate/**");
-
-    private final String path;
-
-    ApiPaths(String path) {
-        this.path = path;
-    }
-
-    public String getPath() {
-        return path;
-    }
-}
-</code></pre>
-</div>
-
-<h2>Anotaciones @EnableMethodSecurity y @PreAuthorize</h2>
-
-<p>Para permitir acceso a los controladores en función del rol o los privilegios que se hayan definido se utiliza la anotación <b>@PreAuthorize</b>. En esta anotación se indica el valor al cual se le dará acceso. Por lo que si viene especificado que el rol de acceso es ROLE_ADMIN solo los usuarios que posean rol de administrador podran realizar llamadas a dicho controlador.</p>
-<p>Ejemplo:</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-@RestController
-@RequestMapping("api/pet")
-public class PetController {
-
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_ADMINTRAINEE')")
-    @PostMapping("/management/create")
-    public ResponseEntity&lt;PetDTO&gt; createPet(@RequestBody final PetDTO petDTO){
-        return new ResponseEntity&lt;&gt;(HttpStatus.NOT_IMPLEMENTED);
-    }
-
-}
-</code></pre>
-</div>
-
-<p>Para que la anotación @PreAuthorize tenga efecto se debe indicar en la clase de configuración la anotación <b>@EnableMethodSecurity</b></p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
-public class ApplicationSecurityConfiguration {
-
-   //...
-    
-} 
-</code></pre>
-</div>
-
-<p>Una alternativa a la anotación @PreAuthorize es utilizar <b>@Securized</b>.</p>

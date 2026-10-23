@@ -1,0 +1,401 @@
+<h1 class="title">Spring Data: Consultas Derivadas por Nombre de Método (Query Methods)</h1>
+
+<h2>1. ¿Qué son los Query Methods y cómo funcionan?</h2>
+<p>
+    El mecanismo de <b>Consultas Derivadas (Derived Query Methods)</b> de Spring Data es un analizador sintáctico en tiempo de compilación/arranque que descompone el nombre del método declarado en una interfaz de repositorio y genera automáticamente el Árbol de Sintaxis Abstracta (AST) de la consulta, traduciéndolo al lenguaje nativo del almacén de datos: <b>SQL/JPQL</b> en Spring Data JPA o <b>filtros JSON/BSON</b> en Spring Data MongoDB.
+</p>
+
+<h3>Estructura anatómica de un Query Method</h3>
+<p>
+    El nombre de todo Query Method se divide en dos bloques principales:
+</p>
+<ol>
+    <li>
+        <b>Sujeto (Subject):</b> Define la acción a ejecutar y las restricciones de conteo o límite. Ejemplos: <code>find...By</code>, <code>read...By</code>, <code>get...By</code>, <code>count...By</code>, <code>exists...By</code>, <code>delete...By</code>, <code>findTop3...By</code>, <code>findDistinct...By</code>.
+    </li>
+    <li>
+        <b>Predicado (Predicate):</b> Define los criterios de filtrado basados en las propiedades de la entidad, combinados mediante operadores lógicos (<code>And</code>, <code>Or</code>) y comparadores (<code>Between</code>, <code>LessThan</code>, <code>Containing</code>, etc.).
+    </li>
+</ol>
+
+---
+
+<h2>2. Catálogo Exhaustivo de Palabras Clave (Keywords)</h2>
+<p>
+    La siguiente tabla recoge <b>todas las palabras clave</b> admitidas por Spring Data Commons, su traducción equivalente en SQL Relacional (JPA) y en BSON Documental (MongoDB), junto con sus escenarios de uso:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Palabra Clave</th>
+            <th scope="col">Ejemplo de Firma de Método</th>
+            <th scope="col">Equivalente SQL (JPA)</th>
+            <th scope="col">Equivalente BSON (MongoDB)</th>
+            <th scope="col">Cuándo Usar / Cuándo NO Usar</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>And</b></td>
+            <td><code>findBySpeciesAndAge(String s, int a)</code></td>
+            <td><code>WHERE species = ? AND age = ?</code></td>
+            <td><code>{ "species": s, "age": a }</code></td>
+            <td>Usar para intersección de 2-3 filtros. No abusar si se superan 4 filtros simultáneos (usar <code>@Query</code>).</td>
+        </tr>
+        <tr>
+            <td><b>Or</b></td>
+            <td><code>findBySpeciesOrVaccinated(String s, boolean v)</code></td>
+            <td><code>WHERE species = ? OR vaccinated = ?</code></td>
+            <td><code>{ "$or": [ { "species": s }, { "vaccinated": v } ] }</code></td>
+            <td>Usar para unión lógica. No usar en tablas gigantes relacionales sin índices compuestos en ambas columnas.</td>
+        </tr>
+        <tr>
+            <td><b>Is / Equals</b></td>
+            <td><code>findByName(String name)</code> o <code>findByNameIs(...)</code></td>
+            <td><code>WHERE name = ?</code></td>
+            <td><code>{ "name": name }</code></td>
+            <td>Comparación de igualdad estricta. Es el comportamiento por defecto si se omite el comparador.</td>
+        </tr>
+        <tr>
+            <td><b>Between</b></td>
+            <td><code>findByAgeBetween(int min, int max)</code></td>
+            <td><code>WHERE age BETWEEN ? AND ?</code></td>
+            <td><code>{ "age": { "$gte": min, "$lte": max } }</code></td>
+            <td>Rangos continuos cerrados (fechas, edades, precios). No usar para rangos con extremos abiertos.</td>
+        </tr>
+        <tr>
+            <td><b>LessThan / LessThanEqual</b></td>
+            <td><code>findByAgeLessThanEqual(int max)</code></td>
+            <td><code>WHERE age &lt;= ?</code></td>
+            <td><code>{ "age": { "$lte": max } }</code></td>
+            <td>Límites superiores. Ideal para filtros "hasta X años" o "anteriores a cierta fecha".</td>
+        </tr>
+        <tr>
+            <td><b>GreaterThan / GreaterThanEqual</b></td>
+            <td><code>findByAgeGreaterThanEqual(int min)</code></td>
+            <td><code>WHERE age &gt;= ?</code></td>
+            <td><code>{ "age": { "$gte": min } }</code></td>
+            <td>Límites inferiores (umbral mínimo de edad, precios desde X).</td>
+        </tr>
+        <tr>
+            <td><b>After / Before</b></td>
+            <td><code>findByAdmissionDateAfter(LocalDate d)</code></td>
+            <td><code>WHERE admission_date &gt; ?</code></td>
+            <td><code>{ "admissionDate": { "$gt": d } }</code></td>
+            <td>Filtros temporales sobre fechas o marcas de tiempo (<code>LocalDate</code>, <code>Instant</code>).</td>
+        </tr>
+        <tr>
+            <td><b>IsNull / IsNotNull / NotNull</b></td>
+            <td><code>findByNameIsNull()</code> / <code>findBySpeciesIsNotNull()</code></td>
+            <td><code>WHERE name IS NULL</code> / <code>IS NOT NULL</code></td>
+            <td><code>{ "name": null }</code> / <code>{ "species": { "$ne": null } }</code></td>
+            <td>Búsqueda de registros incompletos o validados. No requiere pasar parámetro en el método.</td>
+        </tr>
+        <tr>
+            <td><b>Like / NotLike</b></td>
+            <td><code>findByNameLike(String pattern)</code></td>
+            <td><code>WHERE name LIKE ?</code></td>
+            <td><code>{ "name": { "$regex": pattern } }</code></td>
+            <td>Búsquedas con comodín manual explícito (requiere pasar <code>%valor%</code> en el argumento).</td>
+        </tr>
+        <tr>
+            <td><b>StartingWith</b></td>
+            <td><code>findByNameStartingWith(String prefix)</code></td>
+            <td><code>WHERE name LIKE ? || '%'</code></td>
+            <td><code>{ "name": { "$regex": "^prefix" } }</code></td>
+            <td>Autocompletado y búsqueda por prefijo. Aprovecha índices B-Tree en SQL e índices de texto en Mongo.</td>
+        </tr>
+        <tr>
+            <td><b>EndingWith</b></td>
+            <td><code>findByNameEndingWith(String suffix)</code></td>
+            <td><code>WHERE name LIKE '%' || ?</code></td>
+            <td><code>{ "name": { "$regex": "suffix$" } }</code></td>
+            <td>Búsqueda por sufijo (ej. extensiones o dominios de correo). No aprovecha índices B-Tree estándar.</td>
+        </tr>
+        <tr>
+            <td><b>Containing</b></td>
+            <td><code>findByNameContaining(String infix)</code></td>
+            <td><code>WHERE name LIKE '%' || ? || '%'</code></td>
+            <td><code>{ "name": { "$regex": "infix" } }</code></td>
+            <td>Búsqueda general de subcadena. No usar en colecciones enormes sin índices de texto completo (Full-Text Search).</td>
+        </tr>
+        <tr>
+            <td><b>IgnoreCase / AllIgnoreCase</b></td>
+            <td><code>findByNameIgnoreCase(String name)</code></td>
+            <td><code>WHERE UPPER(name) = UPPER(?)</code></td>
+            <td><code>{ "name": { "$regex": "^name$", "$options": "i" } }</code></td>
+            <td>Búsqueda insensible a mayúsculas/minúsculas. En JPA puede invalidar índices si no hay índice funcional.</td>
+        </tr>
+        <tr>
+            <td><b>True / False</b></td>
+            <td><code>findByVaccinatedTrue()</code> / <code>findByVaccinatedFalse()</code></td>
+            <td><code>WHERE vaccinated = TRUE</code></td>
+            <td><code>{ "vaccinated": true }</code></td>
+            <td>Estados booleanos claros. No requiere pasar parámetro booleano en la firma del método.</td>
+        </tr>
+        <tr>
+            <td><b>In / NotIn</b></td>
+            <td><code>findBySpeciesIn(Collection&lt;String&gt; s)</code></td>
+            <td><code>WHERE species IN (?, ?, ...)</code></td>
+            <td><code>{ "species": { "$in": [ ... ] } }</code></td>
+            <td>Filtros multiselección (ej. checkbox de especies). Cuidado con pasar colecciones de más de 1000 elementos en Oracle.</td>
+        </tr>
+        <tr>
+            <td><b>OrderBy...Asc / Desc</b></td>
+            <td><code>findBySpeciesOrderByAgeAsc(String s)</code></td>
+            <td><code>ORDER BY age ASC</code></td>
+            <td><code>.sort({ "age": 1 })</code></td>
+            <td>Ordenación estática. Para ordenación dinámica desde la petición web, preferir pasar el parámetro <code>Sort</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Top / First</b></td>
+            <td><code>findTop3BySpeciesOrderByAgeDesc(String s)</code></td>
+            <td><code>LIMIT 3</code></td>
+            <td><code>.limit(3)</code></td>
+            <td>Limitar el número de resultados directamente desde el nombre del método sin pasar un <code>Pageable</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Distinct</b></td>
+            <td><code>findDistinctBySpecies(String s)</code></td>
+            <td><code>SELECT DISTINCT ...</code></td>
+            <td><code>db.collection.distinct(...)</code></td>
+            <td>Eliminar duplicados en el conjunto de resultados.</td>
+        </tr>
+        <tr>
+            <td><b>countBy...</b></td>
+            <td><code>countBySpecies(String species)</code></td>
+            <td><code>SELECT COUNT(*) ...</code></td>
+            <td><code>db.collection.countDocuments(...)</code></td>
+            <td>Devuelve un <code>long</code> con el número de coincidencias sin cargar las entidades en memoria.</td>
+        </tr>
+        <tr>
+            <td><b>existsBy...</b></td>
+            <td><code>existsByName(String name)</code></td>
+            <td><code>SELECT 1 ... LIMIT 1</code></td>
+            <td><code>db.collection.find(...).limit(1).size() &gt; 0</code></td>
+            <td>Devuelve <code>boolean</code> indicando si existe al menos un registro. Altamente eficiente.</td>
+        </tr>
+        <tr>
+            <td><b>deleteBy... / removeBy...</b></td>
+            <td><code>deleteBySpecies(String species)</code></td>
+            <td><code>DELETE FROM ...</code></td>
+            <td><code>db.collection.deleteMany(...)</code></td>
+            <td>Elimina registros concurrentes. En JPA requiere <code>@Transactional</code> en la capa de servicio.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>3. Ejemplos Prácticos Completos y Simétricos</h2>
+<p>
+    A continuación se presentan las interfaces de repositorio declarando <b>exactamente los mismos métodos de consulta</b> para nuestro dominio <code>Pet</code>, mostrando la total correspondencia entre Spring Data JPA y Spring Data MongoDB.
+</p>
+
+<h3>3.1. Repositorio Relacional: PostgreSQL / Oracle (Spring Data JPA)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.relational;
+
+import com.example.petshop.model.relational.PetEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface PetJpaRepository extends JpaRepository&lt;PetEntity, Long&gt; {
+
+    // 1. Igualdad directa
+    List&lt;PetEntity&gt; findByName(String name);
+
+    // 2. Operador AND
+    List&lt;PetEntity&gt; findBySpeciesAndAge(String species, int age);
+
+    // 3. Operador OR
+    List&lt;PetEntity&gt; findBySpeciesOrVaccinated(String species, boolean vaccinated);
+
+    // 4. Rango BETWEEN
+    List&lt;PetEntity&gt; findByAgeBetween(int minAge, int maxAge);
+
+    // 5. Comparadores numéricos
+    List&lt;PetEntity&gt; findByAgeLessThanEqual(int maxAge);
+    List&lt;PetEntity&gt; findByAgeGreaterThanEqual(int minAge);
+
+    // 6. Fechas: Before y After
+    List&lt;PetEntity&gt; findByAdmissionDateBefore(LocalDate cutoffDate);
+    List&lt;PetEntity&gt; findByAdmissionDateAfter(LocalDate startDate);
+
+    // 7. Búsquedas de texto: prefijos, subcadenas e insensibilidad a mayúsculas
+    List&lt;PetEntity&gt; findByNameStartingWithIgnoreCase(String prefix);
+    List&lt;PetEntity&gt; findByNameContainingIgnoreCase(String infix);
+
+    // 8. Colecciones: Operador IN
+    List&lt;PetEntity&gt; findBySpeciesIn(Collection&lt;String&gt; speciesList);
+
+    // 9. Booleanos literales
+    List&lt;PetEntity&gt; findByVaccinatedTrue();
+    List&lt;PetEntity&gt; findByVaccinatedFalse();
+
+    // 10. Ordenación estática
+    List&lt;PetEntity&gt; findBySpeciesOrderByAgeAsc(String species);
+    List&lt;PetEntity&gt; findBySpeciesOrderByAdmissionDateDesc(String species);
+
+    // 11. Limitadores de volumen
+    List&lt;PetEntity&gt; findTop3BySpeciesOrderByAgeDesc(String species);
+    Optional&lt;PetEntity&gt; findFirstBySpeciesOrderByAdmissionDateAsc(String species);
+
+    // 12. Valores nulos
+    List&lt;PetEntity&gt; findByNameIsNull();
+
+    // 13. Conteo y verificación de existencia
+    long countBySpecies(String species);
+    boolean existsByName(String name);
+
+    // 14. Eliminación derivada
+    long deleteBySpecies(String species);
+}
+</code></pre>
+</div>
+
+<h3>3.2. Repositorio Documental: MongoDB (Spring Data MongoDB)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.nosql;
+
+import com.example.petshop.model.nosql.PetDocument;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface PetMongoRepository extends MongoRepository&lt;PetDocument, String&gt; {
+
+    // 1. Igualdad directa (BSON: { "name": name })
+    List&lt;PetDocument&gt; findByName(String name);
+
+    // 2. Operador AND (BSON: { "species": species, "age": age })
+    List&lt;PetDocument&gt; findBySpeciesAndAge(String species, int age);
+
+    // 3. Operador OR (BSON: { "$or": [ { "species": species }, { "vaccinated": vaccinated } ] })
+    List&lt;PetDocument&gt; findBySpeciesOrVaccinated(String species, boolean vaccinated);
+
+    // 4. Rango BETWEEN (BSON: { "age": { "$gte": minAge, "$lte": maxAge } })
+    List&lt;PetDocument&gt; findByAgeBetween(int minAge, int maxAge);
+
+    // 5. Comparadores numéricos
+    List&lt;PetDocument&gt; findByAgeLessThanEqual(int maxAge);
+    List&lt;PetDocument&gt; findByAgeGreaterThanEqual(int minAge);
+
+    // 6. Fechas: Before y After
+    List&lt;PetDocument&gt; findByAdmissionDateBefore(LocalDate cutoffDate);
+    List&lt;PetDocument&gt; findByAdmissionDateAfter(LocalDate startDate);
+
+    // 7. Búsquedas de texto: prefijos y subcadenas con regex
+    List&lt;PetDocument&gt; findByNameStartingWithIgnoreCase(String prefix);
+    List&lt;PetDocument&gt; findByNameContainingIgnoreCase(String infix);
+
+    // 8. Colecciones: Operador IN (BSON: { "species": { "$in": [ ... ] } })
+    List&lt;PetDocument&gt; findBySpeciesIn(Collection&lt;String&gt; speciesList);
+
+    // 9. Booleanos literales (BSON: { "vaccinated": true })
+    List&lt;PetDocument&gt; findByVaccinatedTrue();
+    List&lt;PetDocument&gt; findByVaccinatedFalse();
+
+    // 10. Ordenación estática
+    List&lt;PetDocument&gt; findBySpeciesOrderByAgeAsc(String species);
+    List&lt;PetDocument&gt; findBySpeciesOrderByAdmissionDateDesc(String species);
+
+    // 11. Limitadores de volumen
+    List&lt;PetDocument&gt; findTop3BySpeciesOrderByAgeDesc(String species);
+    Optional&lt;PetDocument&gt; findFirstBySpeciesOrderByAdmissionDateAsc(String species);
+
+    // 12. Valores nulos
+    List&lt;PetDocument&gt; findByNameIsNull();
+
+    // 13. Conteo y verificación de existencia
+    long countBySpecies(String species);
+    boolean existsByName(String name);
+
+    // 14. Eliminación derivada
+    long deleteBySpecies(String species);
+}
+</code></pre>
+</div>
+
+---
+
+<h2>4. Cuándo Usar y Cuándo NO Usar Derived Query Methods</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo Técnico</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Consultas de 1 a 3 atributos con condiciones estándar (igualdad, rango, prefijo).</td>
+            <td><b>USAR Query Methods</b></td>
+            <td>Ahorra escribir SQL/BSON, se valida en tiempo de compilación y es altamente legible.</td>
+        </tr>
+        <tr>
+            <td>Consultas que combinan más de 4 condiciones con <code>And</code> y <code>Or</code>.</td>
+            <td><b>NO USAR (Pasar a <code>@Query</code>)</b></td>
+            <td>El nombre del método se vuelve kilométrico, ilegible y muy frágil ante cambios o refactorizaciones.</td>
+        </tr>
+        <tr>
+            <td>Consultas que requieren joins relacionales complejos con funciones de agregación (SUM, AVG).</td>
+            <td><b>NO USAR (Pasar a <code>@Query</code> o Criteria/Specification)</b></td>
+            <td>Los nombres derivados no soportan expresiones complejas de agregación o subconsultas anidadas.</td>
+        </tr>
+        <tr>
+            <td>Comprobar rápidamente si un registro existe por email o DNI.</td>
+            <td><b>USAR <code>existsBy...</code></b></td>
+            <td>Genera un <code>LIMIT 1</code> optimizado sin cargar la entidad completa en la memoria de la JVM.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>5. Contraejemplos y Antipatrones de Query Methods</h2>
+
+<h3>Contraejemplo 1: El Método "Monstruo"</h3>
+<p>
+    Concatenar infinitas condiciones en el nombre del método genera código ininteligible y expuesto a errores silenciosos de orden de parámetros.
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Nombre inmanejable y propenso a errores al enlazar parámetros
+public interface BadPetRepository extends JpaRepository&lt;PetEntity, Long&gt; {
+    List&lt;PetEntity&gt; findBySpeciesAndAgeGreaterThanEqualAndVaccinatedTrueAndAdmissionDateBeforeAndNameContainingIgnoreCaseOrderByAdmissionDateDesc(
+        String species, int minAge, LocalDate maxDate, String infix
+    );
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Extraer la consulta a una anotación <code>@Query</code> limpia o utilizar Specifications/QueryDSL.
+</p>
+
+<h3>Contraejemplo 2: Error de Propiedad Inexistente en Tiempo de Arranque</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: La propiedad 'birthDate' no existe en PetEntity (es 'admissionDate')
+public interface BrokenRepository extends JpaRepository&lt;PetEntity, Long&gt; {
+    // Spring lanzará PropertyReferenceException al arrancar la aplicación
+    List&lt;PetEntity&gt; findByBirthDate(LocalDate date);
+}
+</code></pre>
+</div>

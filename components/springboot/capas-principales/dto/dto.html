@@ -138,6 +138,9 @@ public void date(@RequestParam("date") @DateTimeFormat(pattern = "dd.MM.yyyy") D
 <pre><code class="language-java">
 @ApiModel(description = "Pet DTO")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Accessors(chain = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -185,6 +188,9 @@ public class PetDTO
 <pre><code class="language-java">
 @ApiModel(description = "Pet DTO for patch method")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Accessors(chain = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="650" viewBox="0 0 980 650" font-family="Arial, Helvetica, sans-serif">
+  <rect width="980" height="650" fill="white"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#222"/>
+    </marker>
+    <marker id="rabbit-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ff6600"/>
+    </marker>
+    <marker id="dlq-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <text x="490" y="24" text-anchor="middle" font-size="16" font-weight="bold">Arquitectura de Mensajería Asíncrona con RabbitMQ y Spring AMQP</text>
+
+  <!-- Leyenda -->
+  <text x="25" y="55" font-size="12" font-weight="bold">Leyenda</text>
+  <rect x="25" y="65" width="16" height="12" fill="#fff3c4" stroke="#333"/>
+  <text x="47" y="75" font-size="11">Microservicio Emisor (Producer / Sender)</text>
+  <rect x="25" y="83" width="16" height="12" fill="#ffe5cc" stroke="#ff6600"/>
+  <text x="47" y="93" font-size="11">Broker RabbitMQ (Exchange, Colas, Bindings)</text>
+  <rect x="25" y="101" width="16" height="12" fill="#d4edda" stroke="#28a745"/>
+  <text x="47" y="111" font-size="11">Microservicios Consumidores (Consumer / @RabbitListener)</text>
+  <rect x="25" y="119" width="16" height="12" fill="#f8d7da" stroke="#c0392b"/>
+  <text x="47" y="129" font-size="11">Dead Letter Queue (Gestión de fallos / reintentos)</text>
+
+  <!-- 1. Microservicio Emisor -->
+  <rect x="25" y="210" width="220" height="120" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.5"/>
+  <text x="135" y="230" text-anchor="middle" font-size="11" fill="#444">«microservicio emisor»</text>
+  <text x="135" y="248" text-anchor="middle" font-size="13" font-weight="bold">PetStore Core</text>
+  <line x1="25" y1="256" x2="245" y2="256" stroke="#333" stroke-width="1"/>
+  <text x="135" y="272" text-anchor="middle" font-size="11">PetEventPublisher</text>
+  <text x="135" y="290" text-anchor="middle" font-size="10.5" fill="#555">RabbitTemplate.convertAndSend</text>
+  <text x="135" y="308" text-anchor="middle" font-size="10.5" fill="#ff6600" font-weight="bold">routingKey: pet.created</text>
+  <text x="135" y="322" text-anchor="middle" font-size="9.5" fill="#666">Jackson2JsonMessageConverter</text>
+
+  <!-- Caja del Servidor RabbitMQ -->
+  <rect x="300" y="60" width="370" height="520" rx="8" fill="#fafafa" stroke="#ff6600" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="485" y="85" text-anchor="middle" font-size="14" font-weight="bold" fill="#d35400">«message broker» Servidor RabbitMQ (AMQP)</text>
+
+  <!-- Flecha Productor -> Exchange -->
+  <line x1="245" y1="270" x2="330" y2="270" stroke="#ff6600" stroke-width="2" marker-end="url(#rabbit-arrow)"/>
+  <text x="287" y="260" text-anchor="middle" font-size="10" fill="#333">Publica JSON</text>
+
+  <!-- Exchange -->
+  <rect x="330" y="215" width="140" height="110" rx="6" fill="#ffe5cc" stroke="#ff6600" stroke-width="1.8"/>
+  <text x="400" y="235" text-anchor="middle" font-size="10" fill="#888">«exchange»</text>
+  <text x="400" y="253" text-anchor="middle" font-size="12" font-weight="bold">petstore.topic</text>
+  <text x="400" y="268" text-anchor="middle" font-size="10" fill="#555">(TopicExchange)</text>
+  <line x1="330" y1="274" x2="470" y2="274" stroke="#ff6600" stroke-width="1"/>
+  <text x="400" y="290" text-anchor="middle" font-size="9.5">Enruta según clave</text>
+  <text x="400" y="306" text-anchor="middle" font-size="9.5">patrón: pet.*</text>
+
+  <!-- Binding 1 -> Cola Notificaciones -->
+  <path d="M 470 245 L 530 160" fill="none" stroke="#ff6600" stroke-width="1.5" marker-end="url(#rabbit-arrow)"/>
+  <rect x="465" y="180" width="70" height="16" fill="white" fill-opacity="0.9"/>
+  <text x="500" y="192" text-anchor="middle" font-size="9" fill="#111">pet.*</text>
+
+  <!-- Cola 1: Notificaciones -->
+  <rect x="530" y="120" width="125" height="70" rx="4" fill="#e1f5fe" stroke="#0288d1" stroke-width="1.5"/>
+  <text x="592" y="138" text-anchor="middle" font-size="10" fill="#0277bd">«cola / queue»</text>
+  <text x="592" y="156" text-anchor="middle" font-size="11" font-weight="bold">pet.notification</text>
+  <text x="592" y="172" text-anchor="middle" font-size="9.5" fill="#555">Durable: true</text>
+
+  <!-- Binding 2 -> Cola Facturación -->
+  <path d="M 470 270 L 530 270" fill="none" stroke="#ff6600" stroke-width="1.5" marker-end="url(#rabbit-arrow)"/>
+  <rect x="475" y="255" width="55" height="16" fill="white" fill-opacity="0.9"/>
+  <text x="502" y="266" text-anchor="middle" font-size="9" fill="#111">pet.created</text>
+
+  <!-- Cola 2: Facturación -->
+  <rect x="530" y="235" width="125" height="70" rx="4" fill="#e1f5fe" stroke="#0288d1" stroke-width="1.5"/>
+  <text x="592" y="253" text-anchor="middle" font-size="10" fill="#0277bd">«cola / queue»</text>
+  <text x="592" y="271" text-anchor="middle" font-size="11" font-weight="bold">pet.billing</text>
+  <text x="592" y="287" text-anchor="middle" font-size="9.5" fill="#555">Durable: true</text>
+
+  <!-- Binding 3 -> Cola DLQ por descarte/fallo -->
+  <path d="M 470 295 L 530 380" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#dlq-arrow)"/>
+  <rect x="465" y="340" width="70" height="16" fill="white" fill-opacity="0.9"/>
+  <text x="500" y="352" text-anchor="middle" font-size="9" fill="#900">DLX routing</text>
+
+  <!-- Cola 3: DLQ -->
+  <rect x="530" y="350" width="125" height="70" rx="4" fill="#f8d7da" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="592" y="368" text-anchor="middle" font-size="10" fill="#900">«dead letter queue»</text>
+  <text x="592" y="386" text-anchor="middle" font-size="11" font-weight="bold">pet.dlq</text>
+  <text x="592" y="402" text-anchor="middle" font-size="9.5" fill="#777">Mensajes fallidos</text>
+
+  <!-- Consumidor 1: Servicio de Notificaciones -->
+  <line x1="655" y1="155" x2="740" y2="155" stroke="#28a745" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="740" y="110" width="220" height="90" rx="6" fill="#d4edda" stroke="#28a745" stroke-width="1.5"/>
+  <text x="850" y="128" text-anchor="middle" font-size="10.5" fill="#2d6a4f">«consumidor / receiver»</text>
+  <text x="850" y="146" text-anchor="middle" font-size="12" font-weight="bold">Servicio Notificaciones</text>
+  <line x1="740" y1="154" x2="960" y2="154" stroke="#28a745" stroke-width="1"/>
+  <text x="850" y="170" text-anchor="middle" font-size="10">@RabbitListener(queues = "pet.notification")</text>
+  <text x="850" y="186" text-anchor="middle" font-size="9.5" fill="#444">Envía email al dueño de mascota</text>
+
+  <!-- Consumidor 2: Servicio de Facturación -->
+  <line x1="655" y1="270" x2="740" y2="270" stroke="#28a745" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="740" y="225" width="220" height="90" rx="6" fill="#d4edda" stroke="#28a745" stroke-width="1.5"/>
+  <text x="850" y="243" text-anchor="middle" font-size="10.5" fill="#2d6a4f">«consumidor / receiver»</text>
+  <text x="850" y="261" text-anchor="middle" font-size="12" font-weight="bold">Servicio Facturación</text>
+  <line x1="740" y1="269" x2="960" y2="269" stroke="#28a745" stroke-width="1"/>
+  <text x="850" y="285" text-anchor="middle" font-size="10">@RabbitListener(queues = "pet.billing")</text>
+  <text x="850" y="301" text-anchor="middle" font-size="9.5" fill="#444">Genera factura de adopción/compra</text>
+
+  <!-- Consumidor 3: Monitor de Alertas DLQ -->
+  <line x1="655" y1="385" x2="740" y2="385" stroke="#c0392b" stroke-width="1.8" marker-end="url(#dlq-arrow)"/>
+  <rect x="740" y="340" width="220" height="90" rx="6" fill="#f8d7da" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="850" y="358" text-anchor="middle" font-size="10.5" fill="#900">«consumidor auditor»</text>
+  <text x="850" y="376" text-anchor="middle" font-size="12" font-weight="bold">Dead Letter Monitor</text>
+  <line x1="740" y1="384" x2="960" y2="384" stroke="#c0392b" stroke-width="1"/>
+  <text x="850" y="400" text-anchor="middle" font-size="10">@RabbitListener(queues = "pet.dlq")</text>
+  <text x="850" y="416" text-anchor="middle" font-size="9.5" fill="#555">Alerta a administradores / Reintentos</text>
+
+  <!-- Pie con resumen de ventajas -->
+  <rect x="180" y="590" width="620" height="46" rx="6" fill="#f8f9fa" stroke="#ccc"/>
+  <text x="490" y="610" text-anchor="middle" font-size="11" font-weight="bold">Desacoplamiento temporal y amortiguación de picos de carga (Load Leveling)</text>
+  <text x="490" y="626" text-anchor="middle" font-size="10" fill="#555">El emisor responde al cliente HTTP de inmediato sin esperar que terminen los procesos pesados</text>
+</svg>

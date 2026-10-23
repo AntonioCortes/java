@@ -89,6 +89,40 @@
             "contentId": "springBootLibraries",
             "content": [
                 {
+                    "text": "Spring Data",
+                    "contentId": "springDataSubmenu",
+                    "content": [
+                        {
+                            "text": "Arquitectura y Modelado",
+                            "content": "component-springboot-librerias-spring-data-jpa-arquitectura-modelado"
+                        },
+                        {
+                            "text": "Consultas Derivadas",
+                            "content": "component-springboot-librerias-spring-data-jpa-query-methods"
+                        },
+                        {
+                            "text": "Consultas Personalizadas",
+                            "content": "component-springboot-librerias-spring-data-jpa-consultas-personalizadas"
+                        },
+                        {
+                            "text": "Paginación y Ordenación",
+                            "content": "component-springboot-librerias-spring-data-jpa-paginacion-ordenacion"
+                        },
+                        {
+                            "text": "Proyecciones y DTOs",
+                            "content": "component-springboot-librerias-spring-data-jpa-proyecciones"
+                        },
+                        {
+                            "text": "Rendimiento y N más 1",
+                            "content": "component-springboot-librerias-spring-data-jpa-rendimiento-n-mas-uno"
+                        },
+                        {
+                            "text": "Auditoría y Transacciones",
+                            "content": "component-springboot-librerias-spring-data-jpa-auditoria-transacciones"
+                        }
+                    ]
+                },
+                {
                     "text": "Spring Cloud",
                     "contentId": "springCloud",
                     "content": [
@@ -97,20 +131,28 @@
                             "content": "component-springboot-librerias-spring-cloud-introduccion-spring-cloud"
                         },
                         {
-                            "text": "Open Feign",
-                            "content": "component-springboot-librerias-spring-cloud-open-feign"
+                            "text": "Gateway",
+                            "content": "component-springboot-librerias-spring-cloud-gateway"
                         },
                         {
                             "text": "Eureka server",
                             "content": "component-springboot-librerias-spring-cloud-eureka-server"
                         },
                         {
-                            "text": "Trazas distribuidas",
-                            "content": "component-springboot-librerias-spring-cloud-distributed-tracing"
+                            "text": "Open Feign",
+                            "content": "component-springboot-librerias-spring-cloud-open-feign"
                         },
                         {
                             "text": "Load Balancers",
                             "content": "component-springboot-librerias-spring-cloud-load-balancers"
+                        },
+                        {
+                            "text": "Resilience4j",
+                            "content": "component-springboot-librerias-spring-cloud-resilience4j"
+                        },
+                        {
+                            "text": "Trazas distribuidas",
+                            "content": "component-springboot-librerias-spring-cloud-distributed-tracing"
                         }
                     ]
                 },

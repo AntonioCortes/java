@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Arial, Helvetica, sans-serif">
+  <rect width="960" height="560" fill="white"/>
+  <defs>
+    <marker id="m3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#222"/></marker>
+    <marker id="m3-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#c0392b"/></marker>
+  </defs>
+  <text x="480" y="24" text-anchor="middle" font-size="16" font-weight="bold">Flujo de Llamada Declarativa con Spring Cloud OpenFeign</text>
+
+  <!-- Servicio Consumidor -->
+  <rect x="40" y="160" width="270" height="180" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="175" y="185" text-anchor="middle" font-size="11" fill="#444">«servicio consumidor»</text>
+  <text x="175" y="205" text-anchor="middle" font-size="14" font-weight="bold">OrderServiceImpl</text>
+  <line x1="40" y1="213" x2="310" y2="213" stroke="#333" stroke-width="1"/>
+  <text x="175" y="235" text-anchor="middle" font-size="11" font-weight="bold">PetClient petClient;</text>
+  <text x="175" y="255" text-anchor="middle" font-size="11">petClient.getPetById(42)</text>
+  <text x="175" y="280" text-anchor="middle" font-size="10" fill="#666">Código 100% Java estándar</text>
+  <text x="175" y="296" text-anchor="middle" font-size="10" fill="#666">Sin URLs en el código</text>
+  <text x="175" y="315" text-anchor="middle" font-size="10" fill="#27ae60">Retorna PetDTO tipado</text>
+
+  <!-- OpenFeign Proxy Dinámico -->
+  <rect x="360" y="130" width="260" height="240" rx="8" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+  <text x="490" y="155" text-anchor="middle" font-size="11" fill="#1864ab">«proxy dinámico de Feign»</text>
+  <text x="490" y="175" text-anchor="middle" font-size="13" font-weight="bold">@FeignClient("PET-SERVICE")</text>
+  <line x1="360" y1="183" x2="620" y2="183" stroke="#1971c2" stroke-width="1"/>
+  <text x="490" y="205" text-anchor="middle" font-size="11">1. Consulta Eureka por "PET-SERVICE"</text>
+  <text x="490" y="225" text-anchor="middle" font-size="11">2. LoadBalancer elige instancia sana</text>
+  <text x="490" y="245" text-anchor="middle" font-size="11">3. Serializa petición con Jackson</text>
+  <text x="490" y="265" text-anchor="middle" font-size="11">4. Ejecuta llamada HTTP GET</text>
+  <text x="490" y="285" text-anchor="middle" font-size="11">5. Deserializa JSON a PetDTO</text>
+  <text x="490" y="315" text-anchor="middle" font-size="11" fill="#c0392b" font-weight="bold">¿Fallo o Timeout?</text>
+  <text x="490" y="335" text-anchor="middle" font-size="10.5" fill="#c0392b">Ejecuta PetClientFallback</text>
+
+  <!-- Microservicio Remoto -->
+  <rect x="670" y="160" width="250" height="120" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="795" y="185" text-anchor="middle" font-size="11" fill="#444">«microservicio remoto»</text>
+  <text x="795" y="205" text-anchor="middle" font-size="14" font-weight="bold">Pet-Service</text>
+  <line x1="670" y1="213" x2="920" y2="213" stroke="#333" stroke-width="1"/>
+  <text x="795" y="235" text-anchor="middle" font-size="11">GET /petshop/pet/42</text>
+  <text x="795" y="255" text-anchor="middle" font-size="10.5" fill="#27ae60">Devuelve JSON: { "id": 42, ... }</text>
+
+  <!-- Fallback -->
+  <rect x="670" y="320" width="250" height="90" rx="6" fill="#f8d7da" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="795" y="340" text-anchor="middle" font-size="11" fill="#900">«clase de respaldo»</text>
+  <text x="795" y="360" text-anchor="middle" font-size="13" font-weight="bold">PetClientFallback</text>
+  <text x="795" y="380" text-anchor="middle" font-size="10.5" fill="#555">Devuelve datos en caché o error amable</text>
+
+  <!-- Flechas -->
+  <line x1="310" y1="250" x2="355" y2="250" stroke="#222" stroke-width="2" marker-end="url(#m3)"/>
+  <line x1="620" y1="220" x2="665" y2="220" stroke="#222" stroke-width="2" marker-end="url(#m3)"/>
+  <path d="M 620 340 L 665 340" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-dasharray="4,3" marker-end="url(#m3-err)"/>
+</svg>

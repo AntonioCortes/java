@@ -147,7 +147,19 @@ En todos los archivos `.html` de los componentes se deben respetar estrictamente
    </code></pre>
    </div>
    ```
-   - Lenguajes habituales para la clase: `language-java`, `language-xml`, `language-groovy`, `language-json`, `language-properties`, `language-yaml`, `language-bash`.
+   - **IMPORTANTE (Alineación estricta entre el código y la clase de lenguaje `language-<lenguaje>`)**:
+     El valor indicado en `language-<lenguaje>` DEBE coincidir con total precisión con el lenguaje o formato real del fragmento de código.
+     - **Por qué es crítico**: Highlight.js (tema Monokai) aplica gramáticas y esquemas de color específicos para cada analizador léxico. Si un fragmento es JSON, XML, YAML o SQL y se marca erróneamente como `language-java` (o viceversa), el resaltador interpreta mal los tokens y colorea con tonalidades incorrectas, discordantes o "colores feos".
+     - **Mapeo exacto de lenguajes**:
+       - `language-java`: Exclusivamente para clases, interfaces, records, métodos, anotaciones o código Java.
+       - `language-xml`: Para archivos `pom.xml` de Maven o configuraciones XML.
+       - `language-groovy`: Para scripts de Gradle (`build.gradle`).
+       - `language-json`: Para cuerpos de petición/respuesta HTTP, payloads o estructuras JSON.
+       - `language-yaml`: Para archivos `application.yml` o configuraciones YAML.
+       - `language-properties`: Para archivos `application.properties` (`clave=valor`).
+       - `language-bash`: Para comandos de terminal, shell o consola (`mvn clean install`, `curl`, `./gradlew`, `docker`).
+       - `language-sql`: Para consultas y sentencias SQL (`SELECT`, `INSERT`, `UPDATE`, `CREATE TABLE`).
+   - Lenguajes habituales para la clase: `language-java`, `language-xml`, `language-groovy`, `language-json`, `language-properties`, `language-yaml`, `language-bash`, `language-sql`.
 
 3. **Tablas**:
    Deben llevar siempre las clases `table table-striped table-hover`:
@@ -248,3 +260,50 @@ En temas que representen componentes de código (como Controladores, Servicios, 
 - **Leyenda**: Si el diagrama usa colores, formas o tipos de flecha con significado, incluir una pequeña leyenda dentro de la imagen explicando qué representa cada uno.
 - **Formato y ubicación**: La web no carga ninguna librería de diagramas en el navegador (no usar bloques Mermaid dentro del `.html`). Se genera la imagen (preferiblemente `.svg`, o `.png`) y se guarda en `components/<vista>/<contenido>/assets/img/`, insertándola con el formato de imágenes de la sección 4 y su pie de figura.
 - **Explicación asociada**: Tras cada diagrama, incluir una tabla de participantes (`table table-striped table-hover`) con el rol, el tipo (interfaz, clase abstracta, microservicio, etc.) y la responsabilidad de cada elemento, tal y como se hace en los ejemplos de `components/design-patterns/ejemplos/`.
+
+### 5.7. Uso Obligatorio de Lombok en Ejemplos de Spring Boot
+Todos los ejemplos de código Java en la sección de Spring Boot DEBEN utilizar **Project Lombok** para eliminar código repetitivo (*boilerplate*), empleando el conjunto completo y coherente de anotaciones que requiera cada tipo de clase:
+- **Entidades JPA (`@Entity`)**:
+  - Utilizar `@Getter`, `@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder`.
+  - Si se usa `@Builder`, incluir SIEMPRE `@NoArgsConstructor` (obligatorio por la especificación de persistencia JPA) y `@AllArgsConstructor` (requerido por Lombok para que `@Builder` compile).
+  - En `@ToString` y `@EqualsAndHashCode`: en entidades relacionales con colecciones o relaciones bidireccionales (`@OneToMany`, `@ManyToOne`), excluir siempre las relaciones (`@ToString.Exclude`, `@EqualsAndHashCode.OnlyExplicitlyIncluded` con `@EqualsAndHashCode.Include` sobre el `@Id`) o no usar `@Data` para evitar bucles infinitos `StackOverflowError` y desincronizaciones de proxys de Hibernate.
+- **DTOs / Clases de Datos (cuando no se usen Records de Java)**:
+  - Usar `@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder` (o `@Value` para inmutabilidad).
+- **Servicios y Controladores**:
+  - Inyección de dependencias por constructor: usar `@RequiredArgsConstructor` sobre la clase, declarando las dependencias como `private final`.
+  - Logging: usar `@Slf4j` sobre la clase en lugar de instanciar manualmente `LoggerFactory.getLogger(...)`.
+- **Prohibición de boilerplate**:
+  - NO escribir getters, setters, constructores manuales o loggers manuales si pueden ser generados limpiamente por Lombok.
+
+---
+
+## 6. Comunicación del Asistente: Modo Caveman Permanente
+
+Para **ahorrar tokens**, agilizar las interacciones y maximizar la ventana de contexto útil en todas las sesiones de trabajo, el agente DEBE seguir de forma obligatoria estas directrices de comunicación:
+
+1. **Estilo Caveman (Cavernícola) por defecto**:
+   - Responder siempre con frases cortas, directas, estilo telegráfico o cavernícola.
+   - Eliminar saludos, despedidas, fórmulas de cortesía, preámbulos innecesarios y resúmenes redundantes.
+2. **Máxima precisión técnica**:
+   - Brevedad no significa imprecisión: conservar siempre nombres exactos de clases, métodos, comandos, paquetes, puertos y configuraciones.
+3. **Enlaces clickables obligatorios**:
+   - Incluir siempre enlaces clickables en formato Markdown con esquema `file:///` para cada archivo o símbolo creado, editado o mencionado (ej. `[archivo.html](file:///ruta/completa/archivo.html)`).
+4. **Distinción entre Chat y Contenido de la Web**:
+   - **En el chat con el usuario**: Usar siempre estilo Caveman conciso para ahorrar tokens.
+   - **En los archivos `.html` de la web**: El contenido inyectado en los componentes debe ser **100% didáctico, exhaustivo, profesional y formal**, respetando rigurosamente todas las reglas de estructura de las secciones 4 y 5.
+
+---
+
+## 7. Uso Obligatorio y Automático de Skills del Proyecto (`.agents/skills/`)
+
+El agente DEBE seleccionar, activar y aplicar de manera **100% automática, contextual y proactiva** (sin requerir que el usuario lo pida en el chat) la skill especializada adecuada de `.agents/skills/` según la naturaleza de cada tarea, **usando únicamente la que corresponda a cada ámbito y no todas a la vez indiscriminadamente**:
+- **`java-expert`**: Usar en tareas de Java SE puro, sintaxis moderna (Java 17/21+), POO, records, pattern matching, concurrencia y streams.
+- **`spring-boot-expert`**: Usar en arquitectura de Spring Boot, controladores, servicios, inyección por constructor, configuración y manejo de excepciones RFC 7807.
+- **`spring-data-jpa-expert`**: Usar en persistencia relacional (JPA, Hibernate, PostgreSQL, particularidades de Oracle) o NoSQL (MongoDB), consultas, optimización N+1 y transacciones.
+- **`testing-expert`**: Usar en pruebas unitarias, de integración, slice tests (`@DataJpaTest`, `@WebMvcTest`), mocks con Mockito, aserciones con AssertJ y Testcontainers.
+- **Cualquier skill futura**: Usar según su especialidad declarada.
+
+*Nota de combinación*: Si una tarea involucra varios ámbitos a la vez (por ejemplo, implementar persistencia con JPA y escribir su test de integración), se combinan de forma natural solo las skills pertinentes (`spring-data-jpa-expert` + `testing-expert`), sin forzar skills ajenas.
+
+
+

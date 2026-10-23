@@ -1,4 +1,243 @@
-<h1 class="title">Zipkin y Sleuth</h1>
-TODO
-<h2>Introducción</h2>
-<p></p>
+<h1 class="title">Trazabilidad Distribuida: Micrometer Tracing y Zipkin</h1>
+
+<p>
+    En una arquitectura monolítica, una petición de usuario se ejecuta íntegramente dentro de un único proceso de la JVM, por lo que una simple excepción en el archivo de log revela el recorrido completo. En cambio, en una arquitectura de microservicios, una sola acción del usuario (como comprar una mascota) desencadena una <strong>cascada de llamadas HTTP y mensajes asíncronos</strong> a través de múltiples servicios independientes (API Gateway, Servicio de Pedidos, Servicio de Mascotas, Pasarela de Pagos y RabbitMQ).
+</p>
+<p>
+    Si la petición falla o tarda 4 segundos en responder, determinar qué microservicio provocó el retardo o lanzó el error resulta imposible sin <strong>Trazabilidad Distribuida (Distributed Tracing)</strong>.
+</p>
+<p>
+    En <strong>Spring Boot 3+</strong>, esta capacidad la proporciona <strong>Micrometer Tracing</strong> (sucesor oficial de <strong>Spring Cloud Sleuth</strong> en Spring Boot 2), que inyecta identificadores de correlación en las cabeceras HTTP (estándar W3C / B3) y exporta los datos de latencia a servidores de visualización como <strong>Zipkin</strong> u <strong>OpenTelemetry</strong>.
+</p>
+
+<h2>Analogía del Mundo Real: El Código de Seguimiento de un Paquete Internacional</h2>
+<p>
+    Imagina que compras un producto en una tienda online en Japón con entrega en España:
+</p>
+<ul>
+    <li>A tu envío se le asigna un <strong>Número de Seguimiento Global (el Trace ID)</strong>. Este número es único y acompaña al paquete durante todo su viaje por el mundo.</li>
+    <li>Cada tramo o escala individual del viaje (vuelo Tokio-Fráncfort, aduana de Madrid, furgoneta de reparto a tu casa) es un <strong>Paso o Tramo (el Span ID)</strong>.</li>
+    <li>Si el paquete sufre un retraso de 3 días, no llamas a ciegas a cada cartero de cada ciudad: introduces el número de seguimiento global en la web del transportista (el <strong>Servidor Zipkin</strong>) y ves una línea temporal exacta que indica: <em>"Aduana de Madrid: Retenido 72 horas"</em>. Identificas la causa raíz al segundo.</li>
+</ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Un cliente finaliza una orden de compra en la tienda de mascotas. La petición viaja: <code>Gateway</code> &rarr; <code>order-service</code> &rarr; <code>pet-service</code> &rarr; base de datos PostgreSQL.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Logs Aislados)</div>
+            <div class="card-body">
+                <p>El cliente recibe un error <code>500</code>. El equipo de soporte abre los logs de <code>Gateway</code>, <code>order-service</code> y <code>pet-service</code> por separado. Con cientos de peticiones por segundo, es imposible asociar qué línea de log de un servicio corresponde a la petición del cliente.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Micrometer Tracing)</div>
+            <div class="card-body">
+                <p>Todas las líneas de log de todos los microservicios incluyen automáticamente el mismo <code>[traceId=a1b2c3d4]</code>. En Zipkin se visualiza el diagrama de cascada mostrando que <code>pet-service</code> demoró 3.8s bloqueado en un bloqueo de tabla SQL.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Enfoque de Observabilidad</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Micrometer Tracing + Zipkin / Jaeger</b></td>
+            <td><strong>Imprescindible en cualquier arquitectura de más de 2 microservicios</strong>. Permite auditoría de rendimiento, diagnóstico de latencia inter-servicio y correlación unificada de errores en logs centralizados (Elasticsearch / Grafana Loki).</td>
+            <td>Aplicaciones monolíticas simples ejecutándose en un único servidor: no hay saltos de red distribuidos y basta con los logs locales.</td>
+        </tr>
+        <tr>
+            <td><b>Sampling al 100% (probability = 1.0)</b></td>
+            <td>Entornos de desarrollo, pruebas y preproducción donde se desea capturar absolutamente cada llamada para depuración.</td>
+            <td>Sistemas de producción masivos con decenas de miles de peticiones por segundo: el almacenamiento de Zipkin se saturaría. Se recomienda un muestreo del 5% al 10% (<code>probability: 0.1</code>).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Criterios de adopción de trazabilidad distribuida</span>
+
+<h2>Dependencias Necesarias (Spring Boot 3+)</h2>
+<p>
+    En Spring Boot 3 se utiliza el puente Brave de Micrometer y el reporter de Zipkin:
+</p>
+
+<h3>Maven (pom.xml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter Actuator para métricas y salud --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Puente de Micrometer Tracing hacia Brave (motor de trazabilidad de Zipkin) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.micrometer&lt;/groupId&gt;
+    &lt;artifactId&gt;micrometer-tracing-bridge-brave&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Emisor de spans hacia el servidor Zipkin vía HTTP --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.zipkin.reporter2&lt;/groupId&gt;
+    &lt;artifactId&gt;zipkin-reporter-brave&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>Gradle (build.gradle)</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+}
+</code></pre>
+</div>
+
+<h2>Diagrama de Flujo de Trazabilidad</h2>
+<p>
+    El siguiente diagrama ilustra cómo el <code>TraceId</code> se propaga intacto a través de los microservicios mientras cada servicio añade su propio <code>SpanId</code> local:
+</p>
+
+<img class="center-horizontal" src="components/springboot/librerias/spring-cloud/distributed-tracing/assets/img/distributed-tracing-flujo.svg">
+<span class="center-horizontal caption">Figura 1: Propagación de TraceId entre microservicios y reporte de spans a Zipkin</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Concepto</th>
+            <th scope="col">Identificador</th>
+            <th scope="col">Significado y Ámbito</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Trace (Traza)</b></td>
+            <td><code>traceId</code> (ej. <code>a1b2c3d4</code>)</td>
+            <td>El viaje completo de la petición desde que entra al sistema hasta que se completa. Permanece idéntico en todos los microservicios participantes.</td>
+        </tr>
+        <tr>
+            <td><b>Span (Tramo)</b></td>
+            <td><code>spanId</code> (ej. <code>1001</code>, <code>2002</code>)</td>
+            <td>Una operación individual o bloque de trabajo dentro de un microservicio concreto (ej. llamada HTTP, consulta a base de datos o envío AMQP).</td>
+        </tr>
+        <tr>
+            <td><b>Parent Span</b></td>
+            <td><code>parentId</code></td>
+            <td>El identificador del span padre que originó la llamada, permitiendo a Zipkin reconstruir el árbol jerárquico de ejecución.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Conceptos fundamentales del estándar de trazabilidad</span>
+
+<h2>Formato de Logs con Correlación Automática</h2>
+<p>
+    Al incluir las dependencias de Micrometer Tracing, Spring Boot configura automáticamente el <strong>MDC (Mapped Diagnostic Context)</strong> de Logback / SLF4J, añadiendo el nombre del servicio y los IDs en cada línea de log:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+# Formato: [Nombre-Servicio, TraceId, SpanId]
+2026-10-22 21:05:10.123 INFO [order-service,a1b2c3d4e5f6,1001] c.e.o.service.OrderService : Iniciando proceso de orden
+2026-10-22 21:05:10.180 INFO [pet-service,a1b2c3d4e5f6,2002] c.e.p.service.PetService     : Validando mascota ID 42 en BD
+2026-10-22 21:05:10.210 INFO [order-service,a1b2c3d4e5f6,1001] c.e.o.service.OrderService : Orden completada con éxito
+</code></pre>
+</div>
+
+<h2>Configuración en application.yml</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+management:
+  tracing:
+    sampling:
+      # Probabilidad de captura (1.0 = 100% de peticiones en dev / 0.1 = 10% en prod)
+      probability: 1.0
+  zipkin:
+    tracing:
+      # Endpoint URL del servidor Zipkin (puerto estándar 9411)
+      endpoint: http://localhost:9411/api/v2/spans
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+</code></pre>
+</div>
+
+<h2>Ejecución del Servidor Zipkin con Docker</h2>
+<p>
+    Para arrancar el panel visual de Zipkin localmente en menos de 10 segundos:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-bash">
+docker run -d -p 9411:9411 --name zipkin openzipkin/zipkin
+</code></pre>
+</div>
+<p>
+    Una vez iniciado, accede a <code>http://localhost:9411/zipkin/</code> para inspeccionar y buscar trazas por servicio, duración o etiquetas.
+</p>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Trazas Ciega sin Identificador Común (Antipatrón)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Generar UUIDs manuales y pasarlos por parámetro en cada método
+public void crearOrden(OrderDTO order) {
+    String manualUuid = UUID.randomUUID().toString(); // No se propaga por HTTP ni cabeceras automáticamente
+    log.info("Orden " + manualUuid); // Requiere ensuciar cada firma de método con identificadores inventados
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo: Trazabilidad Transparente y Creación de Spans Personalizados</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// BUENA PRÁCTICA: Inyección del Tracer de Micrometer para medir bloques de lógica pesados
+package com.example.orderservice.service;
+
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AuditedOrderService {
+
+    private final Tracer tracer;
+
+    public void procesarCalculoComplejo() {
+        // Crea un nuevo Span secundario específico para medir este cálculo
+        Span newSpan = tracer.nextSpan().name("calculo-tasas-adopcion").start();
+        try (Tracer.SpanInScope ws = tracer.withSpan(newSpan.start())) {
+            log.info("Ejecutando algoritmo matemático de tasas...");
+            Thread.sleep(150); // Simulación de procesamiento
+        } catch (Exception e) {
+            newSpan.error(e);
+        } finally {
+            newSpan.end(); // El span se envía a Zipkin con su duración exacta
+        }
+    }
+}
+</code></pre>
+</div>

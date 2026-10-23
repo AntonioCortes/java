@@ -1,0 +1,213 @@
+<h1 class="title">Spring Data: Proyecciones y DTOs (Interface-based, Records y Dinámicas)</h1>
+
+<h2>1. ¿Qué es una proyección y por qué es una optimización crítica?</h2>
+<p>
+    En la mayoría de endpoints REST de consulta (GET), la vista o el cliente móvil solo necesita mostrar 2 o 3 campos básicos de una entidad (por ejemplo, el nombre y la especie de la mascota en un desplegable). Si el repositorio recupera la entidad completa (<code>PetEntity</code>), el motor debe traer de la base de datos decenas de columnas innecesarias, hidratar los objetos en memoria y lidiar con colecciones perezosas.
+</p>
+<p>
+    Las <b>Proyecciones de Spring Data</b> permiten consultar y mapear únicamente los atributos requeridos directamente desde el motor de base de datos a estructuras ligeras de Java, reduciendo drásticamente el consumo de memoria JVM y el ancho de banda de red.
+</p>
+
+---
+
+<h2>2. Modalidades de Proyección en Spring Data</h2>
+
+<h3>2.1. Proyecciones basadas en Interfaces (Interface-based Projections)</h3>
+<ul>
+    <li>
+        <b>Proyección Cerrada (Closed):</b> La interfaz define únicamente métodos de acceso (getters) cuyos nombres coinciden con las propiedades de la entidad. Spring Data optimiza la sentencia SQL/BSON solicitando <b>exclusivamente esas columnas</b>:
+        <div class="center-horizontal">
+        <pre><code class="language-java">
+        public interface PetSummaryProjection {
+            String getName();
+            String getSpecies();
+        }
+        </code></pre>
+        </div>
+    </li>
+    <li>
+        <b>Proyección Abierta (Open):</b> Utiliza la anotación <code>@Value</code> de Spring Framework con expresiones SpEL para calcular atributos derivados. <i>Advertencia técnica:</i> Al requerir SpEL, Spring Data se ve obligado a cargar la entidad completa a memoria para evaluar la expresión:
+        <div class="center-horizontal">
+        <pre><code class="language-java">
+        public interface PetOpenProjection {
+            @Value("#{target.name + ' (' + target.species + ')'}")
+            String getDisplayName();
+        }
+        </code></pre>
+        </div>
+    </li>
+</ul>
+
+<h3>2.2. Proyecciones basadas en Clases / Records (Class-based DTOs)</h3>
+<p>
+    A partir de Java 16/17+, el uso de <b>Java Records</b> es el estándar preferido de la industria para DTOs inmutables:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+public record PetSummaryDTO(String name, String species) {
+}
+</code></pre>
+</div>
+<p>
+    En JPA se puede poblar mediante correspondencia automática de constructor o mediante expresiones de constructor explícitas en JPQL (<code>SELECT new com.example.dto.PetSummaryDTO(p.name, p.species) FROM PetEntity p</code>).
+</p>
+
+<h3>2.3. Proyecciones Dinámicas (Dynamic Projections)</h3>
+<p>
+    Permiten reutilizar el mismo método de consulta para devolver diferentes representaciones según el caso de uso, pasando la clase de destino como parámetro (<code>Class&lt;T&gt; type</code>).
+</p>
+
+---
+
+<h2>3. Ejemplos Prácticos Completos y Simétricos</h2>
+<p>
+    Se muestra la definición de los tipos de proyección y su consumo simétrico en Spring Data JPA (PostgreSQL/Oracle) y Spring Data MongoDB.
+</p>
+
+<h3>3.1. Definición de Tipos de Proyección Compartidos</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.projection;
+
+// Interfaz cerrada
+public interface PetSummaryProjection {
+    String getName();
+    String getSpecies();
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.dto;
+
+// DTO inmutable con Record de Java 17/21
+public record PetSummaryDTO(String name, String species) {
+}
+</code></pre>
+</div>
+
+<h3>3.2. Repositorio Relacional: PostgreSQL / Oracle (Spring Data JPA)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.relational;
+
+import com.example.petshop.dto.PetSummaryDTO;
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.projection.PetSummaryProjection;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PetProjectionJpaRepository extends JpaRepository&lt;PetEntity, Long&gt; {
+
+    // 1. Proyección cerrada por interfaz (Genera: SELECT p.name, p.species FROM pets p WHERE p.vaccinated = true)
+    List&lt;PetSummaryProjection&gt; findByVaccinatedTrue();
+
+    // 2. Proyección por Record DTO mediante derivación automática
+    List&lt;PetSummaryDTO&gt; findDtoByVaccinatedTrue();
+
+    // 3. Proyección mediante expresión 'new' en JPQL explícito
+    @Query("SELECT new com.example.petshop.dto.PetSummaryDTO(p.name, p.species) " +
+           "FROM PetEntity p WHERE p.species = :species")
+    List&lt;PetSummaryDTO&gt; findSummaryBySpecies(@Param("species") String species);
+
+    // 4. Proyección Dinámica: Devuelve PetEntity, PetSummaryProjection o PetSummaryDTO a petición del llamador
+    &lt;T&gt; List&lt;T&gt; findBySpecies(String species, Class&lt;T&gt; type);
+}
+</code></pre>
+</div>
+
+<h3>3.3. Repositorio Documental: MongoDB (Spring Data MongoDB)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.nosql;
+
+import com.example.petshop.dto.PetSummaryDTO;
+import com.example.petshop.model.nosql.PetDocument;
+import com.example.petshop.projection.PetSummaryProjection;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PetProjectionMongoRepository extends MongoRepository&lt;PetDocument, String&gt; {
+
+    // 1. Proyección cerrada por interfaz en Mongo (Genera filtro y proyección BSON automática de campos)
+    List&lt;PetSummaryProjection&gt; findByVaccinatedTrue();
+
+    // 2. Proyección por Record DTO mediante derivación automática
+    List&lt;PetSummaryDTO&gt; findDtoByVaccinatedTrue();
+
+    // 3. Proyección explícita con @Query y atributo fields
+    @Query(value = "{ 'species': :#{#species} }", fields = "{ 'name': 1, 'species': 1, '_id': 0 }")
+    List&lt;PetSummaryDTO&gt; findSummaryBySpecies(@Param("species") String species);
+
+    // 4. Proyección Dinámica idéntica para documentos MongoDB
+    &lt;T&gt; List&lt;T&gt; findBySpecies(String species, Class&lt;T&gt; type);
+}
+</code></pre>
+</div>
+
+---
+
+<h2>4. Cuándo Usar y Cuándo NO Usar Cada Proyección</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Tipo de Proyección</th>
+            <th scope="col">Cuándo Usarla</th>
+            <th scope="col">Cuándo NO Usarla</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Interface Cerrada</b></td>
+            <td>Mapeos rápidos de solo lectura donde solo se necesitan 2-5 getters. Máxima optimización SQL automática.</td>
+            <td>Cuando se requiera lógica de transformación o cuando el DTO deba serializarse a capas externas desacopladas de Spring.</td>
+        </tr>
+        <tr>
+            <td><b>Record de Java</b></td>
+            <td><b>Estándar recomendado para APIs REST modernas</b>. Inmutable, fácil de testear, serialización Jackson limpia y métodos funcionales integrados.</td>
+            <td>Cuando se requiera herencia de clases complejas o mutabilidad de atributos en memoria.</td>
+        </tr>
+        <tr>
+            <td><b>Interface Abierta (SpEL)</b></td>
+            <td>Casos puntuales donde se necesita concatenar campos antes de exponer el valor sin escribir un método Java manual.</td>
+            <td><b>En consultas de alto rendimiento</b>. Obliga a Hibernate a cargar la entidad entera y pierde toda optimización SQL.</td>
+        </tr>
+        <tr>
+            <td><b>Proyección Dinámica</b></td>
+            <td>Servicios reutilizables que son invocados tanto por procesos batch (entidad completa) como por controladores REST (DTO ligero).</td>
+            <td>Consultas con una única vista o caso de uso fijo.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>5. Contraejemplos y Antipatrones de Proyección</h2>
+
+<h3>Contraejemplo: Devolver Entidades JPA Completas en Endpoints REST de Consulta</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Expone la entidad relacional completa al cliente HTTP
+@GetMapping("/all")
+public List&lt;PetEntity&gt; getAllPets() {
+    // Si PetEntity tiene relaciones @OneToMany (citas, historial médico),
+    // puede provocar LazyInitializationException o serializar megabytes de datos innecesarios
+    return petRepository.findAll();
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución con Proyecciones:</b> Devolver <code>List&lt;PetSummaryDTO&gt;</code> mediante <code>petRepository.findByVaccinatedTrue()</code>.
+</p>

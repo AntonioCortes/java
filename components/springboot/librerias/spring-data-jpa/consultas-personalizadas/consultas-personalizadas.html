@@ -1,0 +1,193 @@
+<h1 class="title">Spring Data: Consultas Personalizadas con @Query (JPQL, SQL Nativo y BSON)</h1>
+
+<h2>1. ¿Qué es la anotación @Query y cuándo utilizarla?</h2>
+<p>
+    La anotación <code>@Query</code> permite tomar el control total de la consulta ejecutada por el repositorio cuando los <i>Derived Query Methods</i> se quedan cortos, ya sea por complejidad de operadores, necesidad de proyecciones específicas, actualización de registros en lote o por requerir optimizaciones directas del motor de persistencia.
+</p>
+
+<h3>Diferencias conceptuales entre motores</h3>
+<ul>
+    <li>
+        <b>En Spring Data JPA:</b> Puede ejecutar <b>JPQL</b> (Java Persistence Query Language), que opera sobre el modelo orientado a objetos (clases y atributos de Java, independiente del motor SQL), o <b>SQL Nativo</b> (activando <code>nativeQuery = true</code>), que se envía tal cual al motor relacional subyacente (PostgreSQL u Oracle).
+    </li>
+    <li>
+        <b>En Spring Data MongoDB:</b> Ejecuta fragmentos de <b>filtros JSON/BSON</b> nativos equivalentes al método <code>db.collection.find(...)</code> de la consola de Mongo, soportando operadores avanzados como <code>$regex</code>, <code>$gte</code>, <code>$in</code> o <code>$elemMatch</code>.
+    </li>
+</ul>
+
+---
+
+<h2>2. Parámetros Nombrados vs Posicionales</h2>
+<p>
+    Spring Data permite dos formas de inyectar variables en las consultas:
+</p>
+<ol>
+    <li>
+        <b>Parámetros Posicionales (<code>?1</code>, <code>?2</code>):</b> Se asocian por el índice ordinal del parámetro en el método. <i>Poco recomendado</i>: cambiar el orden de los argumentos en el método de Java rompe la consulta en tiempo de ejecución.
+    </li>
+    <li>
+        <b>Parámetros Nombrados (<code>:nombre</code> o <code>:#{#nombre}</code> con <code>@Param("nombre")</code>):</b> Vinculan explícitamente el argumento por nombre. <b>Recomendación obligatoria</b> para mantener código robusto y legible.
+    </li>
+</ol>
+
+---
+
+<h2>3. Ejemplos Prácticos Completos y Simétricos</h2>
+<p>
+    Implementamos <b>exactamente los mismos tres casos de negocio</b> en JPA Relacional y en MongoDB NoSQL:
+</p>
+<ol>
+    <li><b>Búsqueda compleja filtrada:</b> Mascotas de una especie con edad entre un rango mínimo y máximo, que estén vacunadas, ordenadas por fecha de admisión descendente.</li>
+    <li><b>Proyección de campos:</b> Traer únicamente el nombre y la especie para optimizar la transferencia de red.</li>
+    <li><b>Actualización masiva:</b> Marcar como vacunadas todas las mascotas de una especie determinada.</li>
+</ol>
+
+<h3>3.1. Repositorio Relacional: PostgreSQL / Oracle (Spring Data JPA)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.relational;
+
+import com.example.petshop.model.relational.PetEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Repository
+public interface PetQueryJpaRepository extends JpaRepository&lt;PetEntity, Long&gt; {
+
+    // 1. Consulta JPQL: Opera sobre la entidad Java (PetEntity p) y sus atributos (p.species)
+    @Query("SELECT p FROM PetEntity p " +
+           "WHERE p.species = :species " +
+           "AND p.age BETWEEN :minAge AND :maxAge " +
+           "AND p.vaccinated = true " +
+           "ORDER BY p.admissionDate DESC")
+    List&lt;PetEntity&gt; findActiveVaccinatedPets(
+        @Param("species") String species,
+        @Param("minAge") int minAge,
+        @Param("maxAge") int maxAge
+    );
+
+    // 2. Consulta SQL Nativa: Opera sobre la tabla física (pets) y nombres de columnas (admission_date)
+    @Query(
+        value = "SELECT * FROM pets p " +
+                "WHERE p.species = :species " +
+                "AND p.age BETWEEN :minAge AND :maxAge " +
+                "AND p.vaccinated = true " +
+                "ORDER BY p.admission_date DESC",
+        nativeQuery = true
+    )
+    List&lt;PetEntity&gt; findActiveVaccinatedPetsNative(
+        @Param("species") String species,
+        @Param("minAge") int minAge,
+        @Param("maxAge") int maxAge
+    );
+
+    // 3. Actualización en lote (Bulk Update) con @Modifying
+    // clearAutomatically = true sincroniza la caché de primer nivel de Hibernate tras la ejecución
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE PetEntity p SET p.vaccinated = true WHERE p.species = :species")
+    int vaccinateAllBySpecies(@Param("species") String species);
+}
+</code></pre>
+</div>
+
+<h3>3.2. Repositorio Documental: MongoDB (Spring Data MongoDB)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.nosql;
+
+import com.example.petshop.model.nosql.PetDocument;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PetQueryMongoRepository extends MongoRepository&lt;PetDocument, String&gt; {
+
+    // 1. Consulta BSON con @Query: Mismo filtro exacto con ordenación inversa (-1)
+    @Query(
+        value = "{ 'species': :#{#species}, 'age': { '$gte': :#{#minAge}, '$lte': :#{#maxAge} }, 'vaccinated': true }",
+        sort = "{ 'admissionDate': -1 }"
+    )
+    List&lt;PetDocument&gt; findActiveVaccinatedPets(
+        @Param("species") String species,
+        @Param("minAge") int minAge,
+        @Param("maxAge") int maxAge
+    );
+
+    // 2. Proyección de campos en Mongo: Devuelve solo _id, name y species (0 excluye, 1 incluye)
+    @Query(
+        value = "{ 'species': :#{#species} }",
+        fields = "{ 'name': 1, 'species': 1, '_id': 1 }"
+    )
+    List&lt;PetDocument&gt; findProjectedBySpecies(@Param("species") String species);
+
+    // En MongoDB las actualizaciones en lote masivas complejas suelen gestionarse mediante MongoTemplate
+    // para control fino de WriteResult y multi-update con Update.update(...)
+}
+</code></pre>
+</div>
+
+---
+
+<h2>4. Cuándo Usar y Cuándo NO Usar Cada Tipo de Consulta</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Tipo de Consulta</th>
+            <th scope="col">Cuándo Usarla</th>
+            <th scope="col">Cuándo NO Usarla</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>JPQL estándar</b></td>
+            <td>Consultas con 3 o más filtros lógicos, ordenación compuesta o joins explícitos entre entidades. Mantiene portabilidad entre PostgreSQL y Oracle.</td>
+            <td>Consultas ultrarrápidas que necesitan funciones nativas específicas del motor (ej. operadores JSONB en Postgres).</td>
+        </tr>
+        <tr>
+            <td><b>SQL Nativo (<code>nativeQuery = true</code>)</b></td>
+            <td>Cuando se requieren funciones exclusivas del dialecto (funciones de ventana, expresiones de tabla común CTEs, hints de optimización de Oracle).</td>
+            <td>Consultas que deban ser portables entre distintos motores. Rompe la validación de tipos de Hibernate en el arranque.</td>
+        </tr>
+        <tr>
+            <td><b>MongoDB BSON <code>@Query</code></b></td>
+            <td>Consultas que aprovechan la riqueza del formato JSON/BSON: operadores de array (<code>$all</code>, <code>$elemMatch</code>) y proyecciones de campos (<code>fields</code>).</td>
+            <td>Consultas muy sencillas de igualdad (en esas es preferible usar un Query Method como <code>findByName</code>).</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>5. Contraejemplos y Errores Habituales con @Query</h2>
+
+<h3>Contraejemplo 1: Olvidar @Modifying en operaciones de UPDATE o DELETE en JPA</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Lanzará InvalidDataAccessApiUsageException en tiempo de ejecución
+public interface BrokenUpdateRepository extends JpaRepository&lt;PetEntity, Long&gt; {
+    // Falta la anotación @Modifying y @Transactional
+    @Query("UPDATE PetEntity p SET p.vaccinated = true WHERE p.species = :species")
+    int badUpdate(@Param("species") String species);
+}
+</code></pre>
+</div>
+<p>
+    <b>Explicación:</b> Por defecto, <code>@Query</code> asume que la sentencia es un <code>SELECT</code>. Para sentencias DML (<code>UPDATE</code>, <code>DELETE</code>), Spring Data requiere obligatoriamente <code>@Modifying</code>.
+</p>
+
+<h3>Contraejemplo 2: Desincronización de la Caché de Primer Nivel de Hibernate</h3>
+<p>
+    Al ejecutar un <code>UPDATE</code> masivo mediante <code>@Modifying</code>, la sentencia va directa a la base de datos sin pasar por el contexto de persistencia. Si previamente se cargó una entidad en memoria, la entidad en Java conservará los valores antiguos a menos que se indique <code>clearAutomatically = true</code>.
+</p>

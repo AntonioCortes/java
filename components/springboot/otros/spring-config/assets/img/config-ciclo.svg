@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="650" viewBox="0 0 960 650" font-family="Arial, Helvetica, sans-serif">
+  <rect width="960" height="650" fill="white"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#222"/>
+    </marker>
+    <marker id="spring-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#6db33f"/>
+    </marker>
+  </defs>
+
+  <text x="480" y="24" text-anchor="middle" font-size="16" font-weight="bold">Ciclo de Configuración y Gestión de Beans en Spring Boot</text>
+
+  <!-- Leyenda -->
+  <text x="30" y="55" font-size="12" font-weight="bold">Leyenda</text>
+  <rect x="30" y="65" width="16" height="12" fill="#e8e8e8" stroke="#333"/>
+  <text x="52" y="75" font-size="11">Propiedades externas (application.yml / Variables)</text>
+  <rect x="30" y="83" width="16" height="12" fill="#d0ebff" stroke="#1971c2"/>
+  <text x="52" y="93" font-size="11">Clase @Configuration y Beans declarados con @Bean</text>
+  <rect x="30" y="101" width="16" height="12" fill="#e6fcf5" stroke="#099268"/>
+  <text x="52" y="111" font-size="11">Contenedor IoC (ApplicationContext de Spring)</text>
+  <rect x="30" y="119" width="16" height="12" fill="#fff3c4" stroke="#333"/>
+  <text x="52" y="129" font-size="11">Consumidor de negocio (@Service / Inyección de dependencias)</text>
+
+  <!-- 1. Propiedades Externas -->
+  <rect x="40" y="160" width="240" height="130" rx="6" fill="#e8e8e8" stroke="#333" stroke-width="1.5"/>
+  <text x="160" y="180" text-anchor="middle" font-size="11" fill="#444">«fuente de propiedades»</text>
+  <text x="160" y="198" text-anchor="middle" font-size="13" font-weight="bold">application.yml</text>
+  <line x1="40" y1="206" x2="280" y2="206" stroke="#333" stroke-width="1"/>
+  <text x="160" y="222" text-anchor="middle" font-size="10.5">petstore:</text>
+  <text x="160" y="238" text-anchor="middle" font-size="10.5">  timeout-ms: 3000</text>
+  <text x="160" y="254" text-anchor="middle" font-size="10.5">  max-pets-per-page: 25</text>
+  <text x="160" y="270" text-anchor="middle" font-size="10.5">  currency: EUR</text>
+
+  <!-- Flecha Propiedades -> @ConfigurationProperties -->
+  <line x1="280" y1="225" x2="350" y2="225" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="315" y="215" text-anchor="middle" font-size="10" fill="#333">Binds</text>
+
+  <!-- 2. @ConfigurationProperties Record -->
+  <rect x="350" y="165" width="240" height="120" rx="6" fill="#f1f3f5" stroke="#495057" stroke-width="1.5"/>
+  <text x="470" y="185" text-anchor="middle" font-size="11" fill="#495057">«record de configuración»</text>
+  <text x="470" y="203" text-anchor="middle" font-size="13" font-weight="bold">PetStoreProperties</text>
+  <line x1="350" y1="211" x2="590" y2="211" stroke="#495057" stroke-width="1"/>
+  <text x="470" y="227" text-anchor="middle" font-size="10">@ConfigurationProperties("petstore")</text>
+  <text x="470" y="243" text-anchor="middle" font-size="10">@Validated (Type-safe &amp; inmutable)</text>
+  <text x="470" y="260" text-anchor="middle" font-size="9.5" fill="#555">int timeoutMs, int maxPets, ...</text>
+
+  <!-- 3. Clase @Configuration -->
+  <rect x="660" y="120" width="270" height="210" rx="6" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+  <text x="795" y="142" text-anchor="middle" font-size="11" fill="#1864ab">«clase de configuración»</text>
+  <text x="795" y="160" text-anchor="middle" font-size="14" font-weight="bold">AppConfig</text>
+  <text x="795" y="176" text-anchor="middle" font-size="10.5" fill="#495057">@Configuration(proxyBeanMethods = true)</text>
+  <line x1="660" y1="184" x2="930" y2="184" stroke="#1971c2" stroke-width="1"/>
+  <text x="795" y="202" text-anchor="middle" font-size="11" font-weight="bold">@Bean modelMapper()</text>
+  <text x="795" y="217" text-anchor="middle" font-size="10" fill="#555">Retorna instancia de ModelMapper</text>
+  <text x="795" y="237" text-anchor="middle" font-size="11" font-weight="bold">@Bean restTemplate()</text>
+  <text x="795" y="252" text-anchor="middle" font-size="10" fill="#555">Usa PetStoreProperties.timeoutMs</text>
+  <text x="795" y="272" text-anchor="middle" font-size="11" font-weight="bold">@Profile("prod") / @Conditional</text>
+  <text x="795" y="287" text-anchor="middle" font-size="10" fill="#555">Registra beans según el entorno</text>
+
+  <!-- Flechas hacia el Contenedor IoC -->
+  <path d="M 470 285 L 470 380" fill="none" stroke="#6db33f" stroke-width="2" marker-end="url(#spring-arrow)"/>
+  <path d="M 795 330 L 795 380" fill="none" stroke="#6db33f" stroke-width="2" marker-end="url(#spring-arrow)"/>
+
+  <!-- 4. Contenedor IoC de Spring -->
+  <rect x="250" y="380" width="600" height="110" rx="8" fill="#e6fcf5" stroke="#099268" stroke-width="2"/>
+  <text x="550" y="405" text-anchor="middle" font-size="12" fill="#087f5b">«contenedor de inversión de control (IoC)»</text>
+  <text x="550" y="425" text-anchor="middle" font-size="15" font-weight="bold">ApplicationContext / BeanFactory de Spring</text>
+  <line x1="250" y1="433" x2="850" y2="433" stroke="#099268" stroke-width="1"/>
+  <rect x="270" y="443" width="165" height="36" rx="4" fill="white" stroke="#20c997"/>
+  <text x="352" y="465" text-anchor="middle" font-size="11" font-weight="bold">ModelMapper (Singleton)</text>
+  <rect x="455" y="443" width="170" height="36" rx="4" fill="white" stroke="#20c997"/>
+  <text x="540" y="465" text-anchor="middle" font-size="11" font-weight="bold">RestTemplate (Singleton)</text>
+  <rect x="645" y="443" width="185" height="36" rx="4" fill="white" stroke="#20c997"/>
+  <text x="737" y="465" text-anchor="middle" font-size="11" font-weight="bold">PetStoreProperties (Bean)</text>
+
+  <!-- Flecha Contenedor -> Consumidor -->
+  <line x1="550" y1="490" x2="550" y2="540" stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="555" y="505" width="170" height="18" fill="white" fill-opacity="0.95"/>
+  <text x="560" y="518" text-anchor="start" font-size="10.5" fill="#111">Inyección por Constructor</text>
+
+  <!-- 5. Consumidor de Negocio -->
+  <rect x="330" y="540" width="440" height="85" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.5"/>
+  <text x="550" y="560" text-anchor="middle" font-size="11" fill="#444">«capa de servicio»</text>
+  <text x="550" y="578" text-anchor="middle" font-size="14" font-weight="bold">PetServiceImpl (@Service)</text>
+  <line x1="330" y1="586" x2="770" y2="586" stroke="#333" stroke-width="1"/>
+  <text x="550" y="602" text-anchor="middle" font-size="11">Constructor(ModelMapper mapper, PetStoreProperties props, RestTemplate rest)</text>
+  <text x="550" y="617" text-anchor="middle" font-size="10" fill="#555">100% testeable con mocks y libre de acoplamiento rígido con "new"</text>
+</svg>

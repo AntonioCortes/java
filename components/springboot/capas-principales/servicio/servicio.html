@@ -69,14 +69,12 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+@RequiredArgsConstructor
 @Service
 public class PetServiceImpl implements PetService 
 {
-    @Autowired
-    PetKafkaService petKafkaService;
-    
-    @Autowired
-    PetRepository petRepository;
+    private final PetKafkaService petKafkaService;
+    private final PetRepository petRepository;
 
     @Override
     public Optional&lt;Pet&gt; findById(Integer pId) 
@@ -108,10 +106,10 @@ public class PetServiceImpl implements PetService
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class StoreServiceImpl implements StoreService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(StoreServiceImpl.class);
 
     private static final String ERROR_REST_SERVICE_STORES_MSG = "Error calling stores service";
     
@@ -127,11 +125,8 @@ public class StoreServiceImpl implements StoreService {
     
     private static final String FIND = "find";
 
-    @Autowired
-    CommunicationConfiguration commConfig;
-
-    @Autowired
-    private RestTemplate restTemplate;
+    private final CommunicationConfiguration commConfig;
+    private final RestTemplate restTemplate;
 
     private String makeStoreURL(String pRegion, String pProvince, String pBusiness,
             String pStoreType) {

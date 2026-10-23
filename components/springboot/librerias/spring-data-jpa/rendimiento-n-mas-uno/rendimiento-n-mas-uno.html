@@ -1,0 +1,283 @@
+<h1 class="title">Spring Data: Rendimiento, Problema N+1 y Concurrencia</h1>
+
+<h2>1. ¿Qué es el Problema N+1 en Bases de Datos Relacionales?</h2>
+<p>
+    El <b>problema N+1</b> es una de las anomalías de rendimiento más destructivas en aplicaciones que utilizan JPA y Hibernate. Ocurre cuando el código recupera una lista de <i>N</i> entidades principales y luego, al acceder a una relación secundaria (generalmente configurada con carga perezosa <code>FetchType.LAZY</code>), Hibernate emite de forma automática <b>N consultas SQL adicionales</b> individuales para cargar los datos de cada elemento secundario.
+</p>
+
+<h3>Demostración del Fallo N+1 en Logs SQL</h3>
+<p>
+    Supongamos una entidad propietario (<code>OwnerEntity</code>) con una relación <code>@OneToMany</code> hacia sus mascotas (<code>PetEntity</code>). Al ejecutar <code>ownerRepository.findAll()</code> sobre 100 propietarios:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-sql">
+-- Consulta inicial 1 (obtiene 100 propietarios):
+SELECT * FROM owners;
+
+-- Hibernate ejecuta 100 consultas secundarias al acceder a owner.getPets():
+SELECT * FROM pets WHERE owner_id = 1;
+SELECT * FROM pets WHERE owner_id = 2;
+SELECT * FROM pets WHERE owner_id = 3;
+-- ... [97 consultas más] ...
+SELECT * FROM pets WHERE owner_id = 100;
+-- TOTAL: 1 + 100 = 101 consultas a la base de datos (Problema N+1)
+</code></pre>
+</div>
+
+---
+
+<h2>2. Soluciones al Problema N+1 en JPA</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Estrategia</th>
+            <th scope="col">Mecanismo</th>
+            <th scope="col">Ventajas y Buenas Prácticas</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b><code>JOIN FETCH</code> en JPQL</b></td>
+            <td>Se especifica explícitamente en la consulta <code>@Query("SELECT o FROM OwnerEntity o JOIN FETCH o.pets")</code>.</td>
+            <td>Trae propietarios y mascotas en un único <code>SELECT</code> con <code>LEFT JOIN</code>. Reduce las 101 consultas a exactamente 1 consulta.</td>
+        </tr>
+        <tr>
+            <td><b><code>@EntityGraph</code></b></td>
+            <td>Se anota sobre cualquier método de repositorio: <code>@EntityGraph(attributePaths = {"pets"})</code>.</td>
+            <td><b>Solución más limpia y recomendada</b>. Permite reutilizar métodos derivados o consultas estándar sin reescribir sentencias JPQL completas.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>3. ¿Por qué en MongoDB / NoSQL este problema NO existe de la misma manera?</h2>
+<p>
+    En almacenes documentales como <b>MongoDB</b>, el paradigma de modelado natural es la <b>desnormalización y el embebido</b>. Las mascotas de un propietario se almacenan directamente dentro del mismo documento JSON/BSON del propietario:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-json">
+{
+  "_id": "64a1b2c3d4e5f67890123456",
+  "fullName": "Carlos Morales",
+  "phoneNumber": "+34 600 123 456",
+  "pets": [
+    { "name": "Max", "species": "Dog", "age": 4 },
+    { "name": "Luna", "species": "Cat", "age": 2 }
+  ]
+}
+</code></pre>
+</div>
+<p>
+    Al consultar los propietarios con <code>ownerMongoRepository.findAll()</code>, el driver de MongoDB recupera los documentos completos con sus mascotas embebidas en <b>una única operación de red</b> (un solo <code>find()</code>). No hay joins ni consultas secundarias N+1.
+</p>
+<p>
+    <i>¿Cuándo sí puede ocurrir en Mongo?</i> Si un desarrollador comete el antipatrón de usar <code>@DBRef</code> entre documentos independientes, forzando al cliente a realizar consultas en bucle.
+</p>
+
+---
+
+<h2>4. Concurrencia y Bloqueos (Locking): Optimista vs Pesimista</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Estrategia</th>
+            <th scope="col">Anotación</th>
+            <th scope="col">Cómo Funciona</th>
+            <th scope="col">Cuándo Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Bloqueo Optimista</b></td>
+            <td><code>@Version private Long version;</code></td>
+            <td>
+                No bloquea la base de datos a nivel físico. Al hacer <code>UPDATE</code>, comprueba <code>WHERE version = ?</code>. Si otro hilo modificó el registro antes, incrementó la versión y la sentencia afecta a 0 filas, lanzando <code>OptimisticLockingFailureException</code>.
+            </td>
+            <td>
+                <b>Recomendación general por defecto</b>. Alta concurrencia de lectura, baja probabilidad de colisión (JPA y MongoDB).
+            </td>
+        </tr>
+        <tr>
+            <td><b>Bloqueo Pesimista</b></td>
+            <td><code>@Lock(LockModeType.PESSIMISTIC_WRITE)</code></td>
+            <td>
+                Ejecuta <code>SELECT ... FOR UPDATE</code> en PostgreSQL y Oracle. Bloquea físicamente la fila en el motor hasta que la transacción termine.
+            </td>
+            <td>
+                Operaciones críticas donde los conflictos son frecuentes y costosos de reintentar (sistemas de reservas de plazas, carritos con stock limitado).
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>5. Ejemplos Prácticos Completos y Simétricos</h2>
+
+<h3>5.1. Persistencia Relacional: PostgreSQL / Oracle (Spring Data JPA)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.relational;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "owners")
+public class OwnerEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    @Column(nullable = false)
+    private String fullName;
+
+    // Relación perezosa por buena práctica de diseño
+    // @ToString.Exclude previene bucles infinitos e invocación accidental de proxy fuera de sesión
+    @ToString.Exclude
+    @Builder.Default
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List&lt;PetEntity&gt; pets = new ArrayList&lt;&gt;();
+
+    // Bloqueo optimista
+    @Version
+    private Long version;
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.relational;
+
+import com.example.petshop.model.relational.OwnerEntity;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface OwnerRepository extends JpaRepository&lt;OwnerEntity, Long&gt; {
+
+    // Solución 1 con @EntityGraph: Evita el N+1 resolviendo la relación 'pets' en 1 sola consulta
+    @EntityGraph(attributePaths = {"pets"})
+    List&lt;OwnerEntity&gt; findAll();
+
+    // Solución 2 con JOIN FETCH explícito en JPQL
+    @Query("SELECT o FROM OwnerEntity o JOIN FETCH o.pets WHERE o.fullName = :name")
+    Optional&lt;OwnerEntity&gt; findByNameWithPets(@Param("name") String name);
+
+    // Bloqueo Pesimista (SELECT ... FOR UPDATE) para operaciones de reserva crítica
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM OwnerEntity o WHERE o.id = :id")
+    Optional&lt;OwnerEntity&gt; findByIdWithPessimisticLock(@Param("id") Long id);
+}
+</code></pre>
+</div>
+
+<h3>5.2. Persistencia Documental: MongoDB (Spring Data MongoDB)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.nosql;
+
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Document(collection = "owners")
+public class OwnerDocument {
+
+    @Id
+    @EqualsAndHashCode.Include
+    private String id;
+
+    @Field("fullName")
+    private String fullName;
+
+    // Subdocumentos embebidos de forma natural: Sin problema N+1 por diseño
+    @Builder.Default
+    @Field("pets")
+    private List&lt;PetDocument&gt; pets = new ArrayList&lt;&gt;();
+
+    // Bloqueo optimista soportado nativamente en Spring Data MongoDB
+    @Version
+    private Long version;
+}
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.nosql;
+
+import com.example.petshop.model.nosql.OwnerDocument;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface OwnerMongoRepository extends MongoRepository&lt;OwnerDocument, String&gt; {
+
+    // La recuperación de documentos completos incluye los subdocumentos embebidos en una sola lectura
+    List&lt;OwnerDocument&gt; findAll();
+
+    Optional&lt;OwnerDocument&gt; findByFullName(String fullName);
+}
+</code></pre>
+</div>
+
+---
+
+<h2>6. Contraejemplos y Antipatrones de Rendimiento</h2>
+
+<h3>Contraejemplo: Usar FetchType.EAGER en Relaciones JPA</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN CATASTRÓFICO: Forzar carga impaciente en la entidad
+@Entity
+public class BadOwnerEntity {
+    @Id
+    private Long id;
+
+    // EAGER provocará joins indiscriminados en CUALQUIER consulta, incluso si solo se pide el nombre
+    @OneToMany(fetch = FetchType.EAGER)
+    private List&lt;PetEntity&gt; pets;
+}
+</code></pre>
+</div>
+<p>
+    <b>Regla de Oro:</b> Configurar <b>siempre</b> <code>FetchType.LAZY</code> en colecciones y utilizar <code>@EntityGraph</code> o <code>JOIN FETCH</code> únicamente en las consultas específicas que requieran cargar los hijos.
+</p>

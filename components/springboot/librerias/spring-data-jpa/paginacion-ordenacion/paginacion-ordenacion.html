@@ -1,0 +1,284 @@
+<h1 class="title">Spring Data: Paginación y Ordenación (Pageable, Page, Slice y Sort)</h1>
+
+<h2>1. Fundamentos: Por qué la paginación es obligatoria en producción</h2>
+<p>
+    En aplicaciones empresariales, realizar consultas que devuelvan listas ilimitadas (<code>List&lt;T&gt;</code>) sobre tablas con miles o millones de registros es una de las causas más frecuentes de caídas por <b>OutOfMemoryError (OOM)</b> en la JVM y de saturación de buffers de red y memoria compartida en la base de datos.
+</p>
+<p>
+    Spring Data estandariza la paginación y ordenación en todos sus módulos a través de:
+</p>
+<ul>
+    <li><b><code>Sort</code>:</b> Define uno o múltiples criterios de ordenación (campo, dirección ascendente/descendente, tratamiento de nulos).</li>
+    <li><b><code>Pageable</code>:</b> Interfaz que encapsula la petición de paginación (número de página con base 0, tamaño de página y objeto <code>Sort</code>).</li>
+    <li><b><code>PageRequest</code>:</b> Implementación canónica creada mediante métodos estáticos de factoría como <code>PageRequest.of(page, size, sort)</code>.</li>
+</ul>
+
+---
+
+<h2>2. Las Tres Opciones de Retorno en Spring Data</h2>
+<p>
+    Spring Data permite devolver tres tipos de estructuras según los requerimientos de la vista o del proceso:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Tipo de Retorno</th>
+            <th scope="col">Consultas Ejecutadas en la BD</th>
+            <th scope="col">Metadatos Proporcionados</th>
+            <th scope="col">Cuándo Usarlo</th>
+            <th scope="col">Cuándo NO Usarlo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b><code>Page&lt;T&gt;</code></b></td>
+            <td>
+                <b>2 consultas:</b><br>
+                1. <code>SELECT ... LIMIT ? OFFSET ?</code><br>
+                2. <code>SELECT COUNT(*) FROM ...</code>
+            </td>
+            <td>
+                - <code>getTotalElements()</code> (total absoluto de filas)<br>
+                - <code>getTotalPages()</code> (total de páginas)<br>
+                - <code>getNumber()</code>, <code>getSize()</code><br>
+                - <code>isFirst()</code>, <code>isLast()</code>
+            </td>
+            <td>
+                Vistas web tradicionales de backoffice con barra de paginación numérica ("Página 1 de 20") donde el usuario salta a páginas intermedias.
+            </td>
+            <td>
+                Colecciones gigantescas (&gt; 500.000 filas) con alta tasa de escritura. El <code>SELECT COUNT(*)</code> fuerza un escaneo de índice/tabla bloqueante.
+            </td>
+        </tr>
+        <tr>
+            <td><b><code>Slice&lt;T&gt;</code></b></td>
+            <td>
+                <b>1 única consulta:</b><br>
+                Solicita <code>size + 1</code> elementos.<br>
+                <b>¡NO hace <code>COUNT(*)</code>!</b>
+            </td>
+            <td>
+                - <code>hasNext()</code> (indica si hay más datos)<br>
+                - <code>hasPrevious()</code><br>
+                - <code>getNumber()</code>, <code>getSize()</code>
+            </td>
+            <td>
+                <b>Scroll infinito</b>, feeds móviles, aplicaciones reactivas y procesamiento por bloques (batches). Ahorra un 50% de las consultas a la BD.
+            </td>
+            <td>
+                Interfaces donde el usuario necesite conocer de antemano el número total de páginas o elementos existentes.
+            </td>
+        </tr>
+        <tr>
+            <td><b><code>List&lt;T&gt;</code> con <code>Pageable</code></b></td>
+            <td>
+                <b>1 única consulta:</b><br>
+                Aplica únicamente el <code>LIMIT</code> y <code>OFFSET</code>.
+            </td>
+            <td>
+                Ninguno. Solo la lista plana de elementos de la página actual.
+            </td>
+            <td>
+                Servicios internos o APIs REST simples que reciben <code>limit</code> y <code>offset</code> sin requerir metadatos de envoltura en el JSON.
+            </td>
+            <td>
+                Vistas interactivas donde el cliente necesite saber si existen más páginas siguientes.
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>3. Traducción de Dialectos SQL vs NoSQL</h2>
+<p>
+    Al solicitar la página 2 con tamaño 10 (<code>PageRequest.of(2, 10)</code>, es decir, saltar 20 elementos y tomar 10):
+</p>
+<ul>
+    <li><b>PostgreSQL / MySQL:</b> Genera <code>LIMIT 10 OFFSET 20</code>.</li>
+    <li><b>Oracle Database (12c+):</b> Genera <code>OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY</code>.</li>
+    <li><b>MongoDB:</b> Genera operaciones nativas del cursor: <code>.skip(20).limit(10)</code>.</li>
+</ul>
+
+---
+
+<h2>4. Ejemplos Prácticos Completos y Simétricos</h2>
+<p>
+    A continuación se ilustra la implementación de los repositorios y de los servicios de negocio que consumen la paginación, comparando JPA y MongoDB con el mismo dominio <code>Pet</code>.
+</p>
+
+<h3>4.1. Persistencia Relacional: PostgreSQL / Oracle (Spring Data JPA)</h3>
+
+<p><b>Interfaz de Repositorio JPA:</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.relational;
+
+import com.example.petshop.model.relational.PetEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PetPagingJpaRepository extends JpaRepository&lt;PetEntity, Long&gt; {
+
+    // 1. Paginación completa con conteo total (Page)
+    Page&lt;PetEntity&gt; findBySpecies(String species, Pageable pageable);
+
+    // 2. Paginación optimizada sin conteo para scroll infinito (Slice)
+    Slice&lt;PetEntity&gt; findByVaccinated(boolean vaccinated, Pageable pageable);
+
+    // 3. Paginación directa a lista simple sin metadatos
+    List&lt;PetEntity&gt; findByAgeGreaterThan(int age, Pageable pageable);
+
+    // 4. Solo ordenación sin paginar
+    List&lt;PetEntity&gt; findBySpecies(String species, Sort sort);
+}
+</code></pre>
+</div>
+
+<p><b>Capa de Servicio JPA:</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service.relational;
+
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetPagingJpaRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+@Transactional(readOnly = true)
+public class PetPagingJpaService {
+
+    private final PetPagingJpaRepository petRepository;
+
+    public void demonstratePagination() {
+        // A. Petición con Page: Página 0, 10 elementos por página, ordenados por fecha de admisión descendente
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "admissionDate"));
+        Page&lt;PetEntity&gt; petPage = petRepository.findBySpecies("Dog", pageRequest);
+
+        log.info("Elementos en página actual: {}", petPage.getNumberOfElements());
+        log.info("Total absoluto de perros en BD: {}", petPage.getTotalElements());
+        log.info("Total de páginas disponibles: {}", petPage.getTotalPages());
+
+        // B. Petición con Slice: Página 0, 20 elementos, ordenados alfabéticamente por nombre
+        PageRequest sliceRequest = PageRequest.of(0, 20, Sort.by("name").ascending());
+        Slice&lt;PetEntity&gt; petSlice = petRepository.findByVaccinated(true, sliceRequest);
+
+        log.info("¿Hay más páginas siguientes?: {}", petSlice.hasNext());
+        // petSlice NO ejecuta COUNT(*), reduciendo drásticamente el consumo de CPU en la BD
+    }
+}
+</code></pre>
+</div>
+
+<h3>4.2. Persistencia Documental: MongoDB (Spring Data MongoDB)</h3>
+
+<p><b>Interfaz de Repositorio MongoDB:</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.repository.nosql;
+
+import com.example.petshop.model.nosql.PetDocument;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PetPagingMongoRepository extends MongoRepository&lt;PetDocument, String&gt; {
+
+    // 1. Paginación completa con conteo total (Page)
+    Page&lt;PetDocument&gt; findBySpecies(String species, Pageable pageable);
+
+    // 2. Paginación optimizada sin conteo para scroll infinito (Slice)
+    Slice&lt;PetDocument&gt; findByVaccinated(boolean vaccinated, Pageable pageable);
+
+    // 3. Paginación directa a lista simple sin metadatos
+    List&lt;PetDocument&gt; findByAgeGreaterThan(int age, Pageable pageable);
+
+    // 4. Solo ordenación sin paginar
+    List&lt;PetDocument&gt; findBySpecies(String species, Sort sort);
+}
+</code></pre>
+</div>
+
+<p><b>Capa de Servicio MongoDB:</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service.nosql;
+
+import com.example.petshop.model.nosql.PetDocument;
+import com.example.petshop.repository.nosql.PetPagingMongoRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class PetPagingMongoService {
+
+    private final PetPagingMongoRepository petRepository;
+
+    public void demonstratePagination() {
+        // A. Petición idéntica con Page en MongoDB
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "admissionDate"));
+        Page&lt;PetDocument&gt; petPage = petRepository.findBySpecies("Dog", pageRequest);
+
+        log.info("Elementos en página actual: {}", petPage.getNumberOfElements());
+        log.info("Total absoluto de documentos en colección: {}", petPage.getTotalElements());
+        log.info("Total de páginas disponibles: {}", petPage.getTotalPages());
+
+        // B. Petición idéntica con Slice en MongoDB (.skip(0).limit(21))
+        PageRequest sliceRequest = PageRequest.of(0, 20, Sort.by("name").ascending());
+        Slice&lt;PetDocument&gt; petSlice = petRepository.findByVaccinated(true, sliceRequest);
+
+        log.info("¿Hay más documentos siguientes?: {}", petSlice.hasNext());
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>5. Contraejemplos y Errores Habituales de Paginación</h2>
+
+<h3>Contraejemplo 1: Usar Page&lt;T&gt; para Scroll Infinito en Tablas Masivas</h3>
+<p>
+    En un scroll infinito de una aplicación móvil con 2 millones de registros, invocar <code>Page&lt;T&gt;</code> fuerza a la base de datos a ejecutar <code>SELECT COUNT(*)</code> en cada solicitud de carga. La base de datos relacional gastará hasta el 80% de su tiempo recalculando el total de filas que el usuario nunca llegará a ver en pantalla.
+</p>
+<p>
+    <b>Solución:</b> Cambiar la firma de retorno en el repositorio a <code>Slice&lt;T&gt;</code>.
+</p>
+
+<h3>Contraejemplo 2: Paginación con Desplazamientos Gigantes (Deep Paging)</h3>
+<p>
+    Ejecutar <code>PageRequest.of(10000, 50)</code> en SQL genera <code>OFFSET 500000 LIMIT 50</code>. La base de datos debe escanear y descartar 500.000 filas en memoria antes de devolver las 50 solicitadas.
+</p>
+<p>
+    <b>Solución:</b> Para colecciones masivas, implementar <i>Keyset Pagination</i> (paginación por cursor) utilizando condiciones de orden: <code>WHERE id &gt; :lastSeenId ORDER BY id ASC LIMIT 50</code>.
+</p>

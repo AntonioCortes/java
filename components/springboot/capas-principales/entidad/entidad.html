@@ -89,7 +89,13 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Accessors(chain = true)
 @Entity
 @Table(name = "pet")
@@ -98,6 +104,7 @@ public class Pet implements Serializable
     private static final long serialVersionUID = 1L;
 
     @Id
+    @EqualsAndHashCode.Include
     @NotNull
     @Column(name = "id")
     private Integer id;
@@ -160,19 +167,27 @@ public class Pet implements Serializable
 <h3>Tabla call</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Accessors(chain = true)
 @Entity
 @Table(name = "call")
-@Data
-@Accessors(chain = true)
 public class Call implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     @Column(name = "id")
     private Integer id;
 
+    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "row_id")
     private Row row;
@@ -192,19 +207,27 @@ public class Call implements Serializable
 <h3>Tabla message</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Accessors(chain = true)
 @Entity
 @Table(name = "message")
-@Data
-@Accessors(chain = true)
 public class Message implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     @Column(name = "id")
     private Integer id;
 
+    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "row_id")
     private Row row;
@@ -221,19 +244,27 @@ public class Message implements Serializable
 <h3>Tabla json_row</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Accessors(chain = true)
 @Entity
 @Table(name = "json_row")
-@Data
-@Accessors(chain = true)
 public class Row implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     @Column(name = "id")
     private Integer id;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "json_id")
     private ProcessedJSON processedJSON;
@@ -256,9 +287,11 @@ public class Row implements Serializable
     @Column(name = "fields_errors")
     private Boolean fieldsErrors;
 
+    @ToString.Exclude
     @OneToOne(mappedBy = "row", cascade = CascadeType.ALL, orphanRemoval = true)
     private Call call;
 
+    @ToString.Exclude
     @OneToOne(mappedBy = "row", cascade = CascadeType.ALL, orphanRemoval = true)
     private Message message;
 }
@@ -268,16 +301,23 @@ public class Row implements Serializable
 <h3>Tabla processed_json</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Accessors(chain = true)
 @Entity
 @Table(name = "processed_json")
-@Data
-@Accessors(chain = true)
 public class ProcessedJSON implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     @Column(name = "id")
     private Integer id;
 
@@ -287,6 +327,7 @@ public class ProcessedJSON implements Serializable
     @Column(name = "process_duration")
     private Long processDuration;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "processedJSON", cascade = CascadeType.ALL, orphanRemoval = true)
     private List&lt;Row&gt; rowList;
 }

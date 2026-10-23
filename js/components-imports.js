@@ -184,12 +184,23 @@ import '../components/springboot/conceptos-basicos/estructura/estructura.js';
 import '../components/springboot/conceptos-basicos/introduccion/introduccion.js';
 import '../components/springboot/conceptos-basicos/maven-gradle-build/maven-gradle-build.js';
 
+// SpringBoot - Librerías - Spring Data
+import '../components/springboot/librerias/spring-data-jpa/arquitectura-modelado/arquitectura-modelado.js';
+import '../components/springboot/librerias/spring-data-jpa/query-methods/query-methods.js';
+import '../components/springboot/librerias/spring-data-jpa/consultas-personalizadas/consultas-personalizadas.js';
+import '../components/springboot/librerias/spring-data-jpa/paginacion-ordenacion/paginacion-ordenacion.js';
+import '../components/springboot/librerias/spring-data-jpa/proyecciones/proyecciones.js';
+import '../components/springboot/librerias/spring-data-jpa/rendimiento-n-mas-uno/rendimiento-n-mas-uno.js';
+import '../components/springboot/librerias/spring-data-jpa/auditoria-transacciones/auditoria-transacciones.js';
+
 // SpringBoot - Librerías - Spring Cloud
 import '../components/springboot/librerias/spring-cloud/distributed-tracing/distributed-tracing.js';
 import '../components/springboot/librerias/spring-cloud/eureka-server/eureka-server.js';
+import '../components/springboot/librerias/spring-cloud/gateway/gateway.js';
 import '../components/springboot/librerias/spring-cloud/introduccion-spring-cloud/introduccion-spring-cloud.js';
 import '../components/springboot/librerias/spring-cloud/load-balancers/load-balancers.js';
 import '../components/springboot/librerias/spring-cloud/open-feign/open-feign.js';
+import '../components/springboot/librerias/spring-cloud/resilience4j/resilience4j.js';
 
 // SpringBoot - Librerías - Spring Security
 import '../components/springboot/librerias/spring-security/basic-security/basic-security.js';

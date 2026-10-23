@@ -1,0 +1,383 @@
+<h1 class="title">Spring Data: Arquitectura y Modelado de Datos (Relacional vs NoSQL)</h1>
+
+<h2>1. ¿Qué es Spring Data y para qué sirve?</h2>
+<p>
+    <b>Spring Data</b> es un proyecto paraguas dentro del ecosistema de Spring cuya misión es proporcionar un modelo de acceso a datos consistente, unificado y desacoplado de la tecnología de almacenamiento subyacente. A través de su núcleo común (<b>Spring Data Commons</b>), estandariza interfaces de repositorio (como <code>Repository</code>, <code>CrudRepository</code> o <code>PagingAndSortingRepository</code>), derivación automática de consultas a partir de firmas de métodos, evaluación de expresiones de paginación y ordenación, y mecanismos de auditoría automatizada.
+</p>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>sistema internacional de enchufes modulares</b>: la clavija interna (el cargador del dispositivo o código de negocio) siempre tiene la misma interfaz estándar, pero al viajar a diferentes países (bases de datos relacionales, almacenes de documentos o caches en memoria) solo necesitamos encajar el adaptador adecuado (el starter de Spring Data JPA, Spring Data MongoDB o Spring Data Redis). El dispositivo sigue recibiendo electricidad sin necesidad de reescribir su circuitería interna.
+</p>
+
+<h3>Caso de uso real estructurado</h3>
+<ul>
+    <li><b>Contexto:</b> Sistema de gestión clínica veterinaria donde se registran mascotas (<code>Pet</code>), sus propietarios y su historial médico.</li>
+    <li><b>El Problema (Sin Spring Data):</b> Desarrollar a mano código JDBC repetitivo (<i>boilerplate</i>), abrir y cerrar conexiones, mapear manualmente <code>ResultSet</code> a objetos Java, gestionar transacciones con commits manuales y reescribir consultas SQL específicas para cada motor (PostgreSQL vs Oracle vs MongoDB).</li>
+    <li><b>La Solución (Con Spring Data):</b> Definir entidades mediante anotaciones estándar, declarar una interfaz que extienda de <code>JpaRepository</code> o <code>MongoRepository</code> y dejar que el framework autogenere en tiempo de ejecución las implementaciones óptimas, soporte de transacciones y optimizaciones de consulta.</li>
+</ul>
+
+<div class="center-horizontal">
+<img class="center-horizontal" src="components/springboot/librerias/spring-data-jpa/assets/img/spring-data-relational-vs-nosql.svg" alt="Arquitectura Spring Data Relacional vs NoSQL">
+</div>
+<span class="center-horizontal caption">Figura 1: Arquitectura unificada de Spring Data Commons hacia persistencia Relacional y Documental</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Bases de Datos Relacionales (JPA / PostgreSQL / Oracle)</th>
+            <th scope="col">Bases de Datos NoSQL Documentales (MongoDB)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Modelo de Datos</b></td>
+            <td>Tablas rígidas, filas, columnas y claves foráneas (integridad referencial).</td>
+            <td>Colecciones y documentos BSON/JSON jerárquicos (esquema flexible y polimórfico).</td>
+        </tr>
+        <tr>
+            <td><b>Normalización vs Desnormalización</b></td>
+            <td>Normalización (evitar redundancia mediante joins y tablas intermedias).</td>
+            <td>Desnormalización (embebido de subdocumentos para lectura en un único acceso).</td>
+        </tr>
+        <tr>
+            <td><b>Garantías Transaccionales</b></td>
+            <td>ACID estricto de forma nativa a nivel de motor.</td>
+            <td>Atomicidad por documento; soporte de transacciones multi-documento mediante Replica Sets.</td>
+        </tr>
+        <tr>
+            <td><b>Cuándo usarlo</b></td>
+            <td>Dominios con reglas de negocio estrictas, relaciones complejas muchos a muchos y reportes analíticos con joins.</td>
+            <td>Catálogos cambiantes, eventos, registros médicos anidados, alta tasa de escritura o escalabilidad horizontal masiva.</td>
+        </tr>
+        <tr>
+            <td><b>Cuándo NO usarlo</b></td>
+            <td>Datos no estructurados con atributos altamente volátiles o esquemas que mutan a diario.</td>
+            <td>Sistemas bancarios o contables que exigen integridad referencial rígida y claves foráneas en cascada.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>2. Dependencias del Proyecto</h2>
+<p>
+    A continuación se detallan las configuraciones de compilación necesarias para cada motor de persistencia.
+</p>
+
+<h3>2.1. PostgreSQL + Spring Data JPA</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml: Spring Data JPA + Driver PostgreSQL --&gt;
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+        &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle: Spring Data JPA + Driver PostgreSQL
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
+}
+</code></pre>
+</div>
+
+<h3>2.2. Oracle Database + Spring Data JPA</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml: Spring Data JPA + Driver Oracle JDBC --&gt;
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.oracle.database.jdbc&lt;/groupId&gt;
+        &lt;artifactId&gt;ojdbc8&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle: Spring Data JPA + Driver Oracle JDBC
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc8'
+}
+</code></pre>
+</div>
+
+<h3>2.3. MongoDB + Spring Data MongoDB</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- pom.xml: Spring Data MongoDB --&gt;
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-mongodb&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+// build.gradle: Spring Data MongoDB
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+}
+</code></pre>
+</div>
+
+---
+
+<h2>3. Modelado de Datos: Mismo Caso de Uso en Relacional y NoSQL</h2>
+<p>
+    Para garantizar máxima claridad y coherencia en toda la documentación, modelamos exactamente la misma entidad de negocio (la mascota <code>Pet</code> de nuestra clínica veterinaria) en ambos paradigmas con sus respectivos atributos: identificador, nombre, especie, edad, estado de vacunación y fecha de admisión.
+</p>
+
+<h3>3.1. Modelo Relacional (JPA con PostgreSQL)</h3>
+<p>
+    En bases de datos relacionales estándar como PostgreSQL, la entidad se mapea a una tabla física (<code>pets</code>) mediante <code>@Entity</code> y <code>@Table</code>. La clave primaria utiliza la estrategia <code>GenerationType.IDENTITY</code> apoyada en columnas <code>BIGSERIAL</code> o <code>GENERATED ALWAYS AS IDENTITY</code>. El atributo booleano se persiste de forma nativa en una columna de tipo <code>BOOLEAN</code>.
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.relational;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDate;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "pets")
+public class PetEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
+
+    @Column(name = "species", nullable = false, length = 50)
+    private String species;
+
+    @Column(name = "age", nullable = false)
+    private int age;
+
+    @Column(name = "vaccinated", nullable = false)
+    private boolean vaccinated;
+
+    @Column(name = "admission_date", nullable = false)
+    private LocalDate admissionDate;
+}
+</code></pre>
+</div>
+
+<h3>3.2. Particularidad de Dialecto: Adaptación para Oracle Database</h3>
+<p>
+    En bases de datos <b>Oracle</b> (especialmente versiones anteriores a 23c), existen dos diferencias arquitectónicas críticas frente a PostgreSQL:
+</p>
+<ol>
+    <li><b>Inexistencia de tipo SQL BOOLEAN nativo:</b> Las columnas para valores lógicos se definen típicamente como <code>CHAR(1)</code> con restricciones de chequeo <code>CHECK (VACCINATED IN ('Y', 'N'))</code> o <code>('T', 'F')</code>. En Java se resuelve limpiamente mediante un conversor JPA (<code>AttributeConverter</code>).</li>
+    <li><b>Estrategia de Secuencias (GenerationType.SEQUENCE):</b> Oracle gestiona los identificadores mediante secuencias independientes creadas en el esquema (<code>CREATE SEQUENCE PET_SEQ START WITH 1 INCREMENT BY 1</code>), requiriendo <code>@SequenceGenerator</code>.</li>
+</ol>
+
+<div class="center-horizontal">
+<img class="center-horizontal" src="components/springboot/librerias/spring-data-jpa/assets/img/oracle-dialect-nuances.svg" alt="Conversor de Booleanos y Secuencias en Oracle">
+</div>
+<span class="center-horizontal caption">Figura 2: Adaptación del tipo Boolean a CHAR(1) y generación por secuencia para Oracle DB</span>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.converter;
+
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
+/**
+ * Conversor JPA para compatibilidad con Oracle DB:
+ * Mapea Boolean de Java a CHAR(1) ('Y' o 'N') en la base de datos.
+ */
+@Converter(autoApply = false)
+public class BooleanToCharConverter implements AttributeConverter&lt;Boolean, String&gt; {
+
+    @Override
+    public String convertToDatabaseColumn(Boolean attribute) {
+        if (attribute == null) {
+            return "N";
+        }
+        return attribute ? "Y" : "N";
+    }
+
+    @Override
+    public Boolean convertToEntityAttribute(String dbData) {
+        if (dbData == null) {
+            return false;
+        }
+        return "Y".equalsIgnoreCase(dbData.trim()) || "T".equalsIgnoreCase(dbData.trim()) || "1".equals(dbData.trim());
+    }
+}
+</code></pre>
+</div>
+
+<p>
+    Entidad adaptada para Oracle utilizando la secuencia y el conversor:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.oracle;
+
+import com.example.petshop.converter.BooleanToCharConverter;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDate;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "PETS")
+public class PetOracleEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pet_seq_gen")
+    @SequenceGenerator(
+        name = "pet_seq_gen",
+        sequenceName = "PET_SEQ",
+        allocationSize = 1 // allocationSize = 1 evita saltos de números en la secuencia
+    )
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    @Column(name = "NAME", nullable = false, length = 100)
+    private String name;
+
+    @Column(name = "SPECIES", nullable = false, length = 50)
+    private String species;
+
+    @Column(name = "AGE", nullable = false)
+    private int age;
+
+    @Convert(converter = BooleanToCharConverter.class)
+    @Column(name = "VACCINATED", nullable = false, length = 1)
+    private boolean vaccinated;
+
+    @Column(name = "ADMISSION_DATE", nullable = false)
+    private LocalDate admissionDate;
+}
+</code></pre>
+</div>
+
+<h3>3.3. Modelo Documental (MongoDB con Spring Data MongoDB)</h3>
+<p>
+    En MongoDB, no existen tablas ni columnas rígidas. La clase se marca con <code>@Document(collection = "pets")</code> y su identificador suele ser un <code>String</code> (que almacena un <code>ObjectId</code> de 12 bytes en hexadecimal). Los tipos booleanos son ciudadanos de primera clase en BSON (formato binario de JSON), y si la mascota tiene detalles clínicos complementarios, se modelan como un subdocumento embebido sin requerir una tabla intermedia.
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.nosql;
+
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import java.time.LocalDate;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Document(collection = "pets")
+public class PetDocument {
+
+    @Id
+    @EqualsAndHashCode.Include
+    private String id;
+
+    @Field("name")
+    private String name;
+
+    @Field("species")
+    private String species;
+
+    @Field("age")
+    private int age;
+
+    @Field("vaccinated")
+    private boolean vaccinated;
+
+    @Field("admissionDate")
+    private LocalDate admissionDate;
+}
+</code></pre>
+</div>
+
+---
+
+<h2>4. Contraejemplos y Antipatrones de Modelado</h2>
+
+<h3>Contraejemplo 1: Simular relaciones relacionales con @DBRef en MongoDB</h3>
+<p>
+    Intentar usar MongoDB como si fuera una base de datos relacional vinculando documentos mediante <code>@DBRef</code> provoca llamadas en cascada del cliente, perdiendo el beneficio de la lectura en una sola operación.
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Destruye el rendimiento en MongoDB simulando joins
+@Document(collection = "pets")
+public class BadPetDocument {
+    @Id
+    private String id;
+    
+    // Provoca consultas cliente adicionales para resolver cada referencia
+    @DBRef
+    private OwnerDocument owner; 
+}
+</code></pre>
+</div>
+
+<h3>Contraejemplo 2: Almacenar JSON no indexado en columnas de texto relacionales sin necesidad</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Guardar un string JSON en columna VARCHAR sin tipos nativos JSONB
+@Entity
+@Table(name = "pets")
+public class BadPetEntity {
+    @Id
+    private Long id;
+    
+    // Impide índices eficientes, validaciones de esquema y comprobaciones de integridad
+    @Column(name = "extra_data_json", length = 4000)
+    private String rawJsonPayload;
+}
+</code></pre>
+</div>

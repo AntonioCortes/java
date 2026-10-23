@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Arial, Helvetica, sans-serif">
+  <rect width="960" height="560" fill="white"/>
+  <defs>
+    <marker id="hollow" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M1,1 L11,6 L1,11 Z" fill="white" stroke="#222" stroke-width="1.5"/></marker>
+  </defs>
+  <text x="480" y="24" text-anchor="middle" font-size="16" font-weight="bold">Jerarquía de Repositorios en Spring Data JPA</text>
+
+  <!-- Repository (Marcador raíz) -->
+  <rect x="370" y="55" width="220" height="60" rx="6" fill="#e1f5fe" stroke="#0288d1" stroke-width="1.8"/>
+  <text x="480" y="75" text-anchor="middle" font-size="11" fill="#0277bd">«interfaz raíz»</text>
+  <text x="480" y="95" text-anchor="middle" font-size="14" font-weight="bold">Repository&lt;T, ID&gt;</text>
+
+  <!-- CrudRepository -->
+  <rect x="340" y="160" width="280" height="85" rx="6" fill="#e1f5fe" stroke="#0288d1" stroke-width="1.8"/>
+  <text x="480" y="180" text-anchor="middle" font-size="11" fill="#0277bd">«interfaz»</text>
+  <text x="480" y="200" text-anchor="middle" font-size="14" font-weight="bold">CrudRepository&lt;T, ID&gt;</text>
+  <line x1="340" y1="208" x2="620" y2="208" stroke="#0288d1" stroke-width="1"/>
+  <text x="480" y="225" text-anchor="middle" font-size="10.5">save(), findById(), existsById(), deleteById()</text>
+
+  <!-- PagingAndSortingRepository -->
+  <rect x="320" y="285" width="320" height="85" rx="6" fill="#e1f5fe" stroke="#0288d1" stroke-width="1.8"/>
+  <text x="480" y="305" text-anchor="middle" font-size="11" fill="#0277bd">«interfaz»</text>
+  <text x="480" y="325" text-anchor="middle" font-size="14" font-weight="bold">PagingAndSortingRepository&lt;T, ID&gt;</text>
+  <line x1="320" y1="333" x2="640" y2="333" stroke="#0288d1" stroke-width="1"/>
+  <text x="480" y="350" text-anchor="middle" font-size="10.5">findAll(Sort sort), findAll(Pageable pageable)</text>
+
+  <!-- JpaRepository -->
+  <rect x="300" y="410" width="360" height="100" rx="6" fill="#d4edda" stroke="#28a745" stroke-width="2"/>
+  <text x="480" y="430" text-anchor="middle" font-size="11" fill="#2d6a4f">«interfaz especializada JPA»</text>
+  <text x="480" y="450" text-anchor="middle" font-size="15" font-weight="bold">JpaRepository&lt;T, ID&gt;</text>
+  <line x1="300" y1="458" x2="660" y2="458" stroke="#28a745" stroke-width="1"/>
+  <text x="480" y="475" text-anchor="middle" font-size="10.5">flush(), saveAndFlush(), deleteInBatch()</text>
+  <text x="480" y="493" text-anchor="middle" font-size="10.5" fill="#2d6a4f" font-weight="bold">Consultas por derivación de nombre y @Query (JPQL/SQL)</text>
+
+  <!-- Nuestro Repositorio Concreto de Dominio -->
+  <rect x="730" y="410" width="210" height="100" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="835" y="430" text-anchor="middle" font-size="11" fill="#444">«interfaz de dominio»</text>
+  <text x="835" y="450" text-anchor="middle" font-size="13" font-weight="bold">PetRepository</text>
+  <line x1="730" y1="458" x2="940" y2="458" stroke="#333" stroke-width="1"/>
+  <text x="835" y="475" text-anchor="middle" font-size="10">findBySpecies(String s)</text>
+  <text x="835" y="492" text-anchor="middle" font-size="10">findByAgeGreaterThan(int a)</text>
+
+  <!-- Flechas de herencia (extends) -->
+  <line x1="480" y1="160" x2="480" y2="120" stroke="#222" stroke-width="1.5" marker-end="url(#hollow)"/>
+  <line x1="480" y1="285" x2="480" y2="250" stroke="#222" stroke-width="1.5" marker-end="url(#hollow)"/>
+  <line x1="480" y1="410" x2="480" y2="375" stroke="#222" stroke-width="1.5" marker-end="url(#hollow)"/>
+  <line x1="730" y1="460" x2="665" y2="460" stroke="#222" stroke-width="1.5" marker-end="url(#hollow)"/>
+</svg>

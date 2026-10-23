@@ -1,7 +1,490 @@
-<h1 class="title">RabbitMQ</h1>
+<h1 class="title">RabbitMQ y Spring AMQP</h1>
 
+<p>
+    <strong>RabbitMQ</strong> es uno de los motores de intermediación de mensajes (<em>Message Broker</em>) más populares y extendidos del mundo del software empresarial. Desarrollado originalmente sobre la plataforma Erlang OTP y basado en el estándar abierto <strong>AMQP (Advanced Message Queuing Protocol)</strong>, permite que diferentes aplicaciones o microservicios se comuniquen de forma <strong>asíncrona, desacoplada y altamente tolerante a fallos</strong>.
+</p>
+<p>
+    A través del módulo <strong>Spring AMQP</strong> y el starter <code>spring-boot-starter-amqp</code>, Spring Boot proporciona abstracciones de alto nivel que simplifican drásticamente la configuración de colas, intercambiadores (<em>exchanges</em>), enlaces (<em>bindings</em>), plantillas de publicación (<code>RabbitTemplate</code>) y escuchadores reactivos mediante la anotación <code>@RabbitListener</code>.
+</p>
 
-<h2>Sender</h2>
+<h2>Analogía del Mundo Real: La Oficina Central de Paquetería Postal</h2>
+<p>
+    Imagina que necesitas enviar un paquete urgente o una carta certificada a varias personas. En una arquitectura puramente síncrona (como HTTP/REST), tendrías que viajar en persona hasta el domicilio de cada destinatario, llamar al timbre y quedarte esperando en la puerta hasta que te abran. Si uno de ellos no está en casa o está ocupado, todo tu viaje se detiene y tu tiempo se desperdicia.
+</p>
+<p>
+    Con <strong>RabbitMQ</strong>, actúas como quien lleva sus envíos a una <strong>Oficina Central de Correos</strong>:
+</p>
+<ul>
+    <li>El <strong>Emisor (Producer)</strong> deposita el paquete en la ventanilla de entrada y se marcha inmediatamente a continuar con sus tareas habituales.</li>
+    <li>La ventanilla clasificadora es el <strong>Exchange</strong>, que lee la etiqueta del paquete (la <em>Routing Key</em>) y decide a qué buzón o furgón dirigirlo.</li>
+    <li>Las <strong>Colas (Queues)</strong> son los casilleros y estanterías seguras donde los paquetes permanecen almacenados de forma duradera hasta que alguien los retira.</li>
+    <li>Los <strong>Consumidores (Consumers / Receivers)</strong> son los operarios de entrega que retiran los paquetes de las colas a su propio ritmo de trabajo (<em>Load Leveling</em>). Si un operario se enferma o la furgoneta se detiene, ningún paquete se pierde: esperan protegidos en la estantería hasta que el servicio se restablece.</li>
+</ul>
 
-<h2>Reciver</h2>
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>En la tienda de mascotas (<code>PetStore</code>), cuando un cliente adopta una mascota mediante <code>POST /petshop/pet/{id}/adopt</code>, el sistema debe: generar la cartilla de salud digital en PDF, facturar la tasa de adopción, notificar al veterinario y enviar un email con recomendaciones nutricionales.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Llamadas HTTP Síncronas)</div>
+            <div class="card-body">
+                <p>El microservicio de mascotas invoca sucesivamente por HTTP a los microservicios de Notificación, Facturación y PDF. La petición tarda más de 5 segundos en responder. Si el servicio de correos se satura o se reinicia, la petición HTTP lanza un <code>504 Gateway Timeout</code> y el cliente piensa que la adopción fracasó, cuando en realidad la base de datos ya había reservado la mascota.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (RabbitMQ Asíncrono)</div>
+            <div class="card-body">
+                <p>El microservicio de mascotas persiste la adopción y publica un mensaje <code>PetAdoptedEvent</code> en RabbitMQ en menos de 3 milisegundos, retornando <code>200 OK</code> de inmediato. Los servicios consumidores leen de sus colas dedicadas en segundo plano. Si el servicio de correos se detiene, la cola acumula los mensajes y los entrega al arrancar de nuevo sin perder un solo correo.</p>
+            </div>
+        </div>
+    </div>
+</div>
 
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Tecnología / Enfoque</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>RabbitMQ (Spring AMQP)</b></td>
+            <td>Comunicación asíncrona entre microservicios, tareas pesadas en background (envío masivo de emails, generación de informes, procesamiento de imágenes), amortiguación de picos de carga (load leveling) y enrutamiento complejo y flexible entre colas.</td>
+            <td>Operaciones síncronas que requieran respuesta inmediata para continuar la interacción del usuario en tiempo real (ej. validar si una contraseña es correcta antes de iniciar sesión).</td>
+        </tr>
+        <tr>
+            <td><b>HTTP REST Síncrono (Feign/WebClient)</b></td>
+            <td>Consultas de lectura directa donde el cliente necesita inmediatamente el resultado en el mismo hilo de ejecución (ej. consultar el saldo disponible de una cuenta antes de autorizar un pago).</td>
+            <td>Acciones de tipo comando o notificación que desencadenan múltiples procesos posteriores que no aportan información inmediata al emisor.</td>
+        </tr>
+        <tr>
+            <td><b>Apache Kafka</b></td>
+            <td>Transmisión masiva de eventos (<em>Event Streaming</em>) con millones de eventos por segundo, procesamiento de flujo en tiempo real (Kafka Streams), re-reproducción de eventos históricos (event replay) y retención prolongada de datos (días o meses).</td>
+            <td>Sistemas transaccionales de colas simples de trabajo, donde el mensaje deba eliminarse inmediatamente tras ser procesado (ACK) o donde se requiera enrutamiento fino basado en cabeceras complejas o prioridades individuales de cola.</td>
+        </tr>
+        <tr>
+            <td><b>Spring ApplicationEvents (En memoria)</b></td>
+            <td>Eventos locales dentro del mismo proceso Java y la misma JVM (ej. notificar a otro bean local tras un <code>@TransactionalEventListener</code>).</td>
+            <td>Cualquier comunicación que deba atravesar la frontera entre diferentes procesos, servidores o microservicios distribuidos.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de mecanismos de comunicación asíncrona vs síncrona</span>
+
+<h2>Dependencias Necesarias</h2>
+<p>
+    Para integrar RabbitMQ en una aplicación Spring Boot se utiliza el starter oficial de AMQP. Adicionalmente, se recomienda incluir Jackson para serializar y deserializar los mensajes a formato JSON automáticamente:
+</p>
+
+<h3>Maven (pom.xml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring Boot para AMQP y RabbitMQ --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-amqp&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Jackson Databind para serialización de mensajes a JSON --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>Gradle (build.gradle)</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+}
+</code></pre>
+</div>
+
+<h2>Diagrama de Arquitectura y Flujo de Mensajería</h2>
+<p>
+    En el modelo de RabbitMQ, los productores <strong>nunca envían mensajes directamente a las colas</strong>. En su lugar, publican siempre en un <strong>Exchange</strong>, que se encarga de clonar y distribuir el mensaje hacia las colas correspondientes evaluando sus <em>Bindings</em> y <em>Routing Keys</em>:
+</p>
+
+<img class="center-horizontal" src="components/springboot/otros/rabbitmq/assets/img/rabbitmq-arquitectura.svg">
+<span class="center-horizontal caption">Figura 1: Arquitectura de mensajería con productor, exchanges, colas, DLQ y consumidores en RabbitMQ</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento</th>
+            <th scope="col">Estereotipo / Tipo</th>
+            <th scope="col">Rol y Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>PetStore Core</b></td>
+            <td><code>«microservicio emisor»</code></td>
+            <td>Contiene el componente <code>PetEventPublisher</code>. Convierte el objeto de dominio a JSON y lo envía al exchange mediante <code>RabbitTemplate.convertAndSend()</code>.</td>
+        </tr>
+        <tr>
+            <td><b>petstore.topic</b></td>
+            <td><code>«exchange (Topic)»</code></td>
+            <td>Enrutador inteligente. Recibe el mensaje con una clave (ej. <code>pet.created</code>) y lo envía a todas las colas cuyos patrones de binding coincidan.</td>
+        </tr>
+        <tr>
+            <td><b>pet.notification</b></td>
+            <td><code>«cola / queue»</code></td>
+            <td>Cola persistente en disco (<code>durable = true</code>). Almacena los eventos de mascotas destinados a avisos y correos electrónicos.</td>
+        </tr>
+        <tr>
+            <td><b>pet.billing</b></td>
+            <td><code>«cola / queue»</code></td>
+            <td>Cola persistente dedicada a la facturación de pagos y aranceles de adopción.</td>
+        </tr>
+        <tr>
+            <td><b>pet.dlq</b></td>
+            <td><code>«dead letter queue»</code></td>
+            <td>Cola especial que almacena mensajes rechazados (NACK), expirados por TTL o que fallaron repetidamente tras reintentos, evitando la pérdida de información.</td>
+        </tr>
+        <tr>
+            <td><b>Consumidores</b></td>
+            <td><code>«consumidor / receiver»</code></td>
+            <td>Métodos anotados con <code>@RabbitListener</code> en los microservicios de destino que procesan los mensajes concurrentemente de forma asíncrona.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes de la arquitectura de mensajería con RabbitMQ</span>
+
+<h2>Tipos de Exchanges en RabbitMQ</h2>
+<p>El comportamiento de distribución depende de la tipología del intercambiador configurado:</p>
+<ul>
+    <li>
+        <b>Direct Exchange:</b> Enrutamiento por igualdad estricta. Entrega el mensaje a la cola cuyo enlace coincida de forma exacta con la <code>routingKey</code> del mensaje (ej. <code>"pet.created" == "pet.created"</code>).
+    </li>
+    <li>
+        <b>Fanout Exchange:</b> Difusión masiva (<em>broadcast</em>). Clona y entrega el mensaje a <strong>absolutamente todas las colas</strong> vinculadas a él, ignorando por completo cualquier clave de enrutamiento.
+    </li>
+    <li>
+        <b>Topic Exchange:</b> Enrutamiento por patrones de palabras separadas por puntos. Utiliza comodines:
+        <ul>
+            <li><code>*</code> (asterisco): Sustituye exactamente a <strong>una sola palabra</strong> (ej. <code>pet.*</code> coincide con <code>pet.created</code> y <code>pet.deleted</code>, pero no con <code>pet.cat.created</code>).</li>
+            <li><code>#</code> (almohadilla): Sustituye a <strong>cero, una o múltiples palabras</strong> (ej. <code>pet.#</code> coincide con <code>pet.created</code>, <code>pet.dog.vaccinated.urgent</code> y <code>pet</code>).</li>
+        </ul>
+    </li>
+    <li>
+        <b>Headers Exchange:</b> Enrutamiento basado en atributos del mapa de cabeceras AMQP en lugar de la clave de enrutamiento textual.
+    </li>
+</ul>
+
+<h2>Anotaciones y Componentes Clave de Spring AMQP</h2>
+<ul>
+    <li>
+        <b>@RabbitListener:</b> Ubicada en <code>org.springframework.amqp.rabbit.annotation.RabbitListener</code>. Marca un método o clase como consumidor asíncrono de una o más colas. Permite configurar:
+        <ul>
+            <li><code>queues</code>: Nombres de las colas a escuchar (ej. <code>queues = "${app.rabbitmq.queue}"</code>).</li>
+            <li><code>concurrency</code>: Número de hilos consumidores concurrentes (ej. <code>"3-10"</code> para arrancar 3 hilos y escalar hasta 10 según la carga).</li>
+            <li><code>containerFactory</code>: Nombre del bean de fábrica de contenedores que gestiona la conexión y conversión de mensajes.</li>
+        </ul>
+    </li>
+    <li>
+        <b>RabbitTemplate:</b> Clase ubicada en <code>org.springframework.amqp.rabbit.core.RabbitTemplate</code>. Es el utilitario central para enviar y recibir mensajes de forma reactiva o imperativa. Su método principal es:
+        <div class="center-horizontal">
+        <pre><code class="language-java">
+        rabbitTemplate.convertAndSend(exchangeName, routingKey, payloadObject);
+        </code></pre>
+        </div>
+    </li>
+    <li>
+        <b>Jackson2JsonMessageConverter:</b> Componente de <code>org.springframework.amqp.support.converter.Jackson2JsonMessageConverter</code>. Reemplaza el serializador nativo de Java por serialización estándar JSON, permitiendo interoperabilidad con servicios escritos en Python, Node.js o Go y mitigando fallos de seguridad.
+    </li>
+</ul>
+
+<h2>Configuración en application.yml</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: auto
+        concurrency: 2
+        max-concurrency: 5
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          max-attempts: 3
+          multiplier: 2.0
+
+app:
+  rabbitmq:
+    exchange: petstore.topic
+    queue:
+      notification: pet.notification.queue
+      billing: pet.billing.queue
+    routing-key:
+      created: pet.created
+      all-pets: pet.#
+</code></pre>
+</div>
+
+<h2>Implementación Práctica</h2>
+
+<h3>Paso 1: Configuración de Infraestructura RabbitMQ (Exchanges, Queues y Converter)</h3>
+<p>
+    Declaramos las colas como duraderas (sobreviven al reinicio de RabbitMQ), el Exchange de tipo Topic y el convertidor JSON:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.config;
+
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConfig {
+
+    @Value("${app.rabbitmq.exchange}")
+    private String exchangeName;
+
+    @Value("${app.rabbitmq.queue.notification}")
+    private String notificationQueueName;
+
+    @Value("${app.rabbitmq.queue.billing}")
+    private String billingQueueName;
+
+    @Value("${app.rabbitmq.routing-key.created}")
+    private String createdRoutingKey;
+
+    @Value("${app.rabbitmq.routing-key.all-pets}")
+    private String allPetsRoutingKey;
+
+    // 1. Convertidor de mensajes a formato JSON estándar
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    // 2. RabbitTemplate configurado con el convertidor JSON
+    @Bean
+    public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setMessageConverter(jsonMessageConverter());
+        return rabbitTemplate;
+    }
+
+    // 3. Declaración del Exchange de tipo Topic
+    @Bean
+    public TopicExchange petTopicExchange() {
+        return new TopicExchange(exchangeName, true, false);
+    }
+
+    // 4. Declaración de Colas duraderas
+    @Bean
+    public Queue notificationQueue() {
+        return QueueBuilder.durable(notificationQueueName).build();
+    }
+
+    @Bean
+    public Queue billingQueue() {
+        return QueueBuilder.durable(billingQueueName).build();
+    }
+
+    // 5. Enlaces (Bindings) entre Exchange y Colas con Routing Keys
+    @Bean
+    public Binding notificationBinding(Queue notificationQueue, TopicExchange petTopicExchange) {
+        return BindingBuilder.bind(notificationQueue)
+                .to(petTopicExchange)
+                .with(allPetsRoutingKey); // Escucha pet.#
+    }
+
+    @Bean
+    public Binding billingBinding(Queue billingQueue, TopicExchange petTopicExchange) {
+        return BindingBuilder.bind(billingQueue)
+                .to(petTopicExchange)
+                .with(createdRoutingKey); // Escucha pet.created
+    }
+}
+</code></pre>
+</div>
+
+<h3>Paso 2: Modelo del Evento (DTO del Mensaje)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PetAdoptedEvent implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private Integer petId;
+    private String petName;
+    private String species;
+    private String adopterEmail;
+    private BigDecimal adoptionFee;
+    private LocalDateTime eventTimestamp;
+}
+</code></pre>
+</div>
+
+<h3>Paso 3: Productor (Sender / Publisher)</h3>
+<p>
+    Servicio que publica el evento en RabbitMQ de forma no bloqueante:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.producer;
+
+import com.example.petstore.dto.PetAdoptedEvent;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PetEventPublisher {
+
+    private final RabbitTemplate rabbitTemplate;
+
+    @Value("${app.rabbitmq.exchange}")
+    private String exchange;
+
+    @Value("${app.rabbitmq.routing-key.created}")
+    private String routingKey;
+
+    public void publishPetAdoptedEvent(PetAdoptedEvent event) {
+        log.info("Publicando evento de adopción en RabbitMQ para mascota ID: {} con clave: {}", 
+                event.getPetId(), routingKey);
+
+        // Envía el evento serializado en JSON al Exchange
+        rabbitTemplate.convertAndSend(exchange, routingKey, event);
+
+        log.info("Evento publicado con éxito en RabbitMQ");
+    }
+}
+</code></pre>
+</div>
+
+<h3>Paso 4: Consumidor (Receiver / Listener)</h3>
+<p>
+    Componente asíncrono que escucha de la cola y procesa las tareas secundarias:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.consumer;
+
+import com.example.petstore.dto.PetAdoptedEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class PetNotificationConsumer {
+
+    @RabbitListener(queues = "${app.rabbitmq.queue.notification}")
+    public void handlePetNotification(PetAdoptedEvent event) {
+        log.info("Mensaje recibido en cola de notificaciones para mascota: {} ({})", 
+                event.getPetName(), event.getSpecies());
+
+        // Simulación de envío de correo y generación de certificado
+        enviarEmailBienvenida(event.getAdopterEmail(), event.getPetName());
+    }
+
+    private void enviarEmailBienvenida(String email, String petName) {
+        log.info("Enviando correo de bienvenida a {} para la mascota {}...", email, petName);
+    }
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Consumo Síncrono Bloqueante y Serialización Nativa (Antipatrón)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Bloquear el hilo HTTP para esperar un mensaje y usar serialización Java por defecto
+@RestController
+public class BadMessagingController {
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate; // Sin Jackson2JsonMessageConverter configurado
+
+    @GetMapping("/esperar-mensaje")
+    public String esperarRespuestaSincrona() {
+        // ERROR GRAVE: receiveAndConvert bloquea el hilo del servidor web hasta que llegue un mensaje
+        // o hasta que salte el timeout, saturando el pool de conexiones de Tomcat/Undertow.
+        Object mensaje = rabbitTemplate.receiveAndConvert("mi.cola", 10000);
+
+        // ERROR: La serialización nativa de Java genera vulnerabilidades graves de deserialización RCE
+        // y no permite comunicarse con clientes en otros lenguajes (Python, NodeJS).
+        return "Mensaje recibido: " + mensaje;
+    }
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo: Publicación Inmediata con Confirmación y Desacoplamiento Total</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// BUENA PRÁCTICA: El controlador delega en el servicio, publica y devuelve 202 ACCEPTED de inmediato
+@RestController
+@RequestMapping("/petshop/adoptions")
+@RequiredArgsConstructor
+public class PetAdoptionController {
+
+    private final PetAdoptionService adoptionService;
+
+    @PostMapping("/{petId}")
+    public ResponseEntity&lt;String&gt; adoptPet(
+            @PathVariable Integer petId, 
+            @RequestParam String adopterEmail) {
+
+        // 1. Se registra la adopción y se emite el evento a RabbitMQ
+        adoptionService.processAdoption(petId, adopterEmail);
+
+        // 2. Respuesta instantánea al usuario sin esperar el email ni la factura
+        return ResponseEntity.accepted().body("Adopción registrada con éxito. Procesando documentación en segundo plano.");
+    }
+}
+</code></pre>
+</div>

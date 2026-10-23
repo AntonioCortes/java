@@ -1,2 +1,263 @@
-<h1 class="title">Eureka Server</h1>
-TODO
+<h1 class="title">Netflix Eureka Server y Client</h1>
+
+<p>
+    En una arquitectura de microservicios en la nube, las instancias de los servicios se crean, destruyen, escalan y mueven de servidor de forma constante y dinámica. Asignar direcciones IP y puertos estáticos en archivos de configuración es inviable. <strong>Netflix Eureka</strong> es el sistema de <strong>Registro y Descubrimiento de Servicios (Service Discovery)</strong> por excelencia del ecosistema Spring Cloud.
+</p>
+<p>
+    Eureka opera bajo una arquitectura cliente-servidor:
+</p>
+<ul>
+    <li><strong>Eureka Server:</strong> Actúa como un directorio telefónico vivo en memoria donde cada microservicio se registra al arrancar y envía avisos periódicos de actividad (<em>heartbeats</em>).</li>
+    <li><strong>Eureka Client:</strong> Librería embebida en cada microservicio que se auto-registra en el servidor, envía latidos cada 30 segundos para renovar su concesión (<em>lease</em>) y descarga una copia local en caché de todas las instancias registradas en el clúster.</li>
+</ul>
+
+<h2>Analogía del Mundo Real: La Central de Radio de Taxis</h2>
+<p>
+    Imagina una flota de taxis en una gran ciudad. Los usuarios (los clientes o microservicios consumidores) necesitan un taxi, pero los coches están en continuo movimiento por diferentes calles y barrios (IPs efímeras de contenedores).
+</p>
+<p>
+    En lugar de que cada cliente llame directamente al teléfono móvil privado de un taxista concreto (IP estática cableada):
+</p>
+<ul>
+    <li>Existe una <strong>Central de Radio y Despacho</strong> (el <strong>Eureka Server</strong>).</li>
+    <li>Cuando un taxista comienza su jornada, sintoniza la radio y dice: <em>"Taxi 42 en servicio"</em> (<strong>Auto-registro</strong>).</li>
+    <li>Cada minuto, el taxista pulsa el botón del micrófono para confirmar que sigue en ruta (<strong>Heartbeat</strong>). Si durante 90 segundos no emite señal, la central asume que tuvo una avería y lo retira de la lista de coches disponibles.</li>
+    <li>Cuando un usuario o un hotel solicita un taxi para ir al aeropuerto, consulta a la central cuál es la unidad más cercana y disponible en ese instante (<strong>Descubrimiento y Balanceo</strong>).</li>
+</ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>En la tienda de mascotas (<code>PetStore</code>), el microservicio <code>order-service</code> necesita invocar a <code>pet-service</code> para consultar el inventario de perros y gatos. Para soportar el Black Friday, <code>pet-service</code> escala automáticamente de 2 a 10 réplicas con puertos aleatorios.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin Service Discovery)</div>
+            <div class="card-body">
+                <p>Si <code>order-service</code> tuviera que conocer las 10 IPs de antemano, cualquier reinicio o fallo de una máquina requeriría reconfigurar y redesplegar todos los microservicios consumidores. Si una instancia cae, las peticiones dirigidas a su IP congelan el sistema.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Eureka)</div>
+            <div class="card-body">
+                <p>Cada una de las 10 réplicas de <code>pet-service</code> se registra automáticamente bajo el nombre lógico común <code>PET-SERVICE</code>. <code>order-service</code> consulta el catálogo de Eureka y reparte el tráfico únicamente entre las réplicas con estado de salud <code>UP</code>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Solución de Descubrimiento</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Netflix Eureka (Spring Cloud)</b></td>
+            <td>Despliegues en máquinas virtuales (EC2, servidores propios), entornos híbridos, Docker Compose o arquitecturas nativas de Spring Boot donde se requiera balanceo inteligente en cliente (Client-Side Load Balancing) e integración directa con OpenFeign y Gateway.</td>
+            <td>Sistemas con decenas de lenguajes distintos donde instalar clientes Java no sea posible, o cuando el orquestador subyacente ya gestione el descubrimiento de forma transparente.</td>
+        </tr>
+        <tr>
+            <td><b>Kubernetes DNS / Kube-Proxy</b></td>
+            <td>Despliegues 100% sobre clústeres de Kubernetes: los <em>Services</em> de K8s proporcionan nombres DNS internos nativos (ej. <code>http://pet-service:8080</code>) con balanceo L4 por iptables o IPVS.</td>
+            <td>Entornos sin Kubernetes (despliegues bare-metal, VPS sencillas) o cuando se requieran decisiones de balanceo complejas en cliente en función de metadatos o zonas de afinidad en Java.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de descubrimiento entre Eureka y Kubernetes DNS</span>
+
+<h2>Dependencias Necesarias</h2>
+
+<h3>Para el Servidor Eureka (eureka-server)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Dependencia exclusiva del microservicio servidor de Eureka --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>Para los Microservicios Clientes (pet-service, order-service, gateway)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Dependencia en cualquier microservicio que deba registrarse o descubrir otros --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Diagrama de Arquitectura y Flujo de Descubrimiento</h2>
+<p>
+    El siguiente diagrama ilustra el flujo de registro de instancias y la consulta desacoplada del catálogo:
+</p>
+
+<img class="center-horizontal" src="components/springboot/librerias/spring-cloud/eureka-server/assets/img/eureka-discovery.svg">
+<span class="center-horizontal caption">Figura 1: Registro dinámico, renovación de concesión y descubrimiento con Eureka</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento</th>
+            <th scope="col">Estereotipo / Tipo</th>
+            <th scope="col">Responsabilidad en el Descubrimiento</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Eureka Server</b></td>
+            <td><code>«Service Registry»</code></td>
+            <td>Mantiene el catálogo en memoria de todas las instancias activas. Expone una consola web en el puerto <code>8761</code> para monitorizar el estado de salud y réplicas.</td>
+        </tr>
+        <tr>
+            <td><b>Pet-Service (Instancias A y B)</b></td>
+            <td><code>«microservicio proveedor»</code></td>
+            <td>Se registra como <code>PET-SERVICE</code> al iniciar y emite <em>heartbeats</em> cada 30 segundos. Si se detiene limpiamente, envía una orden de desregistro (<code>CANCEL</code>).</td>
+        </tr>
+        <tr>
+            <td><b>Order-Service</b></td>
+            <td><code>«microservicio consumidor»</code></td>
+            <td>Consulta periódicamente a Eureka para mantener una caché local de instancias disponibles. Ejecuta llamadas HTTP directas a las IPs recibidas.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes de la arquitectura de descubrimiento con Eureka</span>
+
+<h2>Anotaciones y Configuración Clave</h2>
+
+<h3>Anotaciones</h3>
+<ul>
+    <li>
+        <b>@EnableEurekaServer:</b> Se coloca sobre la clase principal <code>@SpringBootApplication</code> del proyecto servidor. Inicializa los controladores internos de Eureka, el motor de replicación peer-to-peer y el dashboard web.
+    </li>
+    <li>
+        <b>@EnableDiscoveryClient:</b> Se coloca sobre la clase principal de cualquier microservicio cliente para habilitar el auto-registro y el descubrimiento mediante la abstracción estándar de Spring Cloud (opcional en versiones modernas de Spring Boot si la dependencia está presente en el classpath).
+    </li>
+</ul>
+
+<h3>Configuración del Servidor Eureka (application.yml en eureka-server)</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  client:
+    # Como este nodo es el servidor, NO debe intentar registrarse a sí mismo como cliente
+    register-with-eureka: false
+    # Tampoco debe intentar descargar el catálogo de sí mismo
+    fetch-registry: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  server:
+    # Tiempo de espera antes de eliminar instancias que dejaron de emitir heartbeat
+    eviction-interval-timer-in-ms: 5000
+    enable-self-preservation: true
+</code></pre>
+</div>
+
+<h3>Configuración del Microservicio Cliente (application.yml en pet-service)</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+server:
+  port: 8081
+
+spring:
+  application:
+    # Este nombre es el identificador lógico por el que otros microservicios buscarán este servicio
+    name: pet-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    # Prefiere registrar la dirección IP en lugar del hostname del contenedor
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+</code></pre>
+</div>
+
+<h2>Implementación del Servidor Eureka</h2>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.eurekaserver;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
+
+@SpringBootApplication
+@EnableEurekaServer
+public class EurekaServerApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(EurekaServerApplication.class, args);
+    }
+}
+</code></pre>
+</div>
+
+<h2>El Modo de Auto-Preservación (Self-Preservation Mode)</h2>
+<p>
+    Una de las características más críticas de Eureka es el <strong>Modo de Auto-Preservación</strong>. Si durante un periodo de tiempo Eureka deja de recibir latidos de más del 15% de las instancias registradas, el servidor <strong>asume que ha ocurrido una partición de red entre él y los microservicios</strong>, y no que todas las instancias han muerto simultáneamente. En consecuencia, congela el catálogo y <strong>no elimina ninguna instancia</strong>, protegiendo las rutas para que los clientes puedan seguir intentando comunicarse.
+</p>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Servidor Eureka con Bucles de Conexión Fallidos (Antipatrón)</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# ANTIPATRÓN: Olvidar deshabilitar register-with-eureka en un servidor Eureka standalone
+server:
+  port: 8761
+spring:
+  application:
+    name: eureka-server
+# ERROR: Al no incluir 'register-with-eureka: false', el servidor intentará registrarse en sí mismo
+# produciendo excepciones continuas de Connection Refused en el log de arranque.
+</code></pre>
+</div>
+
+<h3>Ejemplo: Configuración Limpia con Verificación de Salud</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+# BUENA PRÁCTICA: Configuración completa con IP preferida y puerto de Eureka claramente definido
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+</code></pre>
+</div>

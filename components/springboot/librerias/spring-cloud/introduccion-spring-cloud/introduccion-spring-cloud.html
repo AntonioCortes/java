@@ -1,15 +1,208 @@
 <h1 class="title">Introducción a Spring Cloud</h1>
-TODO
-<p>Spring Cloud proporciona herramientas para facilitar el desarrollo de patrones en sistemas distribuidos </p>
-<p>Features:</p>
+
+<p>
+    <strong>Spring Cloud</strong> es un meta-framework y conjunto de herramientas diseñado sobre Spring Boot que proporciona patrones de arquitectura estandarizados para el desarrollo y despliegue de <strong>sistemas distribuidos y microservicios</strong>.
+</p>
+<p>
+    Al migrar de un monolito a una arquitectura distribuida, surgen desafíos inevitables de computación distribuida: cómo descubrir dinámicamente dónde se ejecutan las instancias de cada servicio, cómo coordinar la configuración común sin reiniciar aplicaciones, cómo enrutar el tráfico entrante desde un único punto perimetral y cómo evitar que la caída de un servicio secundario derribe en cascada todo el sistema. Spring Cloud proporciona soluciones probadas y nativas en Java para cada uno de estos retos.
+</p>
+
+<h2>Analogía del Mundo Real: La Red de Ciudades y Servicios de Emergencia</h2>
+<p>
+    Imagina un pequeño pueblo donde todas las tiendas, médicos y talleres están en una misma plaza (<strong>el Monolito</strong>). Si necesitas un veterinario, simplemente cruzas la calle. Todo es directo, pero si la plaza se inunda o se corta la luz central, todo el pueblo se paraliza.
+</p>
+<p>
+    Al crecer y convertirse en una metrópoli con múltiples distritos autónomos (<strong>los Microservicios</strong>):
+</p>
 <ul>
-    <li>Distributed/versioned configuration</li>
-    <li>Registration and discovery</li>
-    <li>Routing</li>
-    <li>Service-to-service calls</li>
-    <li>Load balancing</li>
-    <li>Circuit Breakers</li>
-    <li>Global locks</li>
-    <li>Leadership election and cluster state</li>
-    <li>Distributed messaging</li>
+    <li>Necesitas una <strong>Guía Telefónica y Central de Registro Dinámico</strong> (<em>Eureka Server</em>) para saber qué ambulancia o clínica veterinaria está de guardia y en qué calle exacta se encuentra hoy.</li>
+    <li>Necesitas un <strong>Control Perimetral y Accesos Principales</strong> (<em>API Gateway</em>) en las autopistas de entrada a la ciudad para filtrar y dirigir a los visitantes al distrito correcto según su destino.</li>
+    <li>Necesitas una <strong>Radio y Cuadro Central de Avisos</strong> (<em>Config Server</em>) para cambiar los límites de velocidad o protocolos en todos los distritos a la vez sin tener que enviar un mensajero en moto a cada casa.</li>
+    <li>Necesitas <strong>Cortafuegos y Válvulas de Seguridad</strong> (<em>Circuit Breakers con Resilience4j</em>) para que si el túnel hacia el distrito financiero sufre un atasco, los autobuses tomen rutas alternativas sin bloquear la circunvalación completa.</li>
 </ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>La plataforma <code>PetStore</code> ha crecido a 8 microservicios independientes: <code>pet-service</code>, <code>order-service</code>, <code>customer-service</code>, <code>billing-service</code>, etc., desplegados en múltiples réplicas en la nube con escalado elástico.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin Spring Cloud)</div>
+            <div class="card-body">
+                <p>Las URLs y puertos (ej. <code>http://10.0.1.15:8081</code>) están escritos a fuego en archivos locales. Cuando un contenedor cambia de IP en Kubernetes o Docker, los demás microservicios fallan con errores de conexión. La caída de un servicio satura los hilos de los demás en cascada y no hay forma de trazar por qué una petición tardó 4 segundos.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Spring Cloud)</div>
+            <div class="card-body">
+                <p>Los microservicios se auto-registran dinámicamente en Eureka por nombre lógico. OpenFeign se comunica mediante llamadas declarativas transparentes con balanceo en cliente, el API Gateway centraliza la seguridad y los cortafuegos de Resilience4j aíslan los fallos.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Estrategia de Arquitectura</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Spring Cloud (Microservicios)</b></td>
+            <td>Aplicaciones medianas o grandes con múltiples equipos independientes, necesidades de escalado diferenciado por servicio (ej. muchas más consultas de mascotas que registros de pedidos) y despliegues desacoplados continuos.</td>
+            <td>Proyectos pequeños, MVPs o equipos reducidos: la sobrecarga operacional (red, monitorización, latencia entre servicios, transacciones distribuidas) supera ampliamente los beneficios.</td>
+        </tr>
+        <tr>
+            <td><b>Monolito Modular con Spring Boot</b></td>
+            <td>Sistemas iniciales, aplicaciones empresariales con dominio fuertemente acoplado o cuando se busca máxima simplicidad operativa y rendimiento de memoria sin latencia de red inter-proceso.</td>
+            <td>Cuando diferentes módulos del sistema exigen tecnologías, escalados de hardware o ciclos de despliegue independientes.</td>
+        </tr>
+        <tr>
+            <td><b>Service Mesh (Istio / Linkerd)</b></td>
+            <td>Ecosistemas políglotas gigantescos (mezcla de Java, Go, Python, Node.js) donde el balanceo, cifrado mTLS y trazabilidad deben residir en la infraestructura de red mediante sidecars en lugar de en librerías de aplicación.</td>
+            <td>Arquitecturas centradas principalmente en Java / Spring Boot, donde Spring Cloud ofrece una integración mucho más natural, tipada y fácil de depurar en código.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Decisión entre Spring Cloud, Monolito y Service Mesh</span>
+
+<h2>Gestión de Versiones: El BOM (Release Train)</h2>
+<p>
+    Dado que Spring Cloud está compuesto por decenas de proyectos independientes (Eureka, Gateway, OpenFeign, Config, CircuitBreaker), Spring utiliza un <strong>BOM (Bill of Materials)</strong> con nombres temáticos de hitos o versiones coordinadas (ej. <em>Spring Cloud 2023.0.x</em>, antes conocidas como <em>Hoxton</em>, <em>Kilimanjaro</em>, etc.) para garantizar la compatibilidad exacta entre versiones de starters:
+</p>
+
+<h3>Maven (pom.xml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Gestión centralizada de versiones con el BOM de Spring Cloud --&gt;
+&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+            &lt;version&gt;2023.0.3&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+            &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+</code></pre>
+</div>
+
+<h3>Gradle (build.gradle)</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+plugins {
+    id 'io.spring.dependency-management' version '1.1.5'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2023.0.3'
+    }
+}
+</code></pre>
+</div>
+
+<h2>Diagrama de Arquitectura Global de Spring Cloud</h2>
+<p>
+    La siguiente arquitectura ilustra la convivencia e interconexión de todas las piezas que componen el ecosistema de microservicios:
+</p>
+
+<img class="center-horizontal" src="components/springboot/librerias/spring-cloud/introduccion-spring-cloud/assets/img/spring-cloud-ecosistema.svg">
+<span class="center-horizontal caption">Figura 1: Topología de servicios en una arquitectura completa con Spring Cloud</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Componente</th>
+            <th scope="col">Rol / Estereotipo</th>
+            <th scope="col">Responsabilidad Técnica</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Spring Cloud Gateway</b></td>
+            <td><code>«API Gateway reactivo»</code></td>
+            <td>Punto único de entrada perimetral. Enruta peticiones externas, aplica seguridad, CORS y control de tasa (rate limiting).</td>
+        </tr>
+        <tr>
+            <td><b>Netflix Eureka Server</b></td>
+            <td><code>«servidor de descubrimiento»</code></td>
+            <td>Registro dinámico de nombres e IPs. Monitorea latidos de salud (heartbeats) de todas las réplicas en ejecución.</td>
+        </tr>
+        <tr>
+            <td><b>OpenFeign + LoadBalancer</b></td>
+            <td><code>«cliente HTTP declarativo»</code></td>
+            <td>Permite a los microservicios llamarse entre sí invocando métodos Java anotados, balanceando la carga en el cliente.</td>
+        </tr>
+        <tr>
+            <td><b>Resilience4j</b></td>
+            <td><code>«cortafuegos / circuit breaker»</code></td>
+            <td>Aísla fallos de servicios caídos o lentos, cortando el tráfico y ejecutando métodos alternativos de respaldo (fallback).</td>
+        </tr>
+        <tr>
+            <td><b>Micrometer Tracing + Zipkin</b></td>
+            <td><code>«telemetría distribuida»</code></td>
+            <td>Inyecta identificadores globales (<code>traceId</code>) para rastrear el ciclo de vida y latencia de cada petición a través de todos los microservicios.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes de la arquitectura global de Spring Cloud</span>
+
+<h2>Catálogo de Módulos Principales</h2>
+<ul>
+    <li><b>Spring Cloud Netflix Eureka:</b> Registro y descubrimiento dinámico de instancias en tiempo real.</li>
+    <li><b>Spring Cloud OpenFeign:</b> Generación automática de clientes REST a partir de interfaces anotadas.</li>
+    <li><b>Spring Cloud LoadBalancer:</b> Algoritmos reactivos de reparto de carga en el lado cliente (Round-Robin, Random).</li>
+    <li><b>Spring Cloud Gateway:</b> Enrutador perimetral de alto rendimiento basado en Spring WebFlux y Project Reactor.</li>
+    <li><b>Spring Cloud CircuitBreaker / Resilience4j:</b> Resiliencia, reintentos inteligentes, limitación de concurrencia y tolerancia a particiones.</li>
+    <li><b>Spring Cloud Config:</b> Servidor centralizado de configuración versionado mediante Git, Vault o base de datos.</li>
+</ul>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Microservicios Rígidos con Acoplamiento por IP (Antipatrón)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Acoplar microservicios a direcciones IP y puertos estáticos sin descubrimiento ni balanceo
+@Service
+public class BadRemoteOrderService {
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public PetDTO getPet(Integer petId) {
+        // ERROR GRAVE 1: IP y puerto fijos. Si el pod o contenedor escala o cambia de nodo, falla.
+        // ERROR GRAVE 2: Sin balanceo de carga ni comprobación de salud.
+        // ERROR GRAVE 3: Sin timeout ni circuit breaker. Si pet-service se congela, bloquea el hilo indefinidamente.
+        String url = "http://192.168.1.150:8081/petshop/pet/" + petId;
+        return restTemplate.getForObject(url, PetDTO.class);
+    }
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo: Cliente Declarativo con Descubrimiento y Balanceo en Spring Cloud</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// BUENA PRÁCTICA: Invocación por nombre de servicio registrado en Eureka con balanceo automático
+@FeignClient(name = "PET-SERVICE", fallback = PetClientFallback.class)
+public interface PetClient {
+
+    @GetMapping("/petshop/pet/{id}")
+    PetDTO getPetById(@PathVariable("id") Integer id);
+}
+</code></pre>
+</div>

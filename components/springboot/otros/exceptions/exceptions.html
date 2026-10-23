@@ -1,62 +1,429 @@
-<h1 class="title">Manejo de Excepciones</h1>
-TODO
+<h1 class="title">Manejo de Excepciones en Spring Boot</h1>
 
-<h2>Anotación @ControllerAdvice</h2>
-<p>Se introduce a partir de la versión 3.2 de Spring y permite manejar las excepciones a lo largo de toda la aplicación.
+<p>
+    En aplicaciones web y APIs REST empresariales construidas con <strong>Spring Boot</strong>, el manejo adecuado y uniforme de errores es un pilar fundamental de la robustez, seguridad y experiencia de desarrollo. En lugar de atrapar excepciones manualmente en cada capa o método de controlador mediante bloques repetitivos, Spring MVC ofrece una arquitectura de <strong>intercepción global desacoplada</strong> basada en <em>AOP (Aspect-Oriented Programming)</em> a través de la anotación <code>@RestControllerAdvice</code>.
 </p>
 
-<p>Las excepciones deben tener una Clase controlador que gestione el comportamiento en cada uno de sus métodos.</p>
+<h2>Analogía del Mundo Real: El Mostrador Central de Reclamaciones</h2>
+<p>
+    Imagina unos grandes almacenes o una tienda de mascotas. En cada mostrador, los cajeros y dependientes (los <strong>Controladores REST</strong>) y los veterinarios del almacén (los <strong>Servicios</strong>) se dedican exclusivamente a su trabajo: registrar adopciones, tramitar cobros o inventariar productos. Si un cliente solicita una mascota que ya no existe o su tarjeta no tiene fondos, el cajero no improvisa una solución extraña ni discute con el cliente; simplemente <strong>declara la incidencia formal</strong> (lanza una excepción) y la deriva al <strong>Mostrador Central de Atención al Cliente e Incidencias</strong> (el <code>@RestControllerAdvice</code>). Este mostrador especializado conoce exactamente el protocolo oficial de la empresa, redacta una hoja estandarizada de reclamación con fecha, código de motivo y pasos a seguir, y se la entrega al cliente en un formato uniforme y comprensible.
+</p>
 
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una API REST de gestión de mascotas (<code>PetStore</code>) expone endpoints para consultar mascotas por identificador (<code>GET /petshop/pet/{id}</code>) y crear nuevas mascotas con validación estricta de campos (<code>POST /petshop/pet</code>).</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin la solución)</div>
+            <div class="card-body">
+                <p>Cada método de cada controlador se llena de bloques <code>try-catch (Exception e)</code> duplicados. Si un error no se captura, Spring devuelve por defecto un código <code>500 Internal Server Error</code> con el <em>stacktrace</em> completo de Java, exponiendo nombres de tablas, paquetes y versiones a atacantes externos (vulnerabilidad de <em>Information Disclosure</em>), mientras que otros métodos devuelven cadenas de texto planas sin estructura JSON.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con @RestControllerAdvice)</div>
+            <div class="card-body">
+                <p>Los controladores y servicios quedan limpios de bloques <code>try-catch</code>. Las excepciones de dominio (ej. <code>PetNotFoundException</code>) o validaciones (<code>MethodArgumentNotValidException</code>) burbujean de forma natural y son interceptadas por una clase centralizada que emite siempre un JSON estructurado con el código de estado HTTP canónico (<code>404</code>, <code>400</code>, <code>409</code>, etc.).</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Mecanismo / Enfoque</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>@RestControllerAdvice + @ExceptionHandler</b></td>
+            <td><strong>Enfoque recomendado por defecto</strong> para cualquier API REST o microservicio. Permite centralizar la traducción de cualquier excepción (de negocio, validación, base de datos) a un contrato JSON unificado con cabeceras y códigos HTTP personalizados.</td>
+            <td>No aplicable en aplicaciones web tradicionales basadas en renderizado de vistas MVC con servidor (JSP, Thymeleaf) donde se prefiera devolver páginas HTML de error en lugar de JSON (en ese caso usar <code>@ControllerAdvice</code> simple devolviendo vistas o <code>ErrorController</code>).</td>
+        </tr>
+        <tr>
+            <td><b>@ResponseStatus en la clase Excepción</b></td>
+            <td>Para excepciones de negocio muy sencillas y estáticas donde el código HTTP y el mensaje siempre son idénticos (ej. <code>@ResponseStatus(HttpStatus.NOT_FOUND) public class PetNotFoundException</code>).</td>
+            <td>Cuando se necesita devolver un cuerpo JSON dinámico con listas de campos erróneos, marcas de tiempo (timestamp) o contexto específico de la petición.</td>
+        </tr>
+        <tr>
+            <td><b>ResponseStatusException (Spring 5+)</b></td>
+            <td>Para lanzar errores puntuales y rápidos en prototipos o endpoints sencillos sin necesidad de declarar una clase <code>Exception</code> específica: <code>throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mascota no existe")</code>.</td>
+            <td>En arquitecturas empresariales medianas o grandes: dispersa los códigos HTTP por los servicios de negocio, acopla la capa de servicio a clases de Spring Web y dificulta mantener contratos JSON estandarizados.</td>
+        </tr>
+        <tr>
+            <td><b>Bloques try-catch en Controladores</b></td>
+            <td>Únicamente cuando se requiere realizar una acción de compensación o recuperación inmediata local y continuar el flujo normal devolviendo un resultado 200 OK alternativo.</td>
+            <td><strong>Antipatrón absoluto</strong> para devolver códigos de error o formatear respuestas HTTP. Genera código espagueti duplicado, oculta fallos reales y rompe el principio de responsabilidad única (SRP).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de estrategias de manejo de excepciones en Spring Boot</span>
+
+<h2>Dependencias Necesarias</h2>
+<p>
+    El soporte para <code>@RestControllerAdvice</code> y el manejo de excepciones web está incluido de forma nativa en el starter web de Spring Boot. Si además se gestionan validaciones de entrada con anotaciones como <code>@NotBlank</code>, <code>@Min</code> o <code>@Size</code>, se requiere el starter de validación:
+</p>
+
+<h3>Maven (pom.xml)</h3>
 <div class="center-horizontal">
-<pre><code class="language-java">
-@ControllerAdvice
-public class ErrorHandlerController {
-    
-    @ExceptionHandler(CustomExceptionClass.class)
-    public ResponseEntity< Object> customException(CustomExceptionClass ex){
-        //Los métodos del objeto que entra por parámetro
-        // permiten distintas utilidades 
-        //tales como obtener el mensaje personalizado.
-        ex.getMessage();
+<pre><code class="language-xml">
+&lt;!-- Starter Web de Spring Boot (incluye Spring MVC y soporte de @RestControllerAdvice) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;
 
-        return new ResponseEntity< Object>(
-            "Mensjae de error personalizado",
-            new HttpHeaders(),
-            HttpStatus.FORBIDDEN
-        );
-    }
-
-    //...
-}	
+&lt;!-- Starter de Validación de Jakarta / Hibernate Validator (opcional pero recomendado) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+&lt;/dependency&gt;
 </code></pre>
 </div>
 
-<p>Ejemplo de Clase de error personalizada:</p>
-
+<h3>Gradle (build.gradle)</h3>
 <div class="center-horizontal">
-<pre><code class="language-java">
-public class CustomExceptionClass extends RuntimeException{
-        
-    public String CustomExceptionClass(String id){
-        super("Mensaje personalizado de error." +
-        id +
-        " HINT=> se pueden concatenar parametros tales como un id en caso de ser necesarios");
-    }
-}	
+<pre><code class="language-groovy">
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+}
 </code></pre>
 </div>
 
-<p><b>NOTA:</b> Es recomendable crear un paquete que agrupe todas las clases personalizadas de error.</p>
+<h2>Diagrama de Arquitectura y Flujo de Intercepción Global</h2>
+<p>
+    El siguiente diagrama ilustra cómo fluye una petición cuando ocurre un error en la capa de negocio, demostrando cómo <code>@RestControllerAdvice</code> actúa como una red de seguridad perimetral que intercepta la excepción antes de que alcance al cliente:
+</p>
 
-<p>Ejemplo de como llamar la excepción:</p>
+<img class="center-horizontal" src="components/springboot/otros/exceptions/assets/img/exceptions-flujo.svg">
+<span class="center-horizontal caption">Figura 1: Flujo de intercepción global de excepciones con @RestControllerAdvice y @ExceptionHandler</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Participante</th>
+            <th scope="col">Rol / Estereotipo</th>
+            <th scope="col">Responsabilidad en el Manejo de Excepciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Cliente HTTP</b></td>
+            <td><code>«cliente / front-end»</code></td>
+            <td>Realiza una petición REST (ej. <code>GET /petshop/pet/99</code>) y recibe una respuesta con código de estado HTTP adecuado (ej. <code>404 NOT_FOUND</code>) y un cuerpo JSON con el error estructurado.</td>
+        </tr>
+        <tr>
+            <td><b>PetController</b></td>
+            <td><code>«controlador REST»</code></td>
+            <td>Punto de entrada de la petición HTTP. Delega inmediatamente en <code>PetService</code> sin envolver en bloques <code>try-catch</code>, permitiendo que las excepciones de negocio fluyan libremente.</td>
+        </tr>
+        <tr>
+            <td><b>PetServiceImpl</b></td>
+            <td><code>«capa de servicio»</code></td>
+            <td>Ejecuta la lógica de negocio y persistencia. Si no halla el registro solicitado en la base de datos, lanza una excepción de dominio no chequeada (<code>throw new PetNotFoundException(99)</code>).</td>
+        </tr>
+        <tr>
+            <td><b>GlobalExceptionHandler</b></td>
+            <td><code>«interceptor global de excepciones»</code></td>
+            <td>Clase anotada con <code>@RestControllerAdvice</code>. Sus métodos con <code>@ExceptionHandler</code> capturan tipos concretos de excepciones, generan trazas de log con SLF4J y devuelven un <code>ResponseEntity&lt;ErrorResponseDTO&gt;</code> seguro al cliente.</td>
+        </tr>
+        <tr>
+            <td><b>ErrorResponseDTO</b></td>
+            <td><code>«DTO de contrato de error»</code></td>
+            <td>Objeto inmutable que define el formato JSON público devuelto al cliente (timestamp, código HTTP, mensaje de negocio legible, ruta URL de la petición y lista opcional de errores de validación de campos).</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes de la arquitectura de manejo global de excepciones</span>
+
+<h2>Anotaciones y Clases Clave del Framework</h2>
+
+<h3>Anotaciones de Spring MVC</h3>
+<ul>
+    <li>
+        <b>@ControllerAdvice:</b> Anotación propia de <em>Spring Framework</em> ubicada en el paquete <code>org.springframework.web.bind.annotation.ControllerAdvice</code>.
+        <p>Especialización de <code>@Component</code> que permite declarar métodos de intercepción compartidos entre múltiples controladores de la aplicación (mediante <code>@ExceptionHandler</code>, <code>@InitBinder</code> y <code>@ModelAttribute</code>). Por defecto aplica a todos los controladores registrados en el contexto, aunque puede filtrarse mediante parámetros como <code>basePackages</code>, <code>assignableTypes</code> o <code>annotations</code>.</p>
+    </li>
+    <li>
+        <b>@RestControllerAdvice:</b> Anotación propia de <em>Spring Framework</em> ubicada en el paquete <code>org.springframework.web.bind.annotation.RestControllerAdvice</code>.
+        <p>Anotación compuesta que combina <code>@ControllerAdvice</code> y <code>@ResponseBody</code>. Es la opción estándar para APIs REST, ya que garantiza que el valor devuelto por cada método manejador de excepción sea automáticamente serializado a JSON/XML en el cuerpo de la respuesta HTTP sin requerir <code>@ResponseBody</code> en cada método.</p>
+    </li>
+    <li>
+        <b>@ExceptionHandler:</b> Anotación propia de <em>Spring Framework</em> ubicada en el paquete <code>org.springframework.web.bind.annotation.ExceptionHandler</code>.
+        <p>Marca un método dentro de una clase consejo (advice) o dentro de un controlador concreto para manejar una o más familias de excepciones. Sus opciones principales son:</p>
+        <ul>
+            <li><code>value</code>: Array de clases de excepción que este método es capaz de interceptar (ej. <code>@ExceptionHandler({PetNotFoundException.class, UserNotFoundException.class})</code>). Si se omite, Spring infiere el tipo a partir del parámetro del método.</li>
+        </ul>
+    </li>
+    <li>
+        <b>@ResponseStatus:</b> Anotación propia de <em>Spring Framework</em> ubicada en el paquete <code>org.springframework.web.bind.annotation.ResponseStatus</code>.
+        <p>Permite asociar un código de estado HTTP predeterminado a un método o a una clase de excepción personalizada. Acepta los parámetros <code>code</code> o <code>value</code> (ej. <code>HttpStatus.NOT_FOUND</code>) y opcionalmente <code>reason</code> (cadena estática de motivo).</p>
+    </li>
+</ul>
+
+<h3>Clases y Modelos de Error</h3>
+<ul>
+    <li>
+        <b>ResponseEntity&lt;T&gt;:</b> Clase de <code>org.springframework.http.ResponseEntity</code> que representa la respuesta HTTP completa, incluyendo código de estado (<code>HttpStatus</code>), cabeceras (<code>HttpHeaders</code>) y cuerpo serializable (body).
+    </li>
+    <li>
+        <b>MethodArgumentNotValidException:</b> Excepción de <code>org.springframework.web.bind.MethodArgumentNotValidException</code> lanzada automáticamente por Spring cuando un parámetro anotado con <code>@Valid</code> falla en sus restricciones de Bean Validation. Contiene el objeto <code>BindingResult</code> que detalla cada campo erróneo y su mensaje de validación.
+    </li>
+    <li>
+        <b>ProblemDetail (RFC 7807 / RFC 9457):</b> Clase introducida en Spring Framework 6 y Spring Boot 3 ubicada en <code>org.springframework.http.ProblemDetail</code>. Proporciona una especificación estándar de la IETF para representar errores en APIs HTTP con campos predefinidos: <code>type</code> (URI del tipo de error), <code>title</code>, <code>status</code>, <code>detail</code> e <code>instance</code>.
+    </li>
+</ul>
+
+<h2>Implementación Práctica Paso a Paso</h2>
+
+<h3>Paso 1: DTO Estándar de Respuesta de Error</h3>
+<p>
+    Definimos el modelo de datos que recibirán los clientes cuando ocurra cualquier fallo en la API:
+</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@GetMapping("/{id}")
-public ResponseEntity< PetDTO> getPetById(@PathVariable(value = "id") final Integer pId) 
+package com.example.petstore.dto;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ErrorResponseDTO {
+
+    private final LocalDateTime timestamp;
+    private final int status;
+    private final String error;
+    private final String message;
+    private final String path;
+    private final List&lt;FieldErrorDTO&gt; fieldErrors;
+
+    @Getter
+    @Builder
+    public static class FieldErrorDTO {
+        private final String field;
+        private final String message;
+        private final Object rejectedValue;
+    }
+}
+</code></pre>
+</div>
+
+<h3>Paso 2: Excepción de Negocio Personalizada</h3>
+<p>
+    Creamos excepciones específicas para el dominio que hereden de <code>RuntimeException</code> (excepciones no chequeadas), evitando la necesidad de declarar <code>throws</code> en interfaces y firmas de métodos:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.exception;
+
+import lombok.Getter;
+
+@Getter
+public class PetNotFoundException extends RuntimeException {
+
+    private final Integer petId;
+
+    public PetNotFoundException(Integer petId) {
+        super(String.format("No existe ninguna mascota con el identificador: %d", petId));
+        this.petId = petId;
+    }
+}
+</code></pre>
+</div>
+
+<h3>Paso 3: Manejador Global Centralizado (@RestControllerAdvice)</h3>
+<p>
+    Implementamos la clase interceptora con métodos dedicados a cada tipo de fallo: excepciones de dominio, validaciones de beans y fallback genérico para imprevistos:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.exception;
+
+import com.example.petstore.dto.ErrorResponseDTO;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // 1. Manejo de recurso no encontrado (404 Not Found)
+    @ExceptionHandler(PetNotFoundException.class)
+    public ResponseEntity&lt;ErrorResponseDTO&gt; handlePetNotFound(
+            PetNotFoundException ex, 
+            HttpServletRequest request) {
+
+        log.warn("Recurso no encontrado: {} en ruta {}", ex.getMessage(), request.getRequestURI());
+
+        ErrorResponseDTO error = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    // 2. Manejo de errores de validación de Bean Validation (400 Bad Request)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ErrorResponseDTO&gt; handleValidationErrors(
+            MethodArgumentNotValidException ex, 
+            HttpServletRequest request) {
+
+        log.warn("Fallo de validación en {} campos al invocar {}", ex.getFieldErrorCount(), request.getRequestURI());
+
+        List&lt;ErrorResponseDTO.FieldErrorDTO&gt; fieldErrors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(field -> ErrorResponseDTO.FieldErrorDTO.builder()
+                        .field(field.getField())
+                        .message(field.getDefaultMessage())
+                        .rejectedValue(field.getRejectedValue())
+                        .build())
+                .toList();
+
+        ErrorResponseDTO error = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message("La petición contiene datos inválidos o incompletos")
+                .path(request.getRequestURI())
+                .fieldErrors(fieldErrors)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    // 3. Fallback genérico para errores no controlados (500 Internal Server Error)
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ErrorResponseDTO&gt; handleGenericException(
+            Exception ex, 
+            HttpServletRequest request) {
+
+        // Se registra el stacktrace completo internamente en logs para auditoría técnica
+        log.error("Excepción no controlada procesando petición en {}: ", request.getRequestURI(), ex);
+
+        // NUNCA devolver el mensaje técnico de ex ni el stacktrace al cliente público
+        ErrorResponseDTO error = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message("Ha ocurrido un error interno en el servidor. Por favor, contacte con soporte.")
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Cómo NO gestionar las excepciones (Antipatrón)</h3>
+<p>
+    En el siguiente código, el controlador captura las excepciones a mano con bloques <code>try-catch</code>, devuelve formatos incoherentes y expone vulnerabilidades de seguridad:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Código contaminado con try-catch, estados HTTP incorrectos y fuga de stacktraces
+@RestController
+@RequestMapping("/petshop/pet")
+public class BadPetController {
+
+    private final PetService petService;
+
+    public BadPetController(PetService petService) {
+        this.petService = petService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;Object&gt; getPetById(@PathVariable Integer id) {
+        try {
+            PetDTO pet = petService.findById(id);
+            return ResponseEntity.ok(pet);
+        } catch (PetNotFoundException e) {
+            // ERROR: Devolver cadenas planas rompe los contratos JSON de los clientes front-end
+            return new ResponseEntity&lt;&gt;("Error: " + e.getMessage(), HttpStatus.FORBIDDEN); // Código HTTP absurdo (403 para no encontrado)
+        } catch (Exception e) {
+            // ERROR GRAVE: Fuga de información técnica interna (stacktrace / SQL exceptions expuestos)
+            return ResponseEntity.status(500).body("Fallo grave en base de datos: " + e.toString());
+        }
+    }
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo: Buenas Prácticas con Arquitectura Limpia</h3>
+<p>
+    El controlador se concentra exclusivamente en su responsabilidad de transporte HTTP y delegación, quedando en una sola línea legible:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+// BUENA PRÁCTICA: Controlador limpio, conciso y 100% enfocado en el flujo feliz
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/petshop/pet")
+public class PetController {
+
+    private final PetService petService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;PetDTO&gt; getPetById(@PathVariable Integer id) {
+        // Si no existe, petService lanza PetNotFoundException que captura GlobalExceptionHandler
+        return ResponseEntity.ok(petService.findById(id));
+    }
+}
+</code></pre>
+</div>
+
+<h3>Respuesta JSON Entregada al Cliente</h3>
+<p>
+    Al solicitar un recurso inexistente mediante <code>GET /petshop/pet/99</code>, el cliente recibe de forma estandarizada:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-json">
 {
-    //Para llamar la excepción indicarla de la siguiente forma:
-    throw new CustomExceptionClass;
+  "timestamp": "2026-10-22T20:15:30.123456",
+  "status": 404,
+  "error": "Not Found",
+  "message": "No existe ninguna mascota con el identificador: 99",
+  "path": "/petshop/pet/99"
 }
 </code></pre>
 </div>

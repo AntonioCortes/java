@@ -1,0 +1,284 @@
+<h1 class="title">Spring Data: Auditoría Automática y Gestión de Transacciones (@Transactional)</h1>
+
+<h2>1. Auditoría Automática en Persistencia</h2>
+<p>
+    En aplicaciones reguladas o entornos de producción es imperativo auditar el ciclo de vida de los datos: saber <b>cuándo</b> se insertó o modificó un registro y <b>quién</b> fue el usuario responsable. Spring Data proporciona un framework de auditoría transparente que rellena estos campos de forma automática antes de persistir o actualizar entidades en la base de datos.
+</p>
+
+<h3>Anotaciones de Auditoría</h3>
+<ul>
+    <li><b><code>@CreatedDate</code>:</b> Inyecta la marca de tiempo (<code>Instant</code> o <code>LocalDateTime</code>) al ejecutar la inserción inicial.</li>
+    <li><b><code>@LastModifiedDate</code>:</b> Actualiza la marca de tiempo en cada operación de guardado o actualización.</li>
+    <li><b><code>@CreatedBy</code>:</b> Inyecta el identificador o username del usuario que creó el registro.</li>
+    <li><b><code>@LastModifiedBy</code>:</b> Inyecta el identificador del usuario que realizó la última mutación.</li>
+</ul>
+
+---
+
+<h2>2. Gestión de Transacciones con @Transactional</h2>
+<p>
+    La anotación <code>@Transactional</code> de Spring gestiona la demarcación de transacciones automáticas mediante Proxies dinámicos de Spring AOP.
+</p>
+
+<h3>2.1. La Importancia de readOnly = true</h3>
+<p>
+    Anotar los métodos de consulta con <code>@Transactional(readOnly = true)</code> en la capa de servicio:
+</p>
+<ul>
+    <li><b>En JPA / Hibernate:</b> Desactiva el mecanismo de <i>Dirty Checking</i> (Hibernate no compara el estado de los objetos contra la base de datos al finalizar la transacción) y no mantiene copias en el contexto de persistencia, reduciendo sustancialmente el consumo de memoria JVM. Además, en bases de datos relacionales orientadas a réplicas, permite redirigir la consulta al nodo de solo lectura (Read Replica).</li>
+    <li><b>En MongoDB:</b> Informa al driver para optimizar la sesión si se ejecuta dentro de un Replica Set transaccional.</li>
+</ul>
+
+<h3>2.2. Parámetros Críticos de @Transactional</h3>
+<ul>
+    <li>
+        <b><code>rollbackFor = Exception.class</code>:</b> Por defecto, Spring <b>únicamente revierte transacciones ante excepciones no comprobadas</b> (<code>RuntimeException</code> y <code>Error</code>). Si el método lanza una excepción comprobada (ej. <code>IOException</code> o una excepción personalizada que herede de <code>Exception</code>), la transacción hace commit a menos que se configure explícitamente <code>rollbackFor = Exception.class</code>.
+    </li>
+    <li>
+        <b><code>propagation = Propagation.REQUIRED</code> (por defecto):</b> Si ya existe una transacción activa en el hilo actual, se une a ella; si no, crea una nueva.
+    </li>
+    <li>
+        <b><code>propagation = Propagation.REQUIRES_NEW</code>:</b> Suspende la transacción actual y crea una transacción independiente en una conexión física separada (ideal para registrar logs de auditoría que deben persistir incluso si la transacción principal falla).
+    </li>
+</ul>
+
+---
+
+<h2>3. Ejemplos Prácticos Completos y Simétricos</h2>
+
+<h3>3.1. Persistencia Relacional: PostgreSQL / Oracle (Spring Data JPA)</h3>
+
+<p><b>1. Clase Base Auditable (@MappedSuperclass):</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.model.relational;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
+
+@Getter
+@Setter
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public abstract class AuditableEntity {
+
+    @CreatedDate
+    @Column(name = "created_date", nullable = false, updatable = false)
+    private Instant createdDate;
+
+    @LastModifiedDate
+    @Column(name = "last_modified_date")
+    private Instant lastModifiedDate;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 50)
+    private String createdBy;
+
+    @LastModifiedBy
+    @Column(name = "last_modified_by", length = 50)
+    private String lastModifiedBy;
+}
+</code></pre>
+</div>
+
+<p><b>2. Configuración con AuditorAware:</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Optional;
+
+@Configuration
+@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
+public class JpaAuditingConfig {
+
+    @Bean
+    public AuditorAware&lt;String&gt; auditorProvider() {
+        return () -&gt; Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .filter(Authentication::isAuthenticated)
+                .map(Authentication::getName)
+                .or(() -&gt; Optional.of("SYSTEM"));
+    }
+}
+</code></pre>
+</div>
+
+<p><b>3. Servicio Transaccional de Negocio:</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service.relational;
+
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetJpaRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class PetTransactionalJpaService {
+
+    private final PetJpaRepository petRepository;
+
+    // Consulta optimizada: Sin Dirty Checking y menor consumo de memoria
+    @Transactional(readOnly = true)
+    public PetEntity getPetById(Long id) {
+        log.info("Consultando mascota con ID: {}", id);
+        return petRepository.findById(id)
+                .orElseThrow(() -&gt; new IllegalArgumentException("Mascota no encontrada con id: " + id));
+    }
+
+    // Mutación con rollback ante cualquier excepción
+    @Transactional(rollbackFor = Exception.class)
+    public PetEntity updateVaccinationStatus(Long id, boolean vaccinated) {
+        log.info("Actualizando estado de vacunación de mascota ID {} a {}", id, vaccinated);
+        PetEntity pet = getPetById(id);
+        pet.setVaccinated(vaccinated);
+        return petRepository.save(pet);
+    }
+}
+</code></pre>
+</div>
+
+<h3>3.2. Persistencia Documental: MongoDB (Spring Data MongoDB)</h3>
+
+<p><b>1. Configuración de Auditoría y Transacciones en MongoDB:</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoTransactionManager;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Optional;
+
+@Configuration
+@EnableMongoAuditing(auditorAwareRef = "mongoAuditorProvider")
+public class MongoAuditingConfig {
+
+    @Bean
+    public AuditorAware&lt;String&gt; mongoAuditorProvider() {
+        return () -&gt; Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .filter(Authentication::isAuthenticated)
+                .map(Authentication::getName)
+                .or(() -&gt; Optional.of("SYSTEM"));
+    }
+
+    // Habilita transacciones multi-documento en MongoDB (requiere Replica Set)
+    @Bean
+    public MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
+        return new MongoTransactionManager(dbFactory);
+    }
+}
+</code></pre>
+</div>
+
+<p><b>2. Servicio Transaccional de Negocio en MongoDB:</b></p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.service.nosql;
+
+import com.example.petshop.model.nosql.PetDocument;
+import com.example.petshop.repository.nosql.PetMongoRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class PetTransactionalMongoService {
+
+    private final PetMongoRepository petRepository;
+
+    @Transactional(readOnly = true)
+    public PetDocument getPetById(String id) {
+        log.info("Consultando documento mascota con ID: {}", id);
+        return petRepository.findById(id)
+                .orElseThrow(() -&gt; new IllegalArgumentException("Documento no encontrado con id: " + id));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public PetDocument updateVaccinationStatus(String id, boolean vaccinated) {
+        log.info("Actualizando documento mascota ID {} a vacunada={}", id, vaccinated);
+        PetDocument pet = getPetById(id);
+        pet.setVaccinated(vaccinated);
+        return petRepository.save(pet);
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>4. Contraejemplos y Antipatrones Transaccionales</h2>
+
+<h3>Contraejemplo 1: Autoinvocación de Métodos Transaccionales (Self-Invocation)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+@Service
+public class BadService {
+
+    public void publicMethod() {
+        // ANTIPATRÓN: La llamada interna 'this.transactionalMethod()' NO pasa por el Proxy de Spring
+        // La anotación @Transactional será completamente IGNORADA
+        transactionalMethod();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void transactionalMethod() {
+        // operaciones en BD...
+    }
+}
+</code></pre>
+</div>
+<p>
+    <b>Causa técnica:</b> Spring AOP intercepta llamadas cuando vienen desde un bean externo inyectado. Las llamadas internas dentro del mismo objeto (<code>this</code>) no pasan por el proxy.
+</p>
+<p>
+    <b>Solución:</b> Mover el método transaccional a una clase o servicio colaborador independiente.
+</p>
+
+<h3>Contraejemplo 2: Omitir rollbackFor ante Excepciones Comprobadas</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Si lanza PetValidationException (que hereda de Exception comprobada),
+// Spring NO revertirá los cambios y la transacción hará COMMIT en la base de datos
+@Transactional
+public void saveWithCustomException(PetEntity pet) throws PetValidationException {
+    petRepository.save(pet);
+    if (pet.getAge() &lt; 0) {
+        throw new PetValidationException("Edad inválida"); // No hace rollback por defecto
+    }
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Anotar siempre con <code>@Transactional(rollbackFor = Exception.class)</code>.
+</p>

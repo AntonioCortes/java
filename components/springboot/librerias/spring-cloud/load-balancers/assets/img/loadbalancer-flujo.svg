@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" font-family="Arial, Helvetica, sans-serif">
+  <rect width="960" height="540" fill="white"/>
+  <defs>
+    <marker id="m4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#222"/></marker>
+  </defs>
+  <text x="480" y="24" text-anchor="middle" font-size="16" font-weight="bold">Balanceo de Carga en Cliente con Spring Cloud LoadBalancer</text>
+
+  <!-- Cliente con LoadBalancer -->
+  <rect x="40" y="160" width="310" height="190" rx="8" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+  <text x="195" y="185" text-anchor="middle" font-size="11" fill="#1864ab">«cliente con balanceador reactivo»</text>
+  <text x="195" y="205" text-anchor="middle" font-size="14" font-weight="bold">Spring Cloud LoadBalancer</text>
+  <line x1="40" y1="213" x2="350" y2="213" stroke="#1971c2" stroke-width="1"/>
+  <text x="195" y="235" text-anchor="middle" font-size="11" font-weight="bold">@LoadBalanced WebClient / RestTemplate</text>
+  <text x="195" y="260" text-anchor="middle" font-size="10.5">Algoritmo: Round-Robin (por defecto)</text>
+  <text x="195" y="280" text-anchor="middle" font-size="10.5">Petición 1 → Instancia A (10.0.1.5)</text>
+  <text x="195" y="300" text-anchor="middle" font-size="10.5">Petición 2 → Instancia B (10.0.1.6)</text>
+  <text x="195" y="320" text-anchor="middle" font-size="10.5">Petición 3 → Instancia C (10.0.1.7)</text>
+
+  <!-- Instancias Servidoras -->
+  <rect x="580" y="90" width="320" height="90" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="740" y="115" text-anchor="middle" font-size="11" fill="#444">«instancia A»</text>
+  <text x="740" y="135" text-anchor="middle" font-size="13" font-weight="bold">Pet-Service (10.0.1.5:8081)</text>
+  <text x="740" y="155" text-anchor="middle" font-size="10.5" fill="#27ae60">HealthCheck: UP - Carga: 33%</text>
+
+  <rect x="580" y="210" width="320" height="90" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="740" y="235" text-anchor="middle" font-size="11" fill="#444">«instancia B»</text>
+  <text x="740" y="255" text-anchor="middle" font-size="13" font-weight="bold">Pet-Service (10.0.1.6:8082)</text>
+  <text x="740" y="275" text-anchor="middle" font-size="10.5" fill="#27ae60">HealthCheck: UP - Carga: 33%</text>
+
+  <rect x="580" y="330" width="320" height="90" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="740" y="355" text-anchor="middle" font-size="11" fill="#444">«instancia C»</text>
+  <text x="740" y="375" text-anchor="middle" font-size="13" font-weight="bold">Pet-Service (10.0.1.7:8083)</text>
+  <text x="740" y="395" text-anchor="middle" font-size="10.5" fill="#27ae60">HealthCheck: UP - Carga: 33%</text>
+
+  <!-- Flechas Balanceadas -->
+  <path d="M 350 220 L 450 220 L 450 135 L 575 135" fill="none" stroke="#2980b9" stroke-width="2" marker-end="url(#m4)"/>
+  <path d="M 350 255 L 575 255" fill="none" stroke="#2980b9" stroke-width="2" marker-end="url(#m4)"/>
+  <path d="M 350 290 L 450 290 L 450 375 L 575 375" fill="none" stroke="#2980b9" stroke-width="2" marker-end="url(#m4)"/>
+
+  <rect x="230" y="460" width="500" height="40" rx="6" fill="#f8f9fa" stroke="#ccc"/>
+  <text x="480" y="485" text-anchor="middle" font-size="11" font-weight="bold">Sin cuello de botella central: cada cliente decide a qué IP enviar la llamada</text>
+</svg>

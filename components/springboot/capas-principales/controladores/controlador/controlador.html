@@ -27,12 +27,12 @@
 
 <div class="center-horizontal">
 <pre><code class="language-java">
+@RequiredArgsConstructor
 @Controller
 @RequestMapping("/film")
 public class FilmController {
 	
-	@Autowired
-	FilmService filmService;
+	private final FilmService filmService;
 	
 	@Secured({"ROLE_USER","ROLE_ADMIN"})
 	@PostMapping("/save")

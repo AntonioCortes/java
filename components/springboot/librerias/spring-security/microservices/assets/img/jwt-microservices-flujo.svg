@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Arial, Helvetica, sans-serif">
+  <rect width="960" height="560" fill="white"/>
+  <defs>
+    <marker id="m7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#222"/></marker>
+    <marker id="m7-jwt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#8e44ad"/></marker>
+  </defs>
+  <text x="480" y="24" text-anchor="middle" font-size="16" font-weight="bold">Seguridad Stateless en Microservicios con JWT y OAuth2 Resource Server</text>
+
+  <!-- 1. Cliente -->
+  <rect x="30" y="170" width="160" height="90" rx="6" fill="#e8e8e8" stroke="#333" stroke-width="1.5"/>
+  <text x="110" y="195" text-anchor="middle" font-size="11" fill="#444">«cliente SPA / Front»</text>
+  <text x="110" y="215" text-anchor="middle" font-size="13" font-weight="bold">Navegador Web</text>
+  <text x="110" y="240" text-anchor="middle" font-size="10" fill="#555">Almacena JWT local</text>
+
+  <!-- 2. Auth Server (Keycloak / Spring Auth Server) -->
+  <rect x="250" y="60" width="230" height="100" rx="6" fill="#f3e5f5" stroke="#8e44ad" stroke-width="2"/>
+  <text x="365" y="82" text-anchor="middle" font-size="11" fill="#6a1b9a">«servidor de identidad»</text>
+  <text x="365" y="102" text-anchor="middle" font-size="13" font-weight="bold">Auth-Service (OAuth2 / OIDC)</text>
+  <line x1="250" y1="110" x2="480" y2="110" stroke="#8e44ad" stroke-width="1"/>
+  <text x="365" y="128" text-anchor="middle" font-size="10.5">POST /oauth2/token</text>
+  <text x="365" y="145" text-anchor="middle" font-size="10.5" fill="#8e44ad" font-weight="bold">Firma JWT con clave privada (RSA)</text>
+
+  <!-- 3. Resource Server 1: Order-Service -->
+  <rect x="250" y="250" width="280" height="140" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="390" y="272" text-anchor="middle" font-size="11" fill="#444">«OAuth2 Resource Server»</text>
+  <text x="390" y="292" text-anchor="middle" font-size="14" font-weight="bold">Order-Service</text>
+  <line x1="250" y1="300" x2="530" y2="300" stroke="#333" stroke-width="1"/>
+  <text x="390" y="320" text-anchor="middle" font-size="10.5">Valida firma con clave pública (JWKS)</text>
+  <text x="390" y="338" text-anchor="middle" font-size="10.5">SessionCreationPolicy.STATELESS</text>
+  <text x="390" y="356" text-anchor="middle" font-size="10.5">Extrae Roles: [ROLE_ADMIN]</text>
+  <text x="390" y="374" text-anchor="middle" font-size="10.5" fill="#8e44ad">Propaga cabecera Authorization en Feign</text>
+
+  <!-- 4. Resource Server 2: Pet-Service -->
+  <rect x="650" y="250" width="280" height="140" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="790" y="272" text-anchor="middle" font-size="11" fill="#444">«OAuth2 Resource Server»</text>
+  <text x="790" y="292" text-anchor="middle" font-size="14" font-weight="bold">Pet-Service</text>
+  <line x1="650" y1="300" x2="930" y2="300" stroke="#333" stroke-width="1"/>
+  <text x="790" y="320" text-anchor="middle" font-size="10.5">Valida token criptográficamente</text>
+  <text x="790" y="338" text-anchor="middle" font-size="10.5">Sin consultar base de datos de sesiones</text>
+  <text x="790" y="356" text-anchor="middle" font-size="10.5">@PreAuthorize("hasAuthority(SCOPE_pets:write)")</text>
+
+  <!-- Flechas -->
+  <path d="M 110 170 L 110 110 L 245 110" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#m7)"/>
+  <text x="175" y="95" text-anchor="middle" font-size="9.5">1. Login</text>
+
+  <path d="M 190 220 L 245 270" fill="none" stroke="#8e44ad" stroke-width="2" marker-end="url(#m7-jwt)"/>
+  <text x="190" y="255" text-anchor="middle" font-size="9.5" fill="#8e44ad" font-weight="bold">Bearer &lt;JWT&gt;</text>
+
+  <line x1="530" y1="310" x2="645" y2="310" stroke="#8e44ad" stroke-width="2" marker-end="url(#m7-jwt)"/>
+  <text x="587" y="300" text-anchor="middle" font-size="9.5" fill="#8e44ad">Propagación Feign</text>
+
+  <rect x="180" y="450" width="600" height="40" rx="6" fill="#f8f9fa" stroke="#ccc"/>
+  <text x="480" y="475" text-anchor="middle" font-size="11" font-weight="bold">Arquitectura 100% Stateless: ninguna instancia almacena sesiones HTTP en memoria</text>
+</svg>

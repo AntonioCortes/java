@@ -1,0 +1,268 @@
+<h1 class="title">Seguridad en Microservicios: JWT y OAuth2 Resource Server</h1>
+
+<p>
+    En una arquitectura distribuida de microservicios, mantener sesiones de usuario en memoria mediante cookies (<code>JSESSIONID</code>) es inviable: requeriría que todas las instancias compartiesen una base de datos centralizada de sesiones (como Redis) o aplicar afinidad de sesiones (<em>Sticky Sessions</em>), lo cual destruye la elasticidad y la tolerancia a fallos.
+</p>
+<p>
+    El estándar moderno de la industria para asegurar microservicios REST es la arquitectura <strong>Stateless (Sin Estado)</strong> basada en <strong>OAuth2 y JSON Web Tokens (JWT)</strong>. Bajo este paradigma, los microservicios asumen el rol de <strong>OAuth2 Resource Servers</strong>: reciben peticiones que portan un token JWT en la cabecera <code>Authorization: Bearer &lt;token&gt;</code> y validan la autenticidad del token de forma autónoma mediante <strong>criptografía asimétrica (claves públicas JWKS)</strong>, sin necesidad de consultar una base de datos central en cada petición.
+</p>
+
+<h2>Anatomía de un JSON Web Token (JWT)</h2>
+<p>Un JWT es una cadena de texto compacta formada por tres partes codificadas en Base64URL separadas por puntos (<code>header.payload.signature</code>):</p>
+<ul>
+    <li><b>Header (Cabecera):</b> Indica el tipo de token (<code>JWT</code>) y el algoritmo de firma criptográfica utilizado (típicamente <code>RS256</code> con clave pública/privada RSA).</li>
+    <li><b>Payload (Cuerpo / Reclamaciones):</b> Contiene los <em>Claims</em> o datos de identidad del usuario: emisor (<code>iss</code>), identificador del usuario (<code>sub</code>), fecha de expiración (<code>exp</code>) y listas de roles o permisos (ej. <code>roles: ["ROLE_ADMIN"]</code>).</li>
+    <li><b>Signature (Firma):</b> Garantiza matemáticamente que el contenido del token no ha sido alterado por intermediarios ni por el propio usuario.</li>
+</ul>
+
+<h2>Analogía del Mundo Real: El Pasaporte Biométrico Internacional</h2>
+<p>
+    Imagina viajar por múltiples países del mundo (<strong>los Microservicios</strong>):
+</p>
+<ul>
+    <li>En lugar de que cada policía de aduanas de cada frontera llame por teléfono al ministerio de tu país de origen para preguntar si existes (consultas a base de datos síncronas lentas), presentas tu <strong>Pasaporte Biométrico Oficial</strong> (el <strong>JWT</strong>).</li>
+    <li>El policía introduce el pasaporte en el lector de aduanas: el lector utiliza la <strong>Clave Pública</strong> internacional de tu país emisor (el <strong>JWKS</strong>) para verificar matemáticamente el sello digital criptográfico.</li>
+    <li>Si la firma es auténtica y la fecha no ha caducado, el policía sabe con 100% de certeza quién eres y qué visados tienes, autorizando tu entrada en 50 milisegundos sin comunicarse con nadie más.</li>
+</ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>Una aplicación móvil se conecta al backend de <code>PetStore</code>. El cliente inicia sesión en el servidor de autenticación (Keycloak / Auth0 / Spring Authorization Server) y obtiene un token JWT válido por 15 minutos.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sesiones Tradicionales)</div>
+            <div class="card-body">
+                <p>Si se usan cookies de sesión, el cliente debe hablar siempre con la misma máquina. Si una instancia se reinicia, el usuario pierde su sesión. Si 10 microservicios se llaman en cadena, todos tienen que consultar una base de datos de sesiones, creando un cuello de botella letal.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con OAuth2 Resource Server)</div>
+            <div class="card-body">
+                <p>Cada microservicio valida la firma del JWT en memoria con la clave pública de Keycloak. El token se propaga de forma transparente entre microservicios mediante interceptores de OpenFeign, manteniendo la identidad del usuario en toda la cadena.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Estrategia</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>OAuth2 Resource Server con JWT</b></td>
+            <td><strong>Estándar para APIs REST y arquitecturas de microservicios</strong>. Escalabilidad infinita (sin almacenamiento en sesión), interoperabilidad multiplataforma y delegación de autenticación en servidores especializados (Keycloak, Okta, Azure AD).</td>
+            <td>Cuando se requiere revocación instantánea en tiempo real milisegundo a milisegundo (un JWT firmado es válido hasta que expira, a menos que se mantenga una lista negra en memoria).</td>
+        </tr>
+        <tr>
+            <td><b>Sesiones en BD Compartida (Spring Session + Redis)</b></td>
+            <td>Aplicaciones web con interfaz HTML donde se requiere invalidar sesiones inmediatamente ante logout o cierre de cuenta del usuario.</td>
+            <td>Microservicios desacoplados: compartir la misma base de datos Redis entre 20 equipos viola el principio de autonomía de datos de microservicios.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de arquitecturas de seguridad distribuida</span>
+
+<h2>Dependencias Necesarias</h2>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter de Spring Security para actuar como Resource Server OAuth2 con JWT --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-oauth2-resource-server&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Diagrama de Arquitectura y Propagación del Token</h2>
+<p>
+    El siguiente diagrama muestra el flujo de autenticación contra el servidor de identidad y la validación autónoma en cada Resource Server:
+</p>
+
+<img class="center-horizontal" src="components/springboot/librerias/spring-security/microservices/assets/img/jwt-microservices-flujo.svg">
+<span class="center-horizontal caption">Figura 1: Flujo de emisión, validación criptográfica y propagación de JWT entre microservicios</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Componente</th>
+            <th scope="col">Rol OAuth2</th>
+            <th scope="col">Responsabilidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Auth-Service / Keycloak</b></td>
+            <td><code>«Authorization Server»</code></td>
+            <td>Valida usuario y contraseña. Emite tokens JWT firmados con su clave privada RSA. Expone el endpoint público de claves (<code>/protocol/openid-connect/certs</code>).</td>
+        </tr>
+        <tr>
+            <td><b>Order-Service &amp; Pet-Service</b></td>
+            <td><code>«Resource Server»</code></td>
+            <td>Descargan las claves públicas JWKS al arrancar. Verifican la firma de la cabecera <code>Bearer &lt;JWT&gt;</code> en milisegundos en memoria.</td>
+        </tr>
+        <tr>
+            <td><b>Feign RequestInterceptor</b></td>
+            <td><code>«propagador de contexto»</code></td>
+            <td>Copia la cabecera <code>Authorization</code> de la petición entrante y la inyecta en la petición remota hacia el siguiente microservicio.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes de la arquitectura OAuth2 Resource Server</span>
+
+<h2>Configuración en application.yml</h2>
+<p>
+    Para que Spring Boot valide automáticamente las firmas de los tokens JWT, solo es necesario apuntar al emisor (Issuer) del servidor de identidad:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # URL del Authorization Server (descarga automáticamente las claves públicas JWKS)
+          issuer-uri: https://auth.tiendamascotas.com/realms/petstore
+          # O bien URL directa al endpoint de certificados públicos
+          jwk-set-uri: https://auth.tiendamascotas.com/realms/petstore/protocol/openid-connect/certs
+</code></pre>
+</div>
+
+<h2>Implementación del Resource Server en Spring Boot 3</h2>
+
+<h3>1. SecurityFilterChain con Soporte OAuth2 JWT</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.orderservice.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity // Habilita @PreAuthorize a nivel de método
+public class OAuth2ResourceServerConfig {
+
+    @Bean
+    public SecurityFilterChain resourceServerFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.GET, "/petshop/pet/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/petshop/orders/**").hasAuthority("SCOPE_orders:write")
+                .anyRequest().authenticated()
+            )
+            // Habilita la validación automática de tokens Bearer JWT
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+
+        return http.build();
+    }
+}
+</code></pre>
+</div>
+
+<h3>2. Propagación del Token JWT en OpenFeign</h3>
+<p>
+    Cuando <code>order-service</code> llama a <code>pet-service</code> mediante OpenFeign, debe propagar el token JWT del usuario original para que el segundo servicio conozca su identidad:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.orderservice.config;
+
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+@Configuration
+public class FeignClientJwtInterceptor {
+
+    @Bean
+    public RequestInterceptor oauth2FeignRequestInterceptor() {
+        return (RequestTemplate template) -> {
+            ServletRequestAttributes attributes = 
+                    (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+                // Si la petición entrante tenía cabecera Bearer, la copia en la llamada de Feign
+                if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                    template.header(HttpHeaders.AUTHORIZATION, authorizationHeader);
+                }
+            }
+        };
+    }
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Deserialización de JWT Casera sin Validar Firma (Antipatrón Crítico)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN PELIGROSO: Decodificar el Base64 a mano sin verificar la firma con la clave pública
+public void badAuthentication(String token) {
+    // VULNERABILIDAD CRÍTICA: Cualquiera puede modificar el JSON en base64 y ponerse rol ADMIN
+    // si no se verifica criptográficamente la tercera sección (Signature) del JWT.
+    String[] parts = token.split("\\.");
+    String payload = new String(Base64.getDecoder().decode(parts[1]));
+    // ¡Nunca confiar en el contenido sin validación criptográfica del Resource Server!
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo: Invocación Segura Protegida por Método con @PreAuthorize</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// BUENA PRÁCTICA: Validación automática en el Controller con anotaciones de seguridad declarativas
+@RestController
+@RequestMapping("/petshop/orders")
+public class SecureOrderController {
+
+    @PostMapping
+    @PreAuthorize("hasAuthority('SCOPE_orders:create') and hasRole('CLIENTE')")
+    public ResponseEntity&lt;OrderDTO&gt; createOrder(
+            @RequestBody OrderRequestDTO request,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        // Se pueden consultar directamente los claims verificados del token
+        String userEmail = jwt.getClaimAsString("email");
+        log.info("Creando orden para el usuario verificado: {}", userEmail);
+
+        return ResponseEntity.ok(new OrderDTO());
+    }
+}
+</code></pre>
+</div>

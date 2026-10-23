@@ -90,19 +90,16 @@ public class PetController
 <div class="center-horizontal">
 <pre><code class="language-java">
 //...Other annotations
+@Slf4j
+@RequiredArgsConstructor
 @RestController
 public class PetController
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PetController.class);
-
-    @Autowired
     private final PetService petService;
 
-    @Autowired
     @Qualifier("modelMapper")
     private final ModelMapper mapper;
 
-    @Autowired
     @Qualifier("patchModelMapper")
     private final ModelMapper patchMapper;
 
@@ -153,11 +150,11 @@ public ResponseEntity&lt;PetDTO&gt; get(@PathVariable(value = "id") @ApiParam(va
 	Optional&lt;Pet&gt; pet = petService.findById(pId);
 	if(pet.isEmpty()) 
 	{
-		LOGGER.error("Pet {} not found", pId);
+		log.error("Pet {} not found", pId);
 		return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);
 	}
 	PetDTO petDTO = mapper.map(pet.get(), PetDTO.class);
-	LOGGER.debug("Getting pet with id {}", pId);
+	log.debug("Getting pet with id {}", pId);
 
 	return new ResponseEntity&lt;&gt;(petDTO, HttpStatus.OK);
 }
@@ -173,7 +170,7 @@ public ResponseEntity&lt;PetDTO&gt; get(@PathVariable(value = "id") @ApiParam(va
 @GetMapping("/all")
 public ResponseEntity&lt;List&lt;PetDTO&gt;&gt; getByAge(@RequestParam(value = "age", required = true) @ApiParam(value = "pet age", example = "1", required = true) final Integer pAge) 
 {
-	LOGGER.debug("Getting all pets with age {}", pAge);
+	log.debug("Getting all pets with age {}", pAge);
 
 	List&lt;Pet&gt; petList = petService.findByAge(pAge);
 
@@ -203,7 +200,7 @@ public ResponseEntity&lt;HttpStatus&gt; patch(
 	Optional&lt;Pet&gt; pet = petService.findById(pId);
 	if (pet.isEmpty()) 
 	{
-		LOGGER.error("Pet {} not found", pId);
+		log.error("Pet {} not found", pId);
 		return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);
 	}
 
@@ -235,13 +232,13 @@ public ResponseEntity&lt;Object&gt; post(@RequestBody @Valid final PetDTO pPetDT
 	Optional&lt;Pet&gt; petOp = petService.findById(pPetDTO.getId());
 	if(petOp.isPresent())
 	{
-		LOGGER.error("Pet {} already exists", pPetDTO.getId());
+		log.error("Pet {} already exists", pPetDTO.getId());
 		throw new UniqueConstraintException(ConstantMessages.ERROR_ALREADY_EXISTS);
 	}
 	
 	Pet pet = mapper.map(pPetDTO, Pet.class);
 	pet = petService.save(pet);
-	LOGGER.debug("Pet with id {} saved correctly", pet.getId());
+	log.debug("Pet with id {} saved correctly", pet.getId());
 		
 	URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().pathSegment(String.format("%s", pet.getId())).build().toUri();
 	HttpHeaders headers = new HttpHeaders();
@@ -269,13 +266,13 @@ public ResponseEntity&lt;HttpStatus&gt; delete(@PathVariable(value = "id") @ApiP
 	if(pet.isPresent())
 	{		
 		petService.delete(pet.get());
-		LOGGER.debug("Pet with id {} deleted correctly", pId);
+		log.debug("Pet with id {} deleted correctly", pId);
 
 		return new ResponseEntity&lt;&gt;(HttpStatus.NO_CONTENT);	
 	}
 	else
 	{
-		LOGGER.error("Pet with id {} doesn't exist", pId);
+		log.error("Pet with id {} doesn't exist", pId);
 
 		return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);	
 	}

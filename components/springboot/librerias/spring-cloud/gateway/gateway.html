@@ -1,0 +1,306 @@
+<h1 class="title">Spring Cloud Gateway</h1>
+
+<p>
+    En una arquitectura de microservicios, exponer cada servicio directamente a internet con su propia IP y puerto público es un antipatrón crítico: multiplica la superficie de ataque, obliga a los clientes web y móviles a conocer decenas de URLs y dificulta aplicar políticas globales de seguridad, CORS, autenticación y limitación de tasa (<em>Rate Limiting</em>).
+</p>
+<p>
+    <strong>Spring Cloud Gateway</strong> es el <strong>API Gateway reactivo oficial</strong> del ecosistema Spring Cloud. Construido sobre <strong>Spring WebFlux</strong> y el motor no bloqueante <strong>Netty</strong> (reemplazando al antiguo y bloqueante <em>Netflix Zuul 1.x</em>), actúa como el <strong>único punto de entrada perimetral (Single Point of Entry)</strong> para todas las peticiones externas, encargándose de enrutar el tráfico dinámicamente hacia los microservicios internos mediante integración nativa con <strong>Eureka</strong>.
+</p>
+
+<h2>Conceptos Fundamentales de Spring Cloud Gateway</h2>
+<p>El funcionamiento de Spring Cloud Gateway se basa en tres bloques constructivos:</p>
+<ul>
+    <li><b>Route (Ruta):</b> La unidad básica de enrutamiento. Se define por un identificador único (ID), una URI de destino (ej. <code>lb://PET-SERVICE</code>), un conjunto de <em>Predicates</em> y una lista ordenada de <em>Filters</em>.</li>
+    <li><b>Predicate (Predicado / Condición):</b> Una función booleana evaluada contra la petición HTTP entrante (usando la clase <code>ServerWebExchange</code>). Si el predicado devuelve <code>true</code>, la ruta coincide y se ejecuta. Ejemplos: coincidencia de ruta (<code>Path</code>), método HTTP (<code>Method</code>), cabeceras (<code>Header</code>) o parámetros de consulta (<code>Query</code>).</li>
+    <li><b>Filter (Filtro):</b> Componentes interceptores que permiten inspeccionar o modificar la petición HTTP <em>antes</em> de enviarla al microservicio de destino (pre-filter), o alterar la respuesta HTTP <em>antes</em> de entregarla al cliente (post-filter). Ejemplos: añadir cabeceras, reescribir paths (<code>RewritePath</code>), recortar prefijos (<code>StripPrefix</code>) o conectar cortafuegos (<code>CircuitBreaker</code>).</li>
+</ul>
+
+<h2>Analogía del Mundo Real: La Aduana y Control de Pasaportes de un Aeropuerto</h2>
+<p>
+    Imagina un aeropuerto internacional al que llegan miles de viajeros de todo el mundo:
+</p>
+<ul>
+    <li>En lugar de que los aviones aterricen en cualquier descampado sin control (exponer microservicios a lo loco a internet), todos los vuelos y pasajeros aterrizan en la <strong>Terminal Internacional Única</strong> (el <strong>API Gateway</strong>).</li>
+    <li>En los pasillos de control, los carteles y escáneres evalúan las condiciones de cada pasajero (los <strong>Predicados</strong>): <em>"¿Viaja a la Unión Europea?"</em>, <em>"¿Lleva equipaje de mano?"</em>.</li>
+    <li>Antes de dejar pasar a cada pasajero, los agentes aplican los controles (los <strong>Filtros</strong>): sellan la tarjeta de embarque, revisan la temperatura corporal y adjuntan una etiqueta de seguridad oficial (inyectar cabeceras <code>X-User-Id</code>).</li>
+    <li>Finalmente, la aduana indica la puerta de embarque interna hacia su destino nacional protegido (enrutamiento balanceado <code>lb://PET-SERVICE</code>).</li>
+</ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>La aplicación móvil de <code>PetStore</code> necesita consultar mascotas, tramitar pedidos y solicitar facturas a través de un único dominio público unificado: <code>https://api.petstore.com</code>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin API Gateway)</div>
+            <div class="card-body">
+                <p>La App móvil tiene que gestionar 5 URLs distintas (<code>pet.petstore.com:8081</code>, <code>order.petstore.com:8082</code>, etc.). Si se cambia un puerto, hay que actualizar la App en Google Play y App Store. Hay que configurar CORS, SSL y autenticación en cada microservicio por separado.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Spring Cloud Gateway)</div>
+            <div class="card-body">
+                <p>Toda petición llega al puerto <code>8080</code> del Gateway. Las peticiones a <code>/api/v1/pets/**</code> se enrutan dinámicamente a las réplicas sanas de <code>PET-SERVICE</code> en Eureka, aplicando CORS centralizado y validación de tokens JWT en la frontera.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Solución de Gateway</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Spring Cloud Gateway</b></td>
+            <td><strong>Estándar oficial para arquitecturas Spring Boot / Spring Cloud</strong>. Alto rendimiento asíncrono no bloqueante sobre Netty, integración nativa con Eureka (<code>lb://</code>), configuración declarativa en YAML o fluida en Java.</td>
+            <td><strong>Incompatible con <code>spring-boot-starter-web</code> tradicional (Tomcat)</strong> en el mismo proyecto: Spring Cloud Gateway requiere la pila reactiva de Spring WebFlux. No se deben mezclar dependencias de Tomcat y Gateway.</td>
+        </tr>
+        <tr>
+            <td><b>Netflix Zuul 1.x</b></td>
+            <td>Proyectos legados muy antiguos de Spring Cloud (Zuul 1 usaba un hilo por conexión síncrona bloqueante).</td>
+            <td><strong>Completamente descontinuado y eliminado</strong> en versiones modernas de Spring Cloud.</td>
+        </tr>
+        <tr>
+            <td><b>NGINX / Kong / Envoy / Traefik</b></td>
+            <td>Infraestructuras multinube o políglotas gestionadas por equipos de operaciones/DevOps independientes del código Java.</td>
+            <td>Cuando se requiera implementar filtros complejos con lógica de negocio Java, inyección de beans de Spring o integración directa con el catálogo de Eureka.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de opciones de API Gateway</span>
+
+<h2>Dependencias Necesarias</h2>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter oficial de Spring Cloud Gateway (basado en WebFlux y Netty) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-gateway&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Cliente Eureka para resolución de rutas dinámicas mediante lb:// --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Diagrama de Enrutamiento Perimetral</h2>
+<p>
+    El siguiente diagrama muestra cómo Spring Cloud Gateway evalúa los predicados y aplica filtros antes de despachar a los microservicios:
+</p>
+
+<img class="center-horizontal" src="components/springboot/librerias/spring-cloud/gateway/assets/img/gateway-routing.svg">
+<span class="center-horizontal caption">Figura 1: Enrutamiento dinámico perimetral con Spring Cloud Gateway</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento</th>
+            <th scope="col">Rol</th>
+            <th scope="col">Responsabilidad Técnica</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Frontend / SPA</b></td>
+            <td><code>«cliente»</code></td>
+            <td>Envía peticiones a la URL única del Gateway (ej. <code>http://gateway:8080/api/v1/pets/1</code>).</td>
+        </tr>
+        <tr>
+            <td><b>Route Predicate Handler</b></td>
+            <td><code>«evaluador»</code></td>
+            <td>Evalúa si la ruta coincide con <code>Path=/api/v1/pets/**</code> y el método HTTP.</td>
+        </tr>
+        <tr>
+            <td><b>GatewayFilter Factory</b></td>
+            <td><code>«transformador»</code></td>
+            <td>Reescribe la ruta mediante <code>RewritePath</code>, añade cabeceras seguras (<code>X-Gateway-Trace</code>) o aplica limitadores de tasa.</td>
+        </tr>
+        <tr>
+            <td><b>LoadBalancerClientFilter</b></td>
+            <td><code>«enrutador lb://»</code></td>
+            <td>Resuelve <code>lb://PET-SERVICE</code> en Eureka y reenvía el paquete HTTP a una instancia saludable.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes del enrutamiento de Gateway</span>
+
+<h2>Configuración Declarativa en application.yml</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      # Descubrimiento automático de rutas registradas en Eureka
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      # Definición de rutas explícitas con predicados y filtros
+      routes:
+        # 1. Ruta para el microservicio de mascotas
+        - id: pet-service-route
+          uri: lb://PET-SERVICE
+          predicates:
+            - Path=/api/v1/pets/**
+            - Method=GET,POST,PUT,DELETE
+          filters:
+            # Reescribe /api/v1/pets/5 -> /petshop/pet/5 antes de enviar al servicio interno
+            - RewritePath=/api/v1/pets/(?&lt;segment&gt;.*), /petshop/pet/$\{segment}
+            - AddRequestHeader=X-Gateway-Source, SpringCloudGateway
+
+        # 2. Ruta para el microservicio de órdenes
+        - id: order-service-route
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/v1/orders/**
+          filters:
+            - RewritePath=/api/v1/orders/(?&lt;segment&gt;.*), /orders/$\{segment}
+
+      # Configuración global de CORS
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "https://www.tiendamascotas.com"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+            allowedHeaders: "*"
+</code></pre>
+</div>
+
+<h2>Configuración Fluida en Código Java (RouteLocator)</h2>
+<p>
+    Alternativamente, las rutas pueden definirse mediante código Java tipado:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.gateway.config;
+
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class GatewayRoutesConfig {
+
+    @Bean
+    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+        return builder.routes()
+                .route("pet_route_java", r -&gt; r
+                        .path("/api/v1/pets/**")
+                        .filters(f -&gt; f
+                                .rewritePath("/api/v1/pets/(?&lt;segment&gt;.*)", "/petshop/pet/${segment}")
+                                .addResponseHeader("X-Response-Engine", "Spring-Cloud-Gateway")
+                        )
+                        .uri("lb://PET-SERVICE")
+                )
+                .build();
+    }
+}
+</code></pre>
+</div>
+
+<h2>Filtro Global Personalizado (GlobalFilter)</h2>
+<p>
+    Los filtros globales se ejecutan en <strong>todas y cada una de las rutas</strong> del Gateway, siendo ideales para medir latencias o registrar auditorías:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.gateway.filter;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.Ordered;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+@Slf4j
+@Component
+public class LoggingGlobalFilter implements GlobalFilter, Ordered {
+
+    @Override
+    public Mono&lt;Void&gt; filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        long startTime = System.currentTimeMillis();
+        String path = exchange.getRequest().getURI().getPath();
+        log.info("[GATEWAY REQUEST] {} {}", exchange.getRequest().getMethod(), path);
+
+        // Continúa la cadena y ejecuta lógica de post-filtro al completar la respuesta
+        return chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("[GATEWAY RESPONSE] {} completado en {} ms con estado {}", 
+                    path, duration, exchange.getResponse().getStatusCode());
+        }));
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.LOWEST_PRECEDENCE;
+    }
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Mezclar Spring MVC con Spring Cloud Gateway (Incompatibilidad Crítica)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- ANTIPATRÓN: Mezclar spring-boot-starter-web con spring-cloud-starter-gateway en el mismo pom.xml --&gt;
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt; &lt;!-- ¡PROVOCA QUE EL GATEWAY FALLE AL ARRANCAR! --&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-gateway&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<h3>Ejemplo: Dependencias Limpias Reactivas para el Gateway</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- BUENA PRÁCTICA: Solo dependencias reactivas compatibles con WebFlux y Netty --&gt;
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-gateway&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>

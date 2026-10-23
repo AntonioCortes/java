@@ -1,0 +1,252 @@
+<h1 class="title">Resilience4j y Circuit Breaker</h1>
+
+<p>
+    En los sistemas distribuidos y arquitecturas de microservicios, <strong>los fallos de red y las caídas parciales son inevitables</strong>. Si el microservicio A llama al microservicio B, y este último se congela o sufre un bloqueo de base de datos, las peticiones que llegan a A se acumularán en memoria esperando respuesta (hilos bloqueados en sockets HTTP). En cuestión de segundos, A agotará su pool de conexiones de Tomcat y caerá, provocando una <strong>caída en cascada catastrófica</strong> que derriba a todos los servicios dependientes.
+</p>
+<p>
+    <strong>Resilience4j</strong> es una librería ligera y modular de tolerancia a fallos diseñada específicamente para Java funcional y Spring Boot. Actúa como el sucesor moderno y oficial de la descontinuada <em>Netflix Hystrix</em>, proporcionando implementaciones de alta velocidad de los patrones de resiliencia más importantes: <strong>Circuit Breaker</strong>, <strong>RateLimiter</strong>, <strong>Retry</strong>, <strong>Bulkhead</strong> y <strong>TimeLimiter</strong>.
+</p>
+
+<h2>La Máquina de Estados del Circuit Breaker</h2>
+<p>
+    El patrón <strong>Circuit Breaker (Cortacircuitos)</strong> envuelve las llamadas protegidas y monitoriza su éxito o fracaso a través de una <strong>ventana deslizante</strong> (<em>Sliding Window</em>) en memoria. Opera bajo tres estados fundamentales:
+</p>
+<ul>
+    <li><b>CERRADO (Closed):</b> El circuito está cerrado y la corriente fluye. Todas las llamadas se envían al microservicio remoto con normalidad. Mide la tasa de errores en las últimas N peticiones.</li>
+    <li><b>ABIERTO (Open):</b> Si el porcentaje de fallos supera el umbral configurado (ej. 50% de errores o respuestas lentas), el circuito <strong>salta y se abre</strong>. Durante este estado, <strong>ninguna llamada física se envía a la red</strong>: falla de forma instantánea (<em>Fail-Fast</em>) y ejecuta de inmediato el método de contingencia (<strong>Fallback</strong>), evitando sobrecargar al servicio remoto agonizante.</li>
+    <li><b>SEMI-ABIERTO (Half-Open):</b> Una vez transcurrido un periodo de enfriamiento (ej. 10 segundos), el circuito pasa a estado de prueba. Deja pasar un número pequeño y controlado de peticiones (ej. 5 llamadas):
+        <ul>
+            <li>Si esas 5 llamadas tienen éxito, asume que el servicio remoto se ha recuperado y el circuito vuelve a <strong>CERRADO</strong>.</li>
+            <li>Si alguna falla, el circuito vuelve inmediatamente a <strong>ABIERTO</strong> durante otro ciclo de enfriamiento.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Analogía del Mundo Real: El Interruptor Diferencial del Cuadro Eléctrico</h2>
+<p>
+    Imagina los enchufes y electrodomésticos de tu hogar:
+</p>
+<ul>
+    <li>En una instalación sin protección (sin Circuit Breaker), si una tostadora defectuosa sufre un cortocircuito de 220V, los cables de las paredes se sobrecalientan al rojo vivo, la instalación se quema y el fuego se propaga a toda la casa (caída en cascada de microservicios).</li>
+    <li>En una casa moderna con <strong>Interruptor Magnetotérmico / Diferencial (el Circuit Breaker)</strong>, en el microsegundo en que detecta la sobretensión, el interruptor salta con un chasquido mecánico y <strong>corta el paso de electricidad a la cocina</strong> (estado ABIERTO). El resto de la casa (el salón, el frigorífico, las luces) sigue funcionando con total normalidad.</li>
+</ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>En la tienda de mascotas (<code>PetStore</code>), el microservicio <code>order-service</code> se comunica con una pasarela bancaria externa para autorizar cobros con tarjeta durante las compras de adopción.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Caída en Cascada)</div>
+            <div class="card-body">
+                <p>La API del banco sufre una degradación y tarda 30 segundos en responder cada llamada. Cientos de clientes pulsan "Comprar" a la vez. En 10 segundos, todos los hilos de <code>order-service</code> quedan congelados esperando al banco. El servicio se queda sin memoria y se cae, impidiendo que nadie pueda ver el catálogo ni registrarse.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con Resilience4j)</div>
+            <div class="card-body">
+                <p>Tras fallar 5 llamadas seguidas, el Circuit Breaker se abre en 1 milisegundo. Las siguientes peticiones no esperan los 30s del banco: ejecutan inmediatamente el método fallback, que responde al usuario: <em>"Pago encolado con éxito. Le notificaremos por email"</em>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Patrón de Resiliencia</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Circuit Breaker</b></td>
+            <td><strong>Llamadas remotas de red</strong> a otros microservicios o APIs de terceros propensas a caídas, lentitud o cortes de conexión intermitentes.</td>
+            <td>Llamadas a métodos locales dentro de la misma JVM o lecturas en memoria de variables estáticas (no hay latencia de red que justifique la sobrecarga).</td>
+        </tr>
+        <tr>
+            <td><b>Retry (Reintentos)</b></td>
+            <td>Fallos transitorios muy breves de red (ej. un paquete TCP perdido o micro-corte de DNS de 50 milisegundos). Debe combinarse siempre con <em>Backoff Exponencial</em>.</td>
+            <td>Errores deterministas de negocio (ej. código HTTP <code>400 Bad Request</code> o <code>401 Unauthorized</code>): reintentar 5 veces con la misma contraseña errónea solo empeora la carga.</td>
+        </tr>
+        <tr>
+            <td><b>RateLimiter (Control de Tasa)</b></td>
+            <td>Proteger endpoints públicos contra abusos de peticiones por segundo (DDoS básico) o adaptarse a los límites de cuota de APIs de pago externas.</td>
+            <td>Como único mecanismo de autenticación o seguridad perimetral.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de patrones de tolerancia a fallos</span>
+
+<h2>Dependencias Necesarias</h2>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter de Spring Cloud CircuitBreaker con Resilience4j --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-circuitbreaker-resilience4j&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- AspectJ / Spring AOP para habilitar las anotaciones @CircuitBreaker y @Retry --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-aop&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h2>Diagrama de Estados del Circuit Breaker</h2>
+<p>
+    El siguiente diagrama ilustra el ciclo de vida y las transiciones automáticas entre los estados del circuito:
+</p>
+
+<img class="center-horizontal" src="components/springboot/librerias/spring-cloud/resilience4j/assets/img/circuit-breaker-estados.svg">
+<span class="center-horizontal caption">Figura 1: Transiciones de estado (Closed, Open, Half-Open) en Resilience4j</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Transición</th>
+            <th scope="col">Condición Desencadenante</th>
+            <th scope="col">Efecto en el Sistema</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Closed &rarr; Open</b></td>
+            <td>Tasa de fallos &gt; <code>failureRateThreshold</code> (ej. &gt; 50%).</td>
+            <td>El circuito corta el tráfico hacia la red y ejecuta métodos de Fallback en 0 milisegundos.</td>
+        </tr>
+        <tr>
+            <td><b>Open &rarr; Half-Open</b></td>
+            <td>Transcurrido el tiempo <code>waitDurationInOpenState</code> (ej. 10s).</td>
+            <td>Permite pasar un cupo de prueba (<code>permittedNumberOfCallsInHalfOpenState</code>).</td>
+        </tr>
+        <tr>
+            <td><b>Half-Open &rarr; Closed</b></td>
+            <td>Las llamadas de prueba se completan con éxito.</td>
+            <td>El servicio remoto se considera curado y se restablece el tráfico normal.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Transiciones de la máquina de estados</span>
+
+<h2>Configuración en application.yml</h2>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+resilience4j:
+  circuitbreaker:
+    instances:
+      paymentCircuitBreaker:
+        # Tamaño de la ventana deslizante para calcular el porcentaje de fallos
+        slidingWindowSize: 10
+        # Porcentaje de fallo a partir del cual el circuito salta a OPEN (50%)
+        failureRateThreshold: 50
+        # Tiempo que permanece en estado OPEN antes de probar en HALF-OPEN
+        waitDurationInOpenState: 10000ms
+        # Número de peticiones de prueba permitidas en estado HALF-OPEN
+        permittedNumberOfCallsInHalfOpenState: 3
+        # Umbral de llamadas lentas (si tardan más de 2 segundos, se cuentan como fallo)
+        slowCallDurationThreshold: 2000ms
+        slowCallRateThreshold: 50
+  retry:
+    instances:
+      paymentRetry:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+</code></pre>
+</div>
+
+<h2>Implementación con @CircuitBreaker y Fallback</h2>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.orderservice.service;
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PaymentProcessingService {
+
+    private final RestTemplate restTemplate;
+
+    // 1. Anotación de Circuit Breaker vinculada al nombre de la instancia en application.yml
+    @CircuitBreaker(name = "paymentCircuitBreaker", fallbackMethod = "paymentFallback")
+    @Retry(name = "paymentRetry")
+    public String executePayment(Integer orderId, BigDecimal amount) {
+        log.info("Llamando a la pasarela bancaria externa para orden ID: {} ({} €)...", orderId, amount);
+
+        // Si la pasarela bancaria está caída o tarda más de 2s, salta la excepción
+        String response = restTemplate.postForObject(
+                "https://api.banco.com/v1/charge", 
+                amount, 
+                String.class);
+
+        return response;
+    }
+
+    // 2. Método de contingencia (Fallback)
+    // REGLA OBLIGATORIA: Debe tener la misma firma de parámetros que el método original más un parámetro Throwable
+    public String paymentFallback(Integer orderId, BigDecimal amount, Throwable ex) {
+        log.warn("¡CIRCUITO ACTIVADO! Fallo al procesar pago de orden {}: {}. Ejecutando contingencia.", 
+                orderId, ex.getMessage());
+
+        // Respuesta degradada elegante: se encola la transacción para reintento asíncrono en background
+        return "PAGO_PENDIENTE_DE_CONFIRMACION";
+    }
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Reintentos Infinitos Inmediatos (Antipatrón Thundering Herd)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Bombardear un servidor colapsado con reintentos sin backoff
+public void badExecutePayment() {
+    int attempts = 0;
+    while (attempts &lt; 100) { // Bucle infinito agresivo
+        try {
+            callBank();
+            break;
+        } catch (Exception e) {
+            attempts++; // Reintenta inmediatamente sin pausar ni medir fallos
+            // ERROR: Si miles de clientes hacen esto a la vez, tiran definitivamente el servidor bancario
+        }
+    }
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo: Resiliencia Declarativa y Fallo Rápido</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// BUENA PRÁCTICA: Falla rápido (Fail-Fast), no agota recursos y protege la experiencia del usuario
+@CircuitBreaker(name = "paymentCircuitBreaker", fallbackMethod = "paymentFallback")
+public String process() {
+    return restTemplate.getForObject("http://BANCO-SERVICE/charge", String.class);
+}
+</code></pre>
+</div>

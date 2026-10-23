@@ -1,4 +1,422 @@
-<h1 class="title">Configuración</h1>
+<h1 class="title">Configuración en Spring Boot</h1>
 
-<p><b>@Configuration</b> es la anotación encargada de definir una clase de configuración para el framework.</p>
-<p><b>@Bean</b> es la anotación que marca como bean cada uno de los métodos de tal forma que esten disponibles para Spring.</p>
+<p>
+    En <strong>Spring Boot</strong>, la configuración es el núcleo operativo que define cómo se instancian, configuran, enlazan e inyectan los objetos que componen una aplicación. A través del contenedor de <strong>Inversión de Control (IoC)</strong> y la <strong>Inyección de Dependencias (DI)</strong>, Spring permite reemplazar el acoplamiento rígido de la creación manual de instancias mediante <code>new</code> por una arquitectura modular y declarativa en código Java basada en las anotaciones <code>@Configuration</code> y <code>@Bean</code>.
+</p>
+<p>
+    Junto con la configuración de beans en Java, Spring Boot aporta un potente sistema de <strong>externalización de propiedades</strong> (archivos <code>application.yml</code> / <code>application.properties</code>, variables de entorno y perfiles de ejecución con <code>@Profile</code>) y vinculación tipada mediante <code>@ConfigurationProperties</code>.
+</p>
+
+<h2>Analogía del Mundo Real: El Cuadro Eléctrico de un Edificio Inteligente</h2>
+<p>
+    Imagina la instalación eléctrica de un moderno edificio de oficinas o de una clínica veterinaria. En una instalación caótica y arcaica (el equivalente a usar <code>new Objeto()</code> en cada rincón del código), cada bombilla, ordenador, frigorífico o bomba de agua fabricaría su propio generador o llevaría un cable directo a la calle, sin control de voltaje, sin fusibles compartidos y sin posibilidad de sustitución.
+</p>
+<p>
+    En cambio, un edificio inteligente cuenta con un <strong>Cuadro Eléctrico Centralizado</strong> (la clase <code>@Configuration</code>):
+</p>
+<ul>
+    <li>El cuadro central define las tomas de corriente y los suministros homologados disponibles para todo el edificio (los métodos <code>@Bean</code>).</li>
+    <li>Si un aparato necesita corriente o agua (una clase <code>@Service</code>), simplemente se conecta al enchufe estándar habilitado en la pared (inyección de dependencias), sin importarle cómo se genera la electricidad.</li>
+    <li>El cuadro cuenta con selectores de modo según el momento (los <strong>Perfiles / <code>@Profile</code></strong>): en modo "Diurno / Laboral" (<em>prod</em>) activa la iluminación completa y la climatización de alta potencia, mientras que en modo "Pruebas / Mantenimiento" (<em>dev</em> o <em>test</em>) conmuta a generadores auxiliares o simuladores de bajo consumo.</li>
+    <li>Los interruptores termomagnéticos (las condiciones <code>@Conditional</code>) solo activan los circuitos de refrigeración si detectan que los motores correspondientes están físicamente conectados.</li>
+</ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>En el backend de la tienda de mascotas (<code>PetStore</code>), los servicios necesitan mapear entidades a DTOs con <strong>ModelMapper</strong>, consumir APIs externas de pasarelas de pago con <strong>RestTemplate</strong> y aplicar reglas de negocio con límites de tiempo y monedas configurables por entorno.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin @Configuration)</div>
+            <div class="card-body">
+                <p>Los desarrolladores ejecutan <code>new ModelMapper()</code> y <code>new RestTemplate()</code> dentro de cada método de servicio. Se crean cientos de instancias idénticas en memoria (desperdicio de RAM), no se pueden configurar timeouts globales, y en los tests unitarios es imposible mockear las llamadas HTTP externas. Además, valores como URLs y claves secretas se escriben fijas en el código Java, imposibilitando el despliegue en Kubernetes o Docker sin recompilar.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con @Configuration y Beans)</div>
+            <div class="card-body">
+                <p>Una clase <code>AppConfig</code> anotada con <code>@Configuration</code> declara los beans únicos (Singleton) de <code>ModelMapper</code> y <code>RestTemplate</code> con sus timeouts y políticas de mapeo ya configuradas. Las variables de entorno se leen de forma tipada, inmutable y segura mediante un Record Java con <code>@ConfigurationProperties</code> y <code>@Validated</code>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Mecanismo</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>@Configuration + @Bean</b></td>
+            <td><strong>Librerías externas de terceros</strong> cuyo código no podemos modificar para añadirles anotaciones de Spring (ej. <code>ModelMapper</code>, <code>ObjectMapper</code>, <code>BCryptPasswordEncoder</code>, clientes HTTP, brokers AMQP), o cuando la creación del objeto requiere lógica algorítmica compleja o constructores con parámetros dinámicos.</td>
+            <td>Para nuestras propias clases de negocio internas (controladores, servicios, repositorios). En su lugar se deben utilizar los estereotipos estándar de detección automática (<code>@Service</code>, <code>@RestController</code>, <code>@Repository</code>, <code>@Component</code>).</td>
+        </tr>
+        <tr>
+            <td><b>@ConfigurationProperties</b></td>
+            <td><strong>Enfoque recomendado</strong> para agrupar y validar conjuntos jerárquicos de propiedades de configuración externas (ej. <code>petstore.timeout-ms</code>, <code>petstore.api-url</code>, <code>petstore.max-items</code>). Admite validación con Bean Validation y generación automática de metadatos para el IDE.</td>
+            <td>Para inyectar un único valor primitivo suelto o puntual en una clase sencilla (en esos casos aislados <code>@Value</code> resulta más directo).</td>
+        </tr>
+        <tr>
+            <td><b>@Value</b></td>
+            <td>Inyección puntual de una sola propiedad escalar o evaluación rápida de una expresión SpEL (ej. <code>@Value("${server.port:8080}")</code>).</td>
+            <td>Estructuras de configuración complejas o listas anidadas con múltiples claves: no ofrece tipado fuerte, no valida errores tipográficos en el arranque y dispersa las cadenas de configuración por todo el código.</td>
+        </tr>
+        <tr>
+            <td><b>Configuración XML (beans.xml)</b></td>
+            <td>Mantenimiento de proyectos <em>legacy</em> muy antiguos de Spring 2.x/3.x.</td>
+            <td><strong>Totalmente desaconsejado</strong> en proyectos modernos de Spring Boot. Carece de chequeo de tipos en tiempo de compilación y ralentiza la inicialización.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de estrategias de configuración en Spring Boot</span>
+
+<h2>Dependencias Necesarias</h2>
+<p>
+    El soporte fundamental de <code>@Configuration</code> y <code>@Bean</code> forma parte del núcleo <code>spring-boot-starter</code>. Para habilitar el procesador de metadatos (que proporciona autocompletado en IntelliJ/Eclipse) y la validación de propiedades tipadas se añaden:
+</p>
+
+<h3>Maven (pom.xml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;!-- Starter básico o web de Spring Boot --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Generador de metadatos de configuración para autocompletado en IDEs (opcional pero muy recomendado) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-configuration-processor&lt;/artifactId&gt;
+    &lt;optional&gt;true&lt;/optional&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Validación de propiedades con @Validated (Jakarta Validation) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+
+<h3>Gradle (build.gradle)</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}
+</code></pre>
+</div>
+
+<h2>Diagrama de Arquitectura y Ciclo de Vida de los Beans</h2>
+<p>
+    El siguiente diagrama muestra el recorrido completo desde la lectura de las fuentes externas de configuración hasta la inyección de los beans ensamblados en las capas de negocio:
+</p>
+
+<img class="center-horizontal" src="components/springboot/otros/spring-config/assets/img/config-ciclo.svg">
+<span class="center-horizontal caption">Figura 1: Ciclo de externalización de propiedades, creación de beans y gestión en el contenedor IoC</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Componente</th>
+            <th scope="col">Estereotipo / Rol</th>
+            <th scope="col">Responsabilidad en la Configuración</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>application.yml</b></td>
+            <td><code>«fuente de propiedades»</code></td>
+            <td>Archivo estructurado que almacena parámetros variables por entorno (puertos, timeouts, credenciales, perfiles activos).</td>
+        </tr>
+        <tr>
+            <td><b>PetStoreProperties</b></td>
+            <td><code>«record de configuración»</code></td>
+            <td>Clase o Record anotado con <code>@ConfigurationProperties</code>. Mapea el prefijo YAML a variables Java fuertemente tipadas y validadas con <code>@Min</code>, <code>@NotBlank</code>, etc.</td>
+        </tr>
+        <tr>
+            <td><b>AppConfig</b></td>
+            <td><code>«clase de configuración»</code></td>
+            <td>Clase anotada con <code>@Configuration</code>. Declara métodos con <code>@Bean</code> que instancian componentes de terceros y aplican perfiles o condiciones de entorno.</td>
+        </tr>
+        <tr>
+            <td><b>ApplicationContext</b></td>
+            <td><code>«contenedor IoC»</code></td>
+            <td>Motor central de Spring. Mantiene el registro de instancias únicas (Singleton por defecto), gestiona su ciclo de vida y resuelve las inyecciones de dependencias.</td>
+        </tr>
+        <tr>
+            <td><b>PetServiceImpl</b></td>
+            <td><code>«capa de servicio»</code></td>
+            <td>Componente de negocio que consume los beans inyectados por constructor, manteniéndose desacoplado y 100% preparado para pruebas unitarias con mocks.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes del ciclo de configuración de Spring Boot</span>
+
+<h2>Anotaciones Clave en Detalle</h2>
+
+<h3>@Configuration</h3>
+<ul>
+    <li><b>Paquete:</b> <code>org.springframework.context.annotation.Configuration</code>.</li>
+    <li><b>Propósito:</b> Marca la clase como fuente de definiciones de beans para el contenedor de Spring. Indica que la clase contiene métodos anotados con <code>@Bean</code>.</li>
+    <li><b>Parámetros y Opciones:</b>
+        <ul>
+            <li><code>proxyBeanMethods</code> (boolean, por defecto <code>true</code>):
+                <ul>
+                    <li><code>true</code> (<em>Full Configuration</em>): Spring envuelve la clase en un proxy CGLIB. Si un método <code>@Bean</code> invoca internamente a otro método <code>@Bean</code> dentro de la misma clase, el proxy intercepta la llamada y devuelve siempre la instancia Singleton almacenada en caché en lugar de crear una nueva.</li>
+                    <li><code>false</code> (<em>Lite Configuration</em>): Desactiva el proxy CGLIB para acelerar el arranque y reducir consumo de memoria cuando los métodos <code>@Bean</code> son 100% independientes y no se llaman entre sí.</li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<h3>@Bean</h3>
+<ul>
+    <li><b>Paquete:</b> <code>org.springframework.context.annotation.Bean</code>.</li>
+    <li><b>Propósito:</b> Se coloca sobre un método dentro de una clase <code>@Configuration</code>. Indica que el valor devuelto por el método debe ser registrado como un Bean gestionado por el contenedor IoC.</li>
+    <li><b>Parámetros y Ciclo de Vida:</b>
+        <ul>
+            <li><code>name</code> / <code>value</code>: Nombre explícito del bean en el contenedor (por defecto toma el nombre del método Java).</li>
+            <li><code>initMethod</code>: Nombre del método que se invoca automáticamente tras instanciar y configurar el bean (análogo a <code>@PostConstruct</code>).</li>
+            <li><code>destroyMethod</code>: Nombre del método de cierre cuando la aplicación se apaga (por defecto detecta automáticamente métodos <code>close()</code> o <code>shutdown()</code>).</li>
+        </ul>
+    </li>
+    <li><b>Ámbitos (Scopes):</b> Por defecto todo bean es <strong>Singleton</strong> (una única instancia por aplicación). Se puede alterar con la anotación <code>@Scope</code>:
+        <ul>
+            <li><code>"singleton"</code>: Una sola instancia compartida para todo el <code>ApplicationContext</code>.</li>
+            <li><code>"prototype"</code>: Crea una nueva instancia cada vez que alguien solicita o inyecta el bean.</li>
+            <li><code>"request"</code> (Web): Una instancia por cada petición HTTP (<code>@RequestScope</code>).</li>
+            <li><code>"session"</code> (Web): Una instancia por cada sesión de usuario HTTP (<code>@SessionScope</code>).</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>@ConfigurationProperties</h3>
+<ul>
+    <li><b>Paquete:</b> <code>org.springframework.boot.context.properties.ConfigurationProperties</code>.</li>
+    <li><b>Propósito:</b> Vincula un bloque jerárquico de claves de propiedades externas a los atributos de una clase o componentes de un Java Record.</li>
+    <li><b>Parámetros:</b>
+        <ul>
+            <li><code>prefix</code>: Prefijo común de las claves en el archivo YAML/properties (ej. <code>prefix = "petstore"</code> vinculará <code>petstore.timeout-ms</code> con el atributo <code>timeoutMs</code> mediante conversión <em>kebab-case</em> a <em>camelCase</em>).</li>
+        </ul>
+    </li>
+    <li><b>Buenas Prácticas en Spring Boot 3+:</b> Utilizar <strong>Java Records</strong> para crear clases de propiedades inmutables y seguras, combinadas con <code>@Validated</code> y anotaciones de Jakarta Validation (<code>@NotNull</code>, <code>@Min</code>, <code>@NotBlank</code>).</li>
+</ul>
+
+<h3>@Profile</h3>
+<ul>
+    <li><b>Paquete:</b> <code>org.springframework.context.annotation.Profile</code>.</li>
+    <li><b>Propósito:</b> Condiciona la activación de una clase <code>@Configuration</code> o un método <code>@Bean</code> a que determinados perfiles de entorno estén activos (ej. <code>@Profile("dev")</code>, <code>@Profile("!prod")</code>, <code>@Profile({"docker", "cloud"})</code>).</li>
+    <li><b>Activación:</b> Mediante la propiedad <code>spring.profiles.active=dev,h2</code> o la variable de entorno <code>SPRING_PROFILES_ACTIVE=prod</code>.</li>
+</ul>
+
+<h3>Anotaciones Condicionales (@ConditionalOn...)</h3>
+<ul>
+    <li><code>@ConditionalOnProperty(name = "feature.notification.enabled", havingValue = "true")</code>: Registra el bean únicamente si la propiedad existe y coincide con el valor esperado.</li>
+    <li><code>@ConditionalOnMissingBean(ModelMapper.class)</code>: Registra el bean solo si nadie más en la aplicación ha definido ya un bean de ese tipo (clave en starters y librerías autoconfigurables).</li>
+    <li><code>@ConditionalOnClass(name = "org.postgresql.Driver")</code>: Se activa solo si la clase especificada se encuentra en el classpath de la aplicación.</li>
+</ul>
+
+<h2>Implementación Práctica Paso a Paso</h2>
+
+<h3>Paso 1: Archivo de Configuración Externa (application.yml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+server:
+  port: 8080
+
+petstore:
+  timeout-ms: 3500
+  max-pets-per-page: 50
+  currency: "EUR"
+  payment:
+    api-url: "https://api.pagos-veterinaria.com/v1"
+    api-key: "clave_secreta_demo_12345"
+</code></pre>
+</div>
+
+<h3>Paso 2: Record Inmutable con @ConfigurationProperties y @Validated</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.config;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+
+@Validated
+@ConfigurationProperties(prefix = "petstore")
+public record PetStoreProperties(
+        @Min(value = 500, message = "El timeout no puede ser inferior a 500 ms")
+        int timeoutMs,
+
+        @Min(1) @Max(100)
+        int maxPetsPerPage,
+
+        @NotBlank(message = "La divisa es obligatoria")
+        String currency,
+
+        PaymentProperties payment
+) {
+    public record PaymentProperties(
+            @NotBlank String apiUrl,
+            @NotBlank String apiKey
+    ) {}
+}
+</code></pre>
+</div>
+
+<h3>Paso 3: Clase de Configuración (@Configuration) con Definición de Beans</h3>
+<p>
+    Instanciamos y personalizamos componentes de terceros (<code>ModelMapper</code> y <code>RestTemplate</code>) e inyectamos las propiedades externas validadas:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.config;
+
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.web.client.RestTemplate;
+
+import java.time.Duration;
+
+@Configuration(proxyBeanMethods = true)
+@EnableConfigurationProperties(PetStoreProperties.class)
+public class AppConfig {
+
+    // 1. Bean de ModelMapper con estrategia estricta
+    @Bean
+    public ModelMapper modelMapper() {
+        ModelMapper mapper = new ModelMapper();
+        mapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT)
+                .setSkipNullEnabled(true);
+        return mapper;
+    }
+
+    // 2. Bean de RestTemplate con timeouts configurados desde las propiedades tipadas
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder, PetStoreProperties props) {
+        return builder
+                .setConnectTimeout(Duration.ofMillis(props.timeoutMs()))
+                .setReadTimeout(Duration.ofMillis(props.timeoutMs()))
+                .build();
+    }
+
+    // 3. Bean condicional para entorno de desarrollo (simulador de pasarela)
+    @Bean
+    @Profile("dev")
+    public String devPaymentBanner() {
+        return "MODO DESARROLLO ACTIVO: Pasarela de pagos simulada";
+    }
+}
+</code></pre>
+</div>
+
+<h3>Paso 4: Inyección Limpia en el Servicio de Negocio</h3>
+<p>
+    El servicio de mascotas recibe todos sus componentes y configuraciones a través del constructor, manteniéndose desacoplado y fácil de probar en tests unitarios:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petstore.service;
+
+import com.example.petstore.config.PetStoreProperties;
+import com.example.petstore.dto.PetDTO;
+import com.example.petstore.entity.Pet;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PetServiceImpl implements PetService {
+
+    private final ModelMapper modelMapper;
+    private final RestTemplate restTemplate;
+    private final PetStoreProperties properties;
+
+    @Override
+    public PetDTO convertToDTO(Pet pet) {
+        log.info("Mapeando mascota ID: {} usando ModelMapper Singleton (timeout configurado: {} ms)", 
+                pet.getId(), properties.timeoutMs());
+
+        return modelMapper.map(pet, PetDTO.class);
+    }
+}
+</code></pre>
+</div>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Instanciación Rígida con new y Variables en Código (Antipatrón)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Código acoplado a 'new', sin reutilización, sin timeouts y con URLs cableadas
+@Service
+public class BadService {
+
+    public void processPetPayment(int petId) {
+        // ERROR GRAVE 1: Crear una nueva instancia de ModelMapper en cada petición satura el Garbage Collector
+        ModelMapper mapper = new ModelMapper();
+
+        // ERROR GRAVE 2: RestTemplate sin timeouts centralizados puede congelar hilos indefinidamente
+        RestTemplate rest = new RestTemplate();
+
+        // ERROR GRAVE 3: Credenciales y URLs fijas a fuego en el código fuente
+        String url = "https://api.pagos-veterinaria.com/v1/charge?key=12345";
+        rest.postForObject(url, null, String.class);
+    }
+}
+</code></pre>
+</div>
+
+<h3>Ejemplo: Configuración Centralizada, Segura y Testeable</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// BUENA PRÁCTICA: Inyección por constructor de beans únicos gestionados por Spring
+@Service
+@RequiredArgsConstructor
+public class GoodService {
+
+    private final ModelMapper modelMapper;
+    private final RestTemplate restTemplate;
+    private final PetStoreProperties properties;
+
+    public void processPetPayment(int petId) {
+        // Se reutilizan los beans Singleton preconfigurados con timeouts y certificados
+        String endpoint = properties.payment().apiUrl() + "/charge";
+        restTemplate.postForObject(endpoint, null, String.class);
+    }
+}
+</code></pre>
+</div>

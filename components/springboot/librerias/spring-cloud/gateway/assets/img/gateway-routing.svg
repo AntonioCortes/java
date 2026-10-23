@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Arial, Helvetica, sans-serif">
+  <rect width="960" height="560" fill="white"/>
+  <defs>
+    <marker id="m9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#222"/></marker>
+  </defs>
+  <text x="480" y="24" text-anchor="middle" font-size="16" font-weight="bold">Enrutamiento Perimetral con Spring Cloud Gateway</text>
+
+  <!-- Cliente -->
+  <rect x="30" y="220" width="160" height="70" rx="6" fill="#e8e8e8" stroke="#333" stroke-width="1.5"/>
+  <text x="110" y="245" text-anchor="middle" font-size="11" fill="#444">«cliente»</text>
+  <text x="110" y="265" text-anchor="middle" font-size="12" font-weight="bold">Frontend / Postman</text>
+
+  <!-- Gateway Caja -->
+  <rect x="250" y="110" width="340" height="310" rx="8" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+  <text x="420" y="135" text-anchor="middle" font-size="12" fill="#1864ab">«API Gateway reactivo no bloqueante»</text>
+  <text x="420" y="155" text-anchor="middle" font-size="15" font-weight="bold">Spring Cloud Gateway</text>
+  <line x1="250" y1="163" x2="590" y2="163" stroke="#1971c2" stroke-width="1"/>
+
+  <rect x="270" y="180" width="300" height="65" rx="4" fill="white" stroke="#1971c2"/>
+  <text x="420" y="200" text-anchor="middle" font-size="11" font-weight="bold">1. Predicates (Condiciones)</text>
+  <text x="420" y="218" text-anchor="middle" font-size="10.5">Path=/api/v1/pets/** | Method=GET,POST</text>
+  <text x="420" y="233" text-anchor="middle" font-size="10.5">Header=X-Tenant-ID</text>
+
+  <rect x="270" y="260" width="300" height="65" rx="4" fill="white" stroke="#1971c2"/>
+  <text x="420" y="280" text-anchor="middle" font-size="11" font-weight="bold">2. Filters (Pre y Post)</text>
+  <text x="420" y="298" text-anchor="middle" font-size="10.5">AddRequestHeader, RewritePath</text>
+  <text x="420" y="313" text-anchor="middle" font-size="10.5">RateLimiter (Redis Token Bucket)</text>
+
+  <rect x="270" y="340" width="300" height="65" rx="4" fill="white" stroke="#1971c2"/>
+  <text x="420" y="360" text-anchor="middle" font-size="11" font-weight="bold">3. URI de Destino Balanceada</text>
+  <text x="420" y="380" text-anchor="middle" font-size="11" fill="#d35400" font-weight="bold">lb://PET-SERVICE / lb://ORDER-SERVICE</text>
+
+  <!-- Microservicios Backend -->
+  <rect x="680" y="140" width="240" height="85" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="800" y="162" text-anchor="middle" font-size="11" fill="#444">«microservicio»</text>
+  <text x="800" y="182" text-anchor="middle" font-size="13" font-weight="bold">Pet-Service</text>
+  <text x="800" y="202" text-anchor="middle" font-size="10.5" fill="#555">Ruta interna: /petshop/pet/**</text>
+
+  <rect x="680" y="280" width="240" height="85" rx="6" fill="#fff3c4" stroke="#333" stroke-width="1.8"/>
+  <text x="800" y="302" text-anchor="middle" font-size="11" fill="#444">«microservicio»</text>
+  <text x="800" y="322" text-anchor="middle" font-size="13" font-weight="bold">Order-Service</text>
+  <text x="800" y="342" text-anchor="middle" font-size="10.5" fill="#555">Ruta interna: /orders/**</text>
+
+  <!-- Flechas -->
+  <line x1="190" y1="255" x2="245" y2="255" stroke="#222" stroke-width="2" marker-end="url(#m9)"/>
+  <line x1="590" y1="210" x2="675" y2="210" stroke="#222" stroke-width="2" marker-end="url(#m9)"/>
+  <line x1="590" y1="320" x2="675" y2="320" stroke="#222" stroke-width="2" marker-end="url(#m9)"/>
+</svg>

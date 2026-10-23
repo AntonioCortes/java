@@ -1,133 +1,335 @@
-<h1 class="title">Open Feign</h1>
+<h1 class="title">Spring Cloud OpenFeign</h1>
 
-<h2>Dependencia</h2>
+<p>
+    En arquitecturas de microservicios, la comunicación HTTP entre servicios es constante. Escribir código repetitivo con <code>RestTemplate</code> o <code>HttpClient</code> (instanciar clientes, concatenar URLs, gestionar cabeceras, serializar cuerpos y capturar códigos de estado) genera cientos de líneas de código propenso a errores. <strong>Spring Cloud OpenFeign</strong> es un <strong>cliente HTTP declarativo</strong> que permite definir clientes web simplemente declarando una <strong>interfaz Java anotada</strong> con las mismas anotaciones familiares de Spring MVC (<code>@GetMapping</code>, <code>@PostMapping</code>, <code>@PathVariable</code>, <code>@RequestParam</code>).
+</p>
+<p>
+    En tiempo de arranque, Spring Cloud crea un proxy dinámico en memoria que implementa automáticamente la interfaz, resuelve el nombre lógico del microservicio en <strong>Eureka</strong>, aplica balanceo en cliente con <strong>Spring Cloud LoadBalancer</strong> y gestiona fallos mediante <strong>Fallbacks</strong>.
+</p>
 
+<h2>Analogía del Mundo Real: El Mando a Distancia Universal</h2>
+<p>
+    Imagina que cada vez que quisieras encender la televisión o cambiar de canal, tuvieras que abrir un manual técnico, buscar la frecuencia de radio exacta, ajustar la amplitud de onda y enviar los pulsos binarios a mano (el equivalente a construir peticiones HTTP a mano con <code>RestTemplate</code>).
+</p>
+<p>
+    Con <strong>OpenFeign</strong>, tienes un <strong>Mando a Distancia Universal</strong>:
+</p>
+<ul>
+    <li>Solo pulsas un botón claramente rotulado que dice <em>"Canal 5"</em> (un método Java: <code>petClient.getPetById(5)</code>).</li>
+    <li>El mando se encarga de forma invisible de codificar la señal en infrarrojos o Bluetooth, dirigirla al televisor correspondiente y devolverte la imagen. Si el televisor está apagado, el mando emite un pitido de advertencia o conmuta a la radio auxiliar (el <strong>Fallback</strong>).</li>
+</ul>
+
+<h2>Caso de Uso Real Estructurado</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">1. Contexto</div>
+            <div class="card-body">
+                <p>El microservicio <code>order-service</code> está formalizando la adopción de una mascota y debe consultar a <code>pet-service</code> para validar la edad, raza y disponibilidad antes de tramitar el cobro.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">2. El Problema (Sin OpenFeign)</div>
+            <div class="card-body">
+                <p>El desarrollador escribe 40 líneas de código con <code>RestTemplate</code>: obtiene instancias de Eureka a mano con <code>DiscoveryClient</code>, concatena cadenas de URLs, añade cabeceras HTTP, desempaqueta el JSON y envuelve todo en <code>try-catch</code>. Si la URL cambia, no hay chequeo de tipos en compilación.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white fw-bold">3. La Solución (Con OpenFeign)</div>
+            <div class="card-body">
+                <p>Se declara una interfaz <code>PetClient</code> con <code>@FeignClient("pet-service")</code>. Spring inyecta la implementación automáticamente en <code>OrderService</code>, resolviendo IPs dinámicas, balanceando réplicas y ejecutando un fallback en caso de timeout.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>¿Cuándo usarlo y cuándo NO usarlo?</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Cliente HTTP</th>
+            <th scope="col">¿Cuándo usarlo?</th>
+            <th scope="col">¿Cuándo NO usarlo?</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Spring Cloud OpenFeign</b></td>
+            <td><strong>Estándar recomendado</strong> para llamadas síncronas entre microservicios en ecosistemas Spring Cloud. Código declarativo, limpio, tipado, con soporte nativo de Eureka, LoadBalancer y Circuit Breaker.</td>
+            <td>En aplicaciones reactivas no bloqueantes construidas sobre Spring WebFlux (Feign es síncrono/bloqueante). Tampoco para descargas o subidas masivas de archivos de muchos gigabytes en streaming puro.</td>
+        </tr>
+        <tr>
+            <td><b>WebClient (Spring WebFlux)</b></td>
+            <td>Aplicaciones reactivas, streaming reactivo (Server-Sent Events) o cuando se requiere concurrencia masiva no bloqueante con miles de conexiones abiertas por nodo.</td>
+            <td>En APIs tradicionales síncronas de Spring MVC basadas en un hilo por petición (Tomcat), donde la sintaxis declarativa de Feign es infinitamente más legible.</td>
+        </tr>
+        <tr>
+            <td><b>RestTemplate</b></td>
+            <td>Peticiones puntuales a APIs REST externas de terceros fuera de nuestro ecosistema (ej. pasarela de pagos de un banco o API del tiempo).</td>
+            <td>Para comunicación interna entre microservicios de nuestra propia arquitectura: genera código espagueti de concatenación de URLs.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 1: Comparativa de clientes HTTP en Spring</span>
+
+<h2>Dependencias Necesarias</h2>
+
+<h3>Maven (pom.xml)</h3>
 <div class="center-horizontal">
 <pre><code class="language-xml">
+&lt;!-- Starter de OpenFeign para Spring Boot --&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
     &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
 &lt;/dependency&gt;
+
+&lt;!-- Cliente Eureka para resolución dinámica por nombre lógico --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+&lt;/dependency&gt;
 </code></pre>
 </div>
 
-<h2>Estructura carpetas</h2>
-
+<h3>Gradle (build.gradle)</h3>
 <div class="center-horizontal">
-    <img src=".\components\springboot\librerias\spring-cloud\open-feign\assets\img\capt_1.png">
-</div>
-
-<h2>Ejemplo de cliente y respuesta</h2>
-
-<p>Interfaz del cliente:</p>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-@FeignClient(
-        name = "fraud",
-        url = "${clients.fraud.url}"
-)
-public interface FraudClient {
-
-    @GetMapping(path = "api/v1/fraud-check/{customerId}")
-    FraudCheckResponse isFraudster(
-            @PathVariable("customerId") Integer customerId);
-
+<pre><code class="language-groovy">
+dependencies {
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 }
 </code></pre>
 </div>
 
-<p>Clase record para la respuesta:</p>
+<h2>Diagrama de Arquitectura de OpenFeign</h2>
+<p>
+    El siguiente diagrama ilustra cómo OpenFeign intercepta la invocación Java, contacta con Eureka para resolver la IP y devuelve el objeto tipado o activa la clase de contingencia:
+</p>
 
+<img class="center-horizontal" src="components/springboot/librerias/spring-cloud/open-feign/assets/img/openfeign-flujo.svg">
+<span class="center-horizontal caption">Figura 1: Flujo de llamada declarativa, balanceo y fallback con OpenFeign</span>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Elemento</th>
+            <th scope="col">Estereotipo</th>
+            <th scope="col">Responsabilidad en la Invocación</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>OrderServiceImpl</b></td>
+            <td><code>«servicio cliente»</code></td>
+            <td>Invoca <code>petClient.getPetById(id)</code> como si fuera un método Java local ordinario.</td>
+        </tr>
+        <tr>
+            <td><b>PetClient</b></td>
+            <td><code>«interfaz Feign»</code></td>
+            <td>Contrato anotado con <code>@FeignClient("pet-service")</code>. Define las rutas HTTP y métodos.</td>
+        </tr>
+        <tr>
+            <td><b>Proxy Dinámico Feign</b></td>
+            <td><code>«proxy HTTP»</code></td>
+            <td>Resuelve el nombre <code>pet-service</code> en Eureka, elige una IP sana, envía la trama HTTP y deserializa la respuesta.</td>
+        </tr>
+        <tr>
+            <td><b>PetClientFallback</b></td>
+            <td><code>«contingencia / fallback»</code></td>
+            <td>Implementación alternativa que se ejecuta automáticamente si <code>pet-service</code> está caído o supera el timeout.</td>
+        </tr>
+    </tbody>
+</table>
+<span class="center-horizontal caption">Tabla 2: Participantes de la invocación declarativa</span>
+
+<h2>Anotaciones y Configuración Clave</h2>
+<ul>
+    <li>
+        <b>@EnableFeignClients:</b> Se añade sobre la clase principal <code>@SpringBootApplication</code>. Escanea el classpath en busca de interfaces anotadas con <code>@FeignClient</code> y registra sus proxies como beans.
+    </li>
+    <li>
+        <b>@FeignClient:</b> Define el cliente declarativo. Atributos principales:
+        <ul>
+            <li><code>name</code> / <code>value</code>: Nombre del microservicio registrado en Eureka (ej. <code>"pet-service"</code>).</li>
+            <li><code>url</code>: (Opcional) URL absoluta si se desea consumir un servicio externo sin pasar por Eureka (ej. <code>url = "https://api.pagos.com"</code>).</li>
+            <li><code>fallback</code>: Clase que implementa la misma interfaz para devolver respuestas por defecto ante errores.</li>
+            <li><code>fallbackFactory</code>: Alternativa avanzada a <code>fallback</code> que permite inspeccionar la causa exacta de la excepción (<code>Throwable</code>).</li>
+            <li><code>configuration</code>: Clase de configuración personalizada para encoders, decoders o interceptores de cabeceras.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Implementación Práctica Paso a Paso</h2>
+
+<h3>Paso 1: Habilitar Feign en la Aplicación</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
-public record FraudCheckResponse(Boolean isFraudster) {
+package com.example.orderservice;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class OrderServiceApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(OrderServiceApplication.class, args);
+    }
 }
 </code></pre>
 </div>
 
-<h2>Ejemplo de cliente y solicitud(request)</h2>
-
-<p>Interfaz del cliente:</p>
-
+<h3>Paso 2: Declarar la Interfaz del Cliente Feign</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
-@FeignClient(
-        name = "notification",
-        url = "${clients.notification.url}"
-)
-public interface NotificationClient {
+package com.example.orderservice.client;
 
-    @PostMapping("api/v1/notification")
-    void sendNotification(NotificationRequest notificationRequest);
+import com.example.orderservice.dto.PetDTO;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@FeignClient(name = "pet-service", fallback = PetClientFallback.class)
+public interface PetClient {
+
+    @GetMapping("/petshop/pet/{id}")
+    PetDTO getPetById(@PathVariable("id") Integer id);
+
+    @GetMapping("/petshop/pet/exists")
+    boolean checkAvailability(@RequestParam("species") String species);
 }
 </code></pre>
 </div>
 
-<p>Clase record para la solicitud(request):</p>
-
+<h3>Paso 3: Implementar la Clase de Fallback</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
-public record NotificationRequest(
-    Integer toCustomerId,
-    String toCustomerName,
-    String message
-) {
+package com.example.orderservice.client;
+
+import com.example.orderservice.dto.PetDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class PetClientFallback implements PetClient {
+
+    @Override
+    public PetDTO getPetById(Integer id) {
+        log.warn("Pet-Service no disponible. Ejecutando fallback para ID: {}", id);
+        // Devuelve un objeto en estado degradado o datos de contingencia
+        return PetDTO.builder()
+                .id(id)
+                .name("Servicio temporalmente no disponible")
+                .species("DESCONOCIDO")
+                .available(false)
+                .build();
+    }
+
+    @Override
+    public boolean checkAvailability(String species) {
+        log.warn("Fallo comprobando disponibilidad de especie {}. Retornando false.", species);
+        return false;
+    }
 }
 </code></pre>
 </div>
 
-<h2>Utilización del cliente para llamar a un controlador</h2>
-
-<p>Ejemplo de llamada de un controlador desde un servicio:</p>
-
+<h3>Paso 4: Inyección y Uso en el Servicio de Negocio</h3>
 <div class="center-horizontal">
 <pre><code class="language-java">
-import com.amigoscode.amqp.RabbitMQMessageProducer;
-import com.amigoscode.clients.fraud.FraudCheckResponse;
-import com.amigoscode.clients.fraud.FraudClient;
-import com.amigoscode.clients.notification.NotificationClient;
-import com.amigoscode.clients.notification.NotificationRequest;
-import lombok.AllArgsConstructor;
+package com.example.orderservice.service;
+
+import com.example.orderservice.client.PetClient;
+import com.example.orderservice.dto.OrderRequestDTO;
+import com.example.orderservice.dto.PetDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
-@AllArgsConstructor
-public class CustomerService {
+@RequiredArgsConstructor
+public class OrderServiceImpl implements OrderService {
 
-    private final CustomerRepository customerRepository;
-    private final FraudClient fraudClient;
-    private final RabbitMQMessageProducer rabbitMQMessageProducer;
+    // Se inyecta la interfaz limpia por constructor
+    private final PetClient petClient;
 
-    public void registerCustomer(CustomerRegistrationRequest request) {
-        Customer customer = Customer.builder()
-                .firstName(request.firstName())
-                .lastName(request.lastName())
-                .email(request.email())
-                .build();
-        // todo: check if email valid
-        // todo: check if email not taken
-        customerRepository.saveAndFlush(customer);
+    @Override
+    public void processAdoptionOrder(OrderRequestDTO request) {
+        log.info("Consultando mascota ID {} a través de OpenFeign...", request.getPetId());
 
-        FraudCheckResponse fraudCheckResponse =
-                fraudClient.isFraudster(customer.getId());
+        // Invocación como llamada Java normal
+        PetDTO pet = petClient.getPetById(request.getPetId());
 
-        if (fraudCheckResponse.isFraudster()) {
-            throw new IllegalStateException("fraudster");
+        log.info("Mascota obtenida con éxito: {} ({})", pet.getName(), pet.getSpecies());
+    }
+}
+</code></pre>
+</div>
+
+<h3>Paso 5: Configuración de Timeouts en application.yml</h3>
+<div class="center-horizontal">
+<pre><code class="language-yaml">
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 2000
+        readTimeout: 3000
+        loggerLevel: full
+  circuitbreaker:
+    enabled: true
+</code></pre>
+</div>
+
+<h2>Ejemplo vs Contraejemplo</h2>
+
+<h3>Contraejemplo: Código Verboso y Rígido con RestTemplate (Antipatrón)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Decenas de líneas para una sola llamada HTTP interna
+@Service
+public class BadManualService {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    public PetDTO getPet(Integer id) {
+        // ERROR: Mala práctica de concatenación manual, sin tipado de parámetros y sin fallback
+        String url = "http://pet-service/petshop/pet/" + id;
+        try {
+            return restTemplate.getForObject(url, PetDTO.class);
+        } catch (Exception e) {
+            // Manejo de error sucio en el servicio
+            throw new RuntimeException("Error llamando a pet-service", e);
         }
+    }
+}
+</code></pre>
+</div>
 
-        NotificationRequest notificationRequest = new NotificationRequest(
-                customer.getId(),
-                customer.getEmail(),
-                String.format("Hi %s, welcome to Amigoscode...",
-                        customer.getFirstName())
-        );
-        rabbitMQMessageProducer.publish(
-                notificationRequest,
-                "internal.exchange",
-                "internal.notification.routing-key"
-        );
+<h3>Ejemplo: Delegación Total en la Abstracción de Feign</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// BUENA PRÁCTICA: Código conciso, legible y 100% testeable mediante mocks de PetClient
+@Service
+@RequiredArgsConstructor
+public class GoodService {
 
+    private final PetClient petClient;
+
+    public PetDTO getPet(Integer id) {
+        return petClient.getPetById(id);
     }
 }
 </code></pre>

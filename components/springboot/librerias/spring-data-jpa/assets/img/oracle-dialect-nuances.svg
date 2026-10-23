@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Arial, Helvetica, sans-serif">
+  <rect width="960" height="560" fill="white"/>
+  <defs>
+    <marker id="m-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#222"/></marker>
+    <marker id="m-ora" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#c62828"/></marker>
+  </defs>
+
+  <text x="480" y="24" text-anchor="middle" font-size="16" font-weight="bold">Particularidades de Oracle Database frente a PostgreSQL en Spring Data JPA</text>
+
+  <!-- 1. El reto del Tipo Booleano -->
+  <rect x="30" y="60" width="430" height="220" rx="6" fill="#f4f8fb" stroke="#2980b9" stroke-width="1.8"/>
+  <text x="245" y="85" text-anchor="middle" font-size="13" font-weight="bold" fill="#1b4f72">1. Manejo de Booleanos: Postgres vs Oracle</text>
+  <line x1="30" y1="95" x2="460" y2="95" stroke="#2980b9" stroke-width="1"/>
+
+  <rect x="45" y="110" width="400" height="65" rx="4" fill="#e1f5fe" stroke="#0288d1"/>
+  <text x="245" y="130" text-anchor="middle" font-size="11" font-weight="bold">PostgreSQL (Nativo)</text>
+  <text x="245" y="148" text-anchor="middle" font-size="10.5">Columna SQL: <code>available BOOLEAN</code></text>
+  <text x="245" y="164" text-anchor="middle" font-size="10.5">Java: <code>private Boolean available;</code> (Mapeo 1:1 directo)</text>
+
+  <rect x="45" y="190" width="400" height="75" rx="4" fill="#ffebee" stroke="#c62828"/>
+  <text x="245" y="210" text-anchor="middle" font-size="11" font-weight="bold" fill="#b71c1c">Oracle (Pre-23c sin BOOLEAN nativo)</text>
+  <text x="245" y="228" text-anchor="middle" font-size="10">Columna SQL: <code>AVAILABLE CHAR(1) CHECK (AVAILABLE IN (Y,N))</code></text>
+  <text x="245" y="246" text-anchor="middle" font-size="10">Java: <code>@Convert(converter = BooleanToCharConverter.class)</code></text>
+  <text x="245" y="258" text-anchor="middle" font-size="9" fill="#555">true ↔ Y | false ↔ N</text>
+
+  <!-- 2. El reto de las Claves Primarias: IDENTITY vs SEQUENCES -->
+  <rect x="500" y="60" width="430" height="220" rx="6" fill="#f4f8fb" stroke="#2980b9" stroke-width="1.8"/>
+  <text x="715" y="85" text-anchor="middle" font-size="13" font-weight="bold" fill="#1b4f72">2. Generación de Claves Primarias</text>
+  <line x1="500" y1="95" x2="930" y2="95" stroke="#2980b9" stroke-width="1"/>
+
+  <rect x="515" y="110" width="400" height="65" rx="4" fill="#e1f5fe" stroke="#0288d1"/>
+  <text x="715" y="130" text-anchor="middle" font-size="11" font-weight="bold">PostgreSQL (Identity / Serial)</text>
+  <text x="715" y="148" text-anchor="middle" font-size="10.5"><code>@GeneratedValue(strategy = GenerationType.IDENTITY)</code></text>
+  <text x="715" y="164" text-anchor="middle" font-size="10.5">Postgres gestiona el auto-incremento al insertar</text>
+
+  <rect x="515" y="190" width="400" height="75" rx="4" fill="#ffebee" stroke="#c62828"/>
+  <text x="715" y="210" text-anchor="middle" font-size="11" font-weight="bold" fill="#b71c1c">Oracle (Secuencias Dedicadas)</text>
+  <text x="715" y="228" text-anchor="middle" font-size="10"><code>@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pet_seq")</code></text>
+  <text x="715" y="246" text-anchor="middle" font-size="10"><code>@SequenceGenerator(name = "pet_seq", sequenceName = "PET_SEQ", allocationSize = 1)</code></text>
+  <text x="715" y="258" text-anchor="middle" font-size="9" fill="#555">Hibernate invoca <code>PET_SEQ.NEXTVAL</code> antes del INSERT</text>
+
+  <!-- 3. Diagrama del Conversor AttributeConverter -->
+  <rect x="130" y="310" width="700" height="180" rx="8" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
+  <text x="480" y="335" text-anchor="middle" font-size="13" font-weight="bold">Funcionamiento del JPA AttributeConverter para Oracle</text>
+  <line x1="130" y1="345" x2="830" y2="345" stroke="#fbc02d" stroke-width="1"/>
+
+  <!-- Caja Java -->
+  <rect x="160" y="370" width="180" height="90" rx="4" fill="white" stroke="#333"/>
+  <text x="250" y="395" text-anchor="middle" font-size="11" font-weight="bold">Entidad Java</text>
+  <text x="250" y="415" text-anchor="middle" font-size="10.5"><code>Boolean available</code></text>
+  <text x="250" y="435" text-anchor="middle" font-size="10.5" fill="#27ae60">true / false</text>
+
+  <!-- Caja Converter -->
+  <rect x="390" y="360" width="180" height="110" rx="6" fill="#ffebee" stroke="#c62828" stroke-width="1.8"/>
+  <text x="480" y="380" text-anchor="middle" font-size="10.5" fill="#c62828" font-weight="bold">«AttributeConverter»</text>
+  <text x="480" y="398" text-anchor="middle" font-size="11" font-weight="bold">BooleanToCharConverter</text>
+  <line x1="390" y1="405" x2="570" y2="405" stroke="#c62828" stroke-width="1"/>
+  <text x="480" y="423" text-anchor="middle" font-size="9.5">convertToDatabaseColumn()</text>
+  <text x="480" y="440" text-anchor="middle" font-size="9.5">true → Y | false → N</text>
+  <text x="480" y="458" text-anchor="middle" font-size="9.5">convertToEntityAttribute()</text>
+
+  <!-- Caja Base de Datos Oracle -->
+  <rect x="620" y="370" width="180" height="90" rx="4" fill="white" stroke="#333"/>
+  <text x="710" y="395" text-anchor="middle" font-size="11" font-weight="bold">Tabla en Oracle</text>
+  <text x="710" y="415" text-anchor="middle" font-size="10.5"><code>AVAILABLE CHAR(1)</code></text>
+  <text x="710" y="435" text-anchor="middle" font-size="10.5" fill="#c62828">Y / N</text>
+
+  <!-- Flechas bidireccionales -->
+  <line x1="340" y1="415" x2="385" y2="415" stroke="#222" stroke-width="2" marker-end="url(#m-arrow)"/>
+  <line x1="570" y1="415" x2="615" y2="415" stroke="#c62828" stroke-width="2" marker-end="url(#m-ora)"/>
+
+  <rect x="230" y="510" width="500" height="35" rx="5" fill="#f8f9fa" stroke="#ccc"/>
+  <text x="480" y="532" text-anchor="middle" font-size="11" font-weight="bold">El código de negocio en Java nunca se entera del apaño de base de datos</text>
+</svg>
