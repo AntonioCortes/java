@@ -1,122 +1,357 @@
-<h1 class="title">Tests unitarios</h1>
+<h1 class="title">Tests Unitarios en Spring Boot (JUnit 5, Mockito y AssertJ)</h1>
 
-<h2>Dependencia</h2>
+<h2>1. ¿Qué es un Test Unitario y para qué sirve?</h2>
+<p>
+    Un <b>Test Unitario</b> es una prueba automatizada que verifica el correcto funcionamiento de la unidad de código más pequeña posible (habitualmente un método dentro de una clase de servicio o utilidad) en <b>completo aislamiento</b> de dependencias externas como bases de datos, redes, sistemas de mensajería o el contenedor de Spring.
+</p>
 
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos la línea de montaje de un automóvil: antes de ensamblar el motor en el chasis y conectarlo al depósito de gasolina y la transmisión (Test de Integración), los ingenieros prueban los pistones y las bujías de forma aislada en un banco de pruebas de laboratorio usando simuladores eléctricos. Si un pistón falla en el banco de pruebas, no hace falta montar el coche entero para saber que la pieza es defectuosa.
+</p>
+
+<h3>Objetivos clave de los Tests Unitarios</h3>
+<ul>
+    <li><b>Velocidad extrema:</b> Deben ejecutarse en milisegundos (cientos de tests en pocos segundos) al no arrancar el contexto de Spring (<code>ApplicationContext</code>).</li>
+    <li><b>Determinismo y aislamiento:</b> Un test unitario nunca debe fallar por culpa de una caída de red, una base de datos caída o un puerto ocupado. Todas las dependencias se simulan mediante <b>Mocks</b>.</li>
+    <li><b>Diseño de código desacoplado:</b> Si una clase es difícil de testear unitariamente, suele indicar que sufre de alto acoplamiento o violación del Principio de Responsabilidad Única (SRP).</li>
+</ul>
+
+---
+
+<h2>2. Dependencias del Proyecto</h2>
+<p>
+    Spring Boot proporciona el starter unificado <code>spring-boot-starter-test</code>, que incluye automáticamente <b>JUnit 5 (Jupiter)</b>, <b>Mockito</b> y <b>AssertJ</b>:
+</p>
+
+<h3>Maven (pom.xml)</h3>
 <div class="center-horizontal">
 <pre><code class="language-xml">
 &lt;dependency&gt;
     &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
     &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
     &lt;scope&gt;test&lt;/scope&gt;
-    &lt;exclusions&gt;
-        &lt;exclusion&gt;
-            &lt;groupId&gt;org.junit.vintage&lt;/groupId&gt;
-            &lt;artifactId&gt;junit-vintage-engine&lt;/artifactId&gt;
-        &lt;/exclusion&gt;
-    &lt;/exclusions&gt;
 &lt;/dependency&gt;
-</code></pre>	
+</code></pre>
 </div>
 
-<p><b>NOTA:</b> junit-vintage-engine se usa para ejecutar test en JUnit 4, por lo que para proyectos nuevos no sería necesario, puesto que con la edición de JUnit 5 es suficiente, de ahí que en el ejemplo anterior se muestre como excluido.</p>
-
-<h2>Introducción</h2>
-
-<p>Son pruebas individuales que se enfocan en probar pequeñas porciones de código, como métodos individuales o clases pequeñas. Suelen realizarse durante el proceso de desarrollo.</p>
-<p><b>NOTA:</b> En IntelliJ Click derecho sobre la clase o interfaz a testear. Generate... => Test...</p>
-<p><b>NOTA:</b> Por convención se deja el nombre de la clase o interfaz seguido de la palabra "Test"</p>
-<p><b>NOTA:</b> Es recomendable que el nombre del método empiece por "itShould" o "itShouldNot", de esta forma se indica que el método debería llevar a cabo o no, una función concreta.</p>
-<p><b>NOTA:</b> Se recomienda seguir el patrón GWT(Given, When, Then) en el cuerpo del método.</p>
-
-<h2>Anotaciones</h2>
-<ul>
-    <li><b>@Test:</b> Indica que el método es un test</li>
-    <li><b>@DataJpaTest:</b> Anotación que se indica sobre la clase para permitir el testeo de queries JPA.</li>
-    <li><b>@BeforeEach:</b> Se utiliza en el método setUp() para indicar que se ejecutará antes que los test.</li>
-    <li><b>@AfterEach:</b> Se utiliza en el método tearDown() para indicar que se ejecutará después de los test.</li>
-</ul>
-
+<h3>Gradle (build.gradle)</h3>
 <div class="center-horizontal">
-<pre><code class="language-java">
-@DataJpaTest
-class CustomerRepositoryTest{
-
-    @BeforeEach
-    void setUp() {
-        //code
-    }
-
-    @AfterEach
-    void tearDown() {
-        //code
-    }
-
-    @Test
-    void itShouldSelectCustomerByPhoneNumber(){
-        //Given
-        //When
-        //Then
-    }
-
+<pre><code class="language-groovy">
+dependencies {
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
-</code></pre>	
+
+test {
+    useJUnitPlatform()
+}
+</code></pre>
 </div>
 
+---
 
+<h2>3. Anatomía y Estructura de un Test Unitario</h2>
 
-<h2>Modificación de Plantillas IntelliJ</h2>
+<h3>Patrón AAA (Arrange - Act - Assert) / BDD (Given - When - Then)</h3>
+<p>
+    Todo test unitario debe estructurarse obligatoriamente en tres fases claramente diferenciadas:
+</p>
+<ol>
+    <li><b>Given / Arrange (Preparación):</b> Se preparan los datos de entrada, las instancias necesarias y se configuran los comportamientos esperados de los mocks (ej. qué devolverá el repositorio cuando se le invoque).</li>
+    <li><b>When / Act (Acción):</b> Se ejecuta el método concreto que se está probando (la unidad bajo prueba o <i>System Under Test - SUT</i>).</li>
+    <li><b>Then / Assert (Verificación):</b> Se comprueba que el resultado devuelto coincide con lo esperado y que los colaboradores fueron invocados con los argumentos exactos o que no sufrieron efectos secundarios indeseados.</li>
+</ol>
 
-<p>Se puede utilizar el editor de plantillas de IntelliJ para que automáticamente genere los métodos de los test según las recomendaciones anteriores.</p>
+<h3>Anotaciones Principales de JUnit 5 y Mockito</h3>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Librería</th>
+            <th scope="col">Propósito y Buenas Prácticas</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@ExtendWith(MockitoExtension.class)</code></td>
+            <td>Mockito</td>
+            <td>Se coloca sobre la clase de test para inicializar los mocks de forma ultra rápida sin levantar el contexto de Spring.</td>
+        </tr>
+        <tr>
+            <td><code>@Mock</code></td>
+            <td>Mockito</td>
+            <td>Crea una instancia simulada (mock) de una interfaz o clase colaboradora (ej. repositorios, clientes REST, emisores Kafka).</td>
+        </tr>
+        <tr>
+            <td><code>@InjectMocks</code></td>
+            <td>Mockito</td>
+            <td>Instancia la clase real que se va a testear (la clase de servicio) e inyecta automáticamente en sus campos o constructor los mocks declarados con <code>@Mock</code>.</td>
+        </tr>
+        <tr>
+            <td><code>@Captor</code></td>
+            <td>Mockito</td>
+            <td>Declara un <code>ArgumentCaptor&lt;T&gt;</code> para capturar y verificar los argumentos exactos pasados a un método simulado.</td>
+        </tr>
+        <tr>
+            <td><code>@Test</code></td>
+            <td>JUnit 5</td>
+            <td>Marca un método como ejecutable de test. En JUnit 5 pertenece al paquete <code>org.junit.jupiter.api.Test</code> (no usar el paquete <code>org.junit.Test</code> de JUnit 4).</td>
+        </tr>
+        <tr>
+            <td><code>@DisplayName("...")</code></td>
+            <td>JUnit 5</td>
+            <td>Asigna un nombre legible y descriptivo al test para la salida de reportes en consola e IDEs.</td>
+        </tr>
+        <tr>
+            <td><code>@BeforeEach</code></td>
+            <td>JUnit 5</td>
+            <td>Ejecuta código de inicialización antes de cada método <code>@Test</code> para garantizar independencia y estado limpio.</td>
+        </tr>
+        <tr>
+            <td><code>@AfterEach</code></td>
+            <td>JUnit 5</td>
+            <td>Ejecuta tareas de limpieza tras la finalización de cada test individual.</td>
+        </tr>
+    </tbody>
+</table>
 
-<div class="center-horizontal">
-    <img src=".\components\springboot\test\unitarios\assets\capt_1.png">
-</div>
+---
 
-<div class="center-horizontal">
-    <img src=".\components\springboot\test\unitarios\assets\capt_2.png">
-</div>
+<h2>4. Estándar de Casos de Prueba Obligatorios (Heurística de Calidad)</h2>
+<p>
+    Para alcanzar un nivel experto y garantizar cobertura profesional, al testear cualquier método de negocio se debe cubrir <b>siempre el siguiente conjunto de escenarios estándar</b>:
+</p>
 
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Tipo de Escenario</th>
+            <th scope="col">Objetivo de la Prueba</th>
+            <th scope="col">Qué se debe Verificar</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>1. Camino Feliz (Happy Path)</b></td>
+            <td>Comprueba que el método produce el resultado correcto cuando los datos de entrada son válidos y los colaboradores responden con éxito.</td>
+            <td>El valor devuelto coincide exactamente y los colaboradores esperados fueron invocados con los argumentos previstos (<code>then(repo).should().save(...)</code>).</td>
+        </tr>
+        <tr>
+            <td><b>2. Caso Contrario / Negativo (Negative Path)</b></td>
+            <td>Comprueba el comportamiento ante un recurso que no existe o una condición que impide la operación.</td>
+            <td>Se lanza la excepción de dominio correspondiente (ej. <code>ResourceNotFoundException</code>) y se asegura que NO se ejecutaron pasos posteriores irreversibles.</td>
+        </tr>
+        <tr>
+            <td><b>3. Casos Límite y Frontera (Boundary Testing)</b></td>
+            <td>Comprueba cómo reacciona el código ante valores extremos: números negativos, cero, valores máximos permitidos, cadenas vacías o <code>null</code>.</td>
+            <td>El código valida los argumentos y rechaza los datos anómalos de forma controlada sin producir <code>NullPointerException</code> inesperados.</td>
+        </tr>
+        <tr>
+            <td><b>4. Ausencia de Efectos Secundarios</b></td>
+            <td>Asegura que si una condición preliminar falla, no se interactúa con recursos persistentes ni con servicios de mensajería externa.</td>
+            <td>Verificar con <code>then(collaborator).shouldHaveNoInteractions()</code> que los colaboradores críticos permanecieron intactos.</td>
+        </tr>
+    </tbody>
+</table>
 
-<h2>Ejemplo</h2>
+---
 
-<p>Ejemplo de Test completo, que comprobará que un Usuario se está guardando correctamente en una base de datos:</p>
+<h2>5. Ejemplo Completo: Test Unitario de PetServiceImpl</h2>
+<p>
+    A continuación se ilustra el test unitario completo para el servicio de adopción de mascotas, aplicando <b>JUnit 5</b>, <b>BDDMockito</b>, <b>AssertJ</b> y <b>Lombok</b>:
+</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-class CustomerRepositoryTest {
+package com.example.petshop.service;
 
-    @Autowired
-    private CustomerRepository underTest;
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.exception.PetNotFoundException;
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetJpaRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Tests Unitarios - PetServiceImpl")
+class PetServiceImplTest {
+
+    @Mock
+    private PetJpaRepository petRepository;
+
+    @Mock
+    private NotificationService notificationService;
+
+    @InjectMocks
+    private PetServiceImpl underTest;
+
+    @Captor
+    private ArgumentCaptor&lt;PetEntity&gt; petArgumentCaptor;
 
     @Test
-    void itShouldSaveCustomer() {
-        // Given
-        UUID id = UUID.randomUUID();
-        Customer customer = new Customer(id, "Abel", "0000");
-        
-        // When
-        underTest.save(customer);
-        
-        // Then
-        Optional&lt;Customer&gt; optionalCustomer = underTest.findById(id);
-        assertThat(optionalCustomer)
-        .isPresent()
-        .hasValueSatisfying(c -> {
-        //          assertThat(c.getId()).isEqualTo(id);
-        //          assertThat(c.getName()).isEqualTo("Abel");
-        //          assertThat(c.getPhoneNumber()).isEqualTo("1111");
-                    assertThat(c).isEqualToComparingFieldByField(customer);
-        });
+    @DisplayName("Camino Feliz: Debe registrar una mascota y notificar si los datos son válidos")
+    void shouldRegisterPetSuccessfullyWhenDataIsValid() {
+        // GIVEN: Datos preparados
+        PetDTO inputDto = PetDTO.builder()
+                .name("Max")
+                .species("Dog")
+                .age((short) 3)
+                .vaccinated(true)
+                .admissionDate(LocalDate.now())
+                .build();
+
+        PetEntity savedEntity = PetEntity.builder()
+                .id(1L)
+                .name("Max")
+                .species("Dog")
+                .age(3)
+                .vaccinated(true)
+                .admissionDate(LocalDate.now())
+                .build();
+
+        given(petRepository.save(petArgumentCaptor.capture())).willReturn(savedEntity);
+
+        // WHEN: Ejecución de la unidad
+        PetDTO result = underTest.registerPet(inputDto);
+
+        // THEN: Aserciones con AssertJ y verificación con BDDMockito
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getName()).isEqualTo("Max");
+
+        // Verificamos que el argumento capturado tenía los campos correctos antes de persistir
+        PetEntity capturedPet = petArgumentCaptor.getValue();
+        assertThat(capturedPet.getName()).isEqualTo("Max");
+        assertThat(capturedPet.getSpecies()).isEqualTo("Dog");
+
+        // Verificamos que se envió la notificación
+        then(notificationService).should().sendWelcomeNotification("Max");
+    }
+
+    @Test
+    @DisplayName("Caso Contrario: Debe lanzar PetNotFoundException al buscar un ID inexistente")
+    void shouldThrowPetNotFoundExceptionWhenIdDoesNotExist() {
+        // GIVEN: El repositorio devuelve vacío
+        Long nonExistentId = 99L;
+        given(petRepository.findById(nonExistentId)).willReturn(Optional.empty());
+
+        // WHEN & THEN: Verificación de excepción esperada
+        assertThatThrownBy(() -&gt; underTest.findPetById(nonExistentId))
+                .isInstanceOf(PetNotFoundException.class)
+                .hasMessageContaining("99");
+
+        // Verificación de seguridad: No se debe enviar ninguna notificación
+        then(notificationService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("Caso Límite: Debe rechazar el registro si el nombre de la mascota es nulo o vacío")
+    void shouldThrowIllegalArgumentExceptionWhenNameIsBlank() {
+        // GIVEN: DTO con nombre inválido
+        PetDTO invalidDto = PetDTO.builder()
+                .name("   ")
+                .species("Cat")
+                .age((short) 1)
+                .build();
+
+        // WHEN & THEN: Falla la validación temprana
+        assertThatThrownBy(() -&gt; underTest.registerPet(invalidDto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("El nombre no puede estar en blanco");
+
+        // Verificamos que NUNCA se invocó al repositorio ni al servicio de notificación
+        then(petRepository).should(never()).save(petArgumentCaptor.capture());
+        then(notificationService).shouldHaveNoInteractions();
     }
 }
 </code></pre>
 </div>
 
-<p>La librería AssertJ nos permite ejecutar los "assert" (afirmar o aseverar) que comprobaran que cada uno de los valores, que en este caso son obtenidos de la consulta a base de datos, coinciden con los valores que se le indiquen.</p>
+---
 
-<h2>AssertJ</h2>
-<p>Esta librería permite multitud de pruebas de todo tipo. Para mas información consultar la documentación oficial en la sección de links.</p>
+<h2>6. Cuándo Usar y Cuándo NO Usar Tests Unitarios</h2>
 
-<h2>Mockito</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo Técnico</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Lógica de negocio en Clases de Servicio (cálculos, validaciones, mapeos, orquestación).</td>
+            <td><b>SIEMPRE usar Tests Unitarios</b></td>
+            <td>Son ultrarrápidos, aíslan completamente los fallos y permiten cubrir todos los caminos y bifurcaciones condicionales.</td>
+        </tr>
+        <tr>
+            <td>Probar consultas SQL nativas complejas o sintaxis de dialectos específicos (PostgreSQL / Oracle).</td>
+            <td><b>NO usar Tests Unitarios (Usar Slice <code>@DataJpaTest</code> o Testcontainers)</b></td>
+            <td>Un mock no sabe ejecutar sentencias SQL ni comprueba claves foráneas o tipos de columna reales.</td>
+        </tr>
+        <tr>
+            <td>Probar serialización JSON, filtros de seguridad HTTP y validación de endpoints REST.</td>
+            <td><b>NO usar Tests Unitarios (Usar Slice <code>@WebMvcTest</code>)</b></td>
+            <td>Se requiere verificar el comportamiento del pipeline de Spring MVC y los interceptores HTTP.</td>
+        </tr>
+    </tbody>
+</table>
 
-<p><b>@Mock</b>: Esta anotación permite la inyección de instancias simuladas(mocked). Necesaria para aislar las pruebas unitarias tales como servicios que requieren a veces de inyectar un repositorio.</p>
+---
+
+<h2>7. Contraejemplos y Antipatrones en Tests Unitarios</h2>
+
+<h3>Contraejemplo 1: Levantar @SpringBootTest para un Test Unitario de Servicio</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN CATASTRÓFICO: Levanta toda la aplicación Spring Boot para probar un método simple
+@SpringBootTest
+class BadPetServiceTest {
+
+    @Autowired
+    private PetServiceImpl petService; // Tarda de 5 a 15 segundos en arrancar el contexto
+
+    @Test
+    void testSimpleMethod() {
+        // Prueba lenta que ralentiza los pipelines de CI/CD
+    }
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar siempre <code>@ExtendWith(MockitoExtension.class)</code> con <code>@Mock</code> y <code>@InjectMocks</code>.
+</p>
+
+<h3>Contraejemplo 2: Aserciones Débiles (Silent Failures)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Aserción insuficiente que no verifica el contenido real
+@Test
+void badAssertionTest() {
+    PetDTO result = petService.registerPet(dto);
+    
+    // PELIGRO: Pasa si result es un objeto vacío sin rellenar
+    assertNotNull(result); 
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución con AssertJ:</b> Verificar todos los atributos clave con métodos fluidos:
+    <code>assertThat(result).isNotNull().extracting(PetDTO::getName, PetDTO::getAge).containsExactly("Max", (short) 3);</code>.
+</p>

@@ -1,3 +1,326 @@
-<h1 class="title">Tests Funcionales</h1>
+<h1 class="title">Tests Funcionales y Slice Tests en la Capa Web (@WebMvcTest y MockMvc)</h1>
 
-<p>Simulan la interacción del usuario final con la aplicación y se utilizan para verificar su correcto funcionamiento en un ambiente realista.</p>
+<h2>1. ¿Qué es un Test Funcional / Web Slice Test y para qué sirve?</h2>
+<p>
+    En aplicaciones Spring Boot modernas, los <b>Tests Funcionales de la capa Web</b> (también denominados <i>Web Slice Tests</i>) verifican el contrato HTTP de nuestros controladores REST: el enrutamiento de URLs, la serialización y deserialización de JSON con Jackson, la validación de payloads de entrada con Bean Validation (<code>@Valid</code>), los códigos de estado HTTP y los encabezados de respuesta (como <code>Location</code> o cabeceras de caché).
+</p>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos un <b>simulador de vuelo de cabina completa</b>: no quema combustible real ni despega del suelo (no arranca un servidor Tomcat real ni una base de datos), pero todos los mandos, pantallas de navegación, alarmas e indicadores responden exactamente igual que en un vuelo real. Si el piloto introduce coordenadas incorrectas, el sistema de navegación emite una alarma de error de inmediato.
+</p>
+
+<h3>¿Por qué utilizar @WebMvcTest en lugar de levantar toda la aplicación?</h3>
+<ul>
+    <li><b>Arranque focalizado:</b> <code>@WebMvcTest</code> carga únicamente los componentes de Spring MVC (controladores, manejadores de excepciones <code>@RestControllerAdvice</code>, filtros y configuraciones de Jackson), ignorando entidades JPA, repositorios y servicios de negocio.</li>
+    <li><b>Velocidad:</b> Tarda solo 1 o 2 segundos en inicializarse, a diferencia de los 15-30 segundos que puede costar un <code>@SpringBootTest</code> completo.</li>
+    <li><b>Aislamiento total:</b> La lógica de negocio subyacente se simula limpiamente con <code>@MockBean</code>, permitiendo simular fácilmente respuestas de éxito, fallos 404, colisiones de unicidad o excepciones internas.</li>
+</ul>
+
+---
+
+<h2>2. Herramientas del Web Slice: MockMvc y @MockBean</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Componente</th>
+            <th scope="col">Paquete</th>
+            <th scope="col">Propósito y Uso</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@WebMvcTest(ClaseControlador.class)</code></td>
+            <td><code>org.springframework.boot.test.autoconfigure.web.servlet</code></td>
+            <td>Anota la clase de test limitando el contexto de Spring exclusivamente a los controladores especificados.</td>
+        </tr>
+        <tr>
+            <td><code>MockMvc</code></td>
+            <td><code>org.springframework.test.web.servlet</code></td>
+            <td>Punto de entrada principal para disparar peticiones HTTP virtuales (<code>perform(get(...))</code>, <code>perform(post(...))</code>) y verificar respuestas.</td>
+        </tr>
+        <tr>
+            <td><code>@MockBean</code></td>
+            <td><code>org.springframework.boot.test.mock.mockito</code></td>
+            <td>Registra un mock de Mockito dentro del contexto de Spring, sustituyendo al servicio real que requiere el controlador.</td>
+        </tr>
+        <tr>
+            <td><code>ObjectMapper</code></td>
+            <td><code>com.fasterxml.jackson.databind</code></td>
+            <td>Serializa objetos Java a cadenas JSON para enviarlos en el cuerpo de las peticiones POST/PUT.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>3. Estándar de Casos de Prueba para Controladores REST</h2>
+<p>
+    Todo controlador REST profesional debe contar con tests que cubran rigurosamente el siguiente catálogo de situaciones:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Caso Estándar</th>
+            <th scope="col">Entrada / Condición</th>
+            <th scope="col">Respuesta HTTP Esperada</th>
+            <th scope="col">Aserciones Críticas</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>1. GET Exitoso (Happy Path)</b></td>
+            <td>ID existente en la ruta (<code>/petshop/pet/1</code>).</td>
+            <td><code>200 OK</code></td>
+            <td><code>status().isOk()</code>, <code>jsonPath("$.name").value("Max")</code>, <code>jsonPath("$.species").value("Dog")</code>.</td>
+        </tr>
+        <tr>
+            <td><b>2. GET Recurso Inexistente</b></td>
+            <td>El servicio lanza <code>PetNotFoundException</code>.</td>
+            <td><code>404 NOT_FOUND</code></td>
+            <td><code>status().isNotFound()</code>, <code>jsonPath("$.status").value(404)</code>, mensaje de error en JSON.</td>
+        </tr>
+        <tr>
+            <td><b>3. POST Creación Exitosa</b></td>
+            <td>Payload JSON válido con todos los campos obligatorios.</td>
+            <td><code>201 CREATED</code></td>
+            <td><code>status().isCreated()</code>, cabecera <code>Location</code> con la URI del nuevo recurso creado.</td>
+        </tr>
+        <tr>
+            <td><b>4. POST Validación Fallida (Bad Request)</b></td>
+            <td>Payload con campos nulos o que violan restricciones <code>@NotBlank</code> / <code>@Min</code>.</td>
+            <td><code>400 BAD_REQUEST</code></td>
+            <td><code>status().isBadRequest()</code>, <code>jsonPath("$.fieldErrors").isArray()</code>, no se invoca al servicio.</td>
+        </tr>
+        <tr>
+            <td><b>5. DELETE Eliminación Exitosa</b></td>
+            <td>ID existente.</td>
+            <td><code>204 NO_CONTENT</code></td>
+            <td><code>status().isNoContent()</code>, cuerpo de respuesta vacío.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>4. Ejemplo Completo: Test del Controlador PetController</h2>
+<p>
+    A continuación se presenta la suite completa de pruebas para <code>PetController</code> utilizando <code>@WebMvcTest</code>, <code>MockMvc</code> y <code>BDDMockito</code>:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.controller;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.exception.GlobalExceptionHandler;
+import com.example.petshop.exception.PetNotFoundException;
+import com.example.petshop.service.PetService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.LocalDate;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(PetController.class)
+@Import(GlobalExceptionHandler.class) // Importa el manejador centralizado de errores
+@DisplayName("Tests Funcionales Web - PetController")
+class PetControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private PetService petService;
+
+    @Test
+    @DisplayName("GET /petshop/pet/{id}: Debe retornar 200 OK con el JSON de la mascota si existe")
+    void shouldReturn200AndPetJsonWhenPetExists() throws Exception {
+        // GIVEN
+        Integer petId = 1;
+        PetDTO petDTO = PetDTO.builder()
+                .id(petId)
+                .name("Max")
+                .species("Dog")
+                .age((short) 4)
+                .vaccinated(true)
+                .admissionDate(LocalDate.of(2025, 1, 15))
+                .build();
+
+        given(petService.findById(petId)).willReturn(petDTO);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/petshop/pet/{id}", petId)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Max"))
+                .andExpect(jsonPath("$.species").value("Dog"))
+                .andExpect(jsonPath("$.vaccinated").value(true));
+
+        then(petService).should().findById(petId);
+    }
+
+    @Test
+    @DisplayName("GET /petshop/pet/{id}: Debe retornar 404 NOT FOUND si la mascota no existe")
+    void shouldReturn404WhenPetDoesNotExist() throws Exception {
+        // GIVEN
+        Integer nonExistentId = 99;
+        given(petService.findById(nonExistentId))
+                .willThrow(new PetNotFoundException(nonExistentId));
+
+        // WHEN & THEN
+        mockMvc.perform(get("/petshop/pet/{id}", nonExistentId)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("No existe ninguna mascota con el identificador: 99"));
+
+        then(petService).should().findById(nonExistentId);
+    }
+
+    @Test
+    @DisplayName("POST /petshop/pet: Debe retornar 201 CREATED con la cabecera Location al crear una mascota válida")
+    void shouldReturn201AndLocationHeaderWhenPetIsValid() throws Exception {
+        // GIVEN
+        PetDTO inputDto = PetDTO.builder()
+                .name("Luna")
+                .species("Cat")
+                .age((short) 2)
+                .vaccinated(true)
+                .build();
+
+        PetDTO savedDto = PetDTO.builder()
+                .id(10)
+                .name("Luna")
+                .species("Cat")
+                .age((short) 2)
+                .vaccinated(true)
+                .build();
+
+        given(petService.save(any(PetDTO.class))).willReturn(savedDto);
+
+        // WHEN & THEN
+        mockMvc.perform(post("/petshop/pet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(inputDto)))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("/petshop/pet/10")));
+
+        then(petService).should().save(any(PetDTO.class));
+    }
+
+    @Test
+    @DisplayName("POST /petshop/pet: Debe retornar 400 BAD REQUEST si el payload no cumple las validaciones Bean Validation")
+    void shouldReturn400WhenPayloadViolatesValidationConstraints() throws Exception {
+        // GIVEN: DTO con nombre en blanco y edad negativa
+        PetDTO invalidDto = PetDTO.builder()
+                .name("") // Viola @NotBlank
+                .species("Cat")
+                .age((short) -1) // Viola @Min(0)
+                .build();
+
+        // WHEN & THEN
+        mockMvc.perform(post("/petshop/pet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.fieldErrors").isArray());
+
+        // El controlador rechaza la llamada antes de tocar el servicio
+        then(petService).should(never()).save(any(PetDTO.class));
+    }
+
+    @Test
+    @DisplayName("DELETE /petshop/pet/{id}: Debe retornar 204 NO CONTENT cuando se elimina con éxito")
+    void shouldReturn204WhenPetDeletedSuccessfully() throws Exception {
+        // GIVEN
+        Integer petId = 1;
+
+        // WHEN & THEN
+        mockMvc.perform(delete("/petshop/pet/{id}", petId))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        then(petService).should().deleteById(petId);
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>5. Cuándo Usar y Cuándo NO Usar @WebMvcTest</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo Técnico</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Validar rutas REST, códigos HTTP, serialización JSON y Bean Validation (<code>@Valid</code>).</td>
+            <td><b>SIEMPRE usar <code>@WebMvcTest</code></b></td>
+            <td>Prueba el pipeline web completo de Spring MVC de forma aislada y en segundos.</td>
+        </tr>
+        <tr>
+            <td>Probar lógica de negocio o algoritmos de servicios.</td>
+            <td><b>NO usar <code>@WebMvcTest</code> (Usar Unit Test con Mockito)</b></td>
+            <td>No aporta nada levantar la capa web para probar una clase de servicio pura.</td>
+        </tr>
+        <tr>
+            <td>Probar que una transacción SQL hace rollback ante un error de controlador.</td>
+            <td><b>NO usar <code>@WebMvcTest</code> (Usar <code>@SpringBootTest</code> con Testcontainers)</b></td>
+            <td><code>@WebMvcTest</code> no tiene base de datos ni gestor de transacciones reales configurados.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>6. Contraejemplos y Errores Habituales en Tests de Controladores</h2>
+
+<h3>Contraejemplo 1: Instanciar el Controlador con "new" Manualmente</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Testear el controlador como si fuera un POJO plano
+class BadControllerTest {
+    @Test
+    void testDirectCall() {
+        PetController controller = new PetController(mockService);
+        ResponseEntity&lt;PetDTO&gt; response = controller.get(1);
+        
+        // ERROR GRAVE: Este test NO prueba rutas, NO valida anotaciones @NotNull/@Valid,
+        // NO prueba serialización Jackson ni comprueba filtros de seguridad.
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Utilizar siempre <code>@WebMvcTest</code> con <code>MockMvc</code> para disparar la petición a través de la infraestructura web real de Spring.
+</p>

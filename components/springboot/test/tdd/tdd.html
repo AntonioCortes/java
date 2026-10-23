@@ -1,1 +1,258 @@
-<h1 class="title">TDD</h1>
+<h1 class="title">Desarrollo Guiado por Pruebas (TDD - Test Driven Development)</h1>
+
+<h2>1. ¿Qué es TDD y cuál es su filosofía?</h2>
+<p>
+    El <b>Desarrollo Guiado por Pruebas (Test-Driven Development - TDD)</b> no es simplemente una técnica de verificación de calidad; es fundamentalmente una <b>disciplina de diseño de software</b> donde los tests unitarios se escriben <b>antes</b> que el propio código de producción. Los tests actúan como especificación viva y contrato ejecutable del sistema.
+</p>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos la construcción de columnas en ingeniería civil: los constructores nunca vierten el hormigón al aire esperando que adquiera la forma de columna por arte de magia. Primero construyen un <b>encofrado rígido con las medidas milimétricas exactas</b> (el test unitario), y después vierten el hormigón (el código de producción). El hormigón adopta con precisión la forma del molde y se retira el encofrado con la certeza de que la columna cumple los planos.
+</p>
+
+---
+
+<h2>2. El Ciclo Red - Green - Refactor</h2>
+<p>
+    TDD se ejecuta en bucles microscópicos de pocos minutos guiados por tres fases inmutables:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Fase</th>
+            <th scope="col">Color</th>
+            <th scope="col">Qué se debe Hacer</th>
+            <th scope="col">Regla de Oro</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>1. Red (Rojo)</b></td>
+            <td><span class="badge bg-danger">Falla</span></td>
+            <td>Escribir un pequeño test unitario que describa un único comportamiento nuevo deseado. Ejecutar el test y comprobar que <b>falla</b> (el fallo de compilación cuenta como fallo).</td>
+            <td>No escribir ni una sola línea de código de producción hasta ver el test en rojo por el motivo correcto.</td>
+        </tr>
+        <tr>
+            <td><b>2. Green (Verde)</b></td>
+            <td><span class="badge bg-success">Pasa</span></td>
+            <td>Escribir la cantidad <b>mínima y más sencilla</b> de código de producción para que el test pase a verde. Está permitido escribir código "feo" o valores fijos si es necesario.</td>
+            <td>Hacer que el test pase lo antes posible sin anticipar requisitos futuros.</td>
+        </tr>
+        <tr>
+            <td><b>3. Refactor (Limpieza)</b></td>
+            <td><span class="badge bg-primary">Mejora</span></td>
+            <td>Mejorar el diseño, eliminar código duplicado, extraer métodos y aplicar principios SOLID y patrones de diseño.</td>
+            <td>La red de seguridad de los tests debe permanecer en verde tras cada cambio estructural.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>3. Las Tres Leyes de TDD (Robert C. Martin - Uncle Bob)</h2>
+<ol>
+    <li><b>Primera Ley:</b> No escribirás código de producción hasta que hayas escrito un test unitario que falle.</li>
+    <li><b>Segunda Ley:</b> No escribirás más de un test unitario de lo que sea suficiente para fallar; y no compilar es fallar.</li>
+    <li><b>Tercera Ley:</b> No escribirás más código de producción del que sea necesario para hacer pasar el test unitario que está fallando.</li>
+</ol>
+
+---
+
+<h2>4. Caso Práctico TDD Paso a Paso (Dominio Pet Shop)</h2>
+<p>
+    <b>Requisito de negocio:</b> Implementar el cálculo de la tasa de adopción de mascotas (<code>AdoptionFeeCalculator</code>).
+</p>
+<ul>
+    <li>Tarifa base estándar: <b>100.00 €</b>.</li>
+    <li>Mascotas senior (edad &gt; 7 años): <b>30% de descuento</b> (tarifa: <b>70.00 €</b>).</li>
+    <li>Si la edad es negativa: debe lanzar <code>IllegalArgumentException</code>.</li>
+</ul>
+
+<h3>Paso 1: Primer Test en Rojo (Fase Red 1)</h3>
+<p>
+    Escribimos el test para la tarifa base de una mascota joven antes de que la clase calculadora exista:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.tdd;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import java.math.BigDecimal;
+import static org.assertj.core.api.Assertions.assertThat;
+
+class AdoptionFeeCalculatorTest {
+
+    private final AdoptionFeeCalculator calculator = new AdoptionFeeCalculator();
+
+    @Test
+    @DisplayName("Debe cobrar la tarifa base estándar de 100€ para una mascota joven")
+    void shouldReturnStandardFeeForYoungPet() {
+        // GIVEN
+        int age = 3;
+
+        // WHEN
+        BigDecimal fee = calculator.calculateFee(age);
+
+        // THEN
+        assertThat(fee).isEqualByComparingTo(new BigDecimal("100.00"));
+    }
+}
+</code></pre>
+</div>
+<p><i>Resultado:</i> Falla en compilación porque <code>AdoptionFeeCalculator</code> aún no existe. Cumple la Fase Red.</p>
+
+<h3>Paso 2: Código Mínimo en Verde (Fase Green 1)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.tdd;
+
+import java.math.BigDecimal;
+
+public class AdoptionFeeCalculator {
+    public BigDecimal calculateFee(int age) {
+        // Solución mínima para pasar el test
+        return new BigDecimal("100.00");
+    }
+}
+</code></pre>
+</div>
+<p><i>Resultado:</i> El test pasa a <span class="badge bg-success">VERDE</span>.</p>
+
+<h3>Paso 3: Segundo Test para Mascota Senior (Fase Red 2)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+    @Test
+    @DisplayName("Debe aplicar un 30% de descuento para mascotas senior (edad > 7)")
+    void shouldApplySeniorDiscountForOldPet() {
+        // GIVEN
+        int seniorAge = 8;
+
+        // WHEN
+        BigDecimal fee = calculator.calculateFee(seniorAge);
+
+        // THEN
+        assertThat(fee).isEqualByComparingTo(new BigDecimal("70.00"));
+    }
+</code></pre>
+</div>
+<p><i>Resultado:</i> Falla porque devuelve 100.00 en lugar de 70.00. Estamos en <span class="badge bg-danger">ROJO</span>.</p>
+
+<h3>Paso 4: Implementar Descuento (Fase Green 2)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+public class AdoptionFeeCalculator {
+    public BigDecimal calculateFee(int age) {
+        if (age > 7) {
+            return new BigDecimal("70.00");
+        }
+        return new BigDecimal("100.00");
+    }
+}
+</code></pre>
+</div>
+<p><i>Resultado:</i> Ambos tests pasan a <span class="badge bg-success">VERDE</span>.</p>
+
+<h3>Paso 5: Tercer Test para Validación de Frontera (Fase Red 3)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+    @Test
+    @DisplayName("Debe lanzar IllegalArgumentException si la edad es negativa")
+    void shouldThrowExceptionWhenAgeIsNegative() {
+        assertThatThrownBy(() -> calculator.calculateFee(-1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("La edad de la mascota no puede ser negativa");
+    }
+</code></pre>
+</div>
+
+<h3>Paso 6: Refactorización Profesional con Constantes y Buenas Prácticas (Fase Refactor)</h3>
+<p>
+    Una vez que todos los tests están en verde, aplicamos diseño limpio extrayendo constantes y formalizando el cálculo:
+</p>
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.tdd;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+public class AdoptionFeeCalculator {
+
+    private static final BigDecimal BASE_FEE = new BigDecimal("100.00");
+    private static final BigDecimal SENIOR_DISCOUNT_PERCENTAGE = new BigDecimal("0.30");
+    private static final int SENIOR_AGE_THRESHOLD = 7;
+
+    public BigDecimal calculateFee(int age) {
+        if (age < 0) {
+            throw new IllegalArgumentException("La edad de la mascota no puede ser negativa");
+        }
+
+        if (age > SENIOR_AGE_THRESHOLD) {
+            BigDecimal discount = BASE_FEE.multiply(SENIOR_DISCOUNT_PERCENTAGE);
+            return BASE_FEE.subtract(discount).setScale(2, RoundingMode.HALF_UP);
+        }
+
+        return BASE_FEE.setScale(2, RoundingMode.HALF_UP);
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>5. Cuándo Usar y Cuándo NO Usar TDD</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Reglas de negocio complejas, motores de precios, deducciones fiscales, validaciones críticas.</td>
+            <td><b>SIEMPRE usar TDD</b></td>
+            <td>Garantiza cobertura del 100% de las ramas de decisión y produce código altamente desacoplado.</td>
+        </tr>
+        <tr>
+            <td>Corrección de defectos en producción (Bug Fixing).</td>
+            <td><b>OBLIGATORIO usar TDD</b></td>
+            <td>Se escribe primero el test que reproduce el bug exacto (en rojo), luego se corrige (en verde) y nunca más vuelve a ocurrir (prevención de regresiones).</td>
+        </tr>
+        <tr>
+            <td>Pinchos técnicos o pruebas de concepto exploratorias (Spikes) donde se desconoce la API de una librería.</td>
+            <td><b>NO usar TDD</b></td>
+            <td>Se realiza código rápido exploratorio; una vez aprendido el funcionamiento, se descarta el prototipo y se inicia el desarrollo formal con TDD.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>6. Contraejemplos y Antipatrones de TDD</h2>
+
+<h3>Contraejemplo 1: Testear Detalles Privados de Implementación</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Test acoplado a la estructura interna en lugar de al contrato público
+@Test
+void badTddTest() throws Exception {
+    // Rompe el encapsulamiento por reflexión para comprobar el valor de una variable privada
+    Field field = calculator.getClass().getDeclaredField("internalCounter");
+    field.setAccessible(true);
+    assertEquals(1, field.get(calculator));
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Testear <b>únicamente el comportamiento observable</b> a través de la interfaz pública (caja negra). El test no debe romperse si se refactoriza el interior de la clase sin cambiar las entradas ni salidas.
+</p>
+
+<h3>Contraejemplo 2: Saltarse la Fase de Refactorización</h3>
+<p>
+    Quedarse perpetuamente en el paso <i>Verde</i> sin limpiar duplicidades convierte el código en una maraña de parches de sentencias <code>if-else</code>. La verdadera calidad de TDD se forja en la fase de refactorización continua.
+</p>

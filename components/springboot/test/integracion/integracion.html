@@ -1,3 +1,336 @@
-<h1 class="title">Test de Integración</h1>
+<h1 class="title">Tests de Integración en Spring Boot (@SpringBootTest y Testcontainers)</h1>
 
-<p>Se utilizan para probar la integración de múltiples componentes de la aplicación y verificar su correcto funcionamiento en conjunto, es decir, conlleva realizar un test completo de la aplicación.</p>
+<h2>1. ¿Qué es un Test de Integración y para qué sirve?</h2>
+<p>
+    Un <b>Test de Integración</b> verifica que los diferentes módulos, capas y subsistemas de la aplicación funcionen coordinadamente de extremo a extremo: la comunicación HTTP del controlador, la orquestación transaccional de los servicios, el mapeo objeto-relacional de Hibernate y la ejecución física de sentencias en el motor de base de datos.
+</p>
+
+<h3>Analogía del mundo real</h3>
+<p>
+    Imaginemos el <b>primer vuelo de prueba real de una aeronave</b>: ya se han probado los motores por separado en el laboratorio (Tests Unitarios) y los mandos en el simulador (Tests de Controladores), pero ahora se enciende el queroseno, se activan los trenes de aterrizaje reales y se comprueba si la vibración del motor afecta a los sensores hidráulicos bajo condiciones físicas auténticas.
+</p>
+
+---
+
+<h2>2. Por qué Testcontainers ha sustituido a H2 en Memoria</h2>
+<p>
+    Durante años, la práctica común en Spring Boot fue utilizar bases de datos en memoria como <b>H2</b> para las pruebas. En proyectos empresariales modernos, esto se considera un <b>grave antipatrón de diseño</b> debido a:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Criterio</th>
+            <th scope="col">Base de Datos H2 en Memoria</th>
+            <th scope="col">Testcontainers (Docker Real)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Fidelidad de Dialecto</b></td>
+            <td>Emula SQL genérico. No soporta tipos nativos como <code>JSONB</code> de Postgres, sintaxis de secuencias específicas de Oracle ni operadores avanzados.</td>
+            <td><b>100% idéntico a producción</b>: ejecuta la imagen oficial exacta de PostgreSQL, Oracle Database o MongoDB.</td>
+        </tr>
+        <tr>
+            <td><b>Índices y Restricciones</b></td>
+            <td>Comportamiento permisivo con tipos de datos y comprobación de claves foráneas no idéntica.</td>
+            <td>Mismas reglas de integridad referencial, bloqueos de concurrencia y tiempos de respuesta reales.</td>
+        </tr>
+        <tr>
+            <td><b>El Síndrome "En mi Test pasa"</b></td>
+            <td>Altísimo riesgo de pasar los tests en verde pero fallar en producción al desplegar sobre Postgres/Oracle.</td>
+            <td><b>Cero sorpresas al desplegar</b>: lo que funciona en el test se comporta exactamente igual en el clúster.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>3. Dependencias de Testcontainers</h2>
+
+<h3>Maven (pom.xml)</h3>
+<div class="center-horizontal">
+<pre><code class="language-xml">
+&lt;dependencies&gt;
+    &lt;!-- Starter de Test de Spring Boot --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- Módulos de Testcontainers para JUnit 5 y PostgreSQL --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.testcontainers&lt;/groupId&gt;
+        &lt;artifactId&gt;junit-jupiter&lt;/artifactId&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.testcontainers&lt;/groupId&gt;
+        &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+</div>
+
+<h3>Gradle (build.gradle)</h3>
+<div class="center-horizontal">
+<pre><code class="language-groovy">
+dependencies {
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+}
+</code></pre>
+</div>
+
+---
+
+<h2>4. Estándar de Casos de Prueba para Persistencia y Base de Datos</h2>
+<p>
+    Siempre que una función interactúe con el almacenamiento persistente, el estándar de calidad exige verificar los siguientes <b>escenarios esenciales y sus contrarios</b>:
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Caso Estándar</th>
+            <th scope="col">Acción a Probar</th>
+            <th scope="col">Resultado Obligatorio a Validar</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>1. Inserción y Recuperación (Happy Path)</b></td>
+            <td>Guardar la entidad completa mediante el repositorio y recuperarla por su ID generado.</td>
+            <td>La entidad se persiste con su ID autoincremental asignado y todos los campos coinciden exactamente (<code>isEqualToComparingFieldByField</code>).</td>
+        </tr>
+        <tr>
+            <td><b>2. Violación de Restricción No-Nula</b></td>
+            <td>Intentar guardar una entidad con campos obligatorios en <code>null</code> (ej. <code>name = null</code> con <code>nullable = false</code>).</td>
+            <td>Se debe lanzar <code>DataIntegrityViolationException</code> y la transacción debe quedar invalidada.</td>
+        </tr>
+        <tr>
+            <td><b>3. Violación de Clave Única (Unique Constraint)</b></td>
+            <td>Intentar insertar dos registros con el mismo identificador único o código fiscal.</td>
+            <td>El motor debe rechazar el segundo insert con violación de restricción única.</td>
+        </tr>
+        <tr>
+            <td><b>4. Consulta de Elemento Inexistente</b></td>
+            <td>Invocar <code>findById(idInexistente)</code>.</td>
+            <td>Debe retornar <code>Optional.empty()</code> sin lanzar excepciones inesperadas.</td>
+        </tr>
+        <tr>
+            <td><b>5. Consulta con Filtro y Caso Contrario</b></td>
+            <td>Probar un método de filtro (ej. <code>findByVaccinatedTrue()</code>).</td>
+            <td><b>Doble verificación:</b> Comprobar que devuelve todas las mascotas vacunadas Y que <b>excluye explícitamente</b> a las no vacunadas.</td>
+        </tr>
+        <tr>
+            <td><b>6. Eliminación en Cascada y Huérfanos</b></td>
+            <td>Borrar una entidad padre que tenga configurado <code>CascadeType.REMOVE</code> u <code>orphanRemoval = true</code>.</td>
+            <td>Comprobar que todas las entidades hijas asociadas fueron eliminadas físicamente de sus respectivas tablas.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>5. Ejemplo Completo: Test de Integración con Testcontainers y Servidor Real</h2>
+<p>
+    El siguiente test levanta un contenedor real de PostgreSQL en Docker y arranca la aplicación Spring Boot en un puerto aleatorio (<code>RANDOM_PORT</code>). Ejecuta una petición HTTP POST real mediante <code>TestRestTemplate</code>, comprueba que la mascota se guardó físicamente en PostgreSQL y verifica su recuperación posterior vía HTTP GET:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.integration;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetJpaRepository;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Testcontainers
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DisplayName("Tests de Integración End-to-End con Testcontainers (PostgreSQL)")
+class PetIntegrationTest {
+
+    // 1. Contenedor Docker oficial de PostgreSQL gestionado por Testcontainers
+    @Container
+    static PostgreSQLContainer&lt;?&gt; postgres = new PostgreSQLContainer&lt;&gt;("postgres:16-alpine")
+            .withDatabaseName("petshop_test_db")
+            .withUsername("test_user")
+            .withPassword("test_pass");
+
+    // 2. Inyección dinámica de las credenciales y URL del contenedor Docker en el DataSource de Spring
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.jpa.hibernate.ddl-auto", () -&gt; "create-drop");
+    }
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private PetJpaRepository petRepository;
+
+    @BeforeEach
+    void setUp() {
+        // Limpiamos la tabla antes de cada test para garantizar aislamiento e idempotencia
+        petRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("Flujo Completo E2E: POST crea mascota en Postgres real y GET la recupera")
+    void shouldCreateAndRetrievePetEndToEnd() {
+        // GIVEN: DTO de entrada para registrar
+        String baseUrl = "http://localhost:" + port + "/petshop/pet";
+        PetDTO newPet = PetDTO.builder()
+                .name("Rocky")
+                .species("Dog")
+                .age((short) 5)
+                .vaccinated(true)
+                .admissionDate(LocalDate.now())
+                .build();
+
+        // WHEN (Fase 1): Petición HTTP POST real
+        ResponseEntity&lt;Void&gt; postResponse = restTemplate.postForEntity(baseUrl, newPet, Void.class);
+
+        // THEN (Fase 1): Respuesta 201 Created y presencia de cabecera Location
+        assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(postResponse.getHeaders().getLocation()).isNotNull();
+        String locationUrl = postResponse.getHeaders().getLocation().toString();
+
+        // THEN (Fase 2): Verificación física directa en la base de datos PostgreSQL real
+        assertThat(petRepository.count()).isEqualTo(1L);
+        PetEntity entityInDb = petRepository.findAll().get(0);
+        assertThat(entityInDb.getName()).isEqualTo("Rocky");
+        assertThat(entityInDb.getSpecies()).isEqualTo("Dog");
+        assertThat(entityInDb.isVaccinated()).isTrue();
+
+        // WHEN (Fase 3): Petición HTTP GET a la URL indicada en el Location
+        ResponseEntity&lt;PetDTO&gt; getResponse = restTemplate.getForEntity(locationUrl, PetDTO.class);
+
+        // THEN (Fase 3): Respuesta 200 OK y coincidencia del contrato DTO
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        PetDTO retrievedPet = getResponse.getBody();
+        assertThat(retrievedPet).isNotNull();
+        assertThat(retrievedPet.getId()).isEqualTo(entityInDb.getId().intValue());
+        assertThat(retrievedPet.getName()).isEqualTo("Rocky");
+    }
+
+    @Test
+    @DisplayName("Persistencia: findByVaccinatedTrue debe devolver solo mascotas vacunadas y excluir no vacunadas")
+    void shouldReturnOnlyVaccinatedPetsAndExcludeUnvaccinated() {
+        // GIVEN: Persistimos una mascota vacunada y otra no vacunada
+        PetEntity vaccinatedPet = PetEntity.builder()
+                .name("Toby")
+                .species("Dog")
+                .age(2)
+                .vaccinated(true)
+                .admissionDate(LocalDate.now())
+                .build();
+
+        PetEntity unvaccinatedPet = PetEntity.builder()
+                .name("Kiko")
+                .species("Parrot")
+                .age(1)
+                .vaccinated(false)
+                .admissionDate(LocalDate.now())
+                .build();
+
+        petRepository.save(vaccinatedPet);
+        petRepository.save(unvaccinatedPet);
+
+        // WHEN: Ejecución de la consulta filtrada
+        var vaccinatedList = petRepository.findByVaccinatedTrue();
+
+        // THEN: Aserción estricta de inclusión y exclusión
+        assertThat(vaccinatedList)
+                .hasSize(1)
+                .extracting(PetEntity::getName)
+                .containsExactly("Toby")
+                .doesNotContain("Kiko");
+    }
+}
+</code></pre>
+</div>
+
+---
+
+<h2>6. Cuándo Usar y Cuándo NO Usar Tests de Integración</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Escenario</th>
+            <th scope="col">Recomendación</th>
+            <th scope="col">Motivo Técnico</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Validar integración con la base de datos real (transacciones, constraints, migraciones Flyway/Liquibase).</td>
+            <td><b>SIEMPRE usar Tests de Integración con Testcontainers</b></td>
+            <td>Es el único entorno donde se prueba el motor real idéntico al clúster de producción.</td>
+        </tr>
+        <tr>
+            <td>Probar lógica condicional con 10 caminos diferentes en un algoritmo de cálculo de precios.</td>
+            <td><b>NO usar Tests de Integración (Usar Unit Tests con JUnit 5)</b></td>
+            <td>Arrancar la base de datos 10 veces para bifurcaciones simples penaliza innecesariamente los tiempos del pipeline de CI/CD.</td>
+        </tr>
+        <tr>
+            <td>Flujos críticos de negocio de extremo a extremo (registro de usuario, checkout de pedido, cobro bancario).</td>
+            <td><b>USAR Tests de Integración (1 o 2 por flujo principal)</b></td>
+            <td>Garantiza que la interacción entre todas las capas y la infraestructura externa funciona coordinada.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>7. Contraejemplos y Antipatrones en Tests de Integración</h2>
+
+<h3>Contraejemplo: No Limpiar las Tablas entre Tests (Tests Dependientes)</h3>
+<div class="center-horizontal">
+<pre><code class="language-java">
+// ANTIPATRÓN: Asume que la base de datos siempre arranca vacía para su test
+@Test
+void test1() {
+    petRepository.save(new PetEntity(...));
+    assertEquals(1, petRepository.count()); // Pasa si corre solo
+}
+
+@Test
+void test2() {
+    petRepository.save(new PetEntity(...));
+    // FALLO SILENCIOSO O INTERMITENTE: Si test1 corrió antes, count() devolverá 2 en lugar de 1
+    assertEquals(1, petRepository.count()); 
+}
+</code></pre>
+</div>
+<p>
+    <b>Solución:</b> Incluir siempre un método <code>@BeforeEach</code> que ejecute <code>petRepository.deleteAll()</code> para garantizar que cada test sea estrictamente autónomo e idempotente.
+</p>

@@ -1,259 +1,373 @@
-<h1 class="title">Ejemplos de Tests</h1>
+<h1 class="title">Catálogo Integral de Ejemplos de Tests en Spring Boot</h1>
 
+<h2>1. Guía de Referencia Rápida: La Pirámide de Testing en Spring Boot</h2>
+<p>
+    En arquitecturas empresariales con Spring Boot, las pruebas se distribuyen en capas según su velocidad de ejecución, grado de aislamiento y fidelidad respecto al entorno de producción:
+</p>
 
-<h2>Repository</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Capa de Test</th>
+            <th scope="col">Anotación Principal</th>
+            <th scope="col">Contexto de Spring</th>
+            <th scope="col">Velocidad</th>
+            <th scope="col">Objetivo Primario</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Unitario Puro</b></td>
+            <td><code>@ExtendWith(MockitoExtension.class)</code></td>
+            <td><b>Ninguno</b> (JVM pura)</td>
+            <td>&lt; 50 ms</td>
+            <td>Lógica de negocio en servicios, validaciones y cálculos.</td>
+        </tr>
+        <tr>
+            <td><b>Slice Web</b></td>
+            <td><code>@WebMvcTest(Controlador.class)</code></td>
+            <td>Solo capa Spring MVC y Jackson</td>
+            <td>1 - 2 s</td>
+            <td>Rutas HTTP, serialización JSON, códigos de estado y <code>@Valid</code>.</td>
+        </tr>
+        <tr>
+            <td><b>Slice Persistencia</b></td>
+            <td><code>@DataJpaTest</code></td>
+            <td>Solo JPA, Hibernate y DataSource</td>
+            <td>2 - 4 s</td>
+            <td>Consultas JPQL, derivadas, constraints y mapeos ORM.</td>
+        </tr>
+        <tr>
+            <td><b>Integración E2E</b></td>
+            <td><code>@SpringBootTest(webEnvironment = RANDOM_PORT)</code></td>
+            <td><b>Completo</b> + Docker Testcontainers</td>
+            <td>5 - 15 s</td>
+            <td>Flujos reales completos cliente HTTP -&gt; BD real.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>2. Cuadro Sinóptico de Anotaciones de Testing</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Anotación</th>
+            <th scope="col">Librería</th>
+            <th scope="col">Cuándo Usar</th>
+            <th scope="col">Cuándo NO Usar</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>@Mock</code></td>
+            <td>Mockito</td>
+            <td>En tests unitarios puros para simular colaboradores sin Spring.</td>
+            <td>En tests de integración o slice tests que requieran inyección de Spring.</td>
+        </tr>
+        <tr>
+            <td><code>@MockBean</code></td>
+            <td>Spring Boot Test</td>
+            <td>En tests con contexto Spring (<code>@WebMvcTest</code>) para reemplazar un bean real por un mock.</td>
+            <td>En tests unitarios puros (sobrecoste innecesario de contexto).</td>
+        </tr>
+        <tr>
+            <td><code>@InjectMocks</code></td>
+            <td>Mockito</td>
+            <td>Para instanciar la clase de servicio bajo prueba inyectándole los <code>@Mock</code>.</td>
+            <td>Sobre interfaces o clases administradas por Spring.</td>
+        </tr>
+        <tr>
+            <td><code>@Captor</code></td>
+            <td>Mockito</td>
+            <td>Para inspeccionar los argumentos reales que recibió un método simulado.</td>
+            <td>Cuando el argumento se puede validar directamente con <code>eq(...)</code>.</td>
+        </tr>
+        <tr>
+            <td><code>@DataJpaTest</code></td>
+            <td>Spring Boot Test</td>
+            <td>Para testear repositorios JPA con rollback automático por defecto.</td>
+            <td>Para probar controladores o servicios de negocio.</td>
+        </tr>
+        <tr>
+            <td><code>@Container</code></td>
+            <td>Testcontainers</td>
+            <td>Para gestionar el ciclo de vida de un contenedor Docker real (PostgreSQL, Mongo, Kafka).</td>
+            <td>En tests unitarios rápidos donde no interviene la base de datos.</td>
+        </tr>
+    </tbody>
+</table>
+
+---
+
+<h2>3. Ejemplo 1: Test de Repositorio JPA (@DataJpaTest con Heurística Completa)</h2>
+<p>
+    Verifica el guardado, la recuperación, el caso negativo de restricción <code>@NotNull</code> y la consulta filtrada con su caso contrario:
+</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-public interface CustomerRepository extends CrudRepository&lt;Customer, UUID&gt; {
-    @Query(
-            value = "select id, name, phone_number " +
-            "from customer where phone_number = :phone_number",
-            nativeQuery = true
-    )
-    Optional&lt;Customer&gt; selectCustomerByPhoneNumber(
-            @Param("phone_number") String phoneNumber);
-}
-</code></pre>	
-</div>
-<div class="center-horizontal">
-<pre><code class="language-java">
-@DataJpaTest(
-    properties = {
-            "spring.jpa.properties.javax.persistence.validation.mode=none"
-    }
-)
-class CustomerRepositoryTest {
+package com.example.petshop.repository;
+
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetJpaRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@DataJpaTest
+@DisplayName("Slice Test de Persistencia - PetJpaRepository")
+class PetJpaRepositoryTest {
+
     @Autowired
-    private CustomerRepository underTest;
+    private PetJpaRepository underTest;
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Test
-    void itShouldSelectCustomerByPhoneNumber() {
-        // Given
-        UUID id = UUID.randomUUID();
-        String phoneNumber = "0000";
-        Customer customer = new Customer(id, "Abel", phoneNumber);
+    @DisplayName("Happy Path: Guardar y recuperar mascota por ID en base de datos")
+    void shouldSaveAndFindPetById() {
+        // GIVEN: Mascota preparada
+        PetEntity pet = PetEntity.builder()
+                .name("Cooper")
+                .species("Dog")
+                .age(3)
+                .vaccinated(true)
+                .admissionDate(LocalDate.now())
+                .build();
 
-        // When
-        underTest.save(customer);
+        // WHEN: Persistir mediante el repositorio
+        PetEntity saved = underTest.save(pet);
 
-        // Then
-        Optional&lt;Customer&gt; optionalCustomer = underTest.selectCustomerByPhoneNumber(phoneNumber);
-        assertThat(optionalCustomer)
-                .isPresent()
-                .hasValueSatisfying(c -&gt; {
-                    assertThat(c).isEqualToComparingFieldByField(customer);
-                });
+        // THEN: Recuperar y verificar igualdad profunda
+        Optional&lt;PetEntity&gt; found = underTest.findById(saved.getId());
+        assertThat(found).isPresent();
+        assertThat(found.get())
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .isEqualTo(pet);
     }
 
     @Test
-    void itShouldNotSaveCustomerWhenPhoneNumberIsNull() {
-        // Given
-        UUID id = UUID.randomUUID();
-        Customer customer = new Customer(id, "Alex", null);
+    @DisplayName("Negative Path: Intentar guardar mascota con nombre nulo debe violar constraint @NotNull")
+    void shouldThrowDataIntegrityViolationExceptionWhenNameIsNull() {
+        // GIVEN: Mascota con campo obligatorio nulo
+        PetEntity invalidPet = PetEntity.builder()
+                .name(null) // Restricción nullable = false
+                .species("Cat")
+                .age(2)
+                .vaccinated(false)
+                .admissionDate(LocalDate.now())
+                .build();
 
-        // When
-        // Then
-        assertThatThrownBy(() -&gt; underTest.save(customer))
-                .hasMessageContaining("not-null property references a null or transient value : com.amigoscode.testing.customer.Customer.phoneNumber")
-                .isInstanceOf(DataIntegrityViolationException.class);
-
+        // WHEN & THEN: Falla al sincronizar con la base de datos
+        assertThatThrownBy(() -&gt; {
+            underTest.save(invalidPet);
+            entityManager.flush(); // Fuerza la ejecución inmediata de la sentencia SQL
+        }).isInstanceOf(DataIntegrityViolationException.class);
     }
 
+    @Test
+    @DisplayName("Filtro y Caso Contrario: findByVaccinatedTrue incluye vacunadas y excluye no vacunadas")
+    void shouldFindVaccinatedPetsAndExcludeUnvaccinated() {
+        // GIVEN: Se persisten ambos casos en la BD
+        PetEntity v1 = PetEntity.builder().name("Milo").species("Dog").age(1).vaccinated(true).admissionDate(LocalDate.now()).build();
+        PetEntity v2 = PetEntity.builder().name("Simba").species("Cat").age(4).vaccinated(false).admissionDate(LocalDate.now()).build();
+        entityManager.persist(v1);
+        entityManager.persist(v2);
+        entityManager.flush();
+
+        // WHEN: Búsqueda derivada
+        var result = underTest.findByVaccinatedTrue();
+
+        // THEN: Debe contener a Milo y excluir obligatoriamente a Simba
+        assertThat(result)
+                .extracting(PetEntity::getName)
+                .contains("Milo")
+                .doesNotContain("Simba");
+    }
 }
-</code></pre>	
+</code></pre>
 </div>
 
+---
 
-<h2>Service</h2>
+<h2>4. Ejemplo 2: Test Unitario de Servicio con ArgumentCaptor (JUnit 5 + Mockito)</h2>
+<p>
+    Verifica la orquestación lógica, la captura exacta de la entidad que se enviará a persistencia y el manejo de excepciones cuando el registro no existe:
+</p>
 
 <div class="center-horizontal">
 <pre><code class="language-java">
-@Service
-public class CustomerRegistrationService {
+package com.example.petshop.service;
 
-    private final CustomerRepository customerRepository;
-    private final PhoneNumberValidator phoneNumberValidator;
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.exception.PetNotFoundException;
+import com.example.petshop.model.relational.PetEntity;
+import com.example.petshop.repository.relational.PetJpaRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-    @Autowired
-    public CustomerRegistrationService(CustomerRepository customerRepository,
-                                       PhoneNumberValidator phoneNumberValidator) {
-        this.customerRepository = customerRepository;
-        this.phoneNumberValidator = phoneNumberValidator;
-    }
+import java.time.LocalDate;
+import java.util.Optional;
 
-    public void registerNewCustomer(CustomerRegistrationRequest request) {
-        String phoneNumber = request.getCustomer().getPhoneNumber();
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
-        if (!phoneNumberValidator.test(phoneNumber)) {
-            throw new IllegalStateException("Phone Number " + phoneNumber + " is not valid");
-        }
-
-        Optional&lt;Customer&gt; customerOptional = customerRepository
-                .selectCustomerByPhoneNumber(phoneNumber);
-
-        if (customerOptional.isPresent()) {
-            Customer customer = customerOptional.get();
-            if (customer.getName().equals(request.getCustomer().getName())) {
-                return;
-            }
-            throw new IllegalStateException(String.format("phone number [%s] is taken", phoneNumber));
-        }
-
-        if(request.getCustomer().getId() == null) {
-            request.getCustomer().setId(UUID.randomUUID());
-        }
-
-        customerRepository.save(request.getCustomer());
-    }
-}
-</code></pre>	
-</div>
-
-<div class="center-horizontal">
-<pre><code class="language-java">
-class CustomerRegistrationServiceTest {
-    @Mock
-    private CustomerRepository customerRepository;
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Test Unitario Aislado - PetService")
+class PetServiceUnitTest {
 
     @Mock
-    private PhoneNumberValidator phoneNumberValidator;
+    private PetJpaRepository petRepository;
+
+    @InjectMocks
+    private PetServiceImpl underTest;
 
     @Captor
-    private ArgumentCaptor&lt;Customer&gt; customerArgumentCaptor;
+    private ArgumentCaptor&lt;PetEntity&gt; captor;
 
-    private CustomerRegistrationService underTest;
+    @Test
+    @DisplayName("Debe capturar la entidad con sus valores convertidos antes de llamar a save()")
+    void shouldCaptureEntityAndPersistCorrectly() {
+        // GIVEN
+        PetDTO dto = PetDTO.builder()
+                .name("Bella")
+                .species("Rabbit")
+                .age((short) 1)
+                .vaccinated(true)
+                .admissionDate(LocalDate.now())
+                .build();
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.initMocks(this);
-        underTest = new CustomerRegistrationService(customerRepository, phoneNumberValidator);
+        PetEntity persisted = PetEntity.builder()
+                .id(50L)
+                .name("Bella")
+                .species("Rabbit")
+                .age(1)
+                .vaccinated(true)
+                .admissionDate(LocalDate.now())
+                .build();
+
+        given(petRepository.save(captor.capture())).willReturn(persisted);
+
+        // WHEN
+        PetDTO result = underTest.registerPet(dto);
+
+        // THEN
+        assertThat(result.getId()).isEqualTo(50L);
+        PetEntity captured = captor.getValue();
+        assertThat(captured.getName()).isEqualTo("Bella");
+        assertThat(captured.getSpecies()).isEqualTo("Rabbit");
+
+        then(petRepository).should().save(any(PetEntity.class));
     }
 
     @Test
-    void itShouldSaveNewCustomer() {
-        // Given a phone number and a customer
-        String phoneNumber = "000099";
-        Customer customer = new Customer(UUID.randomUUID(), "Maryam", phoneNumber);
+    @DisplayName("Debe lanzar excepción y nunca llamar a delete() si el ID no existe")
+    void shouldThrowExceptionAndNeverCallDeleteWhenNotFound() {
+        // GIVEN
+        Long invalidId = 999L;
+        given(petRepository.findById(invalidId)).willReturn(Optional.empty());
 
-        // ... a request
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
+        // WHEN & THEN
+        assertThatThrownBy(() -&gt; underTest.deletePet(invalidId))
+                .isInstanceOf(PetNotFoundException.class);
 
-        // ... No customer with phone number passed
-        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
-                .willReturn(Optional.empty());
-
-        //... Valid phone number
-        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
-
-        // When
-        underTest.registerNewCustomer(request);
-
-        // Then
-        then(customerRepository).should().save(customerArgumentCaptor.capture());
-        Customer customerArgumentCaptorValue = customerArgumentCaptor.getValue();
-        assertThat(customerArgumentCaptorValue).isEqualTo(customer);
-    }
-
-    @Test
-    void itShouldNotSaveNewCustomerWhenPhoneNumberIsInvalid() {
-        // Given a phone number and a customer
-        String phoneNumber = "000099";
-        Customer customer = new Customer(UUID.randomUUID(), "Maryam", phoneNumber);
-
-        // ... a request
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
-
-
-        //... Valid phone number
-        given(phoneNumberValidator.test(phoneNumber)).willReturn(false);
-
-        // When
-        assertThatThrownBy(() -> underTest.registerNewCustomer(request))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Phone Number " + phoneNumber + " is not valid");
-
-        // Then
-        then(customerRepository).shouldHaveNoInteractions();
-    }
-
-    @Test
-    void itShouldSaveNewCustomerWhenIdIsNull() {
-        // Given a phone number and a customer
-        String phoneNumber = "000099";
-        Customer customer = new Customer(null, "Maryam", phoneNumber);
-
-        // ... a request
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
-
-        // ... No customer with phone number passed
-        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
-                .willReturn(Optional.empty());
-
-        //... Valid phone number
-        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
-
-        // When
-        underTest.registerNewCustomer(request);
-
-        // Then
-        then(customerRepository).should().save(customerArgumentCaptor.capture());
-        Customer customerArgumentCaptorValue = customerArgumentCaptor.getValue();
-        assertThat(customerArgumentCaptorValue)
-                .isEqualToIgnoringGivenFields(customer, "id");
-        assertThat(customerArgumentCaptorValue.getId()).isNotNull();
-    }
-
-    @Test
-    void itShouldNotSaveCustomerWhenCustomerExists() {
-        // Given a phone number and a customer
-        String phoneNumber = "000099";
-        Customer customer = new Customer(UUID.randomUUID(), "Maryam", phoneNumber);
-
-        // ... a request
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
-
-        // ... an existing customer is retuned
-        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
-                .willReturn(Optional.of(customer));
-
-        //... Valid phone number
-        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
-
-        // When
-        underTest.registerNewCustomer(request);
-
-        // Then
-        then(customerRepository).should(never()).save(any());
-    }
-
-    @Test
-    void itShouldThrowWhenPhoneNumberIsTaken() {
-        // Given a phone number and a customer
-        String phoneNumber = "000099";
-        Customer customer = new Customer(UUID.randomUUID(), "Maryam", phoneNumber);
-        Customer customerTwo = new Customer(UUID.randomUUID(), "John", phoneNumber);
-
-        // ... a request
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
-
-        // ... No customer with phone number passed
-        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
-                .willReturn(Optional.of(customerTwo));
-
-        //... Valid phone number
-        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
-
-        // When
-        // Then
-        assertThatThrownBy(() -> underTest.registerNewCustomer(request))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining(String.format("phone number [%s] is taken", phoneNumber));
-
-        // Finally
-        then(customerRepository).should(never()).save(any(Customer.class));
-
+        // Verificamos que NUNCA se intentó borrar nada en la base de datos
+        then(petRepository).should(never()).delete(any(PetEntity.class));
     }
 }
-</code></pre>	
+</code></pre>
+</div>
+
+---
+
+<h2>5. Ejemplo 3: Test Web con MockMvc y Bean Validation (@WebMvcTest)</h2>
+<p>
+    Prueba el contrato REST, cabeceras HTTP y el rechazo automático de payloads que violen restricciones de validación:
+</p>
+
+<div class="center-horizontal">
+<pre><code class="language-java">
+package com.example.petshop.controller;
+
+import com.example.petshop.dto.PetDTO;
+import com.example.petshop.service.PetService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(PetController.class)
+@DisplayName("Slice Test Web - PetController Contract & Validation")
+class PetControllerSliceTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private PetService petService;
+
+    @Test
+    @DisplayName("POST /petshop/pet: Retorna 201 Created cuando el payload es válido")
+    void shouldReturn201WhenPayloadIsValid() throws Exception {
+        PetDTO valid = PetDTO.builder().name("Thor").species("Dog").age((short) 2).vaccinated(true).build();
+        PetDTO saved = PetDTO.builder().id(7).name("Thor").species("Dog").age((short) 2).vaccinated(true).build();
+
+        given(petService.save(any(PetDTO.class))).willReturn(saved);
+
+        mockMvc.perform(post("/petshop/pet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(valid)))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"));
+    }
+
+    @Test
+    @DisplayName("POST /petshop/pet: Retorna 400 Bad Request cuando el nombre está en blanco")
+    void shouldReturn400WhenNameIsBlank() throws Exception {
+        PetDTO invalid = PetDTO.builder().name("").species("Dog").age((short) 2).build();
+
+        mockMvc.perform(post("/petshop/pet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalid)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
+}
+</code></pre>
 </div>
